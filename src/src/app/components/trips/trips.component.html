@@ -1,0 +1,50 @@
+<div class="max-w-7xl mx-auto px-4 md:px-0 m-4">
+  <div class="p-4 flex justify-between items-center">
+    <div>
+      <img src="favicon.png" (click)="gotoMap()" class="cursor-pointer w-24" />
+    </div>
+    <div class="flex gap-2">
+      <p-button icon="pi pi-map" (click)="gotoMap()" text />
+      <p-button icon="pi pi-plus" (click)="addTrip()" text />
+    </div>
+  </div>
+
+  <div class="mt-10 grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+    @defer {
+    @for (trip of trips; track trip.id) {
+    <div class="group relative rounded-lg overflow-hidden shadow-lg cursor-pointer" (click)="viewTrip(trip.id)">
+      <img class="rounded-lg object-cover transform transition-transform duration-300 ease-in-out group-hover:scale-105"
+        [src]="trip.image" />
+
+      <div class="absolute inset-0 bg-black/5 flex flex-col justify-end p-4 text-white">
+        <h3 class="text-lg font-semibold line-clamp-2">{{ trip.name }}</h3>
+        <p class="text-sm ">{{ trip.days || 0 }} {{ trip.days > 1 ? 'days' : 'day'}}</p>
+
+        <i
+          class="pi pi-arrow-right text-xl absolute right-4 bottom-4 h-4 opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"></i>
+      </div>
+    </div>
+    } @empty {
+    <div class="px-4 mx-auto max-w-screen-xl mt-8 col-span-full">
+      <div class="py-8 px-4 flex flex-col items-center gap-1">
+        <h2 class="mb-0 text-4xl text-center tracking-tight font-extrabold text-gray-900 dark:text-gray-200">
+          No Trip.
+        </h2>
+
+        <p class="mt-4 font-light text-gray-500 sm:text-xl">
+          Add <i>Trip</i> to start organizing !
+        </p>
+
+        <p-button styleClass="mt-4" label="Create" icon="pi pi-plus" (click)="addTrip()" text />
+      </div>
+    </div>
+    }
+    } @placeholder (minimum 0.4s) {
+    @for (_ of [1,2,3]; track _) {
+    <div>
+      <p-skeleton height="12rem" />
+    </div>
+    }
+    }
+  </div>
+</div>

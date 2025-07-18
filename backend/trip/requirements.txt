@@ -1,0 +1,7 @@
+fastapi[standard]~=0.115
+sqlmodel~=0.0
+pydantic~=2.11
+PyJWT~=2.10
+argon2-cffi~=25.1
+pydantic_settings~=2.9
+Pillow~=11.2

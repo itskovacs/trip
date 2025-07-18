@@ -1,0 +1,311 @@
+<section class="mt-4">
+  <div class="p-4 print:p-0 flex items-center justify-between">
+    <div class="flex items-center gap-2">
+      <p-button text icon="pi pi-chevron-left" class="print:hidden" (click)="back()" severity="secondary" />
+      <div class="flex flex-col max-w-[55vw] md:max-w-full">
+        <h1 class="font-medium tracking-tight text-2xl truncate">{{ trip?.name }}</h1>
+        <span class="text-xs text-gray-500">{{ trip?.days?.length }} {{ trip?.days!.length > 1 ? 'days' : 'day'}}</span>
+      </div>
+    </div>
+
+    <div class="hidden print:flex flex-col items-center">
+      <img src="favicon.png" class="size-20">
+      <div class="flex gap-2 items-center text-xs text-gray-500"><i class="pi pi-github"></i>itskovacs/trip</div>
+    </div>
+    <div class="flex flex-col md:flex-row items-center gap-2 print:hidden">
+      <div>
+        <p-button text (click)="deleteTrip()" icon="pi pi-trash" severity="danger" />
+        <p-button text (click)="editTrip()" icon="pi pi-pencil" />
+      </div>
+      <div>
+        <span class="bg-gray-100 text-gray-800 text-xs md:text-sm font-medium me-2 px-2.5 py-0.5 rounded">{{ totalPrice
+          || '-' }} {{ currency$ | async }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="p-4 print:px-1 grid md:grid-cols-3 gap-4 print:block">
+  <div class="p-4 shadow rounded-md md:col-span-2 max-w-screen print:col-span-full">
+    <div class="p-2 mb-2 flex justify-between items-center">
+      <div>
+        <h1 class="font-semibold tracking-tight text-xl">Plans</h1>
+        <span class="text-xs text-gray-500 line-clamp-1">{{ trip?.name }} plans</span>
+      </div>
+
+      <div class="flex items-center gap-2 print:hidden">
+        <p-button icon="pi pi-print" (click)="printTable()" text />
+        <div class="border-l border-solid border-gray-700 h-4"></div>
+        <p-button icon="pi pi-ellipsis-v" (click)="addItems()" text />
+        <p-button icon="pi pi-plus" (click)="addItem()" text />
+      </div>
+    </div>
+
+    @defer {
+    @if (flattenedTripItems.length) {
+    <p-table [value]="flattenedTripItems" styleClass="max-w-[85vw] md:max-w-full" rowGroupMode="rowspan"
+      groupRowsBy="td_label">
+      <ng-template #header>
+        <tr>
+          <th>Day</th>
+          <th class="w-10">Time</th>
+          <th>Text</th>
+          <th class="w-24">Place</th>
+          <th>Comment</th>
+          <th class="w-20">LatLng</th>
+          <th class="w-12">Price</th>
+          <th class="w-12">Status</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-tripitem let-rowIndex="rowIndex" let-rowgroup="rowgroup" let-rowspan="rowspan">
+        <tr class="h-12 cursor-pointer" [class.font-bold]="selectedItem?.id === tripitem.id"
+          (click)="onRowClick(tripitem)">
+          @if (rowgroup) {
+          <td [attr.rowspan]="rowspan" class="!font-normal max-w-20 truncate cursor-default"
+            (click)="$event.stopPropagation()">
+            <div class="truncate">{{tripitem.td_label }}</div>
+          </td>
+          }
+          <td class="font-mono text-sm">{{ tripitem.time }}</td>
+          <td class="max-w-60 truncate">{{ tripitem.text }}</td>
+          <td class="relative">
+            @if (tripitem.place) {
+            <div class="ml-7 print:ml-0 max-w-24 truncate">
+              <img [src]="tripitem.place.image"
+                class="absolute left-0 top-1/2 -translate-y-1/2 w-9 rounded-full object-cover print:hidden" /> {{
+              tripitem.place.name }}
+            </div>
+            } @else {-}
+          </td>
+          <td class="max-w-20 truncate">{{ tripitem.comment || '-' }}</td>
+          <td class="font-mono text-sm">
+            <div class="max-w-20 truncate">
+              @if (tripitem.lat) { {{ tripitem.lat }}, {{ tripitem.lng }} }
+              @else {-}
+            </div>
+          </td>
+          <td class="truncate">@if (tripitem.price) {<span
+              class="bg-gray-100 text-gray-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded">{{
+              tripitem.price }} {{ currency$ | async }}</span>}</td>
+          <td class="truncate">@if (tripitem.status) {<span [style.background]="tripitem.status.color+'1A'"
+              [style.color]="tripitem.status.color" class="text-xs font-medium me-2 px-2.5 py-0.5 rounded">{{
+              tripitem.status.label }}</span>}</td>
+        </tr>
+      </ng-template>
+    </p-table>
+    } @else {
+    <div class="px-4 mx-auto max-w-screen-xl mt-8 col-span-full print:hidden">
+      <div class="py-8 px-4 flex flex-col items-center gap-1">
+        <h2 class="mb-0 text-4xl text-center tracking-tight font-extrabold text-gray-900 dark:text-gray-200">
+          No Trip.
+        </h2>
+
+        <p class="mt-4 font-light text-gray-500 sm:text-xl">
+          Add <i>Day</i> to your <i>Trip</i> to start organizing !
+        </p>
+
+        <p-button styleClass="mt-4" label="Add" icon="pi pi-plus" (click)="addDay()" text />
+      </div>
+    </div>
+    <div class="hidden print:block text-center text-sm text-gray-500 mt-4">
+      No Trip
+    </div>
+    }
+    } @placeholder (minimum 0.4s) {
+    <div class="h-[400px] w-full">
+      <p-skeleton height="100%" />
+    </div>
+    }
+  </div>
+
+  <div class="flex flex-col gap-4 sticky top-4 self-start max-w-screen print:hidden">
+    @if (selectedItem) {
+    <div class="p-4 w-full min-h-20 md:max-h-[600px] rounded-md shadow text-center">
+      <div class="flex items-center justify-between px-2">
+        <div class="hidden md:flex h-20 w-32">
+          @if (selectedItem.place) {
+          <img [src]="selectedItem.place.image" class="h-full w-full rounded-md object-cover" />
+          }
+        </div>
+
+        <h2 class="text-xl md:text-3xl font-semibold mb-0 truncate max-w-96 md:mx-auto">{{ selectedItem.text }}</h2>
+        <div class="flex items-center gap-2">
+          <p-button icon="pi pi-trash" severity="danger" (click)="deleteItem(selectedItem)" text />
+          <p-button icon="pi pi-pencil" (click)="editItem(selectedItem)" text />
+          <p-button icon="pi pi-times" (click)="selectedItem = undefined" text />
+        </div>
+      </div>
+
+      <div class="p-4 px-2 grid md:grid-cols-3 gap-4 overflow-auto w-full">
+        <div class="rounded-md shadow p-4 w-full">
+          <p class="font-bold mb-1">Time</p>
+          <p class="text-sm text-gray-500">{{ selectedItem.time }}</p>
+        </div>
+
+        <div class="md:col-span-2 rounded-md shadow p-4">
+          <p class="font-bold mb-1">Text</p>
+          <p class="text-sm text-gray-500">{{ selectedItem.text }}</p>
+        </div>
+
+        @if (selectedItem.place) {
+        <div class="rounded-md shadow p-4">
+          <p class="font-bold mb-1">Place</p>
+          <div class="truncate">{{ selectedItem.place.name }}</div>
+        </div>
+        }
+
+        @if (selectedItem.comment) {
+        <div class="md:col-span-2 rounded-md shadow p-4">
+          <p class="font-bold mb-1">Comment</p>
+          <p class="text-sm text-gray-500">{{ selectedItem.comment }}</p>
+        </div>
+        }
+
+        @if (selectedItem.lat) {
+        <div class="rounded-md shadow p-4">
+          <p class="font-bold mb-1">Latitude</p>
+          <p class="text-sm text-gray-500">{{ selectedItem.lat }}</p>
+        </div>
+        }
+
+        @if (selectedItem.lng) {
+        <div class="rounded-md shadow p-4">
+          <p class="font-bold mb-1">Longitude</p>
+          <p class="text-sm text-gray-500">{{ selectedItem.lng }}</p>
+        </div>
+        }
+
+        @if (selectedItem.price) {
+        <div class="rounded-md shadow p-4">
+          <p class="font-bold mb-1">Price</p>
+          <p class="text-sm text-gray-500">{{ selectedItem.price }} {{ currency$ | async }}</p>
+        </div>
+        }
+
+        @if (selectedItem.status) {
+        <div class="rounded-md shadow p-4">
+          <p class="font-bold mb-1">Status</p>
+          <span [style.background]="selectedItem.status.color+'1A'" [style.color]="selectedItem.status.color"
+            class="text-xs font-medium me-2 px-2.5 py-0.5 rounded">{{
+            selectedItem.status.label }}</span>
+        </div>
+        }
+      </div>
+    </div>
+
+    } @else {
+    <div class="p-4 shadow rounded-md w-full min-h-20">
+      <div class="p-2 mb-2 flex justify-between items-center">
+        <div>
+          <h1 class="font-semibold tracking-tight text-xl">Days</h1>
+          <span class="text-xs text-gray-500 line-clamp-1">{{ trip?.name }} days</span>
+        </div>
+
+        <p-button icon="pi pi-plus" (click)="addDay()" text />
+      </div>
+
+      <div class="max-h-[20vh] overflow-y-auto">
+        @defer {
+        @for (d of trip?.days; track d.id) {
+        <div class="group flex items-center rounded-md justify-between h-10 px-4 py-2 hover:bg-gray-50">
+          {{ d.label }}
+          <div>
+            <span class="bg-gray-100 text-gray-800 text-sm me-2 px-2.5 py-0.5 rounded-md group-hover:hidden">{{
+              getDayStats(d).price || '-' }} {{ currency$ | async }}</span>
+            <span class="bg-blue-100 text-blue-800 text-sm me-2 px-2.5 py-0.5 rounded-md group-hover:hidden">{{
+              getDayStats(d).places }}</span>
+          </div>
+          <div class="hidden group-hover:flex gap-2 items-center">
+            <p-button icon="pi pi-trash" severity="danger" (click)="deleteDay(d)" text />
+            <p-button icon="pi pi-pencil" (click)="editDay(d)" label="Edit" text />
+            <p-button icon="pi pi-plus" (click)="addItem(d.id)" label="Item" text />
+          </div>
+        </div>
+        } @empty {
+        <p-button label="Add" icon="pi pi-plus" (click)="addDay()" text />
+        }
+        } @placeholder (minimum 0.4s) {
+        <div class="h-16">
+          <p-skeleton height="100%" />
+        </div>
+        }
+      </div>
+    </div>
+
+    <div class="p-4 shadow rounded-md w-full min-h-20">
+      <div class="p-2 mb-2 flex justify-between items-center">
+        <div>
+          <h1 class="font-semibold tracking-tight text-xl">Places</h1>
+          <span class="text-xs text-gray-500 line-clamp-1">{{ trip?.name }} places</span>
+        </div>
+
+        <div class="flex items-center">
+          @defer {
+          <span class="bg-blue-100 text-blue-800 text-sm me-2 px-2.5 py-0.5 rounded-md">{{ places.length }}</span>
+          } @placeholder (minimum 0.4s) {
+          <p-skeleton height="1.75rem" width="2.5rem" class="mr-1" />
+          }
+          <p-button icon="pi pi-plus" (click)="manageTripPlaces()" text />
+        </div>
+      </div>
+
+      <div class="max-h-[25vh] overflow-y-auto">
+        @defer {
+        @for (p of places; track p.id) {
+        <div class="flex items-center gap-4 py-2 px-4 hover:bg-gray-50 rounded-md overflow-auto"
+          (mouseenter)="highlightMarker(p.lat, p.lng)" (mouseleave)="resetHighlightMarker()">
+          <img [src]="p.image" class="w-12 rounded-full object-fit">
+
+          <div class="flex flex-col gap-1 truncate">
+            <h1 class="tracking-tight truncate">{{ p.name }}</h1>
+            <span class="text-xs text-gray-500 truncate">{{ p.place }}</span>
+
+            <div class="flex gap-0.5">
+              <span
+                class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded flex gap-2 items-center truncate"><i
+                  class="pi pi-box text-xs"></i>{{ p.category.name }}</span>
+
+              @if (p.placeUsage) {
+              <span class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded"><i
+                  class="pi pi-check-square text-xs"></i></span>
+              } @else {
+              <span class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded"><i
+                  class="pi pi-map-marker text-xs"></i></span>
+              }
+
+              <span class="bg-gray-100 text-gray-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded">{{ p.price || '-'
+                }} {{ currency$ | async }}</span>
+
+            </div>
+          </div>
+        </div>
+        } @empty {
+        <p-button label="Add" icon="pi pi-plus" (click)="manageTripPlaces()" text />
+        }
+        } @placeholder (minimum 0.4s) {
+        <div class="flex flex-col gap-4">
+          @for (_ of [1,2,3]; track _) {
+          <div class="h-16">
+            <p-skeleton height="100%" />
+          </div>
+          }
+        </div>
+        }
+      </div>
+    </div>
+    }
+
+    <div class="z-10 p-4 shadow rounded-md w-full min-h-20 max-h-full overflow-y-auto">
+      <div class="p-2 mb-2 flex justify-between items-center">
+        <div>
+          <h1 class="font-semibold tracking-tight text-xl">Map</h1>
+          <span class="text-xs text-gray-500 line-clamp-1">{{ trip?.name }} places</span>
+        </div>
+
+        <p-button icon="pi pi-refresh" [disabled]="!places.length" (click)="setMapBounds()" text />
+      </div>
+
+      <div id="map" class="w-full rounded-md min-h-96 h-1/3 max-h-full"></div>
+    </div>
+  </div>
+</section>

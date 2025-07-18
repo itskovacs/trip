@@ -1,0 +1,11 @@
+services:
+  app:
+    build: .
+    ports:
+      - 127.0.0.1:8080:8000 #127.0.0.1: locally exposed, on port 8080 by default
+    volumes:
+      - trip-storage:/app/storage #Do not change /app/storage, only the first part (./storage) if needed
+    command: ["fastapi", "run", "/app/trip/main.py", "--host", "0.0.0.0"]
+
+volumes:
+  trip-storage:

@@ -1,0 +1,81 @@
+<section>
+  <div [formGroup]="itemForm">
+    <div class="grid md:grid-cols-5 gap-4">
+      <p-floatlabel variant="in">
+        <p-select [options]="days" optionValue="id" optionLabel="label" inputId="day_id" id="day_id"
+          formControlName="day_id" [checkmark]="true" class="capitalize" fluid />
+        <label for="day_id">Day</label>
+      </p-floatlabel>
+
+      <p-floatlabel variant="in" class="w-full">
+        <p-inputmask id="time" formControlName="time" mask="99?:99" fluid styleClass="w-full" />
+        <label for="time">Time (HH, HH:MM)</label>
+      </p-floatlabel>
+
+      <div class="md:col-span-3">
+        <p-floatlabel variant="in">
+          <input id="text" formControlName="text" pInputText fluid />
+          <label for="text">Text</label>
+        </p-floatlabel>
+      </div>
+    </div>
+
+    <div class="mt-4 grid md:grid-cols-7 gap-4">
+      <p-floatlabel variant="in" class="md:col-span-2">
+        <p-select [options]="places" optionValue="id" optionLabel="name" inputId="place" id="place"
+          formControlName="place" [showClear]="true" class="capitalize" fluid>
+
+          <ng-template let-place #item>
+            <div class="flex items-center gap-2" [class.text-gray-500]="place.placeUsage">
+              <img [src]="place.image" class="rounded-full size-6" />
+              <div>{{ place.name }}</div>
+            </div>
+          </ng-template>
+        </p-select>
+        <label for="place">Place</label>
+      </p-floatlabel>
+
+      <p-floatlabel variant="in">
+        <input id="lat" formControlName="lat" pInputText fluid />
+        <label for="lat">Latitude</label>
+      </p-floatlabel>
+
+      <p-floatlabel variant="in">
+        <input id="lng" formControlName="lng" pInputText fluid />
+        <label for="lng">Longitude</label>
+      </p-floatlabel>
+
+      <p-floatlabel variant="in">
+        <input id="price" formControlName="price" type="number" pInputText fluid />
+        <label for="price">Price</label>
+      </p-floatlabel>
+
+      <p-floatlabel variant="in" class="md:col-span-2">
+        <p-select [options]="statuses" optionValue="label" optionLabel="label" inputId="status" id="status"
+          class="capitalize" formControlName="status" [checkmark]="true" [showClear]="true" fluid>
+          <ng-template #selectedItem let-selectedOption>
+            @if (selectedOption) {
+            <div class="flex items-center gap-2">
+              <div class="size-4 rounded-md" [style]="'background:'+selectedOption.color"></div>
+              <div>{{ selectedOption.label }}</div>
+            </div>
+            }
+          </ng-template>
+        </p-select>
+        <label for="status">Status</label>
+      </p-floatlabel>
+    </div>
+
+    <div class="mt-4">
+      <p-floatlabel variant="in" class="w-full">
+        <textarea pTextarea id="comment" formControlName="comment" rows="5" autoResize fluid></textarea>
+        <label for="comment">Comment</label>
+      </p-floatlabel>
+    </div>
+  </div>
+
+  <div class="mt-4 text-right">
+    <p-button (click)="closeDialog()" [disabled]="!itemForm.dirty || !itemForm.valid">{{ itemForm.get("id")?.value
+      !== -1 ? "Update" : "Create" }}</p-button>
+  </div>
+</section>

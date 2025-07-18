@@ -1,0 +1,121 @@
+@if (selectedPlace) {
+<div class="place-box-dialog">
+    <div class="place-box-dialog-content">
+        <div class="flex justify-between items-center mb-3">
+            <div class="flex items-center gap-4">
+                <img [src]="selectedPlace.image || '/assets/unknown.png'"
+                    style="height: 64px; width: 64px; object-fit: cover; border-radius: 100%;">
+                <div class="hidden md:flex md:flex-col">
+                    <h1 class="text-gray-800 font-bold mb-0 truncate">{{ selectedPlace.name }}</h1>
+
+                    <div class="flex mt-2 gap-1">
+                        <span
+                            class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300 flex gap-2 items-center truncate"><i
+                                class="pi pi-box text-xs"></i>{{ selectedPlace.category.name }}</span>
+
+                        @if (selectedPlace.allowdog) {
+                        <span
+                            class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300 ">🐶
+                            Yes</span>
+                        } @else {
+                        <span
+                            class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300">🐶
+                            No</span>
+                        }
+
+                        @if (selectedPlace.visited) {
+                        <span
+                            class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300"><i
+                                class="pi pi-eye text-xs"></i> Done</span>
+                        } @else {
+                        <span
+                            class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300"><i
+                                class="pi pi-eye-slash text-xs"></i> To do</span>
+                        }
+                    </div>
+                </div>
+                <h1 class="block md:hidden text-gray-800 font-bold mb-0 truncate">{{ selectedPlace.name }}</h1>
+            </div>
+
+            <div class="flex items-center justify-end gap-2">
+                <div class="hidden md:flex">
+                    @if(selectedPlace.gpx) {<p-button (click)="displayGPX()" text icon="pi pi-compass" />}
+                    <p-button (click)="visitPlace()" styleClass="text-green-500!" text
+                        [icon]="selectedPlace.visited ? 'pi pi-check-circle': 'pi pi-check'" />
+                    <p-button (click)="favoritePlace()" styleClass="text-yellow-500!" text
+                        [icon]="selectedPlace.favorite ? 'pi pi-star-fill' : 'pi pi-star'" />
+                    <p-button (click)="deletePlace()" severity="danger" text icon="pi pi-trash" />
+                    <p-button styleClass="text-blue-500!" (click)="editPlace()" text icon="pi pi-pencil" />
+                </div>
+
+                <div class="flex md:hidden">
+                    <p-button (click)="menu.toggle($event)" severity="secondary" text icon="pi pi-ellipsis-h" />
+                </div>
+
+                <div class="border-l border-solid border-gray-700 h-4"></div>
+                <p-button (click)="close()" text icon="pi pi-times" />
+            </div>
+        </div>
+
+        <div class="mt-4 grid grid-cols-2 md:grid-cols-4">
+            <div class="col-span-2 flex flex-col mb-4">
+                <span class="text-gray-500">Place</span>
+                <span>{{ selectedPlace.place }}</span>
+            </div>
+
+            <div class="flex flex-col mb-4">
+                <span class="text-gray-500">Latitude</span>
+                <span>{{ selectedPlace.lat }}</span>
+            </div>
+
+            <div class="flex flex-col mb-4">
+                <span class="text-gray-500">Longitude</span>
+                <span>{{ selectedPlace.lng }}</span>
+            </div>
+
+            <div class="col-span-2 flex flex-col mb-4">
+                <span class="text-gray-500">Description</span>
+                <span>{{ selectedPlace.description || '-' }}</span>
+            </div>
+
+            <div class="flex flex-col mb-4">
+                <span class="text-gray-500">Price</span>
+                <span>{{ selectedPlace.price || '-' }} {{ currency$ | async }}</span>
+            </div>
+
+            <div class="flex flex-col mb-4">
+                <span class="text-gray-500">Duration</span>
+                <span>{{ selectedPlace.duration || '-' }}</span>
+            </div>
+        </div>
+
+        <div class="flex md:hidden mt-2 justify-center gap-1">
+            <span
+                class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded dark:bg-blue-900 dark:text-blue-300 flex gap-2 items-center truncate"><i
+                    class="pi pi-box text-xs"></i>{{ selectedPlace.category.name }}</span>
+
+            @if (selectedPlace.allowdog) {
+            <span
+                class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300 ">🐶
+                Yes</span>
+            } @else {
+            <span
+                class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300">🐶
+                No</span>
+            }
+
+            @if (selectedPlace.visited) {
+            <span
+                class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300"><i
+                    class="pi pi-eye text-xs"></i> Done</span>
+            } @else {
+            <span
+                class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300"><i
+                    class="pi pi-eye-slash text-xs"></i> To do</span>
+            }
+        </div>
+    </div>
+</div>
+}
+
+<p-menu #menu [model]="menuItems" [popup]="true" />

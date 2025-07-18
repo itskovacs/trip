@@ -1,0 +1,97 @@
+<section>
+  <div pFocusTrap class="grid grid-cols-2 md:grid-cols-4 gap-4" [formGroup]="placeForm">
+    <p-floatlabel variant="in" class="col-span-2">
+      <input id="name" formControlName="name" pInputText fluid />
+      <label for="name">Name</label>
+    </p-floatlabel>
+
+    <p-floatlabel variant="in">
+      <input id="lat" formControlName="lat" pInputText fluid />
+      <label for="lat">Latitude</label>
+    </p-floatlabel>
+
+    <p-floatlabel variant="in">
+      <input id="lng" formControlName="lng" pInputText fluid />
+      <label for="lng">Longitude</label>
+    </p-floatlabel>
+
+    <p-floatlabel variant="in" class="col-span-2 md:col-span-3">
+      <input id="place" formControlName="place" pInputText fluid />
+      <label for="place">Place</label>
+    </p-floatlabel>
+
+    <p-floatlabel variant="in" class="col-span-2 md:col-span-1">
+      <p-select [options]="(categories$ | async) || []" optionValue="id" optionLabel="name"
+        [loading]="!(categories$ | async)?.length" inputId="category" id="category" formControlName="category"
+        [checkmark]="true" class="w-full capitalize" fluid />
+      <label for="category">Category</label>
+    </p-floatlabel>
+
+    <p-floatlabel variant="in">
+      <input id="duration" formControlName="duration" pInputText fluid />
+      <label for="duration">Duration</label>
+    </p-floatlabel>
+
+    <p-floatlabel variant="in">
+      <input id="price" formControlName="price" pInputText fluid />
+      <label for="price">Price</label>
+    </p-floatlabel>
+
+    <div class="flex justify-center items-center">
+      <p-checkbox formControlName="allowdog" [binary]="true" inputId="allowdog" />
+      <label for="allowdog" class="ml-2">Allow 🐶</label>
+    </div>
+
+    <div class="flex justify-center items-center">
+      <p-checkbox formControlName="visited" [binary]="true" inputId="visited" />
+      <label for="visited" class="ml-2">Visited</label>
+    </div>
+
+    <div class="grid col-span-full md:grid-cols-4">
+      <p-floatlabel variant="in" class="col-span-full md:col-span-3">
+        <textarea pTextarea id="description" formControlName="description" rows="3" autoResize fluid></textarea>
+        <label for="description">Description</label>
+      </p-floatlabel>
+
+      <div class="mt-4 md:mt-0 grid place-items-center col-span-full md:col-span-1">
+        @if (placeForm.get("image_id")?.value) {
+        <div class="w-2/3 relative group cursor-pointer" (click)="fileInput.click()">
+          <img [src]="placeForm.get('image')?.value"
+            class="w-full max-h-20 object-cover rounded-full shadow-lg transition-transform duration-300" />
+          <div
+            class="absolute inset-0 bg-black/50 rounded-full flex flex-col gap-4 items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <span class="text-sm text-gray-300">Click to edit</span><i class="pi pi-upload text-white"></i>
+          </div>
+        </div>
+        <input type="file" accept="image/*" #fileInput class="hidden" (change)="onFileSelected($event)" />
+        } @else {
+        @if (placeForm.get("image")?.value) {
+        <div class="w-2/3 relative group cursor-pointer" (click)="clearImage()">
+          <img [src]="placeForm.get('image')?.value"
+            class="w-full max-h-20 object-cover rounded-full shadow-lg transition-transform duration-300" />
+          <div
+            class="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <i class="pi pi-trash text-white text-3xl"></i>
+          </div>
+        </div>
+        } @else {
+        <div class="w-2/3 relative group cursor-pointer" (click)="fileInput.click()">
+          <img src="/favicon.png"
+            class="w-full max-h-20 object-cover rounded-full shadow-lg transition-transform duration-300" />
+          <div
+            class="absolute inset-0 bg-black/50 rounded-full flex flex-col gap-4 items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <span class="text-sm text-gray-300">Click to edit</span><i class="pi pi-upload text-white"></i>
+          </div>
+        </div>
+        <input type="file" accept="image/*" #fileInput class="hidden" (change)="onFileSelected($event)" />
+        }
+        }
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4 text-right">
+    <p-button (click)="closeDialog()" [disabled]="!placeForm.dirty || !placeForm.valid">{{ placeForm.get("id")?.value
+      !== -1 ? "Update" : "Create" }}</p-button>
+  </div>
+</section>

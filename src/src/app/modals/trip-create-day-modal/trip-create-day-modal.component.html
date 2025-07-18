@@ -1,0 +1,13 @@
+<section>
+  <div [formGroup]="dayForm">
+    <p-floatlabel variant="in">
+      <input id="label" formControlName="label" pInputText fluid />
+      <label for="label">Label</label>
+    </p-floatlabel>
+  </div>
+
+  <div class="mt-4 text-right">
+    <p-button (click)="closeDialog()" [disabled]="!dayForm.dirty || !dayForm.valid">{{ dayForm.get("id")?.value
+      !== -1 ? "Update" : "Create" }}</p-button>
+  </div>
+</section>

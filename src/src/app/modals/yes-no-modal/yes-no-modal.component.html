@@ -1,0 +1,24 @@
+<div class="flex items-center gap-4">
+  <div class="p-2">
+    <span
+      class="pi pi-exclamation-triangle text-4xl text-red-400 bg-gray-50 p-4 rounded-full"
+    ></span>
+  </div>
+  <span>{{ msg }}</span>
+</div>
+
+<div class="flex justify-center gap-4 mt-4">
+  <p-button
+    label="Cancel"
+    icon="pi pi-times"
+    severity="success"
+    (click)="confirm()"
+  />
+  <p-button
+    label="Confirm"
+    icon="pi pi-check"
+    variant="outlined"
+    severity="danger"
+    (click)="confirm(true)"
+  />
+</div>
