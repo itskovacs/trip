@@ -43,14 +43,25 @@
       <label for="price">Price</label>
     </p-floatlabel>
 
-    <div class="flex justify-center items-center">
-      <p-checkbox formControlName="allowdog" [binary]="true" inputId="allowdog" />
-      <label for="allowdog" class="ml-2">Allow 🐶</label>
-    </div>
+    <div class="col-span-2 grid grid-cols-2 md:grid-cols-3 gap-4">
+      <div class="flex justify-center items-center">
+        <p-checkbox formControlName="allowdog" [binary]="true" inputId="allowdog" />
+        <label for="allowdog" class="ml-2">Allow 🐶</label>
+      </div>
 
-    <div class="flex justify-center items-center">
-      <p-checkbox formControlName="visited" [binary]="true" inputId="visited" />
-      <label for="visited" class="ml-2">Visited</label>
+      <div class="flex justify-center items-center">
+        <p-checkbox formControlName="visited" [binary]="true" inputId="visited" />
+        <label for="visited" class="ml-2">Visited</label>
+      </div>
+
+      <div class="col-span-2 md:col-span-1 flex justify-center items-center">
+        @if (placeForm.get('gpx')?.value) {
+        <p-button text icon="pi pi-times" label="GPX" severity="danger" (click)="clearGPX()" />
+        } @else {
+        <p-button text icon="pi pi-paperclip" label="GPX" (click)="gpxInput.click()" />
+        }
+        <input type="file" accept=".gpx" #gpxInput class="hidden" (change)="onGPXSelected($event)" />
+      </div>
     </div>
 
     <div class="grid col-span-full md:grid-cols-4">
@@ -61,7 +72,7 @@
 
       <div class="mt-4 md:mt-0 grid place-items-center col-span-full md:col-span-1">
         @if (placeForm.get("image_id")?.value) {
-        <div class="w-2/3 relative group cursor-pointer" (click)="fileInput.click()">
+        <div class="w-2/3 relative group cursor-pointer" (click)="imageInput.click()">
           <img [src]="placeForm.get('image')?.value"
             class="w-full max-h-20 object-cover rounded-full shadow-lg transition-transform duration-300" />
           <div
@@ -69,7 +80,6 @@
             <span class="text-sm text-gray-300">Click to edit</span><i class="pi pi-upload text-white"></i>
           </div>
         </div>
-        <input type="file" accept="image/*" #fileInput class="hidden" (change)="onFileSelected($event)" />
         } @else {
         @if (placeForm.get("image")?.value) {
         <div class="w-2/3 relative group cursor-pointer" (click)="clearImage()">
@@ -81,7 +91,7 @@
           </div>
         </div>
         } @else {
-        <div class="w-2/3 relative group cursor-pointer" (click)="fileInput.click()">
+        <div class="w-2/3 relative group cursor-pointer" (click)="imageInput.click()">
           <img src="/favicon.png"
             class="w-full max-h-20 object-cover rounded-full shadow-lg transition-transform duration-300" />
           <div
@@ -89,9 +99,9 @@
             <span class="text-sm text-gray-300">Click to edit</span><i class="pi pi-upload text-white"></i>
           </div>
         </div>
-        <input type="file" accept="image/*" #fileInput class="hidden" (change)="onFileSelected($event)" />
         }
         }
+        <input type="file" accept="image/*" #imageInput class="hidden" (change)="onImageSelected($event)" />
       </div>
     </div>
   </div>

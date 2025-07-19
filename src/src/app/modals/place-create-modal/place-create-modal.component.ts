@@ -91,8 +91,9 @@ export class PlaceCreateModalComponent {
       price: "",
       allowdog: false,
       visited: false,
-      image: "",
+      image: null,
       image_id: null,
+      gpx: null,
     });
 
     if (this.config.data) {
@@ -172,7 +173,7 @@ export class PlaceCreateModalComponent {
       this.placeForm.get("name")?.setValue(place);
   }
 
-  onFileSelected(event: Event) {
+  onImageSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
       const file = input.files[0];
@@ -200,5 +201,25 @@ export class PlaceCreateModalComponent {
       this.placeForm.get("image_id")?.setValue(this.previous_image_id);
       this.placeForm.get("image")?.setValue(this.previous_image);
     }
+  }
+
+  onGPXSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        this.placeForm.get("gpx")?.setValue(e.target?.result as string);
+        this.placeForm.get("gpx")?.markAsDirty();
+      };
+
+      reader.readAsText(file);
+    }
+  }
+
+  clearGPX() {
+    this.placeForm.get("gpx")?.setValue(null);
+    this.placeForm.get("gpx")?.markAsDirty();
   }
 }

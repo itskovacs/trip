@@ -164,6 +164,12 @@ export class ApiService {
     );
   }
 
+  getPlaceGPX(place_id: number): Observable<Place> {
+    return this.httpClient
+      .get<Place>(`${this.apiBaseUrl}/places/${place_id}`)
+      .pipe(map((p) => this._normalizePlaceImage(p)));
+  }
+
   getTrips(): Observable<TripBase[]> {
     return this.httpClient.get<TripBase[]>(`${this.apiBaseUrl}/trips`).pipe(
       map((resp) => {

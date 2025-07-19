@@ -25,7 +25,12 @@ import { FloatLabelModule } from "primeng/floatlabel";
 import { BatchCreateModalComponent } from "../../modals/batch-create-modal/batch-create-modal.component";
 import { UtilsService } from "../../services/utils.service";
 import { Info } from "../../types/info";
-import { createMap, placeToMarker, createClusterGroup } from "../../shared/map";
+import {
+  createMap,
+  placeToMarker,
+  createClusterGroup,
+  gpxToPolyline,
+} from "../../shared/map";
 import { Router } from "@angular/router";
 import { SelectModule } from "primeng/select";
 import { MultiSelectModule } from "primeng/multiselect";
@@ -82,6 +87,7 @@ export class DashboardComponent implements AfterViewInit {
   hoveredElements: HTMLElement[] = [];
 
   map: any;
+  mapDisplayedTrace: L.Polyline[] = [];
   settings: Settings | undefined;
   currencySigns: { c: string; s: string }[] = [];
   doNotDisplayOptions: SelectItemGroup[] = [];
@@ -495,6 +501,42 @@ export class DashboardComponent implements AfterViewInit {
             }, 10);
           },
         });
+      },
+    });
+  }
+
+  displayGPXOnMap(gpx: string) {
+    try {
+      // HINT: For now, delete traces everytime we display a GPX
+      // TODO: Handle multiple polygons and handle Click events
+      this.mapDisplayedTrace.forEach((p) => this.map.removeLayer(p));
+      this.mapDisplayedTrace = [];
+
+      const gpxPolyline = gpxToPolyline(gpx).addTo(this.map);
+      gpxPolyline.on("click", () => {
+        this.map.removeLayer(gpxPolyline);
+      });
+
+      this.mapDisplayedTrace.push(gpxPolyline);
+    } catch {
+      this.utilsService.toast("error", "Error", "Couldn't parse GPX data");
+      return;
+    }
+  }
+
+  getPlaceGPX() {
+    if (!this.selectedPlace) return;
+    this.apiService.getPlaceGPX(this.selectedPlace.id).subscribe({
+      next: (p) => {
+        if (!p.gpx) {
+          this.utilsService.toast(
+            "error",
+            "Error",
+            "Couldn't retrieve GPX data",
+          );
+          return;
+        }
+        this.displayGPXOnMap(p.gpx);
       },
     });
   }

@@ -14,8 +14,3 @@
 .p-floatlabel:has(.p-inputwrapper-focus) input::placeholder {
   color: var(--p-inputtext-placeholder-color) !important;
 }
-
-.p-tooltip > .p-tooltip-text {
-  width: 350px !important;
-  background: red;
-}

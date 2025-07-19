@@ -2,7 +2,8 @@
 
 @if (selectedPlace) {
 <app-place-box [selectedPlace]="selectedPlace" (deleteEmitter)="deletePlace()" (editEmitter)="editPlace()"
-  (favoriteEmitter)="favoritePlace()" (visitEmitter)="visitPlace()" (closeEmitter)="closePlaceBox()"></app-place-box>
+  (favoriteEmitter)="favoritePlace()" (gpxEmitter)="getPlaceGPX()" (visitEmitter)="visitPlace()"
+  (closeEmitter)="closePlaceBox()"></app-place-box>
 }
 
 <div class="absolute z-30 top-2 right-2 p-2 bg-white shadow rounded">

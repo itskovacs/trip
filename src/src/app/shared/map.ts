@@ -99,3 +99,18 @@ export function placeToMarker(place: Place): L.Marker {
   }
   return marker;
 }
+
+export function gpxToPolyline(gpx: string): L.Polyline {
+  const parser = new DOMParser();
+  const gpxDoc = parser.parseFromString(gpx, "application/xml");
+
+  const trkpts = Array.from(gpxDoc.querySelectorAll("trkpt"));
+  const latlngs = trkpts.map((pt) => {
+    return [
+      parseFloat(pt.getAttribute("lat")!),
+      parseFloat(pt.getAttribute("lon")!),
+    ] as [number, number];
+  });
+
+  return L.polyline(latlngs, { color: "blue" });
+}
