@@ -5,7 +5,6 @@
   (favoriteEmitter)="favoritePlace()" (visitEmitter)="visitPlace()" (closeEmitter)="closePlaceBox()"></app-place-box>
 }
 
-
 <div class="absolute z-30 top-2 right-2 p-2 bg-white shadow rounded">
   <p-button (click)="toggleMarkersList()" text severity="secondary" icon="pi pi-bars" />
 </div>
@@ -33,10 +32,8 @@
   </div>
 </div>
 
-<div class="absolute z-30 bottom-2 left-2">
-  <div class="p-2 bg-white shadow rounded">
-    <p-button (click)="gotoTrips()" text severity="secondary" icon="pi pi-calendar-clock" />
-  </div>
+<div class="absolute z-30 bottom-2 left-2 p-2 bg-white shadow rounded">
+  <p-button (click)="gotoTrips()" text severity="secondary" icon="pi pi-calendar-clock" />
 </div>
 
 @if (viewMarkersList) {

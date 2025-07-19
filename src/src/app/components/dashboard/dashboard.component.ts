@@ -1,14 +1,5 @@
-import { AfterViewInit, Component, OnDestroy } from "@angular/core";
-import {
-  catchError,
-  combineLatest,
-  debounceTime,
-  forkJoin,
-  map,
-  of,
-  Subscription,
-  tap,
-} from "rxjs";
+import { AfterViewInit, Component } from "@angular/core";
+import { combineLatest, debounceTime, tap } from "rxjs";
 import { Place, Category } from "../../types/poi";
 import { ApiService } from "../../services/api.service";
 import { PlaceBoxComponent } from "../../shared/place-box/place-box.component";
