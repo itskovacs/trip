@@ -6,6 +6,7 @@ import { InputTextModule } from "primeng/inputtext";
 import { SkeletonModule } from "primeng/skeleton";
 import { FloatLabelModule } from "primeng/floatlabel";
 import * as L from "leaflet";
+import { AntPath, antPath } from "leaflet-ant-path";
 import { TableModule } from "primeng/table";
 import {
   Trip,
@@ -60,6 +61,9 @@ export class TripComponent implements AfterViewInit {
   currency$: Observable<string>;
 
   trip: Trip | undefined;
+  tripMapAntLayer: undefined;
+  tripMapAntLayerDayID: number | undefined;
+
   totalPrice: number = 0;
   dayStatsCache = new Map<number, { price: number; places: number }>();
 
@@ -137,7 +141,7 @@ export class TripComponent implements AfterViewInit {
             this.setPlacesAndMarkers();
 
             this.map.setView([48.107, -2.988]);
-            this.setMapBounds();
+            this.resetMapBounds();
           },
         });
       }
@@ -204,7 +208,7 @@ export class TripComponent implements AfterViewInit {
     });
   }
 
-  setMapBounds() {
+  resetMapBounds() {
     if (!this.places.length) return;
     this.map.fitBounds(
       this.places.map((p) => [p.lat, p.lng]),
@@ -224,14 +228,14 @@ export class TripComponent implements AfterViewInit {
           ) ?? 0;
   }
 
-  resetHighlightMarker() {
+  resetPlaceHighlightMarker() {
     if (this.hoveredElement) {
       this.hoveredElement.classList.remove("listHover");
       this.hoveredElement = undefined;
     }
   }
 
-  highlightMarker(lat: number, lng: number) {
+  placeHighlightMarker(lat: number, lng: number) {
     if (this.hoveredElement) {
       this.hoveredElement.classList.remove("listHover");
       this.hoveredElement = undefined;
@@ -266,13 +270,61 @@ export class TripComponent implements AfterViewInit {
     }
   }
 
+  toggleTripDayHighlightPath(day_id: number) {
+    // Click on the currently displayed day: remove
+    if (this.tripMapAntLayerDayID == day_id) {
+      this.map.removeLayer(this.tripMapAntLayer);
+      this.tripMapAntLayerDayID = undefined;
+      this.resetMapBounds();
+      return;
+    }
+
+    let index = this.trip?.days.findIndex((d) => d.id === day_id);
+    if (!this.trip || index == -1) return;
+
+    const data = this.trip.days[index as number].items;
+    data.sort((a, b) => a.time.localeCompare(b.time));
+    const coords = data
+      .map((item) => {
+        if (item.lat && item.lng) return [item.lat, item.lng];
+        if (item.place && item.place) return [item.place.lat, item.place.lng];
+        return undefined;
+      })
+      .filter((n): n is number[] => n !== undefined);
+    this.map.fitBounds(coords, { padding: [30, 30] });
+
+    const path = antPath(coords, {
+      delay: 400,
+      dashArray: [10, 20],
+      weight: 5,
+      color: "#0000FF",
+      pulseColor: "#FFFFFF",
+      paused: false,
+      reverse: false,
+      hardwareAccelerated: true,
+    });
+
+    if (this.tripMapAntLayer) {
+      this.map.removeLayer(this.tripMapAntLayer);
+      this.tripMapAntLayerDayID = undefined;
+    }
+
+    // UX
+    setTimeout(() => {
+      this.map.addLayer(path);
+    }, 200);
+
+    this.tripMapAntLayer = path;
+    this.tripMapAntLayerDayID = day_id;
+  }
+
   onRowClick(item: FlattenedTripItem) {
     if (this.selectedItem && this.selectedItem.id === item.id) {
       this.selectedItem = undefined;
-      this.resetHighlightMarker();
+      this.resetPlaceHighlightMarker();
     } else {
       this.selectedItem = item;
-      if (item.lat && item.lng) this.highlightMarker(item.lat, item.lng);
+      if (item.lat && item.lng) this.placeHighlightMarker(item.lat, item.lng);
     }
   }
 
@@ -480,7 +532,7 @@ export class TripComponent implements AfterViewInit {
             next: (trip) => {
               this.trip = trip;
               this.setPlacesAndMarkers();
-              this.setMapBounds();
+              this.resetMapBounds();
             },
           });
       },
@@ -543,7 +595,10 @@ export class TripComponent implements AfterViewInit {
         data: {
           places: this.places,
           days: this.trip?.days,
-          item: item,
+          item: {
+            ...item,
+            status: item.status ? (item.status as TripStatus).label : null,
+          },
         },
         breakpoints: {
           "640px": "90vw",
@@ -582,6 +637,9 @@ export class TripComponent implements AfterViewInit {
 
               const updatedPrice = -(item.price || 0) + (it.price || 0);
               this.updateTotalPrice(updatedPrice);
+
+              if (this.tripMapAntLayerDayID == item.day_id)
+                this.toggleTripDayHighlightPath(item.day_id);
             },
           });
       },
@@ -621,7 +679,7 @@ export class TripComponent implements AfterViewInit {
                   );
                   this.dayStatsCache.delete(item.day_id);
                   this.selectedItem = undefined;
-                  this.resetHighlightMarker();
+                  this.resetPlaceHighlightMarker();
                 }
               },
             });

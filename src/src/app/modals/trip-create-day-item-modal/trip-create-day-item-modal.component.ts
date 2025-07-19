@@ -1,5 +1,10 @@
 import { Component } from "@angular/core";
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from "@angular/forms";
 import { ButtonModule } from "primeng/button";
 import { DynamicDialogConfig, DynamicDialogRef } from "primeng/dynamicdialog";
 import { FloatLabelModule } from "primeng/floatlabel";
@@ -40,30 +45,52 @@ export class TripCreateDayItemModalComponent {
     private ref: DynamicDialogRef,
     private fb: FormBuilder,
     private config: DynamicDialogConfig,
-    private utilsService: UtilsService
+    private utilsService: UtilsService,
   ) {
     this.statuses = this.utilsService.statuses;
 
     this.itemForm = this.fb.group({
       id: -1,
-      time: ["", { validators: [Validators.required, Validators.pattern(/^([01]\d|2[0-3])(:[0-5]\d)?$/)] }],
+      time: [
+        "",
+        {
+          validators: [
+            Validators.required,
+            Validators.pattern(/^([01]\d|2[0-3])(:[0-5]\d)?$/),
+          ],
+        },
+      ],
       text: ["", Validators.required],
       comment: "",
       day_id: [null, Validators.required],
       place: null,
       status: null,
       price: 0,
-      lat: ["", { validators: Validators.pattern("-?(90(\\.0+)?|[1-8]?\\d(\\.\\d+)?)") }],
-      lng: ["", { validators: Validators.pattern("-?(180(\\.0+)?|1[0-7]\\d(\\.\\d+)?|[1-9]?\\d(\\.\\d+)?)") }],
+      lat: [
+        "",
+        {
+          validators: Validators.pattern("-?(90(\\.0+)?|[1-8]?\\d(\\.\\d+)?)"),
+        },
+      ],
+      lng: [
+        "",
+        {
+          validators: Validators.pattern(
+            "-?(180(\\.0+)?|1[0-7]\\d(\\.\\d+)?|[1-9]?\\d(\\.\\d+)?)",
+          ),
+        },
+      ],
     });
 
     if (this.config.data) {
       const item = this.config.data.item;
-      if (item) this.itemForm.patchValue({ ...item, place: item.place?.id || null });
+      if (item)
+        this.itemForm.patchValue({ ...item, place: item.place?.id || null });
 
       this.places = this.config.data.places;
       this.days = this.config.data.days;
-      if (this.config.data.selectedDay) this.itemForm.get("day_id")?.setValue(this.config.data.selectedDay);
+      if (this.config.data.selectedDay)
+        this.itemForm.get("day_id")?.setValue(this.config.data.selectedDay);
     }
 
     this.itemForm.get("place")?.valueChanges.subscribe({
@@ -96,8 +123,8 @@ export class TripCreateDayItemModalComponent {
     // Normalize data for API POST
     let ret = this.itemForm.value;
     if (!ret["lat"]) {
-      delete ret["lat"];
-      delete ret["lng"];
+      ret["lat"] = null;
+      ret["lng"] = null;
     }
     if (!ret["place"]) delete ret["place"];
     this.ref.close(ret);

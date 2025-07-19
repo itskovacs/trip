@@ -45,7 +45,7 @@
 }
 
 <section class="p-4 print:px-1 grid md:grid-cols-3 gap-4 print:block">
-  <div class="p-4 shadow rounded-md md:col-span-2 max-w-screen print:col-span-full">
+  <div class="p-4 shadow self-start rounded-md md:col-span-2 max-w-screen print:col-span-full">
     <div class="p-2 mb-2 flex justify-between items-center">
       <div>
         <h1 class="font-semibold tracking-tight text-xl">Plans</h1>
@@ -76,12 +76,13 @@
           <th class="w-12">Status</th>
         </tr>
       </ng-template>
-      <ng-template #body let-tripitem let-rowIndex="rowIndex" let-rowgroup="rowgroup" let-rowspan="rowspan">
+      <ng-template #body let-tripitem let-rowgroup="rowgroup" let-rowspan="rowspan">
         <tr class="h-12 cursor-pointer" [class.font-bold]="selectedItem?.id === tripitem.id"
           (click)="onRowClick(tripitem)">
           @if (rowgroup) {
-          <td [attr.rowspan]="rowspan" class="font-normal! max-w-20 truncate cursor-default"
-            (click)="$event.stopPropagation()">
+          <td [attr.rowspan]="rowspan" class="font-normal! max-w-20 truncate cursor-pointer"
+            [class.text-blue-500]="tripMapAntLayerDayID == tripitem.day_id"
+            (click)="toggleTripDayHighlightPath(tripitem.day_id); $event.stopPropagation()">
             <div class="truncate">{{tripitem.td_label }}</div>
           </td>
           }
@@ -273,7 +274,7 @@
         @defer {
         @for (p of places; track p.id) {
         <div class="flex items-center gap-4 py-2 px-4 hover:bg-gray-50 rounded-md overflow-auto"
-          (mouseenter)="highlightMarker(p.lat, p.lng)" (mouseleave)="resetHighlightMarker()">
+          (mouseenter)="placeHighlightMarker(p.lat, p.lng)" (mouseleave)="resetPlaceHighlightMarker()">
           <img [src]="p.image" class="w-12 rounded-full object-fit">
 
           <div class="flex flex-col gap-1 truncate">
@@ -322,7 +323,7 @@
           <span class="text-xs text-gray-500 line-clamp-1">{{ trip?.name }} places</span>
         </div>
 
-        <p-button icon="pi pi-refresh" [disabled]="!places.length" (click)="setMapBounds()" text />
+        <p-button icon="pi pi-refresh" [disabled]="!places.length" (click)="resetMapBounds()" text />
       </div>
 
       <div id="map" class="w-full rounded-md min-h-96 h-1/3 max-h-full"></div>
