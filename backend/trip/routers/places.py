@@ -31,6 +31,7 @@ def create_place(
         lat=place.lat,
         lng=place.lng,
         place=place.place,
+        gpx=place.gpx,
         allowdog=place.allowdog,
         description=place.description,
         price=place.price,
@@ -79,6 +80,7 @@ async def create_places(
             lat=place.lat,
             lng=place.lng,
             place=place.place,
+            gpx=place.gpx,
             allowdog=place.allowdog,
             description=place.description,
             price=place.price,
@@ -114,7 +116,7 @@ def update_place(
     verify_exists_and_owns(current_user, db_place)
 
     place_data = place.model_dump(exclude_unset=True)
-    image = place_data.pop("image")
+    image = place_data.pop("image", None)
     if image:
         try:
             image_bytes = b64img_decode(image)
@@ -130,7 +132,6 @@ def update_place(
         session.commit()
         session.refresh(image)
 
-        place_data.pop("image")
         place_data["image_id"] = image.id
 
         if db_place.image_id:
@@ -170,3 +171,15 @@ def delete_place(
     session.delete(db_place)
     session.commit()
     return {}
+
+
+@router.get("/{place_id}", response_model=PlaceRead)
+def get_place(
+    session: SessionDep,
+    place_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+) -> PlaceRead:
+    db_place = session.get(Place, place_id)
+    verify_exists_and_owns(current_user, db_place)
+
+    return PlaceRead.serialize(db_place, exclude_gpx=False)

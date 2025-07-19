@@ -32,7 +32,9 @@ def put_user_settings(
 
     user_data = data.model_dump(exclude_unset=True)
     if "do_not_display" in user_data:
-        user_data["do_not_display"] = ",".join(user_data["do_not_display"]) if user_data["do_not_display"] else ""
+        user_data["do_not_display"] = (
+            ",".join(user_data["do_not_display"]) if user_data["do_not_display"] else ""
+        )
 
     for key, value in user_data.items():
         setattr(db_user, key, value)

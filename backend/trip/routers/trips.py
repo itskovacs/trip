@@ -107,14 +107,13 @@ def update_trip(
 
         db_trip.image_id = image.id
 
-    if "place_ids" in trip_data:  # Could be empty [], so 'in'
-        place_ids = trip_data.pop("place_ids")
+    place_ids = trip_data.pop("place_ids", None)
+    if place_ids is not None:  # Could be empty [], so 'in'
         db_trip.places.clear()
-        if place_ids:
-            for place_id in place_ids:
-                db_place = session.get(Place, place_id)
-                verify_exists_and_owns(current_user, db_place)
-                db_trip.places.append(db_place)
+        for place_id in place_ids:
+            db_place = session.get(Place, place_id)
+            verify_exists_and_owns(current_user, db_place)
+            db_trip.places.append(db_place)
 
         item_place_ids = {
             item.place.id for day in db_trip.days for item in day.items if item.place is not None
@@ -300,8 +299,8 @@ def update_tripitem(
             raise HTTPException(status_code=400, detail="Bad request")
 
     item_data = item.model_dump(exclude_unset=True)
-    if item_data.get("place"):
-        place_id = item_data.pop("place")
+    place_id = item_data.pop("place", None)
+    if place_id:
         db_item.place_id = place_id
 
     for key, value in item_data.items():

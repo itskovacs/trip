@@ -172,7 +172,6 @@ class PlaceUpdate(PlaceBase):
     place: str | None = None
     category_id: int | None = None
     image: str | None = None
-    gpx: str | None = None
 
 
 class PlaceRead(PlaceBase):
