@@ -293,15 +293,14 @@ def update_tripitem(
     if db_item.day_id != day_id:
         raise HTTPException(status_code=400, detail="Bad request")
 
-    if item.place:
-        place_in_trip = any(place.id == item.place for place in db_trip.places)
+    item_data = item.model_dump(exclude_unset=True)
+
+    place_id = item_data.pop("place", None)
+    db_item.place_id = place_id
+    if place_id is not None:
+        place_in_trip = any(p.id == place_id for p in db_trip.places)
         if not place_in_trip:
             raise HTTPException(status_code=400, detail="Bad request")
-
-    item_data = item.model_dump(exclude_unset=True)
-    place_id = item_data.pop("place", None)
-    if place_id:
-        db_item.place_id = place_id
 
     for key, value in item_data.items():
         setattr(db_item, key, value)
