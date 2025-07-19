@@ -6,7 +6,7 @@
     </p-floatlabel>
 
     <p-floatlabel variant="in">
-      <input id="lat" formControlName="lat" pInputText fluid />
+      <input id="lat" formControlName="lat" pInputText fluid placeholder="Lat or Lat, Lng" />
       <label for="lat">Latitude</label>
     </p-floatlabel>
 
@@ -15,10 +15,16 @@
       <label for="lng">Longitude</label>
     </p-floatlabel>
 
-    <p-floatlabel variant="in" class="col-span-2 md:col-span-3">
-      <input id="place" formControlName="place" pInputText fluid />
-      <label for="place">Place</label>
-    </p-floatlabel>
+    <p-inputgroup class="col-span-2 md:col-span-3">
+      <p-floatlabel variant="in">
+        <input id="place" formControlName="place" pInputText fluid placeholder="" />
+        <label for="place">Place</label>
+      </p-floatlabel>
+      <p-inputgroup-addon>
+        <p-button icon="pi pi-info-circle" [pTooltip]="placeInputTooltip" [escape]="false" tooltipEvent="focus"
+          severity="secondary" class="h-full" />
+      </p-inputgroup-addon>
+    </p-inputgroup>
 
     <p-floatlabel variant="in" class="col-span-2 md:col-span-1">
       <p-select [options]="(categories$ | async) || []" optionValue="id" optionLabel="name"

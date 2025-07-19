@@ -1,5 +1,10 @@
 import { Component } from "@angular/core";
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from "@angular/forms";
 import { ButtonModule } from "primeng/button";
 import { DynamicDialogConfig, DynamicDialogRef } from "primeng/dynamicdialog";
 import { FloatLabelModule } from "primeng/floatlabel";
@@ -8,11 +13,14 @@ import { SelectModule } from "primeng/select";
 import { TextareaModule } from "primeng/textarea";
 import { Observable } from "rxjs";
 import { AsyncPipe } from "@angular/common";
+import { InputGroupModule } from "primeng/inputgroup";
+import { InputGroupAddonModule } from "primeng/inputgroupaddon";
 import { ApiService } from "../../services/api.service";
 import { UtilsService } from "../../services/utils.service";
 import { FocusTrapModule } from "primeng/focustrap";
 import { Category, Place } from "../../types/poi";
 import { CheckboxModule } from "primeng/checkbox";
+import { TooltipModule } from "primeng/tooltip";
 
 @Component({
   selector: "app-place-create-modal",
@@ -23,6 +31,9 @@ import { CheckboxModule } from "primeng/checkbox";
     SelectModule,
     ReactiveFormsModule,
     TextareaModule,
+    InputGroupModule,
+    InputGroupAddonModule,
+    TooltipModule,
     CheckboxModule,
     AsyncPipe,
     FocusTrapModule,
@@ -37,12 +48,15 @@ export class PlaceCreateModalComponent {
   previous_image_id: number | null = null;
   previous_image: string | null = null;
 
+  placeInputTooltip: string =
+    "<div class='text-center'>You can paste a Google Maps Place link to fill <i>Name</i>, <i>Place</i>, <i>Lat</i>, <i>Lng</i>.</div>\n<div class='text-sm text-center'>https://google.com/maps/place/XXX</div>\n<div class='text-xs text-center'>Either « click » on a point of interest or « search » for it (eg: British Museum) and copy the URL</div>\n<div class='text-xs text-center'>Warning: there is often a slight offset from the actual coordinates.</div>";
+
   constructor(
     private ref: DynamicDialogRef,
     private apiService: ApiService,
     private utilsService: UtilsService,
     private fb: FormBuilder,
-    private config: DynamicDialogConfig
+    private config: DynamicDialogConfig,
   ) {
     this.categories$ = this.apiService.getCategories();
 
@@ -50,11 +64,25 @@ export class PlaceCreateModalComponent {
       id: -1,
       name: ["", Validators.required],
       place: ["", { validators: Validators.required, updateOn: "blur" }],
-      lat: ["", { validators: [Validators.required, Validators.pattern("-?(90(\\.0+)?|[1-8]?\\d(\\.\\d+)?)")] }],
+      lat: [
+        "",
+        {
+          validators: [
+            Validators.required,
+            Validators.pattern("-?(90(\\.0+)?|[1-8]?\\d(\\.\\d+)?)"),
+          ],
+          updateOn: "blur",
+        },
+      ],
       lng: [
         "",
         {
-          validators: [Validators.required, Validators.pattern("-?(180(\\.0+)?|1[0-7]\\d(\\.\\d+)?|[1-9]?\\d(\\.\\d+)?)")],
+          validators: [
+            Validators.required,
+            Validators.pattern(
+              "-?(180(\\.0+)?|1[0-7]\\d(\\.\\d+)?|[1-9]?\\d(\\.\\d+)?)",
+            ),
+          ],
         },
       ],
       category: [null, Validators.required],
@@ -85,8 +113,27 @@ export class PlaceCreateModalComponent {
       next: (value: string) => {
         if (/\-?\d+\.\d+,\s\-?\d+\.\d+/.test(value)) {
           let [lat, lng] = value.split(", ");
-          this.placeForm.get("lat")?.setValue(parseFloat(lat).toFixed(5));
-          this.placeForm.get("lng")?.setValue(parseFloat(lng).toFixed(5));
+          const latLength = lat.split(".")[1].length;
+          const lngLength = lng.split(".")[1].length;
+
+          const latControl = this.placeForm.get("lat");
+          const lngControl = this.placeForm.get("lng");
+
+          latControl?.setValue(
+            parseFloat(lat).toFixed(latLength > 5 ? 5 : latLength),
+            {
+              emitEvent: false,
+            },
+          );
+          lngControl?.setValue(
+            parseFloat(lng).toFixed(lngLength > 5 ? 5 : lngLength),
+            {
+              emitEvent: false,
+            },
+          );
+
+          lngControl?.markAsDirty();
+          lngControl?.updateValueAndValidity();
         }
       },
     });
@@ -119,7 +166,8 @@ export class PlaceCreateModalComponent {
     this.placeForm.get("lat")?.setValue(lat);
     this.placeForm.get("lng")?.setValue(lng);
 
-    if (!this.placeForm.get("name")?.value) this.placeForm.get("name")?.setValue(place);
+    if (!this.placeForm.get("name")?.value)
+      this.placeForm.get("name")?.setValue(place);
   }
 
   onFileSelected(event: Event) {

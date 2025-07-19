@@ -1,0 +1,21 @@
+.p-floatlabel:not(:has(input:focus)) input::placeholder,
+.p-floatlabel:not(:has(input.p-filled)) input::placeholder,
+.p-floatlabel:not(:has(input:-webkit-autofill)) input::placeholder,
+.p-floatlabel:not(:has(textarea:focus)) textarea::placeholder,
+.p-floatlabel:not(:has(textarea.p-filled)) textarea::placeholder,
+.p-floatlabel:not(:has(.p-inputwrapper-focus)) input::placeholder,
+.p-floatlabel:not(:has(.p-inputwrapper-filled)) input::placeholder {
+  color: transparent !important;
+}
+
+.p-floatlabel:has(input:focus) input::placeholder,
+.p-floatlabel:has(input:-webkit-autofill) input::placeholder,
+.p-floatlabel:has(textarea:focus) input::placeholder,
+.p-floatlabel:has(.p-inputwrapper-focus) input::placeholder {
+  color: var(--p-inputtext-placeholder-color) !important;
+}
+
+.p-tooltip > .p-tooltip-text {
+  width: 350px !important;
+  background: red;
+}
