@@ -80,7 +80,7 @@
         <tr class="h-12 cursor-pointer" [class.font-bold]="selectedItem?.id === tripitem.id"
           (click)="onRowClick(tripitem)">
           @if (rowgroup) {
-          <td [attr.rowspan]="rowspan" class="!font-normal max-w-20 truncate cursor-default"
+          <td [attr.rowspan]="rowspan" class="font-normal! max-w-20 truncate cursor-default"
             (click)="$event.stopPropagation()">
             <div class="truncate">{{tripitem.td_label }}</div>
           </td>
@@ -89,7 +89,7 @@
           <td class="max-w-60 truncate">{{ tripitem.text }}</td>
           <td class="relative">
             @if (tripitem.place) {
-            <div class="ml-7 print:ml-0 max-w-24 truncate">
+            <div class="ml-7 print:ml-0 max-w-24 truncate print:whitespace-normal">
               <img [src]="tripitem.place.image"
                 class="absolute left-0 top-1/2 -translate-y-1/2 w-9 rounded-full object-cover print:hidden" /> {{
               tripitem.place.name }}
@@ -98,7 +98,7 @@
           </td>
           <td class="max-w-20 truncate">{{ tripitem.comment || '-' }}</td>
           <td class="font-mono text-sm">
-            <div class="max-w-20 truncate">
+            <div class="max-w-20 print:max-w-full truncate">
               @if (tripitem.lat) { {{ tripitem.lat }}, {{ tripitem.lng }} }
               @else {-}
             </div>
