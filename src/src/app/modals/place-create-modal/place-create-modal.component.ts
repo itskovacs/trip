@@ -103,7 +103,9 @@ export class PlaceCreateModalComponent {
 
     this.placeForm.get("place")?.valueChanges.subscribe({
       next: (value: string) => {
-        if (value.startsWith("https://www.google.com/maps")) {
+        const isGoogleMapsURL =
+          /^(https?:\/\/)?(www\.)?google\.[a-z.]+\/maps/.test(value);
+        if (isGoogleMapsURL) {
           this.parseGoogleMapsUrl(value);
         }
       },
