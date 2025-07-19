@@ -33,12 +33,15 @@ export function createMap(contextMenuItems?: ContextMenuItem[]): L.Map {
     .setZoom(10)
     .setMaxBounds(bounds);
 
-  L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-    maxZoom: 17,
-    minZoom: 5,
-    attribution:
-      '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-  }).addTo(map);
+  L.tileLayer(
+    "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+    {
+      maxZoom: 17,
+      minZoom: 5,
+      attribution:
+        '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    },
+  ).addTo(map);
 
   return map;
 }
