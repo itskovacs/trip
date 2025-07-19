@@ -52,10 +52,10 @@ These steps will guide to deploy the app, ready to use in ⏱️ minutes.
 If you need help, feel free to open an [issue](https://github.com/itskovacs/trip/issues).
 
 > [!NOTE]
-> Packages are available in the [packages section](https://github.com/itskovacs/trip/pkgs/container/trip) of the repository for quickstart, using just `docker pull`
+> Packages are available in the [packages section](https://github.com/itskovacs/trip/pkgs/container/trip) of the repository for quickstart, using just `docker run`
 
 ```bash
-docker run -p 8080:8000 -v trip-storage:/app/storage ghcr.io/itskovacs/trip:1.0.0
+docker run -p 8080:8000 -v trip-storage:/app/storage ghcr.io/itskovacs/trip:1
 ```
 
 
