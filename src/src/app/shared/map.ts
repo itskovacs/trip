@@ -29,7 +29,6 @@ export function createMap(contextMenuItems?: ContextMenuItem[]): L.Map {
     zoomControl: false,
     contextmenu: true,
     contextmenuItems: _contextMenuItems,
-    attributionControl: false,
   } as MapOptions)
     .setZoom(10)
     .setMaxBounds(bounds);
@@ -37,6 +36,8 @@ export function createMap(contextMenuItems?: ContextMenuItem[]): L.Map {
   L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 17,
     minZoom: 5,
+    attribution:
+      '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   }).addTo(map);
 
   return map;
