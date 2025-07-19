@@ -155,14 +155,7 @@ export class ApiService {
   putPlace(place_id: number, place: Partial<Place>): Observable<Place> {
     return this.httpClient
       .put<Place>(`${this.apiBaseUrl}/places/${place_id}`, place)
-      .pipe(
-        map((place) => {
-          if (place.image) place.image = `${this.assetsBaseUrl}/${place.image}`;
-          else
-            place.image = `${this.assetsBaseUrl}/${(place.category as Category).image}`;
-          return place;
-        }),
-      );
+      .pipe(map((p) => this._normalizePlaceImage(p)));
   }
 
   deletePlace(place_id: number): Observable<null> {
