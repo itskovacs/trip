@@ -27,6 +27,8 @@ import { YesNoModalComponent } from "../../modals/yes-no-modal/yes-no-modal.comp
 import { UtilsService } from "../../services/utils.service";
 import { TripCreateModalComponent } from "../../modals/trip-create-modal/trip-create-modal.component";
 import { AsyncPipe } from "@angular/common";
+import { MenuItem } from "primeng/api";
+import { MenuModule } from "primeng/menu";
 
 interface PlaceWithUsage extends Place {
   placeUsage?: boolean;
@@ -38,6 +40,7 @@ interface PlaceWithUsage extends Place {
   imports: [
     FormsModule,
     SkeletonModule,
+    MenuModule,
     ReactiveFormsModule,
     InputTextModule,
     AsyncPipe,
@@ -62,6 +65,7 @@ export class TripComponent implements AfterViewInit {
 
   places: PlaceWithUsage[] = [];
   flattenedTripItems: FlattenedTripItem[] = [];
+  menuItems: MenuItem[] = [];
 
   constructor(
     private apiService: ApiService,
@@ -72,6 +76,38 @@ export class TripComponent implements AfterViewInit {
   ) {
     this.currency$ = this.utilsService.currency$;
     this.statuses = this.utilsService.statuses;
+
+    this.menuItems = [
+      {
+        label: "Actions",
+        items: [
+          {
+            label: "Edit",
+            icon: "pi pi-pencil",
+            iconClass: "text-blue-500!",
+            command: () => {
+              this.editTrip();
+            },
+          },
+          {
+            label: "Archive",
+            icon: "pi pi-box",
+            iconClass: "text-orange-500!",
+            command: () => {
+              this.toggleArchiveTrip();
+            },
+          },
+          {
+            label: "Delete",
+            icon: "pi pi-trash",
+            iconClass: "text-red-500!",
+            command: () => {
+              this.deleteTrip();
+            },
+          },
+        ],
+      },
+    ];
   }
 
   back() {
@@ -288,6 +324,33 @@ export class TripComponent implements AfterViewInit {
         this.apiService.putTrip(new_trip, this.trip?.id!).subscribe({
           next: (trip: Trip) => (this.trip = trip),
         });
+      },
+    });
+  }
+
+  toggleArchiveTrip() {
+    const currentArchiveStatus = this.trip?.archived;
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: "Confirm Action",
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      breakpoints: {
+        "640px": "90vw",
+      },
+      data: `${currentArchiveStatus ? "Restore" : "Archive"} ${this.trip?.name} ?${currentArchiveStatus ? "" : " This will make everything read-only."}`,
+    });
+
+    modal.onClose.subscribe({
+      next: (bool) => {
+        if (bool)
+          this.apiService
+            .putTrip({ archived: !currentArchiveStatus }, this.trip?.id!)
+            .subscribe({
+              next: () => {
+                this.trip!.archived = !currentArchiveStatus;
+              },
+            });
       },
     });
   }

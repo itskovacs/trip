@@ -76,6 +76,9 @@ def update_trip(
     db_trip = session.get(Trip, trip_id)
     verify_exists_and_owns(current_user, db_trip)
 
+    if db_trip.archived and (trip.archived is not False):
+        raise HTTPException(status_code=400, detail="Bad request")
+
     trip_data = trip.model_dump(exclude_unset=True)
     if trip_data.get("image"):
         try:
@@ -136,6 +139,9 @@ def delete_trip(
     db_trip = session.get(Trip, trip_id)
     verify_exists_and_owns(current_user, db_trip)
 
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
+
     if db_trip.image:
         try:
             remove_image(db_trip.image.filename)
@@ -161,6 +167,9 @@ def create_tripday(
     db_trip = session.get(Trip, trip_id)
     verify_exists_and_owns(current_user, db_trip)
 
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
+
     new_day = TripDay(label=td.label, trip_id=trip_id, user=current_user)
 
     session.add(new_day)
@@ -179,6 +188,9 @@ def update_tripday(
 ) -> TripDayRead:
     db_trip = session.get(Trip, trip_id)
     verify_exists_and_owns(current_user, db_trip)
+
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
 
     db_day = session.get(TripDay, day_id)
     verify_exists_and_owns(current_user, db_day)
@@ -205,6 +217,9 @@ def delete_tripday(
     db_trip = session.get(Trip, trip_id)
     verify_exists_and_owns(current_user, db_trip)
 
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
+
     db_day = session.get(TripDay, day_id)
     verify_exists_and_owns(current_user, db_day)
     if db_day.trip_id != trip_id:
@@ -225,6 +240,9 @@ def create_tripitem(
 ) -> TripItemRead:
     db_trip = session.get(Trip, trip_id)
     verify_exists_and_owns(current_user, db_trip)
+
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
 
     db_day = session.get(TripDay, day_id)
     if db_day.trip_id != trip_id:
@@ -265,6 +283,9 @@ def update_tripitem(
     db_trip = session.get(Trip, trip_id)
     verify_exists_and_owns(current_user, db_trip)
 
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
+
     db_day = session.get(TripDay, day_id)
     if db_day.trip_id != trip_id:
         raise HTTPException(status_code=400, detail="Bad request")
@@ -302,6 +323,9 @@ def delete_tripitem(
 ):
     db_trip = session.get(Trip, trip_id)
     verify_exists_and_owns(current_user, db_trip)
+
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
 
     db_day = session.get(TripDay, day_id)
     if db_day.trip_id != trip_id:

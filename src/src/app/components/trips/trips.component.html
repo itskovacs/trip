@@ -12,7 +12,8 @@
   <div class="mt-10 grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
     @defer {
     @for (trip of trips; track trip.id) {
-    <div class="group relative rounded-lg overflow-hidden shadow-lg cursor-pointer" (click)="viewTrip(trip.id)">
+    <div class="group relative rounded-lg overflow-hidden shadow-lg cursor-pointer" [class.grayscale]="trip.archived"
+      (click)="viewTrip(trip.id)">
       <img class="rounded-lg object-cover transform transition-transform duration-300 ease-in-out group-hover:scale-105"
         [src]="trip.image" />
 

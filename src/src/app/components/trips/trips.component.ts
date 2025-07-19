@@ -26,10 +26,13 @@ export class TripsComponent {
   constructor(
     private apiService: ApiService,
     private dialogService: DialogService,
-    private router: Router
+    private router: Router,
   ) {
     this.apiService.getTrips().subscribe({
-      next: (trips) => (this.trips = trips),
+      next: (trips) => {
+        this.trips = trips;
+        this.sortTrips();
+      },
     });
   }
 
@@ -37,22 +40,35 @@ export class TripsComponent {
     this.router.navigateByUrl(`/trips/${id}`);
   }
 
+  sortTrips() {
+    this.trips = this.trips.sort((a, b) => {
+      if (!!a.archived !== !!b.archived) {
+        return Number(!!a.archived) - Number(!!b.archived);
+      }
+
+      return a.name.localeCompare(b.name);
+    });
+  }
+
   gotoMap() {
     this.router.navigateByUrl("/");
   }
 
   addTrip() {
-    const modal: DynamicDialogRef = this.dialogService.open(TripCreateModalComponent, {
-      header: "Create Place",
-      modal: true,
-      appendTo: "body",
-      closable: true,
-      dismissableMask: true,
-      width: "30vw",
-      breakpoints: {
-        "640px": "90vw",
+    const modal: DynamicDialogRef = this.dialogService.open(
+      TripCreateModalComponent,
+      {
+        header: "Create Place",
+        modal: true,
+        appendTo: "body",
+        closable: true,
+        dismissableMask: true,
+        width: "30vw",
+        breakpoints: {
+          "640px": "90vw",
+        },
       },
-    });
+    );
 
     modal.onClose.subscribe({
       next: (trip: TripBase | null) => {
@@ -61,7 +77,7 @@ export class TripsComponent {
         this.apiService.postTrip(trip).subscribe({
           next: (trip: TripBase) => {
             this.trips.push(trip);
-            this.trips.sort((a, b) => a.name.localeCompare(b.name));
+            this.sortTrips();
           },
         });
       },
