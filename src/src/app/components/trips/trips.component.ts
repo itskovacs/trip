@@ -2,7 +2,7 @@ import { Component } from "@angular/core";
 import { ApiService } from "../../services/api.service";
 import { ButtonModule } from "primeng/button";
 import { SkeletonModule } from "primeng/skeleton";
-import { Trip, TripBase } from "../../types/trip";
+import { TripBase } from "../../types/trip";
 import { Category } from "../../types/poi";
 import { DialogService, DynamicDialogRef } from "primeng/dynamicdialog";
 import { TripCreateModalComponent } from "../../modals/trip-create-modal/trip-create-modal.component";
