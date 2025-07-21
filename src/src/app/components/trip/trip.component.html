@@ -53,6 +53,8 @@
       </div>
 
       <div class="flex items-center gap-2 print:hidden">
+        <p-button icon="pi pi-directions" [severity]="tripMapAntLayerDayID == -1 ? 'help' : 'primary'"
+          (click)="toggleTripDaysHighlight()" text />
         <p-button icon="pi pi-print" (click)="printTable()" text />
         <div class="border-l border-solid border-gray-700 h-4"></div>
         <p-button icon="pi pi-ellipsis-v" [disabled]="trip?.archived" (click)="addItems()" text />
@@ -82,7 +84,7 @@
           @if (rowgroup) {
           <td [attr.rowspan]="rowspan" class="font-normal! max-w-20 truncate cursor-pointer"
             [class.text-blue-500]="tripMapAntLayerDayID == tripitem.day_id"
-            (click)="toggleTripDayHighlightPath(tripitem.day_id); $event.stopPropagation()">
+            (click)="toggleTripDayHighlightPathDay(tripitem.day_id); $event.stopPropagation()">
             <div class="truncate">{{tripitem.td_label }}</div>
           </td>
           }
@@ -368,9 +370,7 @@
         @defer {
         @for (item of getReviewData; track item.id) {
         <div class="flex items-center gap-4 rounded-md justify-between h-10 px-4 py-2 w-full max-w-full">
-          <div class="line-clamp-1">
-            {{ item.text }}
-          </div>
+          <div class="line-clamp-1">{{ item.text }}</div>
           <div class="flex items-center gap-2 flex-none">
             @if (item.status) {
             <span [style.background]="item.status.color+'1A'" [style.color]="item.status.color"

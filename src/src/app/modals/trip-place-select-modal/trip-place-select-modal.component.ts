@@ -25,6 +25,7 @@ export class TripPlaceSelectModalComponent {
   searchInput = new FormControl("");
 
   selectedPlaces: Place[] = [];
+  showSelectedPlaces: boolean = false;
   selectedPlacesID: number[] = [];
 
   places: Place[] = [];

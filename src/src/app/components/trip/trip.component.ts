@@ -171,6 +171,7 @@ export class TripComponent implements AfterViewInit {
         this.apiService.getTrip(+id).subscribe({
           next: (trip) => {
             this.trip = trip;
+            this.sortTripDays();
             this.flattenedTripItems = this.flattenTripDayItems(trip.days);
 
             this.updateTotalPrice();
@@ -185,6 +186,10 @@ export class TripComponent implements AfterViewInit {
         });
       }
     });
+  }
+
+  sortTripDays() {
+    this.trip?.days.sort((a, b) => a.label.localeCompare(b.label));
   }
 
   getDayStats(day: TripDay): { price: number; places: number } {
@@ -323,7 +328,55 @@ export class TripComponent implements AfterViewInit {
     }
   }
 
-  toggleTripDayHighlightPath(day_id: number) {
+  toggleTripDaysHighlight() {
+    if (this.tripMapAntLayerDayID == -1) {
+      this.map.removeLayer(this.tripMapAntLayer);
+      this.tripMapAntLayerDayID = undefined;
+      this.resetMapBounds();
+      return;
+    }
+
+    if (!this.trip) return;
+
+    const items = this.trip.days.flatMap((day) =>
+      day.items.sort((a, b) => a.time.localeCompare(b.time)),
+    );
+
+    const coords = items
+      .map((item) => {
+        if (item.lat && item.lng) return [item.lat, item.lng];
+        if (item.place && item.place) return [item.place.lat, item.place.lng];
+        return undefined;
+      })
+      .filter((n): n is number[] => n !== undefined);
+    this.map.fitBounds(coords, { padding: [30, 30] });
+
+    const path = antPath(coords, {
+      delay: 400,
+      dashArray: [10, 20],
+      weight: 5,
+      color: "#0000FF",
+      pulseColor: "#FFFFFF",
+      paused: false,
+      reverse: false,
+      hardwareAccelerated: true,
+    });
+
+    if (this.tripMapAntLayer) {
+      this.map.removeLayer(this.tripMapAntLayer);
+      this.tripMapAntLayerDayID = undefined;
+    }
+
+    // UX
+    setTimeout(() => {
+      this.map.addLayer(path);
+    }, 200);
+
+    this.tripMapAntLayer = path;
+    this.tripMapAntLayerDayID = -1; //Hardcoded value for global trace
+  }
+
+  toggleTripDayHighlightPathDay(day_id: number) {
     // Click on the currently displayed day: remove
     if (this.tripMapAntLayerDayID == day_id) {
       this.map.removeLayer(this.tripMapAntLayer);
@@ -484,6 +537,7 @@ export class TripComponent implements AfterViewInit {
         this.apiService.postTripDay(day, this.trip?.id!).subscribe({
           next: (day) => {
             this.trip?.days.push(day);
+            this.sortTripDays();
             this.flattenedTripItems.push(...this.flattenTripDayItems([day]));
           },
         });
@@ -517,6 +571,7 @@ export class TripComponent implements AfterViewInit {
             let index = this.trip?.days.findIndex((d) => d.id == day.id);
             if (index != -1) {
               this.trip?.days.splice(index as number, 1, day);
+              this.sortTripDays();
               this.flattenedTripItems = this.flattenTripDayItems(
                 this.trip?.days!,
               );
@@ -693,7 +748,7 @@ export class TripComponent implements AfterViewInit {
               this.updateTotalPrice(updatedPrice);
 
               if (this.tripMapAntLayerDayID == item.day_id)
-                this.toggleTripDayHighlightPath(item.day_id);
+                this.toggleTripDayHighlightPathDay(item.day_id);
             },
           });
       },
