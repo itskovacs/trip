@@ -69,7 +69,14 @@ export class TripComponent implements AfterViewInit {
 
   places: PlaceWithUsage[] = [];
   flattenedTripItems: FlattenedTripItem[] = [];
-  menuItems: MenuItem[] = [];
+  menuTripActionsItems: MenuItem[] = [];
+
+  menuTripDayActionsItems: MenuItem[] = [];
+  selectedTripDayForMenu: TripDay | undefined;
+
+  collapsedTripPlaces: boolean = false;
+  collapsedTripDays: boolean = false;
+  collapsedTripStatuses: boolean = false;
 
   constructor(
     private apiService: ApiService,
@@ -81,7 +88,7 @@ export class TripComponent implements AfterViewInit {
     this.currency$ = this.utilsService.currency$;
     this.statuses = this.utilsService.statuses;
 
-    this.menuItems = [
+    this.menuTripActionsItems = [
       {
         label: "Actions",
         items: [
@@ -107,6 +114,38 @@ export class TripComponent implements AfterViewInit {
             iconClass: "text-red-500!",
             command: () => {
               this.deleteTrip();
+            },
+          },
+        ],
+      },
+    ];
+    this.menuTripDayActionsItems = [
+      {
+        label: "Actions",
+        items: [
+          {
+            label: "Item",
+            icon: "pi pi-plus",
+            iconClass: "text-blue-500!",
+            command: () => {
+              this.addItem();
+            },
+          },
+          {
+            label: "Edit",
+            icon: "pi pi-pencil",
+            command: () => {
+              if (!this.selectedTripDayForMenu) return;
+              this.editDay(this.selectedTripDayForMenu);
+            },
+          },
+          {
+            label: "Delete",
+            icon: "pi pi-trash",
+            iconClass: "text-red-500!",
+            command: () => {
+              if (!this.selectedTripDayForMenu) return;
+              this.deleteDay(this.selectedTripDayForMenu);
             },
           },
         ],
@@ -164,6 +203,20 @@ export class TripComponent implements AfterViewInit {
 
     this.dayStatsCache.set(day.id, stats);
     return stats;
+  }
+
+  get getReviewData(): (TripItem & { status: TripStatus })[] {
+    if (!this.trip?.days) return [];
+
+    const data = this.trip!.days.map((day) =>
+      day.items.filter((item) => item.status),
+    ).flat();
+    if (!data.length) return [];
+
+    return data.map((item) => ({
+      ...item,
+      status: this.statusToTripStatus(item.status as string),
+    })) as (TripItem & { status: TripStatus })[];
   }
 
   statusToTripStatus(status?: string): TripStatus | undefined {
@@ -576,6 +629,7 @@ export class TripComponent implements AfterViewInit {
                   this.trip?.days!,
                 );
               }
+              if (item.price) this.updateTotalPrice(item.price);
             },
           });
       },

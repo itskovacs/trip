@@ -3,7 +3,11 @@
     <div class="grid md:grid-cols-5 gap-4">
       <p-floatlabel variant="in">
         <p-select [options]="days" optionValue="id" optionLabel="label" inputId="day_id" id="day_id"
-          formControlName="day_id" [checkmark]="true" class="capitalize" fluid />
+          formControlName="day_id" [checkmark]="true" class="capitalize" fluid>
+          <ng-template let-day #item>
+            <div class="whitespace-normal">{{ day.label }}</div>
+          </ng-template>
+        </p-select>
         <label for="day_id">Day</label>
       </p-floatlabel>
 
@@ -26,7 +30,7 @@
           formControlName="place" [showClear]="true" class="capitalize" fluid>
 
           <ng-template let-place #item>
-            <div class="flex items-center gap-2" [class.text-gray-500]="place.placeUsage">
+            <div class="flex items-center whitespace-normal gap-2" [class.text-gray-500]="place.placeUsage">
               <img [src]="place.image" class="rounded-full size-6" />
               <div>{{ place.name }}</div>
             </div>
@@ -60,6 +64,9 @@
               <div>{{ selectedOption.label }}</div>
             </div>
             }
+          </ng-template>
+          <ng-template let-option #item>
+            <div class="whitespace-normal">{{ option.label }}</div>
           </ng-template>
         </p-select>
         <label for="status">Status</label>

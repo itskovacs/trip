@@ -21,6 +21,7 @@ import { FocusTrapModule } from "primeng/focustrap";
 import { Category, Place } from "../../types/poi";
 import { CheckboxModule } from "primeng/checkbox";
 import { TooltipModule } from "primeng/tooltip";
+import { checkAndParseLatLng, formatLatLng } from "../../shared/latlng-parser";
 
 @Component({
   selector: "app-place-create-modal",
@@ -114,30 +115,18 @@ export class PlaceCreateModalComponent {
 
     this.placeForm.get("lat")?.valueChanges.subscribe({
       next: (value: string) => {
-        if (/\-?\d+\.\d+,\s\-?\d+\.\d+/.test(value)) {
-          let [lat, lng] = value.split(", ");
-          const latLength = lat.split(".")[1].length;
-          const lngLength = lng.split(".")[1].length;
+        const result = checkAndParseLatLng(value);
+        if (!result) return;
+        const [lat, lng] = result;
 
-          const latControl = this.placeForm.get("lat");
-          const lngControl = this.placeForm.get("lng");
+        const latControl = this.placeForm.get("lat");
+        const lngControl = this.placeForm.get("lng");
 
-          latControl?.setValue(
-            parseFloat(lat).toFixed(latLength > 5 ? 5 : latLength),
-            {
-              emitEvent: false,
-            },
-          );
-          lngControl?.setValue(
-            parseFloat(lng).toFixed(lngLength > 5 ? 5 : lngLength),
-            {
-              emitEvent: false,
-            },
-          );
+        latControl?.setValue(formatLatLng(lat), { emitEvent: false });
+        lngControl?.setValue(formatLatLng(lng), { emitEvent: false });
 
-          lngControl?.markAsDirty();
-          lngControl?.updateValueAndValidity();
-        }
+        lngControl?.markAsDirty();
+        lngControl?.updateValueAndValidity();
       },
     });
   }

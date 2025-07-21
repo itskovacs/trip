@@ -10,7 +10,13 @@ import { SkeletonModule } from "primeng/skeleton";
 
 @Component({
   selector: "app-trip-place-select-modal",
-  imports: [FloatLabelModule, InputTextModule, ButtonModule, ReactiveFormsModule, SkeletonModule],
+  imports: [
+    FloatLabelModule,
+    InputTextModule,
+    ButtonModule,
+    ReactiveFormsModule,
+    SkeletonModule,
+  ],
   standalone: true,
   templateUrl: "./trip-place-select-modal.component.html",
   styleUrl: "./trip-place-select-modal.component.scss",
@@ -27,11 +33,11 @@ export class TripPlaceSelectModalComponent {
   constructor(
     private apiService: ApiService,
     private ref: DynamicDialogRef,
-    private config: DynamicDialogConfig
+    private config: DynamicDialogConfig,
   ) {
     this.apiService.getPlaces().subscribe({
       next: (places) => {
-        this.places = places;
+        this.places = places.sort((a, b) => a.name.localeCompare(b.name));
         this.displayedPlaces = places;
       },
     });
@@ -51,7 +57,9 @@ export class TripPlaceSelectModalComponent {
 
         let v = value.toLowerCase();
         this.displayedPlaces = this.places.filter(
-          (p) => p.name.toLowerCase().includes(v) || p.description?.toLowerCase().includes(v)
+          (p) =>
+            p.name.toLowerCase().includes(v) ||
+            p.description?.toLowerCase().includes(v),
         );
       },
     });
@@ -62,7 +70,7 @@ export class TripPlaceSelectModalComponent {
       this.selectedPlacesID.splice(this.selectedPlacesID.indexOf(p.id), 1);
       this.selectedPlaces.splice(
         this.selectedPlaces.findIndex((place) => place.id === p.id),
-        1
+        1,
       );
       return;
     }

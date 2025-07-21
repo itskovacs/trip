@@ -21,15 +21,19 @@
         <label for="place">Place</label>
       </p-floatlabel>
       <p-inputgroup-addon>
-        <p-button icon="pi pi-info-circle" [pTooltip]="placeInputTooltip" [escape]="false" tooltipEvent="focus"
-          severity="secondary" class="h-full" />
+        <p-button icon="pi pi-info-circle" tabindex="-1" [pTooltip]="placeInputTooltip" [escape]="false"
+          tooltipEvent="focus" severity="secondary" class="h-full" />
       </p-inputgroup-addon>
     </p-inputgroup>
 
     <p-floatlabel variant="in" class="col-span-2 md:col-span-1">
       <p-select [options]="(categories$ | async) || []" optionValue="id" optionLabel="name"
         [loading]="!(categories$ | async)?.length" inputId="category" id="category" formControlName="category"
-        [checkmark]="true" class="w-full capitalize" fluid />
+        [checkmark]="true" class="capitalize" fluid>
+        <ng-template let-category #item>
+          <div class="whitespace-normal">{{ category.name }}</div>
+        </ng-template>
+      </p-select>
       <label for="category">Category</label>
     </p-floatlabel>
 

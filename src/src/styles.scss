@@ -46,17 +46,6 @@ html {
   line-height: normal;
 }
 
-@keyframes slideY {
-  0% {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-}
-
-.slideY {
-  animation: slideY 0.3s both;
-}
-
 .class-tooltip {
   background: white;
   border-radius: 8px;
@@ -112,12 +101,8 @@ html {
 
   border-top: 1px solid transparent;
   border-bottom: 1px solid transparent;
-  cursor: default;
+  cursor: pointer;
   outline: none;
-}
-
-.leaflet-contextmenu a.leaflet-contextmenu-item-disabled {
-  opacity: 0.5;
 }
 
 .leaflet-contextmenu a.leaflet-contextmenu-item.over {
@@ -126,19 +111,10 @@ html {
   border-bottom: 1px solid #f0f0f0;
 }
 
-.leaflet-contextmenu a.leaflet-contextmenu-item-disabled.over {
-  background-color: inherit;
-}
-
 .leaflet-contextmenu-icon {
   display: flex;
   align-items: center;
   width: 24px;
-}
-
-.leaflet-contextmenu-separator {
-  border-bottom: 1px solid #ccc;
-  margin: 5px 0;
 }
 
 .image-marker {
@@ -166,4 +142,15 @@ html {
     opacity: 1;
     transform: translateX(-50%) translateY(0);
   }
+}
+
+@keyframes slide-x {
+  0% {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+}
+
+.slide-x {
+  animation: slide-x 0.3s both;
 }

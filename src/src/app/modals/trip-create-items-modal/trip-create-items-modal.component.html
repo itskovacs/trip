@@ -1,7 +1,11 @@
 <section [formGroup]="itemBatchForm" class="grid gap-4">
   <p-floatlabel variant="in">
     <p-select [options]="days" optionValue="id" optionLabel="label" inputId="day_id" id="day_id"
-      formControlName="day_id" [checkmark]="true" class="w-full capitalize" fluid />
+      formControlName="day_id" [checkmark]="true" class="w-full capitalize" fluid>
+      <ng-template let-day #item>
+        <div class="whitespace-normal">{{ day.label }}</div>
+      </ng-template>
+    </p-select>
     <label for="day_id">Day</label>
   </p-floatlabel>
 

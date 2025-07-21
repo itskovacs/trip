@@ -15,6 +15,7 @@ import { SelectModule } from "primeng/select";
 import { TextareaModule } from "primeng/textarea";
 import { InputMaskModule } from "primeng/inputmask";
 import { UtilsService } from "../../services/utils.service";
+import { checkAndParseLatLng, formatLatLng } from "../../shared/latlng-parser";
 
 @Component({
   selector: "app-trip-create-day-item-modal",
@@ -70,6 +71,7 @@ export class TripCreateDayItemModalComponent {
         "",
         {
           validators: Validators.pattern("-?(90(\\.0+)?|[1-8]?\\d(\\.\\d+)?)"),
+          updateOn: "blur",
         },
       ],
       lng: [
@@ -104,17 +106,26 @@ export class TripCreateDayItemModalComponent {
           this.itemForm.get("lat")?.setValue(p.lat);
           this.itemForm.get("lng")?.setValue(p.lng);
           this.itemForm.get("price")?.setValue(p.price || 0);
+          if (!this.itemForm.get("text")?.value)
+            this.itemForm.get("text")?.setValue(p.name);
         }
       },
     });
 
     this.itemForm.get("lat")?.valueChanges.subscribe({
       next: (value: string) => {
-        if (/\-?\d+\.\d+,\s\-?\d+\.\d+/.test(value)) {
-          let [lat, lng] = value.split(", ");
-          this.itemForm.get("lat")?.setValue(parseFloat(lat).toFixed(5));
-          this.itemForm.get("lng")?.setValue(parseFloat(lng).toFixed(5));
-        }
+        const result = checkAndParseLatLng(value);
+        if (!result) return;
+
+        const [lat, lng] = result;
+        const latControl = this.itemForm.get("lat");
+        const lngControl = this.itemForm.get("lng");
+
+        latControl?.setValue(formatLatLng(lat), { emitEvent: false });
+        lngControl?.setValue(formatLatLng(lng), { emitEvent: false });
+
+        lngControl?.markAsDirty();
+        lngControl?.updateValueAndValidity();
       },
     });
   }
