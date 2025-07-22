@@ -27,18 +27,10 @@
 - 📜 [License](#License)
 - 🤝 [Contributing](#Contributing)
 - 🛠️ [Tech Stack](#techstack)
-- ✍️ [Authors](#authors)
 
 ## 📦 About <a name = "about"></a>
 
-TRIP is a minimalist Map tracker and Trip planner, to visualize your points of interest (POI) and organize your next adventure details.
-
-- 📍 Manage your POI on a Map
-- 🐾 Specify metadata (*dog-friendly*, *cost*, *duration*)
-- 🗂️ Categorize your points
-- 🧾 Plan your next trip in a structured table, *Google Sheets*-style
-- 🔍 Use map filtering and searching for fast interactions
-- ⚙️ Customize your settings, import/export your data, and more
+TRIP is a minimalist Map tracker and Trip planner to visualize your points of interest (POI) and organize your next adventure details.
 
 Demo is worth a thousand words, head to 📸 [Demo](#Demo).  
 
@@ -48,98 +40,17 @@ Demo is worth a thousand words, head to 📸 [Demo](#Demo).
 
 ## 🌱 Getting Started <a name = "getting_started"></a>
 
-These steps will guide to deploy the app, ready to use in ⏱️ minutes.  
 If you need help, feel free to open an [issue](https://github.com/itskovacs/trip/issues).
 
-> [!NOTE]
-> Packages are available in the [packages section](https://github.com/itskovacs/trip/pkgs/container/trip) of the repository for quickstart, using just `docker run`
+> [!CAUTION]
+> :boom: `2.0.0` introduces a small breaking change on Docker volume. If you come from `1.X.Y`, follow the [2.0.0 few steps](https://github.com/itskovacs/trip/releases/tag/2.0.0).
 
 ```bash
-# Ensure you have the latest
-docker pull ghcr.io/itskovacs/trip:1
+# Ensure you have the latest image
+docker pull ghcr.io/itskovacs/trip:2
 
-# Run the app
-docker run -p 8080:8000 -v trip-storage:/app/storage ghcr.io/itskovacs/trip:1
-```
-
-
-### Preparation
-
-Clone the repo, you're one step away from being all set
-
-```bash
-git clone https://github.com/itskovacs/trip.git
-cd trip
-```
-
-### Docker 🐳 (recommended)
-
-If needed, edit `docker-compose.yml` to modify the mapped port (default is `127.0.0.1:8080`).
-
-Run the container, head to TRIP website, create an account, enjoy ✅
-
-```bash
-docker compose up -d
-```
-
-<br>
-
-### Serving the content
-You can serve TRIP using a web server, eg: Nginx
-```nginx
-server {
-    listen 443 ssl;
-    listen [::]:443 ssl;
-
-    server_name trip.lan; # Your TRIP domain
-
-    location / {
-        proxy_pass http://localhost:8080; # TRIP port, default is 8080
-        proxy_set_header Host               $host;
-        proxy_set_header X-Real-IP          $remote_addr;
-        proxy_set_header X-Forwarded-For    $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto  $scheme;
-        proxy_set_header Upgrade            $http_upgrade;
-        proxy_set_header Connection         "upgrade";
-    }
-}
-```
-
-
-### Sources 👩‍💻
-
-Install from sources and run the backend.
-Build the frontend and serve it with the web server.
-
-**backend**
-
-```bash
-cd backend
-
-# Source virtual environment
-python -m venv venv
-source venv/bin/activate
-
-# Install dependencies
-pip install -r trip/requirements.txt
-
-# Run the backend, port :8000
-fastapi run trip/main.py
-```
-
-**frontend**
-
-```bash
-cd frontend
-
-# Install dependencies
-npm install
-
-# Build the frontend
-npm build
-
-# Copy the build to your static web server directory
-cp -r dist/trip/browser /var/www/html
+# Run the container
+docker run -p 8080:8000 -v ./storage:/app/storage ghcr.io/itskovacs/trip:2
 ```
 
 <br>
@@ -161,7 +72,8 @@ A demo is available at [itskovacs-trip.netlify.app](https://itskovacs-trip.netli
 
 ## 🚧 Roadmap <a name = "roadmap"></a>
 
-New features coming soon<sup>TM</sup>, check out the development plan in the [Roadmap Wiki](https://github.com/itskovacs/trip/wiki/Roadmap). If you have ideas 💡, feel free to open an issue.
+New features coming soon<sup>TM</sup>, check out the development plan in the [Roadmap Wiki](https://github.com/itskovacs/trip/wiki/Roadmap).  
+If you have ideas 💡, feel free to open an issue.
 
 If you want to develop new feature, feel free to open a pull request (see [🤝 Contributing](#contributing)).
 
@@ -169,7 +81,7 @@ If you want to develop new feature, feel free to open a pull request (see [🤝 
 
 ## 📜 License <a name = "license"></a>
 
-I decided to license trip under the **CC BY-NC-SA 4.0** – You may use, modify, and share freely with attribution, but **commercial use is prohibited**.
+I decided to license trip under the **CC BY-NC-SA 4.0**. You may use, modify, and share freely with attribution, but **commercial use is strictly prohibited**.
 
 <br>
 
@@ -200,15 +112,11 @@ Contributions are welcome! Feel free to open issues if you find bugs and pull re
 
 <br>
 
-## ✍️ Authors <a name = "authors"></a>
-
-- [@itskovacs](https://github.com/itskovacs)
-
-<br>
 
 <div align="center">
 
 If you like TRIP, consider giving it a **star** ⭐!  
-Made with ❤️ in BZH
+Made with ❤️ in BZH  
 
+<a href='https://ko-fi.com/itskovacs' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi1.png' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>  
 </div>
