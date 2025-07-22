@@ -29,16 +29,17 @@ def post_category(
 ) -> CategoryRead:
     new_category = Category(name=category.name, user=current_user)
 
-    image_bytes = b64img_decode(category.image)
-    filename = save_image_to_file(image_bytes, settings.PLACE_IMAGE_SIZE)
-    if not filename:
-        raise HTTPException(status_code=400, detail="Bad request")
+    if category.image:
+        image_bytes = b64img_decode(category.image)
+        filename = save_image_to_file(image_bytes, settings.PLACE_IMAGE_SIZE)
+        if not filename:
+            raise HTTPException(status_code=400, detail="Bad request")
 
-    image = Image(filename=filename, user=current_user)
-    session.add(image)
-    session.commit()
-    session.refresh(image)
-    new_category.image_id = image.id
+        image = Image(filename=filename, user=current_user)
+        session.add(image)
+        session.commit()
+        session.refresh(image)
+        new_category.image_id = image.id
 
     session.add(new_category)
     session.commit()
@@ -57,9 +58,10 @@ def put_category(
     verify_exists_and_owns(current_user, db_category)
 
     category_data = category.model_dump(exclude_unset=True)
-    if category_data.get("image"):
+    category_image = category_data.pop("image", None)
+    if category_image:
         try:
-            image_bytes = b64img_decode(category_data.pop("image"))
+            image_bytes = b64img_decode(category_image)
         except Exception:
             raise HTTPException(status_code=400, detail="Bad request")
 
@@ -104,6 +106,16 @@ def delete_category(
 
     if get_category_placess_cnt(session, category_id, current_user) > 0:
         raise HTTPException(status_code=409, detail="The resource is not orphan")
+
+    if db_category.image:
+        try:
+            remove_image(db_category.image.filename)
+            session.delete(db_category.image)
+        except Exception:
+            raise HTTPException(
+                status_code=500,
+                detail="Roses are red, violets are blue, if you're reading this, I'm sorry for you",
+            )
 
     session.delete(db_category)
     session.commit()

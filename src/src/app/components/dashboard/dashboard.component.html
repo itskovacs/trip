@@ -7,7 +7,7 @@
 }
 
 <div class="absolute z-30 top-2 right-2 p-2 bg-white shadow rounded">
-  <p-button (click)="toggleMarkersList()" text severity="secondary" icon="pi pi-bars" />
+  <p-button (click)="toggleMarkersList()" text severity="secondary" icon="pi pi-map-marker" />
 </div>
 
 <div class="absolute z-30 top-20 right-2 p-2 bg-white shadow rounded">
@@ -65,7 +65,7 @@
     @for (p of visiblePlaces; track p.id) {
     <div class="mt-4 flex items-center gap-4 hover:bg-gray-50 rounded-xl cursor-pointer py-2 px-4"
       (click)="gotoPlace(p)" (mouseenter)="hoverPlace(p)" (mouseleave)="resetHoverPlace()">
-      <img [src]="p.image" class="w-12 rounded-full object-fit">
+      <img [src]="p.image || p.category.image" class="w-12 rounded-full object-fit">
 
       <div class="flex flex-col gap-1 truncate">
         <h1 class="tracking-tight truncate">{{ p.name }}</h1>
@@ -166,59 +166,68 @@
         </p-tab>
       </p-tablist>
       <p-tabpanels>
-        <p-tabpanel value="0" [formGroup]="settingsForm">
-          <div class="mt-1 p-2 mb-2 flex justify-between items-center">
-            <div>
-              <h1 class="font-semibold tracking-tight text-xl">Map parameters</h1>
-              <span class="text-xs text-gray-500">You can customize the default view on map loading</span>
+        <p-tabpanel value="0">
+          <div class="mt-4">
+            <h1 class="font-semibold tracking-tight text-xl">Low Network Mode</h1>
+            <span class="text-xs text-gray-500">You can disable Low Network Mode. Default is true. Display Category
+              image instead of Place image.</span>
+          </div>
+          <div class="mt-4 flex justify-between">
+            <div>Low Network Mode</div>
+            <p-toggleswitch [(ngModel)]="isLowNet" (onChange)="toggleLowNet()" />
+          </div>
+
+          <section [formGroup]="settingsForm">
+            <div class="mt-4 flex justify-between items-center">
+              <div>
+                <h1 class="font-semibold tracking-tight text-xl">Map parameters</h1>
+                <span class="text-xs text-gray-500">You can customize the default view on map loading</span>
+              </div>
+
+              <p-button icon="pi pi-ethereum" pTooltip="Set current map center as default"
+                (click)="setMapCenterToCurrent()" text />
             </div>
 
-            <p-button icon="pi pi-ethereum" pTooltip="Set current map center as default"
-              (click)="setMapCenterToCurrent()" text />
-          </div>
+            <div class="grid grid-cols-2 gap-4 mt-4">
+              <p-floatlabel variant="in">
+                <input id="mapLat" formControlName="mapLat" pInputText fluid />
+                <label for="mapLat">Lat.</label>
+              </p-floatlabel>
 
-          <div class="grid grid-cols-2 gap-4 mt-4">
-            <p-floatlabel variant="in">
-              <input id="mapLat" formControlName="mapLat" pInputText fluid />
-              <label for="mapLat">Lat.</label>
-            </p-floatlabel>
+              <p-floatlabel variant="in">
+                <input id="mapLng" formControlName="mapLng" pInputText fluid />
+                <label for="mapLng">Long.</label>
+              </p-floatlabel>
+            </div>
 
-            <p-floatlabel variant="in">
-              <input id="mapLng" formControlName="mapLng" pInputText fluid />
-              <label for="mapLng">Long.</label>
-            </p-floatlabel>
-          </div>
+            <div class="mt-4">
+              <h1 class="font-semibold tracking-tight text-xl">Currency</h1>
+            </div>
+            <div class="mt-4">
+              <p-floatlabel variant="in" class="md:col-span-2">
+                <p-select [options]="currencySigns" optionValue="s" optionLabel="c" inputId="currency" id="currency"
+                  class="capitalize" formControlName="currency" [checkmark]="true" [showClear]="true" fluid />
+                <label for="currency">Currency</label>
+              </p-floatlabel>
+            </div>
 
-          <div class="mt-4">
-            <h1 class="font-semibold tracking-tight text-xl">Currency</h1>
-          </div>
-          <div class="mt-4">
-            <p-floatlabel variant="in" class="md:col-span-2">
-              <p-select [options]="currencySigns" optionValue="s" optionLabel="c" inputId="currency" id="currency"
-                class="capitalize" formControlName="currency" [checkmark]="true" [showClear]="true" fluid />
-              <label for="currency">Currency</label>
-            </p-floatlabel>
-          </div>
+            <div class="mt-4">
+              <h1 class="font-semibold tracking-tight text-xl">Filters</h1>
+              <span class="text-xs text-gray-500">You can customize the categories to hide by default</span>
+            </div>
+            <div class="mt-4">
+              <p-floatlabel variant="in" class="md:col-span-2">
+                <p-multiselect [options]="doNotDisplayOptions" [group]="true" [filter]="false" [showToggleAll]="false"
+                  class="capitalize" formControlName="do_not_display" [showClear]="true" fluid />
+                <label for="do_not_display">Hide</label>
+              </p-floatlabel>
+            </div>
 
-          <div class="mt-4">
-            <h1 class="font-semibold tracking-tight text-xl">Filters</h1>
-            <span class="text-xs text-gray-500">You can customize the categories and attributes to hide by
-              default</span>
-          </div>
-          <div class="mt-4">
-            <p-floatlabel variant="in" class="md:col-span-2">
-              <p-multiselect [options]="doNotDisplayOptions" [group]="true" [filter]="false" [showToggleAll]="false"
-                class="capitalize" formControlName="do_not_display" [showClear]="true" fluid />
-              <label for="do_not_display">Hide</label>
-            </p-floatlabel>
-          </div>
-
-
-          <div class="mt-2 w-full text-right">
-            <p-button (click)="updateSettings()" label="Update" text
-              [disabled]="!settingsForm.valid || settingsForm.pristine" />
-          </div>
-
+            <div class="mt-2 w-full text-right">
+              <p-button (click)="updateSettings()" label="Update" text
+                [disabled]="!settingsForm.valid || settingsForm.pristine" />
+            </div>
+          </section>
         </p-tabpanel>
         <p-tabpanel value="1">
 

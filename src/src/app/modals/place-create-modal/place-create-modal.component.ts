@@ -99,7 +99,6 @@ export class PlaceCreateModalComponent {
 
     if (this.config.data) {
       let patchValue: Place = this.config.data.place;
-      if (patchValue.imageDefault) delete patchValue["image"];
       this.placeForm.patchValue(patchValue);
     }
 

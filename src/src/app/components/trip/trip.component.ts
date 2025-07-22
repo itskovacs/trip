@@ -31,10 +31,6 @@ import { AsyncPipe } from "@angular/common";
 import { MenuItem } from "primeng/api";
 import { MenuModule } from "primeng/menu";
 
-interface PlaceWithUsage extends Place {
-  placeUsage?: boolean;
-}
-
 @Component({
   selector: "app-trip",
   standalone: true,
@@ -59,15 +55,17 @@ export class TripComponent implements AfterViewInit {
   statuses: TripStatus[] = [];
   hoveredElement: HTMLElement | undefined;
   currency$: Observable<string>;
+  placesUsedInTable = new Set<number>();
 
   trip: Trip | undefined;
   tripMapAntLayer: undefined;
   tripMapAntLayerDayID: number | undefined;
+  isMapFullscreen: boolean = false;
 
   totalPrice: number = 0;
   dayStatsCache = new Map<number, { price: number; places: number }>();
 
-  places: PlaceWithUsage[] = [];
+  places: Place[] = [];
   flattenedTripItems: FlattenedTripItem[] = [];
   menuTripActionsItems: MenuItem[] = [];
 
@@ -176,7 +174,18 @@ export class TripComponent implements AfterViewInit {
 
             this.updateTotalPrice();
 
-            this.map = createMap();
+            let contentMenuItems = [
+              {
+                text: "Copy coordinates",
+                callback: (e: any) => {
+                  const latlng = e.latlng;
+                  navigator.clipboard.writeText(
+                    `${parseFloat(latlng.lat).toFixed(5)}, ${parseFloat(latlng.lng).toFixed(5)}`,
+                  );
+                },
+              },
+            ];
+            this.map = createMap(contentMenuItems);
             this.markerClusterGroup = createClusterGroup().addTo(this.map);
             this.setPlacesAndMarkers();
 
@@ -224,6 +233,10 @@ export class TripComponent implements AfterViewInit {
     })) as (TripItem & { status: TripStatus })[];
   }
 
+  isPlaceUsed(id: number): boolean {
+    return this.placesUsedInTable.has(id);
+  }
+
   statusToTripStatus(status?: string): TripStatus | undefined {
     if (!status) return undefined;
     return this.statuses.find((s) => s.label == status) as TripStatus;
@@ -250,18 +263,21 @@ export class TripComponent implements AfterViewInit {
     );
   }
 
-  setPlacesAndMarkers() {
-    let usedPlaces = this.flattenedTripItems.map((i) => i.place?.id);
-    this.places = (this.trip?.places || []).map((p) => {
-      let ret: PlaceWithUsage = { ...p };
-      if (usedPlaces.includes(p.id)) ret.placeUsage = true;
-      return ret;
+  makePlacesUsedInTable() {
+    this.placesUsedInTable.clear();
+    this.flattenedTripItems.forEach((i) => {
+      if (i.place?.id) this.placesUsedInTable.add(i.place.id);
     });
+  }
+
+  setPlacesAndMarkers() {
+    this.makePlacesUsedInTable();
+    this.places = this.trip?.places || [];
     this.places.sort((a, b) => a.name.localeCompare(b.name));
 
     this.markerClusterGroup?.clearLayers();
     this.places.forEach((p) => {
-      const marker = placeToMarker(p);
+      const marker = placeToMarker(p, false);
       this.markerClusterGroup?.addLayer(marker);
     });
   }
@@ -272,6 +288,15 @@ export class TripComponent implements AfterViewInit {
       this.places.map((p) => [p.lat, p.lng]),
       { padding: [30, 30] },
     );
+  }
+
+  toggleMapFullscreen() {
+    this.isMapFullscreen = !this.isMapFullscreen;
+
+    setTimeout(() => {
+      this.map.invalidateSize();
+      this.resetMapBounds();
+    }, 50);
   }
 
   updateTotalPrice(n?: number) {
@@ -352,7 +377,7 @@ export class TripComponent implements AfterViewInit {
     this.map.fitBounds(coords, { padding: [30, 30] });
 
     const path = antPath(coords, {
-      delay: 400,
+      delay: 600,
       dashArray: [10, 20],
       weight: 5,
       color: "#0000FF",
@@ -607,6 +632,7 @@ export class TripComponent implements AfterViewInit {
                   this.trip?.days!,
                 );
                 this.dayStatsCache.delete(day.id);
+                this.makePlacesUsedInTable();
               }
             },
           });
@@ -685,6 +711,7 @@ export class TripComponent implements AfterViewInit {
                 );
               }
               if (item.price) this.updateTotalPrice(item.price);
+              if (item.place?.id) this.placesUsedInTable.add(item.place.id);
             },
           });
       },
@@ -718,6 +745,7 @@ export class TripComponent implements AfterViewInit {
     modal.onClose.subscribe({
       next: (it: TripItem | null) => {
         if (!it) return;
+        if (item.place?.id) this.placesUsedInTable.delete(item.place.id);
 
         this.apiService
           .putTripDayItem(it, this.trip?.id!, item.day_id, item.id)
@@ -744,6 +772,7 @@ export class TripComponent implements AfterViewInit {
                 this.dayStatsCache.delete(item.day_id);
               }
 
+              if (item.place?.id) this.placesUsedInTable.add(item.place.id);
               const updatedPrice = -(item.price || 0) + (it.price || 0);
               this.updateTotalPrice(updatedPrice);
 
@@ -786,6 +815,8 @@ export class TripComponent implements AfterViewInit {
                   this.flattenedTripItems = this.flattenTripDayItems(
                     this.trip?.days!,
                   );
+                  if (item.place?.id)
+                    this.placesUsedInTable.delete(item.place.id);
                   this.dayStatsCache.delete(item.day_id);
                   this.selectedItem = undefined;
                   this.resetPlaceHighlightMarker();

@@ -31,7 +31,7 @@
 
           <ng-template let-place #item>
             <div class="flex items-center whitespace-normal gap-2" [class.text-gray-500]="place.placeUsage">
-              <img [src]="place.image" class="rounded-full size-6" />
+              <img [src]="place.image || place.category.image" class="rounded-full size-6" />
               <div>{{ place.name }}</div>
             </div>
           </ng-template>

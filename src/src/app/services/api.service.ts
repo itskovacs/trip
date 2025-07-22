@@ -4,7 +4,6 @@ import { Category, Place } from "../types/poi";
 import {
   BehaviorSubject,
   distinctUntilChanged,
-  map,
   Observable,
   shareReplay,
   tap,
@@ -18,7 +17,6 @@ import { Trip, TripBase, TripDay, TripItem } from "../types/trip";
 })
 export class ApiService {
   public apiBaseUrl: string = "/api";
-  public assetsBaseUrl: string = "/api/assets";
 
   private categoriesSubject = new BehaviorSubject<Category[] | null>(null);
   public categories$: Observable<Category[] | null> =
@@ -31,23 +29,6 @@ export class ApiService {
 
   getInfo(): Observable<Info> {
     return this.httpClient.get<Info>(this.apiBaseUrl + "/info");
-  }
-
-  _normalizeTripImage(trip: Trip | TripBase): Trip | TripBase {
-    if (trip.image) trip.image = `${this.assetsBaseUrl}/${trip.image}`;
-    else trip.image = "cover.webp";
-    return trip;
-  }
-
-  _normalizePlaceImage(place: Place): Place {
-    if (place.image) {
-      place.image = `${this.assetsBaseUrl}/${place.image}`;
-      place.imageDefault = false;
-    } else {
-      place.image = `${this.assetsBaseUrl}/${(place.category as Category).image}`;
-      place.imageDefault = true;
-    }
-    return place;
   }
 
   _categoriesSubjectNext(categories: Category[]) {
@@ -63,11 +44,6 @@ export class ApiService {
       return this.httpClient
         .get<Category[]>(`${this.apiBaseUrl}/categories`)
         .pipe(
-          map((resp) => {
-            return resp.map((c) => {
-              return { ...c, image: `${this.assetsBaseUrl}/${c.image}` };
-            });
-          }),
           tap((categories) => this._categoriesSubjectNext(categories)),
           distinctUntilChanged(),
           shareReplay(),
@@ -80,12 +56,6 @@ export class ApiService {
     return this.httpClient
       .post<Category>(this.apiBaseUrl + "/categories", c)
       .pipe(
-        map((category) => {
-          return {
-            ...category,
-            image: `${this.assetsBaseUrl}/${category.image}`,
-          };
-        }),
         tap((category) =>
           this._categoriesSubjectNext([
             ...(this.categoriesSubject.value || []),
@@ -99,12 +69,6 @@ export class ApiService {
     return this.httpClient
       .put<Category>(this.apiBaseUrl + `/categories/${c_id}`, c)
       .pipe(
-        map((category) => {
-          return {
-            ...category,
-            image: `${this.assetsBaseUrl}/${category.image}`,
-          };
-        }),
         tap((category) => {
           let categories = this.categoriesSubject.value || [];
           let categoryIndex = categories?.findIndex((c) => c.id == c_id) || -1;
@@ -133,29 +97,27 @@ export class ApiService {
   }
 
   getPlaces(): Observable<Place[]> {
-    return this.httpClient.get<Place[]>(`${this.apiBaseUrl}/places`).pipe(
-      map((resp) => resp.map((p) => this._normalizePlaceImage(p))),
-      distinctUntilChanged(),
-      shareReplay(),
-    );
+    return this.httpClient
+      .get<Place[]>(`${this.apiBaseUrl}/places`)
+      .pipe(distinctUntilChanged(), shareReplay());
   }
 
   postPlace(place: Place): Observable<Place> {
-    return this.httpClient
-      .post<Place>(`${this.apiBaseUrl}/places`, place)
-      .pipe(map((p) => this._normalizePlaceImage(p)));
+    return this.httpClient.post<Place>(`${this.apiBaseUrl}/places`, place);
   }
 
   postPlaces(places: Partial<Place[]>): Observable<Place[]> {
-    return this.httpClient
-      .post<Place[]>(`${this.apiBaseUrl}/places/batch`, places)
-      .pipe(map((resp) => resp.map((p) => this._normalizePlaceImage(p))));
+    return this.httpClient.post<Place[]>(
+      `${this.apiBaseUrl}/places/batch`,
+      places,
+    );
   }
 
   putPlace(place_id: number, place: Partial<Place>): Observable<Place> {
-    return this.httpClient
-      .put<Place>(`${this.apiBaseUrl}/places/${place_id}`, place)
-      .pipe(map((p) => this._normalizePlaceImage(p)));
+    return this.httpClient.put<Place>(
+      `${this.apiBaseUrl}/places/${place_id}`,
+      place,
+    );
   }
 
   deletePlace(place_id: number): Observable<null> {
@@ -165,50 +127,23 @@ export class ApiService {
   }
 
   getPlaceGPX(place_id: number): Observable<Place> {
-    return this.httpClient
-      .get<Place>(`${this.apiBaseUrl}/places/${place_id}`)
-      .pipe(map((p) => this._normalizePlaceImage(p)));
+    return this.httpClient.get<Place>(`${this.apiBaseUrl}/places/${place_id}`);
   }
 
   getTrips(): Observable<TripBase[]> {
-    return this.httpClient.get<TripBase[]>(`${this.apiBaseUrl}/trips`).pipe(
-      map((resp) => {
-        return resp.map((trip: TripBase) => {
-          trip = this._normalizeTripImage(trip) as TripBase;
-          return trip;
-        });
-      }),
-      distinctUntilChanged(),
-      shareReplay(),
-    );
+    return this.httpClient
+      .get<TripBase[]>(`${this.apiBaseUrl}/trips`)
+      .pipe(distinctUntilChanged(), shareReplay());
   }
 
   getTrip(id: number): Observable<Trip> {
-    return this.httpClient.get<Trip>(`${this.apiBaseUrl}/trips/${id}`).pipe(
-      map((trip) => {
-        trip = this._normalizeTripImage(trip) as Trip;
-        trip.places = trip.places.map((p) => this._normalizePlaceImage(p));
-        trip.days.map((day) => {
-          day.items.forEach((item) => {
-            if (item.place) this._normalizePlaceImage(item.place);
-          });
-        });
-        return trip;
-      }),
-      distinctUntilChanged(),
-      shareReplay(),
-    );
+    return this.httpClient
+      .get<Trip>(`${this.apiBaseUrl}/trips/${id}`)
+      .pipe(distinctUntilChanged(), shareReplay());
   }
 
   postTrip(trip: TripBase): Observable<TripBase> {
-    return this.httpClient
-      .post<TripBase>(`${this.apiBaseUrl}/trips`, trip)
-      .pipe(
-        map((trip) => {
-          trip = this._normalizeTripImage(trip) as TripBase;
-          return trip;
-        }),
-      );
+    return this.httpClient.post<TripBase>(`${this.apiBaseUrl}/trips`, trip);
   }
 
   deleteTrip(trip_id: number): Observable<null> {
@@ -216,20 +151,10 @@ export class ApiService {
   }
 
   putTrip(trip: Partial<Trip>, trip_id: number): Observable<Trip> {
-    return this.httpClient
-      .put<Trip>(`${this.apiBaseUrl}/trips/${trip_id}`, trip)
-      .pipe(
-        map((trip) => {
-          trip = this._normalizeTripImage(trip) as Trip;
-          trip.places = trip.places.map((p) => this._normalizePlaceImage(p));
-          trip.days.map((day) => {
-            day.items.forEach((item) => {
-              if (item.place) this._normalizePlaceImage(item.place);
-            });
-          });
-          return trip;
-        }),
-      );
+    return this.httpClient.put<Trip>(
+      `${this.apiBaseUrl}/trips/${trip_id}`,
+      trip,
+    );
   }
 
   postTripDay(tripDay: TripDay, trip_id: number): Observable<TripDay> {
@@ -240,19 +165,10 @@ export class ApiService {
   }
 
   putTripDay(tripDay: Partial<TripDay>, trip_id: number): Observable<TripDay> {
-    return this.httpClient
-      .put<TripDay>(
-        `${this.apiBaseUrl}/trips/${trip_id}/days/${tripDay.id}`,
-        tripDay,
-      )
-      .pipe(
-        map((td) => {
-          td.items.forEach((item) => {
-            if (item.place) this._normalizePlaceImage(item.place);
-          });
-          return td;
-        }),
-      );
+    return this.httpClient.put<TripDay>(
+      `${this.apiBaseUrl}/trips/${trip_id}/days/${tripDay.id}`,
+      tripDay,
+    );
   }
 
   deleteTripDay(trip_id: number, day_id: number): Observable<null> {
@@ -266,17 +182,10 @@ export class ApiService {
     trip_id: number,
     day_id: number,
   ): Observable<TripItem> {
-    return this.httpClient
-      .post<TripItem>(
-        `${this.apiBaseUrl}/trips/${trip_id}/days/${day_id}/items`,
-        item,
-      )
-      .pipe(
-        map((item) => {
-          if (item.place) item.place = this._normalizePlaceImage(item.place);
-          return item;
-        }),
-      );
+    return this.httpClient.post<TripItem>(
+      `${this.apiBaseUrl}/trips/${trip_id}/days/${day_id}/items`,
+      item,
+    );
   }
 
   putTripDayItem(
@@ -285,17 +194,10 @@ export class ApiService {
     day_id: number,
     item_id: number,
   ): Observable<TripItem> {
-    return this.httpClient
-      .put<TripItem>(
-        `${this.apiBaseUrl}/trips/${trip_id}/days/${day_id}/items/${item_id}`,
-        item,
-      )
-      .pipe(
-        map((item) => {
-          if (item.place) item.place = this._normalizePlaceImage(item.place);
-          return item;
-        }),
-      );
+    return this.httpClient.put<TripItem>(
+      `${this.apiBaseUrl}/trips/${trip_id}/days/${day_id}/items/${item_id}`,
+      item,
+    );
   }
 
   deleteTripDayItem(
@@ -336,21 +238,10 @@ export class ApiService {
 
   settingsUserImport(formdata: FormData): Observable<Place[]> {
     const headers = { enctype: "multipart/form-data" };
-    return this.httpClient
-      .post<
-        Place[]
-      >(`${this.apiBaseUrl}/settings/import`, formdata, { headers: headers })
-      .pipe(
-        map((resp) => {
-          return resp.map((c) => {
-            if (c.image) c.image = `${this.assetsBaseUrl}/${c.image}`;
-            else {
-              c.image = `${this.assetsBaseUrl}/${(c.category as Category).image}`;
-              c.imageDefault = true;
-            }
-            return c;
-          });
-        }),
-      );
+    return this.httpClient.post<Place[]>(
+      `${this.apiBaseUrl}/settings/import`,
+      formdata,
+      { headers: headers },
+    );
   }
 }

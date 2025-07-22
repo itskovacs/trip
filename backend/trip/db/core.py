@@ -3,7 +3,7 @@ from sqlalchemy.engine import Engine
 from sqlmodel import Session, SQLModel, create_engine
 
 from ..config import settings
-from ..models.models import Category, Image
+from ..models.models import Category
 
 _engine = None
 
@@ -32,45 +32,17 @@ def init_db():
 
 def init_user_data(session: Session, username: str):
     data = [
-        {
-            "image": {"filename": "nature.png", "user": username},
-            "category": {"user": username, "name": "Nature & Outdoor"},
-        },
-        {
-            "image": {"filename": "entertainment.png", "user": username},
-            "category": {"user": username, "name": "Entertainment & Leisure"},
-        },
-        {
-            "image": {"filename": "culture.png", "user": username},
-            "category": {"user": username, "name": "Culture"},
-        },
-        {
-            "image": {"filename": "food.png", "user": username},
-            "category": {"user": username, "name": "Food & Drink"},
-        },
-        {
-            "image": {"filename": "adventure.png", "user": username},
-            "category": {"user": username, "name": "Adventure & Sports"},
-        },
-        {
-            "image": {"filename": "event.png", "user": username},
-            "category": {"user": username, "name": "Festival & Event"},
-        },
-        {
-            "image": {"filename": "wellness.png", "user": username},
-            "category": {"user": username, "name": "Wellness"},
-        },
-        {
-            "image": {"filename": "accommodation.png", "user": username},
-            "category": {"user": username, "name": "Accommodation"},
-        },
+        {"category": {"user": username, "name": "Nature & Outdoor"}},
+        {"category": {"user": username, "name": "Entertainment & Leisure"}},
+        {"category": {"user": username, "name": "Culture"}},
+        {"category": {"user": username, "name": "Food & Drink"}},
+        {"category": {"user": username, "name": "Adventure & Sports"}},
+        {"category": {"user": username, "name": "Festival & Event"}},
+        {"category": {"user": username, "name": "Wellness"}},
+        {"category": {"user": username, "name": "Accommodation"}},
     ]
 
     for element in data:
-        img = Image(**element["image"])
-        session.add(img)
-        session.flush()
-
-        category = Category(**element["category"], image_id=img.id)
+        category = Category(**element["category"])
         session.add(category)
     session.commit()

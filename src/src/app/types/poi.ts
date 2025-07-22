@@ -22,5 +22,4 @@ export interface Place {
   allowdog?: boolean;
   visited?: boolean;
   favorite?: boolean;
-  imageDefault?: boolean; // Injected in service
 }

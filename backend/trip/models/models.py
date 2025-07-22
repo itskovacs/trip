@@ -7,6 +7,8 @@ from pydantic import BaseModel, StringConstraints, field_validator
 from sqlalchemy import MetaData
 from sqlmodel import Field, Relationship, SQLModel
 
+from ..config import settings
+
 convention = {
     "ix": "ix_%(column_0_label)s",
     "uq": "uq_%(table_name)s_%(column_0_name)s",
@@ -16,6 +18,13 @@ convention = {
 }
 
 SQLModel.metadata = MetaData(naming_convention=convention)
+
+
+def _prefix_assets_url(filename: str) -> str:
+    base = settings.ASSETS_URL
+    if not base.endswith("/"):
+        base += "/"
+    return base + filename
 
 
 class TripItemStatusEnum(str, Enum):
@@ -99,7 +108,7 @@ class Category(CategoryBase, table=True):
 
 class CategoryCreate(CategoryBase):
     name: str
-    image: str
+    image: str | None = None
 
 
 class CategoryUpdate(CategoryBase):
@@ -109,13 +118,16 @@ class CategoryUpdate(CategoryBase):
 
 class CategoryRead(CategoryBase):
     id: int
-    image: str
-    image_id: int
+    image: str | None
+    image_id: int | None
 
     @classmethod
     def serialize(cls, obj: Category) -> "CategoryRead":
         return cls(
-            id=obj.id, name=obj.name, image_id=obj.image_id, image=obj.image.filename if obj.image else None
+            id=obj.id,
+            name=obj.name,
+            image_id=obj.image_id,
+            image=_prefix_assets_url(obj.image.filename) if obj.image else "/favicon.png",
         )
 
 
@@ -194,7 +206,7 @@ class PlaceRead(PlaceBase):
             price=obj.price,
             duration=obj.duration,
             visited=obj.visited,
-            image=obj.image.filename if obj.image else None,
+            image=_prefix_assets_url(obj.image.filename) if obj.image else None,
             image_id=obj.image_id,
             favorite=obj.favorite,
             gpx=("1" if obj.gpx else None)
@@ -241,7 +253,7 @@ class TripReadBase(TripBase):
             id=obj.id,
             name=obj.name,
             archived=obj.archived,
-            image=obj.image.filename if obj.image else None,
+            image=_prefix_assets_url(obj.image.filename) if obj.image else None,
             image_id=obj.image_id,
             days=len(obj.days),
         )
@@ -260,7 +272,7 @@ class TripRead(TripBase):
             id=obj.id,
             name=obj.name,
             archived=obj.archived,
-            image=obj.image.filename if obj.image else None,
+            image=_prefix_assets_url(obj.image.filename) if obj.image else None,
             image_id=obj.image_id,
             days=[TripDayRead.serialize(day) for day in obj.days],
             places=[PlaceRead.serialize(place) for place in obj.places],

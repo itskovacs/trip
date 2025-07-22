@@ -4,17 +4,31 @@ import { TripStatus } from "../types/trip";
 import { ApiService } from "./api.service";
 import { map } from "rxjs";
 
+const DISABLE_LOWNET = "TRIP_DISABLE_LOWNET";
+
 @Injectable({
   providedIn: "root",
 })
 export class UtilsService {
   private apiService = inject(ApiService);
   currency$ = this.apiService.settings$.pipe(map((s) => s?.currency ?? "€"));
+  public isLowNet: boolean = true;
 
-  constructor(private ngMessageService: MessageService) {}
+  constructor(private ngMessageService: MessageService) {
+    this.isLowNet = !localStorage.getItem(DISABLE_LOWNET);
+  }
 
   toGithubTRIP() {
     window.open("https://github.com/itskovacs/trip", "_blank");
+  }
+
+  toggleLowNet() {
+    if (this.isLowNet) {
+      localStorage.setItem(DISABLE_LOWNET, "1");
+    } else {
+      localStorage.removeItem(DISABLE_LOWNET);
+    }
+    this.isLowNet = !this.isLowNet;
   }
 
   get statuses(): TripStatus[] {
@@ -33,17 +47,6 @@ export class UtilsService {
       detail,
       life,
     });
-  }
-
-  getObjectDiffFields<T extends object>(a: T, b: T): Partial<T> {
-    const diff: Partial<T> = {};
-
-    for (const key in b) {
-      if (!Object.is(a[key], b[key]) && JSON.stringify(a[key]) !== JSON.stringify(b[key])) {
-        diff[key] = b[key];
-      }
-    }
-    return diff;
   }
 
   parseGoogleMapsUrl(url: string): [string, string] {

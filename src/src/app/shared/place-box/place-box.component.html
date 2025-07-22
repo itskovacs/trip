@@ -2,9 +2,10 @@
 <div class="place-box-dialog">
     <div class="place-box-dialog-content">
         <div class="flex justify-between items-center mb-3">
-            <div class="flex items-center gap-4">
-                <img [src]="selectedPlace.image" class="object-cover rounded-full size-16">
-                <div class="flex md:flex-col">
+            <div class="flex items-center gap-4 w-full">
+                <img [src]="selectedPlace.image || selectedPlace.category.image"
+                    class="object-cover rounded-full size-16">
+                <div class="flex grow md:flex-col">
                     <h1 class="text-gray-800 font-bold mb-0 line-clamp-1">{{ selectedPlace.name }}
                     </h1>
 

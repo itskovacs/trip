@@ -1,5 +1,10 @@
 import { Component } from "@angular/core";
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from "@angular/forms";
+import {
+  FormBuilder,
+  FormGroup,
+  ReactiveFormsModule,
+  Validators,
+} from "@angular/forms";
 import { ButtonModule } from "primeng/button";
 import { DynamicDialogConfig, DynamicDialogRef } from "primeng/dynamicdialog";
 import { FloatLabelModule } from "primeng/floatlabel";
@@ -8,7 +13,13 @@ import { FocusTrapModule } from "primeng/focustrap";
 
 @Component({
   selector: "app-category-create-modal",
-  imports: [FloatLabelModule, InputTextModule, ButtonModule, ReactiveFormsModule, FocusTrapModule],
+  imports: [
+    FloatLabelModule,
+    InputTextModule,
+    ButtonModule,
+    ReactiveFormsModule,
+    FocusTrapModule,
+  ],
   standalone: true,
   templateUrl: "./category-create-modal.component.html",
   styleUrl: "./category-create-modal.component.scss",
@@ -21,12 +32,12 @@ export class CategoryCreateModalComponent {
   constructor(
     private ref: DynamicDialogRef,
     private fb: FormBuilder,
-    private config: DynamicDialogConfig
+    private config: DynamicDialogConfig,
   ) {
     this.categoryForm = this.fb.group({
       id: -1,
       name: ["", Validators.required],
-      image: ["", Validators.required],
+      image: null,
     });
 
     if (this.config.data) {

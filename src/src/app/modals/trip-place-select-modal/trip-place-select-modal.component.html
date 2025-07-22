@@ -24,7 +24,7 @@
     @for (p of selectedPlaces; track p.id) {
     <div class="mt-4 flex items-center gap-4 hover:bg-gray-50 rounded-xl cursor-pointer py-2 px-4"
       (click)="togglePlace(p)">
-      <img [src]="p.image" class="w-12 rounded-full object-fit">
+      <img [src]="p.image || p.category.image" class="w-12 rounded-full object-fit">
 
       <div class="flex flex-col gap-1 truncate">
         <h1 class="tracking-tight truncate">{{ p.name }}</h1>

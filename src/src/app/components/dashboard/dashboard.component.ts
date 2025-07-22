@@ -78,6 +78,7 @@ export interface MarkerOptions extends L.MarkerOptions {
 export class DashboardComponent implements AfterViewInit {
   searchInput = new FormControl("");
   info: Info | undefined;
+  isLowNet: boolean = false;
 
   viewSettings = false;
   viewFilters = false;
@@ -111,6 +112,7 @@ export class DashboardComponent implements AfterViewInit {
     private fb: FormBuilder,
   ) {
     this.currencySigns = this.utilsService.currencySigns();
+    this.isLowNet = this.utilsService.isLowNet;
 
     this.settingsForm = this.fb.group({
       mapLat: [
@@ -244,6 +246,13 @@ export class DashboardComponent implements AfterViewInit {
     if (this.viewMarkersList) this.setVisibleMarkers();
   }
 
+  toggleLowNet() {
+    this.utilsService.toggleLowNet();
+    setTimeout(() => {
+      this.updateMarkersAndClusters();
+    }, 200);
+  }
+
   get filteredPlaces(): Place[] {
     return this.places.filter((p) => {
       if (!this.filter_display_visited && p.visited) return false;
@@ -264,7 +273,7 @@ export class DashboardComponent implements AfterViewInit {
   }
 
   placeToMarker(place: Place): L.Marker {
-    let marker = placeToMarker(place);
+    let marker = placeToMarker(place, this.isLowNet);
     marker
       .on("click", (e) => {
         this.selectedPlace = place;
@@ -456,6 +465,7 @@ export class DashboardComponent implements AfterViewInit {
               if (index > -1) this.places.splice(index, 1);
               this.closePlaceBox();
               this.updateMarkersAndClusters();
+              if (this.viewMarkersList) this.setVisibleMarkers();
             },
           });
       },
@@ -499,6 +509,7 @@ export class DashboardComponent implements AfterViewInit {
             setTimeout(() => {
               this.updateMarkersAndClusters();
             }, 10);
+            if (this.viewMarkersList) this.setVisibleMarkers();
           },
         });
       },
@@ -561,6 +572,7 @@ export class DashboardComponent implements AfterViewInit {
 
   toggleMarkersList() {
     this.viewMarkersList = !this.viewMarkersList;
+    if (this.viewMarkersList) this.setVisibleMarkers();
   }
 
   toggleMarkersListSearch() {
@@ -649,7 +661,13 @@ export class DashboardComponent implements AfterViewInit {
               this.activeCategories = new Set(
                 this.categories.map((c) => c.name),
               );
-              this.updateMarkersAndClusters();
+              this.places = this.places.map((p) => {
+                if (p.category.id == category.id) return { ...p, category };
+                return p;
+              });
+              setTimeout(() => {
+                this.updateMarkersAndClusters();
+              }, 100);
             }
           },
         });

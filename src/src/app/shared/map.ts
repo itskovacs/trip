@@ -69,7 +69,10 @@ export function createClusterGroup(): L.MarkerClusterGroup {
   });
 }
 
-export function placeToMarker(place: Place): L.Marker {
+export function placeToMarker(
+  place: Place,
+  isLowNet: boolean = true,
+): L.Marker {
   let marker: L.Marker;
   let options: any = {
     riseOnHover: true,
@@ -79,8 +82,13 @@ export function placeToMarker(place: Place): L.Marker {
   };
 
   marker = new L.Marker([+place.lat, +place.lng], options);
+
+  const markerImage = isLowNet
+    ? place.category.image
+    : (place.image ?? place.category.image);
+
   marker.options.icon = L.icon({
-    iconUrl: place.image!,
+    iconUrl: markerImage,
     iconSize: [56, 56],
     iconAnchor: [28, 28],
     shadowSize: [0, 0],
