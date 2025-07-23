@@ -34,7 +34,10 @@ def b64img_decode(data: str) -> bytes:
 
 def remove_image(path: str):
     try:
-        Path(assets_folder_path() / path).unlink()
+        fpath = Path(assets_folder_path() / path)
+        if not fpath.exists():
+            return
+        fpath.unlink()
     except OSError as exc:
         raise Exception("Error deleting image:", exc, path)
 
