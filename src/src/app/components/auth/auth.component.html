@@ -18,6 +18,13 @@
       </div>
       }
 
+      @defer () {
+      @if (authParams?.oidc) {
+      <div class="mt-8 text-center">
+        <p-button variant="outlined" severity="primary" size="large" icon="pi pi-key" label="Sign in"
+          (click)="authenticate()" />
+      </div>
+      } @else {
       <div pFocusTrap class="mt-4" [formGroup]="authForm">
         <p-floatlabel variant="in">
           <input #username pInputText id="username" formControlName="username" autocorrect="off" autocapitalize="none"
@@ -56,6 +63,7 @@
         </div>
       </div>
 
+      @if (authParams?.register_enabled) {
       <hr class="my-6 border-gray-300 w-full" />
       @if (isRegistering) {
       <p class="mt-8">
@@ -69,6 +77,19 @@
         <a (click)="isRegistering = true" class="text-blue-500 hover:text-blue-700 font-semibold cursor-pointer">Create
           an account</a>
       </p>
+      }
+      }
+      }
+      } @placeholder (minimum 0.4s) {
+      <div class="mt-4">
+        <p-skeleton width="100%" height="3.5rem" />
+      </div>
+      <div class="mt-4">
+        <p-skeleton width="100%" height="3.5rem" />
+      </div>
+      <div class="mt-4 flex justify-end">
+        <p-skeleton width="80px" height="2.5rem" />
+      </div>
       }
     </div>
 
@@ -85,7 +106,7 @@
           Welcome to TRIP
         </div>
         <div class="mt-6 text-lg tracking-tight leading-6 text-gray-400">
-          Tourism and Recreation Interest Points.
+          Tourism and Recreational Interest Points.
         </div>
       </div>
     </div>

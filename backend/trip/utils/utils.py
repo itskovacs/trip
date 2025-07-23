@@ -36,6 +36,7 @@ def remove_image(path: str):
     try:
         fpath = Path(assets_folder_path() / path)
         if not fpath.exists():
+            # Skips missing file
             return
         fpath.unlink()
     except OSError as exc:
@@ -49,6 +50,23 @@ def parse_str_or_date_to_date(cdate: str | date) -> date:
         except ValueError:
             raise HTTPException(status_code=400, detail="Invalid date format, use YYYY-MM-DD")
     return cdate
+
+
+async def httpx_get(link: str) -> str:
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.5",
+        "Referer": link,
+    }
+
+    try:
+        async with httpx.AsyncClient(follow_redirects=True, headers=headers, timeout=5) as client:
+            response = await client.get(link)
+            response.raise_for_status()
+            return response.json()
+    except Exception:
+        raise HTTPException(status_code=400, detail="Bad Request")
 
 
 async def download_file(link: str, raise_on_error: bool = False) -> str:

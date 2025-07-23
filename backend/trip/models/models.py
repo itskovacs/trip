@@ -27,6 +27,11 @@ def _prefix_assets_url(filename: str) -> str:
     return base + filename
 
 
+class AuthParams(BaseModel):
+    oidc: str | None
+    register_enabled: bool
+
+
 class TripItemStatusEnum(str, Enum):
     PENDING = "pending"
     CONFIRMED = "booked"

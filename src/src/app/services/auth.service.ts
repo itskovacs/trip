@@ -11,6 +11,11 @@ export interface Token {
   access_token: string;
 }
 
+export interface AuthParams {
+  register_enabled: boolean;
+  oidc?: string;
+}
+
 const JWT_TOKEN = "TRIP_AT";
 const REFRESH_TOKEN = "TRIP_RT";
 const JWT_USER = "TRIP_USER";
@@ -23,7 +28,7 @@ export class AuthService {
     private httpClient: HttpClient,
     private router: Router,
     private apiService: ApiService,
-    private utilsService: UtilsService
+    private utilsService: UtilsService,
   ) {
     this.apiBaseUrl = this.apiService.apiBaseUrl;
   }
@@ -52,6 +57,10 @@ export class AuthService {
     return localStorage.getItem(REFRESH_TOKEN) ?? "";
   }
 
+  authParams(): Observable<AuthParams> {
+    return this.httpClient.get<AuthParams>(this.apiBaseUrl + "/auth/params");
+  }
+
   storeTokens(tokens: Token): void {
     this.accessToken = tokens.access_token;
     this.refreshToken = tokens.refresh_token;
@@ -71,26 +80,46 @@ export class AuthService {
       .pipe(
         tap((tokens: Token) => {
           this.accessToken = tokens.access_token;
-        })
+        }),
       );
   }
 
   login(authForm: { username: string; password: string }): Observable<Token> {
-    return this.httpClient.post<Token>(this.apiBaseUrl + "/auth/login", authForm).pipe(
-      tap((tokens: Token) => {
-        this.loggedUser = authForm.username;
-        this.storeTokens(tokens);
-      })
-    );
+    return this.httpClient
+      .post<Token>(this.apiBaseUrl + "/auth/login", authForm)
+      .pipe(
+        tap((tokens: Token) => {
+          this.loggedUser = authForm.username;
+          this.storeTokens(tokens);
+        }),
+      );
   }
 
-  register(authForm: { username: string; password: string }): Observable<Token> {
-    return this.httpClient.post<Token>(this.apiBaseUrl + "/auth/register", authForm).pipe(
-      tap((tokens: Token) => {
-        this.loggedUser = authForm.username;
-        this.storeTokens(tokens);
-      })
-    );
+  register(authForm: {
+    username: string;
+    password: string;
+  }): Observable<Token> {
+    return this.httpClient
+      .post<Token>(this.apiBaseUrl + "/auth/register", authForm)
+      .pipe(
+        tap((tokens: Token) => {
+          this.loggedUser = authForm.username;
+          this.storeTokens(tokens);
+        }),
+      );
+  }
+
+  oidcLogin(code: string): Observable<Token> {
+    return this.httpClient
+      .post<Token>(this.apiBaseUrl + "/auth/oidc/login", { code })
+      .pipe(
+        tap((data: any) => {
+          if (data.access_token && data.refresh_token) {
+            this.loggedUser = this._getTokenUsername(data.access_token);
+            this.storeTokens(data);
+          }
+        }),
+      );
   }
 
   logout(custom_msg: string = "", is_error = false): void {
@@ -99,7 +128,11 @@ export class AuthService {
 
     if (custom_msg) {
       if (is_error) {
-        this.utilsService.toast("error", "You must be authenticated", custom_msg);
+        this.utilsService.toast(
+          "error",
+          "You must be authenticated",
+          custom_msg,
+        );
       } else {
         this.utilsService.toast("success", "Success", custom_msg);
       }
@@ -135,19 +168,25 @@ export class AuthService {
   private _b64DecodeUnicode(str: any): string {
     return decodeURIComponent(
       Array.prototype.map
-        .call(this._b64decode(str), (c: any) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-        .join("")
+        .call(
+          this._b64decode(str),
+          (c: any) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2),
+        )
+        .join(""),
     );
   }
 
   private _b64decode(str: string): string {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
+    const chars =
+      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
     let output = "";
 
     str = String(str).replace(/=+$/, "");
 
     if (str.length % 4 === 1) {
-      throw new Error("'atob' failed: The string to be decoded is not correctly encoded.");
+      throw new Error(
+        "'atob' failed: The string to be decoded is not correctly encoded.",
+      );
     }
 
     /* eslint-disable */
@@ -184,6 +223,20 @@ export class AuthService {
       }
     }
     return this._b64DecodeUnicode(output);
+  }
+
+  private _getTokenUsername(token: string): string {
+    const decodedToken = this._decodeToken(token);
+
+    if (decodedToken === null) {
+      return "";
+    }
+
+    if (!decodedToken.hasOwnProperty("sub")) {
+      return "";
+    }
+
+    return decodedToken.sub;
   }
 
   private _decodeToken(token: string): any {
