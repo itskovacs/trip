@@ -53,6 +53,8 @@ docker pull ghcr.io/itskovacs/trip:1
 docker run -p 8080:8000 -v ./storage:/app/storage ghcr.io/itskovacs/trip:1
 ```
 
+If you want to configure OIDC authentication or other settings, see [config docs](https://github.com/itskovacs/trip/tree/main/docs/config.md).
+
 <br>
 
 ## 📸 Demo <a name = "demo"></a>
