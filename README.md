@@ -43,14 +43,14 @@ Demo is worth a thousand words, head to 📸 [Demo](#Demo).
 If you need help, feel free to open an [issue](https://github.com/itskovacs/trip/issues).
 
 > [!CAUTION]
-> :boom: `2.0.0` introduces a small breaking change on Docker volume. If you come from `1.X.Y`, follow the [2.0.0 few steps](https://github.com/itskovacs/trip/releases/tag/2.0.0).
+> :boom: change on Docker volume. If you come from `<1.5.0`, follow the [few steps](https://github.com/itskovacs/trip/releases/tag/1.5.0) to migrate your data.
 
 ```bash
 # Ensure you have the latest image
-docker pull ghcr.io/itskovacs/trip:2
+docker pull ghcr.io/itskovacs/trip:1
 
 # Run the container
-docker run -p 8080:8000 -v ./storage:/app/storage ghcr.io/itskovacs/trip:2
+docker run -p 8080:8000 -v ./storage:/app/storage ghcr.io/itskovacs/trip:1
 ```
 
 <br>
