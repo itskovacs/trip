@@ -5,3 +5,4 @@ PyJWT~=2.10
 argon2-cffi~=25.1
 pydantic_settings~=2.9
 Pillow~=11.2
+authlib~=1.6

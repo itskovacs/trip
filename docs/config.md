@@ -64,7 +64,7 @@ One way to check if you're concerned by this is simply doing the following and c
 $ docker run --rm -it ghcr.io/itskovacs/trip:1 /bin/bash
 $ python3
 >>> import httpx
->>> resp = httpx.get("https://your-keycloak-host/")
+>>> httpx.get("https://your-keycloak-host/")
 ```
 
 In case you're facing this issue, it's likely due to the fact that the container does not trust you custom certificate.
