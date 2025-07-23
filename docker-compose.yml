@@ -1,11 +1,10 @@
 services:
   app:
-    build: .
+    #build: .
+    image: ghcr.io/itskovacs/trip:1
+    user: "1000:1000"
     ports:
       - 127.0.0.1:8080:8000 #127.0.0.1: locally exposed, on port 8080 by default
     volumes:
-      - trip-storage:/app/storage #Do not change /app/storage, only the first part (./storage) if needed
+      - ./storage:/app/storage #If you were previously using a named volume, follow https://github.com/itskovacs/trip/releases/tag/1.5.0 to migrate your data.
     command: ["fastapi", "run", "/app/trip/main.py", "--host", "0.0.0.0"]
-
-volumes:
-  trip-storage:
