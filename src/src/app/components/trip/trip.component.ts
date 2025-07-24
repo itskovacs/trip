@@ -6,7 +6,7 @@ import { InputTextModule } from "primeng/inputtext";
 import { SkeletonModule } from "primeng/skeleton";
 import { FloatLabelModule } from "primeng/floatlabel";
 import * as L from "leaflet";
-import { AntPath, antPath } from "leaflet-ant-path";
+import { antPath } from "leaflet-ant-path";
 import { TableModule } from "primeng/table";
 import {
   Trip,
@@ -219,11 +219,13 @@ export class TripComponent implements AfterViewInit {
     return stats;
   }
 
-  get getReviewData(): (TripItem & { status: TripStatus })[] {
+  get getWatchlistData(): (TripItem & { status: TripStatus })[] {
     if (!this.trip?.days) return [];
 
     const data = this.trip!.days.map((day) =>
-      day.items.filter((item) => item.status),
+      day.items.filter((item) =>
+        ["constraint", "pending"].includes(item.status as string),
+      ),
     ).flat();
     if (!data.length) return [];
 
@@ -414,6 +416,15 @@ export class TripComponent implements AfterViewInit {
     if (!this.trip || index == -1) return;
 
     const data = this.trip.days[index as number].items;
+    if (data.length == 1) {
+      this.utilsService.toast(
+        "info",
+        "Info",
+        "Not enough values to map an itinerary",
+      );
+      return;
+    }
+
     data.sort((a, b) => a.time.localeCompare(b.time));
     const coords = data
       .map((item) => {

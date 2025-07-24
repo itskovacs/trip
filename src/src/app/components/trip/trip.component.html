@@ -361,7 +361,7 @@
 
     <div class="p-4 shadow rounded-md w-full min-h-20">
       <div class="group relative p-2 mb-2 flex flex-col items-start">
-        <h1 class="font-semibold tracking-tight text-xl">Review</h1>
+        <h1 class="font-semibold tracking-tight text-xl">Watchlist</h1>
         <span class="text-xs text-gray-500 line-clamp-1">{{ trip?.name }} pending/constraints</span>
 
         <div class="bg-white rounded py-2 absolute top-1/2 -translate-y-1/2 left-0 hidden group-hover:block slide-x">
@@ -373,20 +373,18 @@
       @if (!collapsedTripStatuses) {
       <div class="max-h-[20vh] overflow-y-auto">
         @defer {
-        @for (item of getReviewData; track item.id) {
-        <div class="flex items-center gap-4 rounded-md justify-between h-10 px-4 py-2 w-full max-w-full">
-          <div class="line-clamp-1">{{ item.text }}</div>
-          <div class="flex items-center gap-2 flex-none">
-            @if (item.status) {
+        @for (item of getWatchlistData; track item.id) {
+        <div class="flex items-center gap-2 h-10 px-4 py-2 w-full max-w-full">
+          <div class="flex flex-none">
             <span [style.background]="item.status.color+'1A'" [style.color]="item.status.color"
               class="text-xs font-medium me-2 px-2.5 py-0.5 rounded">{{
               item.status.label }}</span>
-            }
           </div>
+          <div class="line-clamp-1">{{ item.text }}</div>
         </div>
         } @empty {
         <p class="p-4 font-light text-gray-500">
-          Nothing to review
+          Nothing there
         </p>
         }
         } @placeholder (minimum 0.4s) {
