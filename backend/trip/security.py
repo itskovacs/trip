@@ -61,7 +61,7 @@ def get_oidc_client():
     return OAuth2Client(
         client_id=settings.OIDC_CLIENT_ID,
         client_secret=settings.OIDC_CLIENT_SECRET,
-        scope="openid",
+        scope="openid profile",
         redirect_uri=settings.OIDC_REDIRECT_URI,
     )
 
