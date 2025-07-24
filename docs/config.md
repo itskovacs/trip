@@ -18,22 +18,15 @@ REFRESH_TOKEN_EXPIRE_MINUTES=1440
 
 ### Configure OIDC Auth
 
-> [!TIP]
-> By default, `OIDC_PROTOCOL` is `https` and `OIDC_REALM` is `master`
-
 ```yaml
+OIDC_DISCOVERY_URL="https://sso.yourdomain.lan/.well-known/openid-configuration"
 OIDC_CLIENT_ID="your-client-id"
 OIDC_CLIENT_SECRET="your-client-secret"
-OIDC_HOST="sso.yourdomain.lan"
-OIDC_REDIRECT_URI="your-redirect-uri"
-
-# Optional,
-OIDC_PROTOCOL="https"
-OIDC_REALM="master"
+OIDC_REDIRECT_URI="https://trip.yourdomain.lan/auth"
 ```
 
 > [!CAUTION]
-> You might face a `SSLError` / `CERTIFICATE_VERIFY_FAILED` if you use `https` protocol. I invite you to check [Troubleshoot SSL Error](#tbshoot-cert) section
+> You might face a `SSLError` / `CERTIFICATE_VERIFY_FAILED`. I invite you to check [Troubleshoot SSL Error](#tbshoot-cert) section
 
 
 ### Disable registration
@@ -64,7 +57,7 @@ One way to check if you're concerned by this is simply doing the following and c
 $ docker run --rm -it ghcr.io/itskovacs/trip:1 /bin/bash
 $ python3
 >>> import httpx
->>> httpx.get("https://your-keycloak-host/")
+>>> httpx.get("https://sso.yourdomain.lan/")
 ```
 
 In case you're facing this issue, it's likely due to the fact that the container does not trust you custom certificate.
