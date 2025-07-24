@@ -18,11 +18,11 @@ class Settings(BaseSettings):
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 1440
 
     REGISTER_ENABLE: bool = True
+    OIDC_DISCOVERY_URL: str = ""
     OIDC_PROTOCOL: str = "https"
     OIDC_CLIENT_ID: str = ""
     OIDC_CLIENT_SECRET: str = ""
     OIDC_HOST: str = ""
-    OIDC_REALM: str = "master"
     OIDC_REDIRECT_URI: str = ""
 
     class Config:

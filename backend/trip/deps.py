@@ -1,7 +1,6 @@
 from typing import Annotated
 
 import jwt
-from authlib.integrations.httpx_client import OAuth2Client
 from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from sqlmodel import Session
@@ -35,12 +34,3 @@ def get_current_username(token: Annotated[str, Depends(oauth_password_scheme)], 
     if not user:
         raise HTTPException(status_code=401, detail="Invalid Token")
     return user.username
-
-
-def get_oidc_client():
-    return OAuth2Client(
-        client_id=settings.OIDC_CLIENT_ID,
-        client_secret=settings.OIDC_CLIENT_SECRET,
-        scope="openid",
-        redirect_uri=settings.OIDC_REDIRECT_URI,
-    )

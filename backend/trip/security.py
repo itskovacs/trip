@@ -3,12 +3,15 @@ from datetime import UTC, datetime, timedelta
 import jwt
 from argon2 import PasswordHasher
 from argon2 import exceptions as argon_exceptions
+from authlib.integrations.httpx_client import OAuth2Client
 from fastapi import HTTPException
 
 from .config import settings
 from .models.models import Token
+from .utils.utils import httpx_get
 
 ph = PasswordHasher()
+OIDC_CONFIG = {}
 
 
 def hash_password(password: str) -> str:
@@ -52,3 +55,25 @@ def verify_exists_and_owns(username: str, obj) -> None:
         raise PermissionError
 
     return None
+
+
+def get_oidc_client():
+    return OAuth2Client(
+        client_id=settings.OIDC_CLIENT_ID,
+        client_secret=settings.OIDC_CLIENT_SECRET,
+        scope="openid",
+        redirect_uri=settings.OIDC_REDIRECT_URI,
+    )
+
+
+async def get_oidc_config():
+    global OIDC_CONFIG
+    if OIDC_CONFIG:
+        return OIDC_CONFIG
+
+    discovery_url = f"{settings.OIDC_PROTOCOL}://{settings.OIDC_HOST}/.well-known/openid-configuration"
+    if settings.OIDC_DISCOVERY_URL:
+        discovery_url = settings.OIDC_DISCOVERY_URL
+
+    OIDC_CONFIG = await httpx_get(discovery_url)
+    return OIDC_CONFIG
