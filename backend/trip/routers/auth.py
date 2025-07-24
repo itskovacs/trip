@@ -16,7 +16,7 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 async def auth_params() -> AuthParams:
     data = {"oidc": None, "register_enabled": settings.REGISTER_ENABLE}
 
-    if settings.OIDC_HOST and settings.OIDC_CLIENT_ID and settings.OIDC_CLIENT_SECRET:
+    if settings.OIDC_CLIENT_ID and settings.OIDC_CLIENT_SECRET:
         oidc_config = await get_oidc_config()
         auth_endpoint = oidc_config.get("authorization_endpoint")
         data["oidc"] = (
@@ -28,7 +28,7 @@ async def auth_params() -> AuthParams:
 
 @router.post("/oidc/login", response_model=Token)
 async def oidc_login(session: SessionDep, code: str = Body(..., embed=True)) -> Token:
-    if not (settings.OIDC_HOST or settings.OIDC_CLIENT_ID or settings.OIDC_CLIENT_SECRET):
+    if not (settings.OIDC_CLIENT_ID or settings.OIDC_CLIENT_SECRET):
         raise HTTPException(status_code=400, detail="Partial OIDC config")
 
     oidc_config = await get_oidc_config()

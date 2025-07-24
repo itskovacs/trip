@@ -71,9 +71,9 @@ async def get_oidc_config():
     if OIDC_CONFIG:
         return OIDC_CONFIG
 
-    discovery_url = f"{settings.OIDC_PROTOCOL}://{settings.OIDC_HOST}/.well-known/openid-configuration"
-    if settings.OIDC_DISCOVERY_URL:
-        discovery_url = settings.OIDC_DISCOVERY_URL
+    discovery_url = settings.OIDC_DISCOVERY_URL
+    if not discovery_url:
+        raise HTTPException(status_code=500, detail="OIDC_DISCOVERY_URL not configured")
 
     OIDC_CONFIG = await httpx_get(discovery_url)
     return OIDC_CONFIG
