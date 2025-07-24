@@ -50,16 +50,19 @@ export class UtilsService {
   }
 
   parseGoogleMapsUrl(url: string): [string, string] {
-    const match = url.match(/place\/(.*)\/@([\d\-.]+,[\d\-.]+)/);
+    // Look /place/<place>/ and !3d<lat> and !4d<lng>
+    const placeMatch = url.match(/\/place\/([^\/]+)/);
+    const latMatch = url.match(/!3d([\d\-.]+)/);
+    const lngMatch = url.match(/!4d([\d\-.]+)/);
 
-    if (!match?.length || match?.length < 3) {
-      console.error("Incorrect Google Maps URL format");
+    if (!placeMatch || !latMatch || !lngMatch) {
+      this.toast("error", "Error", "Unrecognized Google Maps URL format");
+      console.error("Unrecognized Google Maps URL format");
       return ["", ""];
     }
 
-    let place = decodeURIComponent(match[1].trim().replace(/\+/g, " "));
-    let latlng = match[2].trim();
-
+    let place = decodeURIComponent(placeMatch[1].replace(/\+/g, " ").trim());
+    let latlng = `${latMatch[1]}, ${lngMatch[1]}`;
     return [place, latlng];
   }
 
