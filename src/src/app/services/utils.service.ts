@@ -62,7 +62,7 @@ export class UtilsService {
     }
 
     let place = decodeURIComponent(placeMatch[1].replace(/\+/g, " ").trim());
-    let latlng = `${latMatch[1]}, ${lngMatch[1]}`;
+    let latlng = `${latMatch[1]},${lngMatch[1]}`;
     return [place, latlng];
   }
 
