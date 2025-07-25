@@ -1,7 +1,7 @@
 # Node builder
 FROM node:22 AS build
 WORKDIR /app
-COPY src/package.json ./
+COPY src/package*.json ./
 RUN npm install
 COPY src .
 RUN npm run build
