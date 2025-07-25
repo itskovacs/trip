@@ -2,6 +2,7 @@ import * as L from "leaflet";
 import "leaflet.markercluster";
 import "leaflet-contextmenu";
 import { Place } from "../types/poi";
+import { TripItem } from "../types/trip";
 
 export interface ContextMenuItem {
   text: string;
@@ -67,6 +68,32 @@ export function createClusterGroup(): L.MarkerClusterGroup {
       });
     },
   });
+}
+
+export function tripDayMarker(item: {
+  text: string;
+  lat: number;
+  lng: number;
+}): L.Marker {
+  const marker = new L.Marker([item.lat!, item.lng], {
+    icon: L.divIcon({
+      className: "bg-black rounded-full",
+      iconSize: [14, 14],
+    }),
+  });
+
+  let touchDevice = "ontouchstart" in window;
+  if (!touchDevice) {
+    marker.bindTooltip(
+      `<div class="font-semibold mb-1 truncate text-base">${item.text}</div>`,
+      {
+        direction: "right",
+        offset: [10, 0],
+        className: "class-tooltip",
+      },
+    );
+  }
+  return marker;
 }
 
 export function placeToMarker(
