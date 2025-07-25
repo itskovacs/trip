@@ -122,6 +122,10 @@ html {
   border: 2px solid #405cf5;
   background: white;
   object-fit: cover;
+
+  &.visited {
+    border: 2px solid #9ca3af;
+  }
 }
 
 .listHover {

@@ -46,7 +46,7 @@ export function createMap(contextMenuItems?: ContextMenuItem[]): L.Map {
   return map;
 }
 
-export function assetHoverTooltip(place: Place): string {
+export function placeHoverTooltip(place: Place): string {
   let content = `<div class="font-semibold mb-1 truncate" style="font-size:1.1em">${place.name}</div>`;
   content += `<div><span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">${place.category.name}</span></div>`;
   return content;
@@ -94,12 +94,12 @@ export function placeToMarker(
     shadowSize: [0, 0],
     shadowAnchor: [0, 0],
     popupAnchor: [0, -12],
-    className: "image-marker",
+    className: place.visited ? "image-marker visited" : "image-marker",
   });
 
   let touchDevice = "ontouchstart" in window;
   if (!touchDevice) {
-    marker.bindTooltip(assetHoverTooltip(place), {
+    marker.bindTooltip(placeHoverTooltip(place), {
       direction: "right",
       offset: [24, 0],
       className: "class-tooltip",
