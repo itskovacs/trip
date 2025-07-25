@@ -42,18 +42,19 @@ Demo is worth a thousand words, head to 📸 [Demo](#Demo).
 
 If you need help, feel free to open an [issue](https://github.com/itskovacs/trip/issues).
 
-> [!CAUTION]
-> :boom: change on Docker volume. If you come from `<1.5.0`, follow the [few steps](https://github.com/itskovacs/trip/releases/tag/1.5.0) to migrate your data.
-
 ```bash
 # Ensure you have the latest image
 docker pull ghcr.io/itskovacs/trip:1
 
 # Run the container
-docker run -p 8080:8000 -v ./storage:/app/storage ghcr.io/itskovacs/trip:1
+docker run -d -p 8080:8000 -v ./storage:/app/storage ghcr.io/itskovacs/trip:1
 ```
 
-If you want to configure OIDC authentication or other settings, see [config docs](https://github.com/itskovacs/trip/tree/main/docs/config.md).
+Refer to the [configuration documentation](https://github.com/itskovacs/trip/tree/main/docs/config.md) to set up OIDC authentication and other settings.
+
+> [!TIP]
+> See [Usage Tips](https://github.com/itskovacs/trip/tree/main/docs/usage_tips.md) in docs for advanced features.
+
 
 <br>
 
