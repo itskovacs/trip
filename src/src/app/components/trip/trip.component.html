@@ -45,12 +45,12 @@
 }
 
 <section class="p-4 print:px-1 grid md:grid-cols-3 gap-4 print:block">
-  <div class="p-4 shadow self-start rounded-md md:col-span-2 max-w-screen print:col-span-full">
-    <div class="p-2 mb-2 flex justify-between items-center">
-      <div>
-        <h1 class="font-semibold tracking-tight text-xl">Plans</h1>
-        <span class="text-xs text-gray-500 line-clamp-1">{{ trip?.name }} plans</span>
-      </div>
+  <div [class.sticky]="!isMapFullscreen"
+    class="top-0 z-10 bg-white p-2 mb-2 flex justify-between items-center">
+    <div>
+      <h1 class="font-semibold tracking-tight text-xl">Plans</h1>
+      <span class="text-xs text-gray-500 line-clamp-1">{{ trip?.name }} plans</span>
+    </div>
 
       <div class="flex items-center gap-2 print:hidden">
         <p-button icon="pi pi-directions" [severity]="tripMapAntLayerDayID == -1 ? 'help' : 'primary'"
