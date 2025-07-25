@@ -1,7 +1,7 @@
 <section>
   <div [formGroup]="dayForm">
     <p-floatlabel variant="in">
-      <input id="label" formControlName="label" pInputText fluid />
+      <input id="label" formControlName="label" pInputText fluid (keyup.enter)="closeDialog()" />
       <label for="label">Label</label>
     </p-floatlabel>
   </div>

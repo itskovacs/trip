@@ -49,6 +49,7 @@ export class CategoryCreateModalComponent {
   closeDialog() {
     // Normalize data for API POST
     let ret = this.categoryForm.value;
+    if (!ret["name"]) return;
     if (!this.updatedImage) delete ret["image"];
     this.ref.close(ret);
   }
