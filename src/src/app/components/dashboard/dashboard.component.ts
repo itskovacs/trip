@@ -79,6 +79,7 @@ export class DashboardComponent implements AfterViewInit {
   searchInput = new FormControl("");
   info: Info | undefined;
   isLowNet: boolean = false;
+  isDarkMode: boolean = false;
 
   viewSettings = false;
   viewFilters = false;
@@ -113,6 +114,7 @@ export class DashboardComponent implements AfterViewInit {
   ) {
     this.currencySigns = this.utilsService.currencySigns();
     this.isLowNet = this.utilsService.isLowNet;
+    this.isDarkMode = this.utilsService.isDarkMode;
 
     this.settingsForm = this.fb.group({
       mapLat: [
@@ -251,6 +253,10 @@ export class DashboardComponent implements AfterViewInit {
     setTimeout(() => {
       this.updateMarkersAndClusters();
     }, 200);
+  }
+
+  toggleDarkMode() {
+    this.utilsService.toggleDarkMode();
   }
 
   get filteredPlaces(): Place[] {
@@ -571,6 +577,8 @@ export class DashboardComponent implements AfterViewInit {
   }
 
   toggleMarkersList() {
+    this.searchInput.setValue("");
+    this.viewMarkersListSearch = false;
     this.viewMarkersList = !this.viewMarkersList;
     if (this.viewMarkersList) this.setVisibleMarkers();
   }

@@ -6,16 +6,17 @@
   (closeEmitter)="closePlaceBox()"></app-place-box>
 }
 
-<div class="absolute z-30 top-2 right-2 p-2 bg-white shadow rounded">
+<div class="absolute z-30 top-2 right-2 p-2 bg-white shadow rounded dark:bg-surface-900">
   <p-button (click)="toggleMarkersList()" text severity="secondary" icon="pi pi-map-marker" />
 </div>
 
-<div class="absolute z-30 top-20 right-2 p-2 bg-white shadow rounded">
+<div class="absolute z-30 top-20 right-2 p-2 bg-white shadow rounded dark:bg-surface-900">
   <p-button (click)="toggleFilters()" text [severity]="viewFilters ? 'danger' : 'secondary'"
     [icon]="viewFilters ? 'pi pi-times' : 'pi pi-filter'" />
 </div>
 
-<div [class.z-50]="viewSettings" class="absolute z-30 top-[9.5rem] right-2 p-2 bg-white shadow rounded">
+<div [class.z-50]="viewSettings"
+  class="absolute z-30 top-[9.5rem] right-2 p-2 bg-white shadow rounded dark:bg-surface-900">
   <p-button (click)="toggleSettings()" text [severity]="viewSettings ? 'danger' : 'secondary'"
     [icon]="viewSettings ? 'pi pi-times' : 'pi pi-cog'" />
 </div>
@@ -23,23 +24,23 @@
 <div class="absolute z-30 bottom-4 right-2">
   <div class="relative group flex flex-col-reverse items-end h-28">
     <div
-      class="absolute right-0 bottom-20 p-2 bg-white shadow rounded transition-all duration-200 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto">
+      class="absolute right-0 bottom-20 p-2 bg-white shadow rounded transition-all duration-200 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto dark:bg-surface-900">
       <p-button (click)="batchAddModal()" text severity="secondary" icon="pi pi-ellipsis-v" />
     </div>
 
-    <div class="p-2 bg-white shadow rounded">
+    <div class="p-2 bg-white shadow rounded dark:bg-surface-900">
       <p-button (click)="addPlaceModal()" text severity="secondary" icon="pi pi-plus" />
     </div>
   </div>
 </div>
 
-<div class="absolute z-30 top-2 left-2 p-2 bg-white shadow rounded">
+<div class="absolute z-30 top-2 left-2 p-2 bg-white shadow rounded dark:bg-surface-900">
   <p-button (click)="gotoTrips()" label="Trips" severity="secondary" text icon="pi pi-bars" />
 </div>
 
 @if (viewMarkersList) {
 <section
-  class="absolute left-2 right-2 top-4 bottom-4 md:max-w-md bg-white z-40 rounded-xl shadow-2xl p-4 flex flex-col">
+  class="absolute left-2 right-2 top-4 bottom-4 md:max-w-md bg-white z-40 rounded-xl shadow-2xl p-4 flex flex-col dark:bg-surface-900">
   <div class="mt-1 p-4 flex items-center justify-between">
     <div>
       <h1 class="font-semibold tracking-tight text-xl">Points</h1>
@@ -63,31 +64,32 @@
     }
 
     @for (p of visiblePlaces; track p.id) {
-    <div class="mt-4 flex items-center gap-4 hover:bg-gray-50 rounded-xl cursor-pointer py-2 px-4"
+    <div
+      class="mt-4 flex items-center gap-4 hover:bg-gray-50 rounded-xl cursor-pointer py-2 px-4 dark:hover:bg-gray-800"
       (click)="gotoPlace(p)" (mouseenter)="hoverPlace(p)" (mouseleave)="resetHoverPlace()">
       <img [src]="p.image || p.category.image" class="w-12 rounded-full object-fit">
 
       <div class="flex flex-col gap-1 truncate">
-        <h1 class="tracking-tight truncate">{{ p.name }}</h1>
+        <h1 class="tracking-tight truncate dark:text-surface-300">{{ p.name }}</h1>
         <span class="text-xs text-gray-500 truncate">{{ p.place }}</span>
 
         <div class="flex gap-0.5">
           @if (p.allowdog) {
-          <span class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded">🐶</span>
+          <span class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-green-100/85">🐶</span>
           } @else {
-          <span class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded">🐶</span>
+          <span class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-red-100/85">🐶</span>
           }
 
           @if (p.visited) {
-          <span class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded"><i
+          <span class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-green-100/85"><i
               class="pi pi-eye text-xs"></i></span>
           } @else {
-          <span class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded"><i
+          <span class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-red-100/85"><i
               class="pi pi-eye-slash text-xs"></i></span>
           }
 
           <span
-            class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded flex gap-2 items-center truncate"><i
+            class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded flex gap-2 items-center truncate dark:bg-blue-100/85"><i
               class="pi pi-box text-xs"></i>{{ p.category.name }}</span>
         </div>
       </div>
@@ -103,7 +105,8 @@
 }
 
 @if (viewFilters) {
-<section class="absolute right-2 top-36 bg-white z-40 rounded-xl shadow-2xl p-8 max-w-screen md:max-w-md">
+<section
+  class="absolute right-2 top-36 bg-white z-40 rounded-xl shadow-2xl p-8 max-w-screen md:max-w-md dark:bg-surface-900">
 
   <div class="mt-1 flex justify-between items-center">
     <div>
@@ -149,7 +152,8 @@
 
 @if (viewSettings) {
 <section class="absolute inset-0 flex items-center justify-center z-40 bg-black/30">
-  <div class="w-10/12 max-w-screen md:max-w-3xl h-fit max-h-screen bg-white rounded-xl shadow-2xl p-8 z-50">
+  <div
+    class="w-10/12 max-w-screen md:max-w-3xl h-fit max-h-screen bg-white rounded-xl shadow-2xl p-8 z-50 dark:bg-surface-900">
     <p-tabs value="0" scrollable>
       <p-tablist>
         <p-tab value="0" class="flex items-center gap-2">
@@ -169,7 +173,8 @@
         <p-tabpanel value="0">
           <div class="mt-4">
             <h1 class="font-semibold tracking-tight text-xl">Low Network Mode</h1>
-            <span class="text-xs text-gray-500">You can disable Low Network Mode. Default is true. Display Category
+            <span class="text-xs text-gray-500 dark:text-gray-400">You can disable Low Network Mode. Default is true.
+              Display Category
               image instead of Place image.</span>
           </div>
           <div class="mt-4 flex justify-between">
@@ -177,11 +182,20 @@
             <p-toggleswitch [(ngModel)]="isLowNet" (onChange)="toggleLowNet()" />
           </div>
 
+          <div class="mt-4">
+            <h1 class="font-semibold tracking-tight text-xl">Dark Mode</h1>
+          </div>
+          <div class="mt-4 flex justify-between">
+            <div>Enable Dark mode</div>
+            <p-toggleswitch [(ngModel)]="isDarkMode" (onChange)="toggleDarkMode()" />
+          </div>
+
           <section [formGroup]="settingsForm">
             <div class="mt-4 flex justify-between items-center">
               <div>
                 <h1 class="font-semibold tracking-tight text-xl">Map parameters</h1>
-                <span class="text-xs text-gray-500">You can customize the default view on map loading</span>
+                <span class="text-xs text-gray-500 dark:text-gray-400">You can customize the default view on map
+                  loading</span>
               </div>
 
               <p-button icon="pi pi-ethereum" pTooltip="Set current map center as default"
@@ -213,7 +227,8 @@
 
             <div class="mt-4">
               <h1 class="font-semibold tracking-tight text-xl">Filters</h1>
-              <span class="text-xs text-gray-500">You can customize the categories to hide by default</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400">You can customize the categories to hide by
+                default</span>
             </div>
             <div class="mt-4">
               <p-floatlabel variant="in" class="md:col-span-2">
@@ -234,7 +249,7 @@
           <div class="mt-1 p-2 mb-2 flex justify-between items-center">
             <div>
               <h1 class="font-semibold tracking-tight text-xl">Categories</h1>
-              <span class="text-xs text-gray-500">You can modify the categories.</span>
+              <span class="text-xs text-gray-500 dark:text-gray-400">You can modify the categories.</span>
               <span class="ml-1 text-xs text-orange-500">You cannot delete a used category.</span>
             </div>
 
@@ -243,7 +258,7 @@
 
           <div class="mt-4 flex flex-col">
             @for (category of categories; track category.id) {
-            <div class="p-3 flex items-center justify-between rounded-md hover:bg-gray-50">
+            <div class="p-3 flex items-center justify-between rounded-md hover:bg-gray-50 dark:hover:bg-gray-800">
               <div class="flex items-center gap-2">
                 <img [src]="category.image" class="size-8 rounded-full" />{{ category.name }}
               </div>
@@ -297,7 +312,7 @@
             }
           </div>
 
-          <div class="mt-4 text-center text-sm text-gray-500">Made with ❤️ in BZH</div>
+          <div class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">Made with ❤️ in BZH</div>
         </p-tabpanel>
       </p-tabpanels>
     </p-tabs>

@@ -11,7 +11,8 @@
       <div class="flex flex-col">
         <div class="flex items-center gap-2">
           <h1 class="font-semibold tracking-tight text-xl">Selected</h1>
-          <span class="bg-blue-100 text-blue-800 text-sm me-2 px-2.5 py-0.5 rounded"> {{ selectedPlaces.length }}</span>
+          <span class="bg-blue-100 text-blue-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-blue-100/85"> {{
+            selectedPlaces.length }}</span>
         </div>
         <span class="text-xs text-gray-500">Here are your selected place{{ selectedPlaces.length > 1 ? 's' : ''
           }}</span>
@@ -22,31 +23,32 @@
     </div>
     @if (showSelectedPlaces) {
     @for (p of selectedPlaces; track p.id) {
-    <div class="mt-4 flex items-center gap-4 hover:bg-gray-50 rounded-xl cursor-pointer py-2 px-4"
+    <div
+      class="mt-4 flex items-center gap-4 hover:bg-gray-50 rounded-xl cursor-pointer py-2 px-4 dark:hover:bg-gray-800"
       (click)="togglePlace(p)">
       <img [src]="p.image || p.category.image" class="w-12 rounded-full object-fit">
 
       <div class="flex flex-col gap-1 truncate">
-        <h1 class="tracking-tight truncate">{{ p.name }}</h1>
+        <h1 class="tracking-tight truncate dark:text-surface-300">{{ p.name }}</h1>
         <span class="text-xs text-gray-500 truncate">{{ p.place }}</span>
 
         <div class="flex gap-0.5">
           @if (p.allowdog) {
-          <span class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded">🐶</span>
+          <span class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-green-100/85">🐶</span>
           } @else {
-          <span class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded">🐶</span>
+          <span class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-red-100/85">🐶</span>
           }
 
           @if (p.visited) {
-          <span class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded"><i
+          <span class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-green-100/85"><i
               class="pi pi-eye text-xs"></i></span>
           } @else {
-          <span class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded"><i
+          <span class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-red-100/85"><i
               class="pi pi-eye-slash text-xs"></i></span>
           }
 
           <span
-            class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded flex gap-2 items-center truncate"><i
+            class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded flex gap-2 items-center truncate dark:bg-blue-100/85"><i
               class="pi pi-box text-xs"></i>{{ p.category.name }}</span>
         </div>
       </div>
@@ -60,29 +62,30 @@
       @defer {
 
       @for (p of displayedPlaces; track p.id) {
-      <div class="mt-4 flex items-center gap-4 hover:bg-gray-50 rounded-xl cursor-pointer py-2 px-4"
+      <div
+        class="mt-4 flex items-center gap-4 hover:bg-gray-50 rounded-xl cursor-pointer py-2 px-4 dark:hover:bg-gray-800"
         [class.font-bold]="selectedPlacesID.includes(p.id)" (click)="togglePlace(p)">
         <div class="flex flex-col gap-1 truncate">
-          <h1 class="tracking-tight truncate">{{ p.name }}</h1>
+          <h1 class="tracking-tight truncate dark:text-surface-300">{{ p.name }}</h1>
           <span class="text-xs text-gray-500 truncate">{{ p.place }}</span>
 
           <div class="flex gap-0.5">
             @if (p.allowdog) {
-            <span class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded">🐶</span>
+            <span class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-green-100/85">🐶</span>
             } @else {
-            <span class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded">🐶</span>
+            <span class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-red-100/85">🐶</span>
             }
 
             @if (p.visited) {
-            <span class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded"><i
+            <span class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-green-100/85"><i
                 class="pi pi-eye text-xs"></i></span>
             } @else {
-            <span class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded"><i
+            <span class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-red-100/85"><i
                 class="pi pi-eye-slash text-xs"></i></span>
             }
 
             <span
-              class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded flex gap-2 items-center truncate"><i
+              class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded flex gap-2 items-center truncate dark:bg-blue-100/85"><i
                 class="pi pi-box text-xs"></i>{{ p.category.name }}</span>
           </div>
         </div>
@@ -93,8 +96,8 @@
       </div>
       }
 
-      <div class="z-50 absolute w-full bg-white shadow p-4 bottom-0 left-0 text-center">
-        <p-button (click)="closeDialog()" label="Confirm" />
+      <div class="z-50 absolute w-full bg-white shadow p-4 bottom-0 left-0 text-center dark:bg-surface-900">
+        <p-button (click)="closeDialog()" label="Confirm" severity="secondary" />
       </div>
       } @placeholder (minimum 0.4s) {
       <div class="my-2">

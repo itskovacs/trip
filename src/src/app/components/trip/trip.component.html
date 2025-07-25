@@ -27,7 +27,8 @@
       </div>
       }
 
-      <span class="bg-gray-100 text-gray-800 text-xs md:text-sm font-medium me-2 px-2.5 py-0.5 rounded min-w-fit">{{
+      <span
+        class="bg-gray-100 text-gray-800 text-xs md:text-sm font-medium me-2 px-2.5 py-0.5 rounded min-w-fit dark:bg-gray-400">{{
         totalPrice
         || '-' }} {{ currency$ | async }}</span>
     </div>
@@ -45,12 +46,13 @@
 }
 
 <section class="p-4 print:px-1 grid md:grid-cols-3 gap-4 print:block">
-  <div [class.sticky]="!isMapFullscreen"
-    class="top-0 z-10 bg-white p-2 mb-2 flex justify-between items-center">
-    <div>
-      <h1 class="font-semibold tracking-tight text-xl">Plans</h1>
-      <span class="text-xs text-gray-500 line-clamp-1">{{ trip?.name }} plans</span>
-    </div>
+  <div class="p-4 shadow self-start rounded-md md:col-span-2 max-w-screen print:col-span-full">
+    <div [class.sticky]="!isMapFullscreen"
+      class="top-0 z-10 bg-white p-2 mb-2 flex justify-between items-center dark:bg-surface-900">
+      <div>
+        <h1 class="font-semibold tracking-tight text-xl">Plans</h1>
+        <span class="text-xs text-gray-500 line-clamp-1">{{ trip?.name }} plans</span>
+      </div>
 
       <div class="flex items-center gap-2 print:hidden">
         <p-button icon="pi pi-directions" [severity]="tripMapAntLayerDayID == -1 ? 'help' : 'primary'"
@@ -99,7 +101,7 @@
             </div>
             } @else {-}
           </td>
-          <td class="max-w-20 truncate print:whitespace-normal">{{ tripitem.comment || '-' }}</td>
+          <td class="max-w-20 truncate print:whitespace-pre-line">{{ tripitem.comment || '-' }}</td>
           <td class="font-mono text-sm">
             <div class="max-w-20 print:max-w-full truncate">
               @if (tripitem.lat) { {{ tripitem.lat }}, {{ tripitem.lng }} }
@@ -231,7 +233,7 @@
         </div>
       </div>
 
-      <div id="map" [class.fullscreen-map]="isMapFullscreen" class="w-full rounded-md min-h-96 h-1/3 max-h-full z-20">
+      <div id="map" [class.fullscreen-map]="isMapFullscreen" class="w-full rounded-md min-h-96 h-1/3 max-h-full">
       </div>
     </div>
 
@@ -242,7 +244,8 @@
           <h1 class="font-semibold tracking-tight text-xl">Places</h1>
           <span class="text-xs text-gray-500 line-clamp-1">{{ trip?.name }} places</span>
 
-          <div class="bg-white rounded py-2 absolute top-1/2 -translate-y-1/2 left-0 hidden group-hover:block slide-x">
+          <div
+            class="bg-white rounded py-2 absolute top-1/2 -translate-y-1/2 left-0 hidden group-hover:block slide-x dark:bg-surface-900">
             <p-button [icon]="collapsedTripPlaces ? 'pi pi-chevron-down' : 'pi pi-chevron-up'" text
               (click)="collapsedTripPlaces = !collapsedTripPlaces" />
           </div>
@@ -250,7 +253,8 @@
 
         <div class="flex items-center">
           @defer {
-          <span class="bg-blue-100 text-blue-800 text-sm me-2 px-2.5 py-0.5 rounded-md">{{ places.length }}</span>
+          <span class="bg-blue-100 text-blue-800 text-sm me-2 px-2.5 py-0.5 rounded-md dark:bg-blue-100/85">{{
+            places.length }}</span>
           } @placeholder (minimum 0.4s) {
           <p-skeleton height="1.75rem" width="2.5rem" class="mr-1" />
           }
@@ -262,28 +266,30 @@
       <div class="max-h-[25vh] overflow-y-auto">
         @defer {
         @for (p of places; track p.id) {
-        <div class="flex items-center gap-4 py-2 px-4 hover:bg-gray-50 rounded-md overflow-auto"
+        <div class="flex items-center gap-4 py-2 px-4 hover:bg-gray-50 rounded-md overflow-auto dark:hover:bg-gray-800"
           (mouseenter)="placeHighlightMarker(p.lat, p.lng)" (mouseleave)="resetPlaceHighlightMarker()">
           <img [src]="p.image || p.category.image" class="w-12 rounded-full object-fit">
 
           <div class="flex flex-col gap-1 truncate">
-            <h1 class="tracking-tight truncate">{{ p.name }}</h1>
+            <h1 class="tracking-tight truncate dark:text-surface-300">{{ p.name }}</h1>
             <span class="text-xs text-gray-500 truncate">{{ p.place }}</span>
 
             <div class="flex gap-0.5">
               <span
-                class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded flex gap-2 items-center truncate"><i
+                class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded flex gap-2 items-center truncate dark:bg-blue-100/85"><i
                   class="pi pi-box text-xs"></i>{{ p.category.name }}</span>
 
               @if (isPlaceUsed(p.id)) {
-              <span class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded"><i
+              <span class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-green-100/85"><i
                   class="pi pi-check-square text-xs"></i></span>
               } @else {
-              <span class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded"><i
+              <span class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-red-100/85"><i
                   class="pi pi-map-marker text-xs"></i></span>
               }
 
-              <span class="bg-gray-100 text-gray-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded">{{ p.price || '-'
+              <span
+                class="bg-gray-100 text-gray-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-100/85">{{
+                p.price || '-'
                 }} {{ currency$ | async }}</span>
 
             </div>
@@ -311,7 +317,8 @@
           <h1 class="font-semibold tracking-tight text-xl">Days</h1>
           <span class="text-xs text-gray-500 line-clamp-1">{{ trip?.name }} days</span>
 
-          <div class="bg-white rounded py-2 absolute top-1/2 -translate-y-1/2 left-0 hidden group-hover:block slide-x">
+          <div
+            class="bg-white rounded py-2 absolute top-1/2 -translate-y-1/2 left-0 hidden group-hover:block slide-x dark:bg-surface-900">
             <p-button [icon]="collapsedTripDays ? 'pi pi-chevron-down' : 'pi pi-chevron-up'" text
               (click)="collapsedTripDays = !collapsedTripDays" />
           </div>
@@ -325,14 +332,16 @@
         @defer {
         @for (d of trip?.days; track d.id) {
         <div
-          class="group flex items-center gap-4 rounded-md justify-between h-10 px-4 py-2 hover:bg-gray-50 w-full max-w-full">
-          <div class="line-clamp-1">
+          class="group flex items-center gap-4 rounded-md justify-between h-10 px-4 py-2 hover:bg-gray-50 w-full max-w-full dark:hover:bg-gray-800">
+          <div class="line-clamp-1 dark:text-surface-300">
             {{ d.label }}
           </div>
           <div class="flex items-center gap-2 flex-none">
-            <span class="bg-gray-100 text-gray-800 text-sm px-2.5 py-0.5 rounded-md min-w-fit group-hover:hidden">{{
+            <span
+              class="bg-gray-100 text-gray-800 text-sm px-2.5 py-0.5 rounded-md min-w-fit group-hover:hidden dark:bg-gray-100/85">{{
               getDayStats(d).price || '-' }} {{ currency$ | async }}</span>
-            <span class="bg-blue-100 text-blue-800 text-sm px-2.5 py-0.5 rounded-md group-hover:hidden">{{
+            <span
+              class="bg-blue-100 text-blue-800 text-sm px-2.5 py-0.5 rounded-md group-hover:hidden dark:bg-blue-100/85">{{
               getDayStats(d).places }}</span>
 
             <div class="flex md:hidden">
@@ -364,7 +373,8 @@
         <h1 class="font-semibold tracking-tight text-xl">Watchlist</h1>
         <span class="text-xs text-gray-500 line-clamp-1">{{ trip?.name }} pending/constraints</span>
 
-        <div class="bg-white rounded py-2 absolute top-1/2 -translate-y-1/2 left-0 hidden group-hover:block slide-x">
+        <div
+          class="bg-white rounded py-2 absolute top-1/2 -translate-y-1/2 left-0 hidden group-hover:block slide-x dark:bg-surface-900">
           <p-button [icon]="collapsedTripStatuses ? 'pi pi-chevron-down' : 'pi pi-chevron-up'" text
             (click)="collapsedTripStatuses = !collapsedTripStatuses" />
         </div>
@@ -401,12 +411,12 @@
 <p-menu #menuTripDayActions [model]="menuTripDayActionsItems" appendTo="body" [popup]="true" />
 
 @if (isMapFullscreen) {
-<div class="absolute z-30 top-2 right-2 p-2 bg-white shadow rounded">
-  <p-button (click)="toggleMapFullscreen()" text icon="pi pi-window-minimize" />
+<div class="fixed top-2 right-2 p-2 bg-white shadow rounded dark:bg-surface-900">
+  <p-button (click)="toggleMapFullscreen()" severity="secondary" text icon="pi pi-window-minimize" />
 </div>
 
-<div class="absolute z-30 top-20 right-2 p-2 bg-white shadow rounded">
+<div class="fixed top-20 right-2 p-2 bg-white shadow rounded dark:bg-surface-900">
   <p-button (click)="toggleTripDaysHighlight()" text icon="pi pi-directions"
-    [severity]="tripMapAntLayerDayID == -1 ? 'help' : 'primary'" />
+    [severity]="tripMapAntLayerDayID == -1 ? 'help' : 'secondary'" />
 </div>
 }
