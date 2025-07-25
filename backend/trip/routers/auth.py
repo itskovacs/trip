@@ -93,6 +93,9 @@ async def oidc_login(session: SessionDep, code: str = Body(..., embed=True)) -> 
 
 @router.post("/login", response_model=Token)
 def login(req: LoginRegisterModel, session: SessionDep) -> Token:
+    if settings.OIDC_CLIENT_ID or settings.OIDC_CLIENT_SECRET:
+        raise HTTPException(status_code=400, detail="OIDC is configured")
+
     db_user = session.get(User, req.username)
     if not db_user or not verify_password(req.password, db_user.password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
@@ -102,6 +105,12 @@ def login(req: LoginRegisterModel, session: SessionDep) -> Token:
 
 @router.post("/register", response_model=Token)
 def register(req: LoginRegisterModel, session: SessionDep) -> Token:
+    if not settings.REGISTER_ENABLE:
+        raise HTTPException(status_code=400, detail="Registration disabled")
+
+    if settings.OIDC_CLIENT_ID or settings.OIDC_CLIENT_SECRET:
+        raise HTTPException(status_code=400, detail="OIDC is configured")
+
     db_user = session.get(User, req.username)
     if db_user:
         raise HTTPException(status_code=409, detail="The resource already exists")
