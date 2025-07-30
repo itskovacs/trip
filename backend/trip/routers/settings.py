@@ -95,7 +95,7 @@ async def import_data(
         raise HTTPException(status_code=400, detail="Invalid file")
 
     for category in data.get("categories", []):
-        category_name = category.get("category", {}).get("name")
+        category_name = category.get("name")
         category_exists = session.exec(
             select(Category).filter(Category.user == current_user, Category.name == category_name)
         ).first()
@@ -126,7 +126,7 @@ async def import_data(
         new_category = Category(**category_data)
         session.add(new_category)
         session.flush()
-        session.refresh()
+        session.refresh(new_category)
 
     places = []
     for place in data.get("places", []):
