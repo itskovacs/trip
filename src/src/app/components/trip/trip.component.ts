@@ -284,7 +284,7 @@ export class TripComponent implements AfterViewInit {
 
     this.markerClusterGroup?.clearLayers();
     this.places.forEach((p) => {
-      const marker = placeToMarker(p, false);
+      const marker = placeToMarker(p, false, !this.placesUsedInTable.has(p.id));
       this.markerClusterGroup?.addLayer(marker);
     });
   }
@@ -375,9 +375,19 @@ export class TripComponent implements AfterViewInit {
       .flatMap((day) => day.items.sort((a, b) => a.time.localeCompare(b.time)))
       .map((item) => {
         if (item.lat && item.lng)
-          return { text: item.text, lat: item.lat, lng: item.lng };
+          return {
+            text: item.text,
+            lat: item.lat,
+            lng: item.lng,
+            isPlace: !!item.place,
+          };
         if (item.place && item.place)
-          return { text: item.text, lat: item.place.lat, lng: item.place.lng };
+          return {
+            text: item.text,
+            lat: item.place.lat,
+            lng: item.place.lng,
+            isPlace: true,
+          };
         return undefined;
       })
       .filter((n) => n !== undefined);
@@ -413,7 +423,7 @@ export class TripComponent implements AfterViewInit {
     const layGroup = L.layerGroup();
     layGroup.addLayer(path);
     items.forEach((item) => {
-      layGroup.addLayer(tripDayMarker(item));
+      if (!item.isPlace) layGroup.addLayer(tripDayMarker(item));
     });
 
     if (this.tripMapAntLayer) {
@@ -448,9 +458,19 @@ export class TripComponent implements AfterViewInit {
     const items = data
       .map((item) => {
         if (item.lat && item.lng)
-          return { text: item.text, lat: item.lat, lng: item.lng };
+          return {
+            text: item.text,
+            lat: item.lat,
+            lng: item.lng,
+            isPlace: !!item.place,
+          };
         if (item.place && item.place)
-          return { text: item.text, lat: item.place.lat, lng: item.place.lng };
+          return {
+            text: item.text,
+            lat: item.place.lat,
+            lng: item.place.lng,
+            isPlace: true,
+          };
         return undefined;
       })
       .filter((n) => n !== undefined);
@@ -486,7 +506,7 @@ export class TripComponent implements AfterViewInit {
     const layGroup = L.layerGroup();
     layGroup.addLayer(path);
     items.forEach((item) => {
-      layGroup.addLayer(tripDayMarker(item));
+      if (!item.isPlace) layGroup.addLayer(tripDayMarker(item));
     });
 
     if (this.tripMapAntLayer) {
@@ -765,7 +785,10 @@ export class TripComponent implements AfterViewInit {
                 );
               }
               if (item.price) this.updateTotalPrice(item.price);
-              if (item.place?.id) this.placesUsedInTable.add(item.place.id);
+              if (item.place?.id) {
+                this.placesUsedInTable.add(item.place.id);
+                this.setPlacesAndMarkers();
+              }
             },
           });
       },
@@ -832,6 +855,8 @@ export class TripComponent implements AfterViewInit {
 
               if (this.tripMapAntLayerDayID == item.day_id)
                 this.toggleTripDayHighlightPathDay(item.day_id);
+
+              if (item.place?.id || it.place?.id) this.setPlacesAndMarkers();
             },
           });
       },
@@ -869,8 +894,10 @@ export class TripComponent implements AfterViewInit {
                   this.flattenedTripItems = this.flattenTripDayItems(
                     this.trip?.days!,
                   );
-                  if (item.place?.id)
+                  if (item.place?.id) {
                     this.placesUsedInTable.delete(item.place.id);
+                    this.setPlacesAndMarkers();
+                  }
                   this.dayStatsCache.delete(item.day_id);
                   this.selectedItem = undefined;
                   this.resetPlaceHighlightMarker();

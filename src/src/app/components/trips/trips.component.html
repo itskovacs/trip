@@ -9,7 +9,7 @@
     </div>
   </div>
 
-  <div class="mt-10 grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+  <div class="mt-10 grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
     @defer {
     @for (trip of trips; track trip.id) {
     <div class="group relative rounded-lg overflow-hidden shadow-lg cursor-pointer" [class.grayscale]="trip.archived"

@@ -99,6 +99,7 @@ export function tripDayMarker(item: {
 export function placeToMarker(
   place: Place,
   isLowNet: boolean = true,
+  grayscale: boolean = false,
 ): L.Marker {
   let marker: L.Marker;
   let options: any = {
@@ -114,6 +115,9 @@ export function placeToMarker(
     ? place.category.image
     : (place.image ?? place.category.image);
 
+  let markerClasses = place.visited ? "image-marker visited" : "image-marker";
+  if (grayscale) markerClasses += " grayscale";
+
   marker.options.icon = L.icon({
     iconUrl: markerImage,
     iconSize: [56, 56],
@@ -121,7 +125,7 @@ export function placeToMarker(
     shadowSize: [0, 0],
     shadowAnchor: [0, 0],
     popupAnchor: [0, -12],
-    className: place.visited ? "image-marker visited" : "image-marker",
+    className: markerClasses,
   });
 
   let touchDevice = "ontouchstart" in window;

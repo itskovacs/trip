@@ -121,8 +121,8 @@ export class PlaceCreateModalComponent {
         const latControl = this.placeForm.get("lat");
         const lngControl = this.placeForm.get("lng");
 
-        latControl?.setValue(formatLatLng(lat), { emitEvent: false });
-        lngControl?.setValue(formatLatLng(lng), { emitEvent: false });
+        latControl?.setValue(formatLatLng(lat).trim(), { emitEvent: false });
+        lngControl?.setValue(formatLatLng(lng).trim(), { emitEvent: false });
 
         lngControl?.markAsDirty();
         lngControl?.updateValueAndValidity();
