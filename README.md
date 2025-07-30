@@ -42,6 +42,20 @@ Demo is worth a thousand words, head to 📸 [Demo](#Demo).
 
 If you need help, feel free to open an [issue](https://github.com/itskovacs/trip/issues).
 
+Deployment is designed to be simple using Docker.
+
+### Option 1: Docker Compose (Recommended)
+
+Use the `docker-compose.yml` file provided in this repository. No changes are required, though you may customize it to suit your needs.
+
+Run the container:
+
+```bash
+docker-compose up -d
+```
+
+### Option 2: Docker Run
+
 ```bash
 # Ensure you have the latest image
 docker pull ghcr.io/itskovacs/trip:1
@@ -50,11 +64,12 @@ docker pull ghcr.io/itskovacs/trip:1
 docker run -d -p 8080:8000 -v ./storage:/app/storage ghcr.io/itskovacs/trip:1
 ```
 
+### Configuration
+
 Refer to the [configuration documentation](https://github.com/itskovacs/trip/tree/main/docs/config.md) to set up OIDC authentication and other settings.
 
 > [!TIP]
 > See [Usage Tips](https://github.com/itskovacs/trip/tree/main/docs/usage_tips.md) in docs for advanced features.
-
 
 <br>
 

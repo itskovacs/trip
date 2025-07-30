@@ -1,4 +1,4 @@
-TRIP uses SQLite databases to store the data.
+TRIP uses a SQLite database to store the data.
 
 To back up your data, follow these simple steps:
 1. **Stop the container**
