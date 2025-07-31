@@ -15,7 +15,7 @@
       <label for="lng">Longitude</label>
     </p-floatlabel>
 
-    <p-inputgroup class="col-span-2 md:col-span-3">
+    <p-inputgroup class="col-span-2 lg:col-span-3">
       <p-floatlabel variant="in">
         <input id="place" formControlName="place" pInputText fluid placeholder="" />
         <label for="place">Place</label>
@@ -26,7 +26,7 @@
       </p-inputgroup-addon>
     </p-inputgroup>
 
-    <p-floatlabel variant="in" class="col-span-2 md:col-span-1">
+    <p-floatlabel variant="in" class="col-span-2 lg:col-span-1">
       <p-select [options]="(categories$ | async) || []" optionValue="id" optionLabel="name"
         [loading]="!(categories$ | async)?.length" inputId="category" id="category" formControlName="category"
         [checkmark]="true" class="capitalize" fluid>

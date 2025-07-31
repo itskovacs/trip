@@ -213,7 +213,7 @@ export class TripComponent implements AfterViewInit {
 
     const stats = day.items.reduce(
       (acc, item) => {
-        acc.price += item.price || item.place?.price || 0;
+        acc.price += item.price || 0;
         if (item.place) acc.places += 1;
         return acc;
       },
@@ -261,7 +261,7 @@ export class TripComponent implements AfterViewInit {
           text: item.text,
           status: this.statusToTripStatus(item.status as string),
           comment: item.comment,
-          price: item.price || (item.place ? item.place.price : undefined),
+          price: item.price || undefined,
           day_id: item.day_id,
           place: item.place,
           lat: item.lat || (item.place ? item.place.lat : undefined),
@@ -566,11 +566,11 @@ export class TripComponent implements AfterViewInit {
         appendTo: "body",
         closable: true,
         dismissableMask: true,
-        width: "30vw",
-        data: { trip: this.trip },
+        width: "50vw",
         breakpoints: {
-          "640px": "90vw",
+          "640px": "80vw",
         },
+        data: { trip: this.trip },
       },
     );
 
@@ -621,10 +621,10 @@ export class TripComponent implements AfterViewInit {
         appendTo: "body",
         closable: true,
         dismissableMask: true,
-        width: "30vw",
+        width: "50vw",
         data: { days: this.trip?.days },
         breakpoints: {
-          "640px": "90vw",
+          "640px": "80vw",
         },
       },
     );
@@ -653,10 +653,10 @@ export class TripComponent implements AfterViewInit {
         appendTo: "body",
         closable: true,
         dismissableMask: true,
-        width: "30vw",
+        width: "50vw",
         data: { day: day, days: this.trip?.days },
         breakpoints: {
-          "640px": "90vw",
+          "640px": "80vw",
         },
       },
     );
@@ -722,9 +722,10 @@ export class TripComponent implements AfterViewInit {
         modal: true,
         appendTo: "body",
         closable: true,
-        width: "30vw",
+        width: "50vw",
         data: { places: this.places },
         breakpoints: {
+          "960px": "80vw",
           "640px": "90vw",
         },
       },
@@ -756,14 +757,14 @@ export class TripComponent implements AfterViewInit {
         appendTo: "body",
         closable: true,
         dismissableMask: true,
-        width: "40vw",
+        width: "75vw",
+        breakpoints: {
+          "1260px": "90vw",
+        },
         data: {
           places: this.places,
           days: this.trip?.days,
           selectedDay: day_id,
-        },
-        breakpoints: {
-          "640px": "90vw",
         },
       },
     );
@@ -788,6 +789,7 @@ export class TripComponent implements AfterViewInit {
               if (item.place?.id) {
                 this.placesUsedInTable.add(item.place.id);
                 this.setPlacesAndMarkers();
+                this.dayStatsCache.delete(item.day_id);
               }
             },
           });
@@ -804,7 +806,10 @@ export class TripComponent implements AfterViewInit {
         appendTo: "body",
         closable: true,
         dismissableMask: true,
-        width: "40vw",
+        width: "75vw",
+        breakpoints: {
+          "1260px": "90vw",
+        },
         data: {
           places: this.places,
           days: this.trip?.days,
@@ -812,9 +817,6 @@ export class TripComponent implements AfterViewInit {
             ...item,
             status: item.status ? (item.status as TripStatus).label : null,
           },
-        },
-        breakpoints: {
-          "640px": "90vw",
         },
       },
     );
@@ -896,6 +898,8 @@ export class TripComponent implements AfterViewInit {
                   );
                   if (item.place?.id) {
                     this.placesUsedInTable.delete(item.place.id);
+                    if (item.place.price)
+                      this.updateTotalPrice(-item.place.price);
                     this.setPlacesAndMarkers();
                   }
                   this.dayStatsCache.delete(item.day_id);
@@ -917,11 +921,11 @@ export class TripComponent implements AfterViewInit {
         appendTo: "body",
         closable: true,
         dismissableMask: true,
-        width: "40vw",
-        data: { days: this.trip?.days },
+        width: "75vw",
         breakpoints: {
-          "640px": "90vw",
+          "1260px": "90vw",
         },
+        data: { days: this.trip?.days },
       },
     );
 

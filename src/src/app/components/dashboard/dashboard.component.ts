@@ -39,6 +39,7 @@ import { Settings } from "../../types/settings";
 import { SelectItemGroup } from "primeng/api";
 import { YesNoModalComponent } from "../../modals/yes-no-modal/yes-no-modal.component";
 import { CategoryCreateModalComponent } from "../../modals/category-create-modal/category-create-modal.component";
+import { AuthService } from "../../services/auth.service";
 
 export interface ContextMenuItem {
   text: string;
@@ -107,6 +108,7 @@ export class DashboardComponent implements AfterViewInit {
 
   constructor(
     private apiService: ApiService,
+    private authService: AuthService,
     private utilsService: UtilsService,
     private dialogService: DialogService,
     private router: Router,
@@ -148,6 +150,10 @@ export class DashboardComponent implements AfterViewInit {
     this.searchInput.valueChanges.pipe(debounceTime(200)).subscribe({
       next: () => this.setVisibleMarkers(),
     });
+  }
+
+  logout() {
+    this.authService.logout();
   }
 
   closePlaceBox() {
@@ -308,10 +314,10 @@ export class DashboardComponent implements AfterViewInit {
         appendTo: "body",
         closable: true,
         dismissableMask: true,
-        width: "40vw",
+        width: "55vw",
         breakpoints: {
-          "960px": "60vw",
-          "640px": "90vw",
+          "1920px": "70vw",
+          "1260px": "90vw",
         },
         ...opts,
       },
@@ -343,10 +349,10 @@ export class DashboardComponent implements AfterViewInit {
         appendTo: "body",
         closable: true,
         dismissableMask: true,
-        width: "40vw",
+        width: "55vw",
         breakpoints: {
-          "960px": "60vw",
-          "640px": "90vw",
+          "1920px": "70vw",
+          "1260px": "90vw",
         },
       },
     );
@@ -488,16 +494,16 @@ export class DashboardComponent implements AfterViewInit {
         appendTo: "body",
         closable: true,
         dismissableMask: true,
-        width: "40vw",
+        width: "55vw",
+        breakpoints: {
+          "1920px": "70vw",
+          "1260px": "90vw",
+        },
         data: {
           place: {
             ...this.selectedPlace,
             category: this.selectedPlace.category.id,
           },
-        },
-        breakpoints: {
-          "960px": "60vw",
-          "640px": "90vw",
         },
       },
     );
@@ -647,9 +653,9 @@ export class DashboardComponent implements AfterViewInit {
         closable: true,
         dismissableMask: true,
         data: { category: c },
-        width: "20vw",
+        width: "40vw",
         breakpoints: {
-          "960px": "60vw",
+          "960px": "70vw",
           "640px": "90vw",
         },
       },
@@ -692,9 +698,9 @@ export class DashboardComponent implements AfterViewInit {
         appendTo: "body",
         closable: true,
         dismissableMask: true,
-        width: "20vw",
+        width: "40vw",
         breakpoints: {
-          "960px": "60vw",
+          "960px": "70vw",
           "640px": "90vw",
         },
       },

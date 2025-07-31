@@ -63,9 +63,9 @@ export class TripsComponent {
         appendTo: "body",
         closable: true,
         dismissableMask: true,
-        width: "30vw",
+        width: "50vw",
         breakpoints: {
-          "640px": "90vw",
+          "960px": "80vw",
         },
       },
     );
