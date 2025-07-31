@@ -47,9 +47,11 @@ export class AuthComponent {
     private fb: FormBuilder,
   ) {
     this.route.queryParams.subscribe((params) => {
+      if (!Object.keys(params).length) return;
       const code = params["code"];
-      if (code) {
-        this.authService.oidcLogin(code).subscribe({
+      const state = params["state"];
+      if (code && state) {
+        this.authService.oidcLogin(code, state).subscribe({
           next: (data) => {
             if (!data.access_token) {
               this.error = "Authentication failed";
@@ -61,9 +63,12 @@ export class AuthComponent {
       }
     });
 
-    this.authService.authParams().subscribe({
-      next: (params) => (this.authParams = params),
-    });
+    // Timeout to handle race condition
+    setTimeout(() => {
+      this.authService.authParams().subscribe({
+        next: (params) => (this.authParams = params),
+      });
+    }, 100);
 
     this.redirectURL =
       this.route.snapshot.queryParams["redirectURL"] || "/home";
@@ -97,7 +102,7 @@ export class AuthComponent {
   authenticate(): void {
     this.error = "";
     if (this.authParams?.oidc) {
-      window.location.replace(encodeURI(this.authParams.oidc));
+      window.location.replace(this.authParams.oidc);
     }
 
     this.authService.login(this.authForm.value).subscribe({

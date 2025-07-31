@@ -1,5 +1,6 @@
 import jwt
-from fastapi import APIRouter, Body, HTTPException
+from fastapi import APIRouter, Body, Cookie, HTTPException
+from fastapi.responses import JSONResponse
 
 from ..config import settings
 from ..db.core import init_user_data
@@ -16,20 +17,33 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 async def auth_params() -> AuthParams:
     data = {"oidc": None, "register_enabled": settings.REGISTER_ENABLE}
 
+    response = JSONResponse(content=data)
     if settings.OIDC_CLIENT_ID and settings.OIDC_CLIENT_SECRET:
         oidc_config = await get_oidc_config()
         auth_endpoint = oidc_config.get("authorization_endpoint")
-        data["oidc"] = (
-            f"{auth_endpoint}?client_id={settings.OIDC_CLIENT_ID}&redirect_uri={settings.OIDC_REDIRECT_URI}&response_type=code&scope=openid+profile"
+        uri, state = get_oidc_client().create_authorization_url(auth_endpoint)
+        data["oidc"] = uri
+
+        response = JSONResponse(content=data)
+        response.set_cookie(
+            "oidc_state", value=state, httponly=True, secure=True, samesite="Lax", max_age=60
         )
 
-    return data
+    return response
 
 
 @router.post("/oidc/login", response_model=Token)
-async def oidc_login(session: SessionDep, code: str = Body(..., embed=True)) -> Token:
+async def oidc_login(
+    session: SessionDep,
+    code: str = Body(..., embed=True),
+    state: str = Body(..., embed=True),
+    oidc_state: str = Cookie(None),
+) -> Token:
     if not (settings.OIDC_CLIENT_ID or settings.OIDC_CLIENT_SECRET):
         raise HTTPException(status_code=400, detail="Partial OIDC config")
+
+    if not oidc_state or state != oidc_state:
+        raise HTTPException(status_code=400, detail="OIDC login failed, invalid state")
 
     oidc_config = await get_oidc_config()
     token_endpoint = oidc_config.get("token_endpoint")

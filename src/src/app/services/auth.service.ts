@@ -109,9 +109,9 @@ export class AuthService {
       );
   }
 
-  oidcLogin(code: string): Observable<Token> {
+  oidcLogin(code: string, state: string): Observable<Token> {
     return this.httpClient
-      .post<Token>(this.apiBaseUrl + "/auth/oidc/login", { code })
+      .post<Token>(this.apiBaseUrl + "/auth/oidc/login", { code, state })
       .pipe(
         tap((data: any) => {
           if (data.access_token && data.refresh_token) {
