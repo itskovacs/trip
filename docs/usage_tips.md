@@ -1,3 +1,8 @@
+## Settings
+### Low Network Mode
+
+*Low Network Mode* is enabled by default. When enabled, the app displays the Category image instead of the Place image to reduce network usage. You can disable this mode in the settings if you prefer to load Place images directly.
+
 
 ## Place Creation
 ### Google Maps URL Parsing
