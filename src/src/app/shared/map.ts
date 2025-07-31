@@ -2,7 +2,6 @@ import * as L from "leaflet";
 import "leaflet.markercluster";
 import "leaflet-contextmenu";
 import { Place } from "../types/poi";
-import { TripItem } from "../types/trip";
 
 export interface ContextMenuItem {
   text: string;
@@ -38,7 +37,7 @@ export function createMap(contextMenuItems?: ContextMenuItem[]): L.Map {
     "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
     {
       maxZoom: 17,
-      minZoom: 5,
+      minZoom: 3,
       attribution:
         '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>',
     },
