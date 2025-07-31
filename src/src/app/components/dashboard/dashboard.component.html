@@ -286,7 +286,11 @@
         <p-tabpanel value="3">
           <div class="mt-1 flex justify-between align-items">
             <h1 class="font-semibold tracking-tight text-xl">About</h1>
-            <p-button (click)="toGithub()" text severity="primary" icon="pi pi-github" size="large" />
+
+            <div class="flex">
+              <p-button (click)="logout()" text severity="primary" icon="pi pi-sign-out" label="Log out" />
+              <p-button (click)="toGithub()" text severity="primary" icon="pi pi-github" size="large" />
+            </div>
           </div>
 
           <div class="flex flex-col md:flex-row justify-center md:justify-start items-center gap-4 mt-8 md:mt-4">
