@@ -2,11 +2,11 @@
 <div class="place-box-dialog">
     <div class="place-box-dialog-content">
         <div class="flex justify-between items-center mb-3">
-            <div class="flex items-center gap-4 w-full">
+            <div class="flex items-center gap-4 w-full max-w-full">
                 <img [src]="selectedPlace.image || selectedPlace.category.image"
                     class="object-cover rounded-full size-16">
-                <div class="flex grow md:flex-col">
-                    <h1 class="text-gray-800 font-bold mb-0 line-clamp-1">{{ selectedPlace.name }}
+                <div class="flex grow min-w-0 md:flex-col">
+                    <h1 class="text-gray-800 font-bold mb-0 truncate">{{ selectedPlace.name }}
                     </h1>
 
                     <div class="hidden md:flex mt-2 gap-1">
@@ -57,36 +57,38 @@
             </div>
         </div>
 
-        <div class="mt-4 grid grid-cols-2 md:grid-cols-4">
-            <div class="col-span-2 flex flex-col mb-4">
+        <div class="mt-4 grid grid-cols-2 md:grid-cols-5">
+            <div class="col-span-2 md:col-span-3 flex flex-col mb-4">
                 <span class="text-gray-500">Place</span>
                 <div class="line-clamp-2">{{ selectedPlace.place }}</div>
             </div>
 
-            <div class="flex flex-col mb-4">
-                <span class="text-gray-500">Latitude</span>
-                <span>{{ selectedPlace.lat }}</span>
-            </div>
+            <div class="grid grid-cols-2 col-span-2">
+                <div class="flex flex-col mb-4">
+                    <span class="text-gray-500">Latitude</span>
+                    <span>{{ selectedPlace.lat }}</span>
+                </div>
 
-            <div class="flex flex-col mb-4">
-                <span class="text-gray-500">Longitude</span>
-                <span>{{ selectedPlace.lng }}</span>
-            </div>
+                <div class="flex flex-col mb-4">
+                    <span class="text-gray-500">Longitude</span>
+                    <span>{{ selectedPlace.lng }}</span>
+                </div>
 
-            <div class="col-span-2 flex flex-col mb-4">
-                <span class="text-gray-500">Description</span>
-                <span>{{ selectedPlace.description || '-' }}</span>
-            </div>
+                <div class="flex flex-col mb-4">
+                    <span class="text-gray-500">Price</span>
+                    <span>{{ selectedPlace.price || '-' }} {{ currency$ | async }}</span>
+                </div>
 
-            <div class="flex flex-col mb-4">
-                <span class="text-gray-500">Price</span>
-                <span>{{ selectedPlace.price || '-' }} {{ currency$ | async }}</span>
+                <div class="flex flex-col mb-4">
+                    <span class="text-gray-500">Duration</span>
+                    <span>{{ selectedPlace.duration || '-' }}</span>
+                </div>
             </div>
+        </div>
 
-            <div class="flex flex-col mb-4">
-                <span class="text-gray-500">Duration</span>
-                <span>{{ selectedPlace.duration || '-' }}</span>
-            </div>
+        <div class="flex flex-col mb-4 max-h-40 overflow-y-auto">
+            <span class="text-gray-500">Description</span>
+            <span class="break-words">{{ selectedPlace.description || '-' }}</span>
         </div>
 
         <div class="flex md:hidden mt-2 justify-center gap-1">
