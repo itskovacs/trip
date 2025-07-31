@@ -26,9 +26,15 @@ export function formatLatLng(num: number): string {
   return num.toFixed(Math.min(decimals, 5));
 }
 
-export function checkAndParseLatLng(str: string): [number, number] | undefined {
+export function checkAndParseLatLng(
+  value: string | number,
+): [number, number] | undefined {
+  if (value.constructor != String) {
+    return;
+  }
+
   // Parse DMS, DD, DDM to decimal [Lat, Lng]
-  const dec = str.match(patternDEC);
+  const dec = value.match(patternDEC);
   if (dec) {
     const lat = parseFloat(dec[1]);
     const lng = parseFloat(dec[2]);
@@ -37,7 +43,7 @@ export function checkAndParseLatLng(str: string): [number, number] | undefined {
     }
   }
 
-  const dd = str.match(patternDD);
+  const dd = value.match(patternDD);
   if (dd) {
     let lat = parseFloat(dd[1]);
     let lng = parseFloat(dd[3]);
@@ -46,14 +52,14 @@ export function checkAndParseLatLng(str: string): [number, number] | undefined {
     return [lat, lng];
   }
 
-  const dms = str.match(patternDMS);
+  const dms = value.match(patternDMS);
   if (dms) {
     const lat = _dmsToDecimal(+dms[1], +dms[2], +dms[3], dms[4]);
     const lng = _dmsToDecimal(+dms[5], +dms[6], +dms[7], dms[8]);
     return [lat, lng];
   }
 
-  const dmm = str.match(patternDMM);
+  const dmm = value.match(patternDMM);
   if (dmm) {
     const lat = _dmmToDecimal(+dmm[1], +dmm[2], dmm[3]);
     const lng = _dmmToDecimal(+dmm[4], +dmm[5], dmm[6]);
