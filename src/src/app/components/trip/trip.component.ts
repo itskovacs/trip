@@ -28,13 +28,15 @@ import { TripPlaceSelectModalComponent } from "../../modals/trip-place-select-mo
 import { TripCreateDayModalComponent } from "../../modals/trip-create-day-modal/trip-create-day-modal.component";
 import { TripCreateDayItemModalComponent } from "../../modals/trip-create-day-item-modal/trip-create-day-item-modal.component";
 import { TripCreateItemsModalComponent } from "../../modals/trip-create-items-modal/trip-create-items-modal.component";
-import { forkJoin, map, Observable } from "rxjs";
+import { combineLatest, forkJoin, map, Observable, tap } from "rxjs";
 import { YesNoModalComponent } from "../../modals/yes-no-modal/yes-no-modal.component";
 import { UtilsService } from "../../services/utils.service";
 import { TripCreateModalComponent } from "../../modals/trip-create-modal/trip-create-modal.component";
 import { AsyncPipe } from "@angular/common";
 import { MenuItem } from "primeng/api";
 import { MenuModule } from "primeng/menu";
+import { LinkifyPipe } from "../../shared/linkify.pipe";
+import { PlaceCreateModalComponent } from "../../modals/place-create-modal/place-create-modal.component";
 
 @Component({
   selector: "app-trip",
@@ -46,6 +48,7 @@ import { MenuModule } from "primeng/menu";
     ReactiveFormsModule,
     InputTextModule,
     AsyncPipe,
+    LinkifyPipe,
     FloatLabelModule,
     TableModule,
     ButtonModule,
@@ -171,33 +174,36 @@ export class TripComponent implements AfterViewInit {
     this.route.paramMap.subscribe((params) => {
       const id = params.get("id");
       if (id) {
-        this.apiService.getTrip(+id).subscribe({
-          next: (trip) => {
-            this.trip = trip;
-            this.sortTripDays();
-            this.flattenedTripItems = this.flattenTripDayItems(trip.days);
+        combineLatest({
+          trip: this.apiService.getTrip(+id),
+          settings: this.apiService.getSettings(),
+        })
+          .pipe(
+            tap(({ trip, settings }) => {
+              this.trip = trip;
+              this.flattenTripDayItems();
+              this.updateTotalPrice();
 
-            this.updateTotalPrice();
-
-            let contentMenuItems = [
-              {
-                text: "Copy coordinates",
-                callback: (e: any) => {
-                  const latlng = e.latlng;
-                  navigator.clipboard.writeText(
-                    `${parseFloat(latlng.lat).toFixed(5)}, ${parseFloat(latlng.lng).toFixed(5)}`,
-                  );
+              let contentMenuItems = [
+                {
+                  text: "Copy coordinates",
+                  callback: (e: any) => {
+                    const latlng = e.latlng;
+                    navigator.clipboard.writeText(
+                      `${parseFloat(latlng.lat).toFixed(5)}, ${parseFloat(latlng.lng).toFixed(5)}`,
+                    );
+                  },
                 },
-              },
-            ];
-            this.map = createMap(contentMenuItems);
-            this.markerClusterGroup = createClusterGroup().addTo(this.map);
-            this.setPlacesAndMarkers();
+              ];
+              this.map = createMap(contentMenuItems, settings.tile_layer);
+              this.markerClusterGroup = createClusterGroup().addTo(this.map);
+              this.setPlacesAndMarkers();
 
-            this.map.setView([48.107, -2.988]);
-            this.resetMapBounds();
-          },
-        });
+              this.map.setView([48.107, -2.988]);
+              this.resetMapBounds();
+            }),
+          )
+          .subscribe();
       }
     });
   }
@@ -249,8 +255,9 @@ export class TripComponent implements AfterViewInit {
     return this.statuses.find((s) => s.label == status) as TripStatus;
   }
 
-  flattenTripDayItems(days: TripDay[]): FlattenedTripItem[] {
-    return days.flatMap((day) =>
+  flattenTripDayItems() {
+    this.sortTripDays();
+    this.flattenedTripItems = this.trip!.days.flatMap((day) =>
       [...day.items]
         .sort((a, b) => a.time.localeCompare(b.time))
         .map((item) => ({
@@ -270,7 +277,7 @@ export class TripComponent implements AfterViewInit {
     );
   }
 
-  makePlacesUsedInTable() {
+  computePlacesUsedInTable() {
     this.placesUsedInTable.clear();
     this.flattenedTripItems.forEach((i) => {
       if (i.place?.id) this.placesUsedInTable.add(i.place.id);
@@ -278,7 +285,7 @@ export class TripComponent implements AfterViewInit {
   }
 
   setPlacesAndMarkers() {
-    this.makePlacesUsedInTable();
+    this.computePlacesUsedInTable();
     this.places = this.trip?.places || [];
     this.places.sort((a, b) => a.name.localeCompare(b.name));
 
@@ -636,8 +643,7 @@ export class TripComponent implements AfterViewInit {
         this.apiService.postTripDay(day, this.trip?.id!).subscribe({
           next: (day) => {
             this.trip?.days.push(day);
-            this.sortTripDays();
-            this.flattenedTripItems.push(...this.flattenTripDayItems([day]));
+            this.flattenTripDayItems();
           },
         });
       },
@@ -670,11 +676,7 @@ export class TripComponent implements AfterViewInit {
             let index = this.trip?.days.findIndex((d) => d.id == day.id);
             if (index != -1) {
               this.trip?.days.splice(index as number, 1, day);
-              this.sortTripDays();
-              this.flattenedTripItems = this.flattenTripDayItems(
-                this.trip?.days!,
-              );
-              this.dayStatsCache.delete(day.id);
+              this.flattenTripDayItems();
             }
           },
         });
@@ -700,14 +702,9 @@ export class TripComponent implements AfterViewInit {
           this.apiService.deleteTripDay(this.trip?.id!, day.id).subscribe({
             next: () => {
               let index = this.trip?.days.findIndex((d) => d.id == day.id);
-              if (index != -1) {
-                this.trip?.days.splice(index as number, 1);
-                this.flattenedTripItems = this.flattenTripDayItems(
-                  this.trip?.days!,
-                );
-                this.dayStatsCache.delete(day.id);
-                this.makePlacesUsedInTable();
-              }
+              this.trip?.days.splice(index as number, 1);
+              this.flattenTripDayItems();
+              this.setPlacesAndMarkers();
             },
           });
       },
@@ -778,18 +775,15 @@ export class TripComponent implements AfterViewInit {
           .subscribe({
             next: (resp) => {
               let index = this.trip?.days.findIndex((d) => d.id == item.day_id);
-              if (index != -1) {
-                let td: TripDay = this.trip?.days[index as number]!;
-                td.items.push(resp);
-                this.flattenedTripItems = this.flattenTripDayItems(
-                  this.trip?.days!,
-                );
-              }
-              if (item.price) this.updateTotalPrice(item.price);
-              if (item.place?.id) {
-                this.placesUsedInTable.add(item.place.id);
+              let td: TripDay = this.trip?.days[index as number]!;
+              td.items.push(resp);
+              this.flattenTripDayItems();
+
+              if (resp.price) this.updateTotalPrice(resp.price);
+              if (resp.place?.id) {
+                this.placesUsedInTable.add(resp.place.id);
+                this.dayStatsCache.delete(resp.day_id);
                 this.setPlacesAndMarkers();
-                this.dayStatsCache.delete(item.day_id);
               }
             },
           });
@@ -829,36 +823,48 @@ export class TripComponent implements AfterViewInit {
         this.apiService
           .putTripDayItem(it, this.trip?.id!, item.day_id, item.id)
           .subscribe({
-            next: (item) => {
-              let index = this.trip?.days.findIndex((d) => d.id == item.day_id);
-              if (index != -1) {
-                let td: TripDay = this.trip?.days[index as number]!;
-                td.items.splice(
-                  td.items.findIndex((i) => i.id == item.id),
+            next: (new_item) => {
+              if (item.day_id != new_item.day_id) {
+                let previousIndex = this.trip?.days.findIndex(
+                  (d) => d.id == item.day_id,
+                );
+                this.trip?.days[previousIndex as number]!.items.splice(
+                  this.trip?.days[previousIndex as number]!.items.findIndex(
+                    (i) => i.id == new_item.id,
+                  ),
                   1,
-                  item,
                 );
-                this.flattenedTripItems = this.flattenTripDayItems(
-                  this.trip?.days!,
-                );
-                if (this.selectedItem && this.selectedItem.id === item.id)
-                  this.selectedItem = {
-                    ...item,
-                    status: item.status
-                      ? this.statusToTripStatus(item.status as string)
-                      : undefined,
-                  };
                 this.dayStatsCache.delete(item.day_id);
               }
 
-              if (item.place?.id) this.placesUsedInTable.add(item.place.id);
-              const updatedPrice = -(item.price || 0) + (it.price || 0);
+              let index = this.trip?.days.findIndex(
+                (d) => d.id == new_item.day_id,
+              );
+              let td: TripDay = this.trip?.days[index as number]!;
+              td.items.splice(
+                td.items.findIndex((i) => i.id == new_item.id),
+                1,
+                new_item,
+              );
+              this.flattenTripDayItems();
+              if (this.selectedItem && this.selectedItem.id === item.id)
+                this.selectedItem = {
+                  ...new_item,
+                  status: new_item.status
+                    ? this.statusToTripStatus(new_item.status as string)
+                    : undefined,
+                };
+              this.dayStatsCache.delete(new_item.day_id);
+
+              this.computePlacesUsedInTable();
+              const updatedPrice = -(new_item.price || 0) + (item.price || 0);
               this.updateTotalPrice(updatedPrice);
 
-              if (this.tripMapAntLayerDayID == item.day_id)
-                this.toggleTripDayHighlightPathDay(item.day_id);
+              if (this.tripMapAntLayerDayID == new_item.day_id)
+                this.toggleTripDayHighlightPathDay(new_item.day_id);
 
-              if (item.place?.id || it.place?.id) this.setPlacesAndMarkers();
+              if (new_item.place?.id || item.place?.id)
+                this.setPlacesAndMarkers();
             },
           });
       },
@@ -887,25 +893,23 @@ export class TripComponent implements AfterViewInit {
                 let index = this.trip?.days.findIndex(
                   (d) => d.id == item.day_id,
                 );
-                if (index != -1) {
-                  let td: TripDay = this.trip?.days[index as number]!;
-                  td.items.splice(
-                    td.items.findIndex((i) => i.id == item.id),
-                    1,
-                  );
-                  this.flattenedTripItems = this.flattenTripDayItems(
-                    this.trip?.days!,
-                  );
-                  if (item.place?.id) {
-                    this.placesUsedInTable.delete(item.place.id);
-                    if (item.place.price)
-                      this.updateTotalPrice(-item.place.price);
-                    this.setPlacesAndMarkers();
-                  }
-                  this.dayStatsCache.delete(item.day_id);
-                  this.selectedItem = undefined;
-                  this.resetPlaceHighlightMarker();
+
+                let td: TripDay = this.trip?.days[index as number]!;
+                td.items.splice(
+                  td.items.findIndex((i) => i.id == item.id),
+                  1,
+                );
+                this.flattenTripDayItems();
+
+                if (item.place?.id) {
+                  this.placesUsedInTable.delete(item.place.id);
+                  if (item.place.price)
+                    this.updateTotalPrice(-item.place.price);
+                  this.setPlacesAndMarkers();
                 }
+                this.dayStatsCache.delete(item.day_id);
+                this.selectedItem = undefined;
+                this.resetPlaceHighlightMarker();
               },
             });
       },
@@ -942,16 +946,53 @@ export class TripComponent implements AfterViewInit {
           .pipe(
             map((items) => {
               let index = this.trip?.days.findIndex((d) => d.id == day_id);
-              if (index != -1) {
-                let td: TripDay = this.trip?.days[index as number]!;
-                td.items.push(...items);
-                this.flattenedTripItems = this.flattenTripDayItems(
-                  this.trip?.days!,
-                );
-              }
+              let td: TripDay = this.trip?.days[index as number]!;
+              td.items.push(...items);
+              this.flattenTripDayItems();
             }),
           )
           .subscribe();
+      },
+    });
+  }
+
+  addPlace() {
+    const modal: DynamicDialogRef = this.dialogService.open(
+      PlaceCreateModalComponent,
+      {
+        header: "Create Place",
+        modal: true,
+        appendTo: "body",
+        closable: true,
+        dismissableMask: true,
+        width: "55vw",
+        breakpoints: {
+          "1920px": "70vw",
+          "1260px": "90vw",
+        },
+      },
+    );
+
+    modal.onClose.subscribe({
+      next: (place: Place | null) => {
+        if (!place) return;
+
+        this.apiService.postPlace(place).subscribe({
+          next: (place: Place) => {
+            this.apiService
+              .putTrip(
+                { place_ids: [place, ...this.places].map((p) => p.id) },
+                this.trip?.id!,
+              )
+              .subscribe({
+                next: (trip) => {
+                  this.trip = trip;
+                  this.setPlacesAndMarkers();
+                  this.resetMapBounds();
+                },
+              });
+          },
+        });
       },
     });
   }

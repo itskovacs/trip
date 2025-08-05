@@ -45,8 +45,8 @@
 </div>
 }
 
-<section class="p-4 print:px-1 grid md:grid-cols-3 gap-4 print:block">
-  <div class="p-4 shadow self-start rounded-md md:col-span-2 max-w-screen print:col-span-full">
+<section class="p-4 print:px-1 grid lg:grid-cols-3 gap-4 print:block">
+  <div class="p-4 shadow self-start rounded-md lg:col-span-2 max-w-screen print:col-span-full">
     <div [class.sticky]="!isMapFullscreen"
       class="top-0 z-10 bg-white p-2 mb-2 flex justify-between items-center dark:bg-surface-900">
       <div>
@@ -91,7 +91,13 @@
           </td>
           }
           <td class="font-mono text-sm">{{ tripitem.time }}</td>
-          <td class="max-w-60 truncate">{{ tripitem.text }}</td>
+          <td class="relative max-w-60 truncate">
+            <div class="relative">
+              {{ tripitem.text }}
+              @if (tripitem.status) {<div class="block xl:hidden absolute top-0 -left-1.5 size-1.5 rounded-full"
+                [style.background]="tripitem.status.color"></div>}
+            </div>
+          </td>
           <td class="relative">
             @if (tripitem.place) {
             <div class="ml-7 print:ml-0 max-w-24 truncate print:whitespace-normal">
@@ -144,21 +150,25 @@
 
   <div class="flex flex-col gap-4 sticky top-4 self-start max-w-screen print:hidden">
     @if (selectedItem) {
-    <div class="p-4 w-full min-h-20 md:max-h-[600px] rounded-md shadow text-center">
-      <div class="flex items-center justify-between px-2">
-        <div class="hidden md:flex h-20 w-32">
+    <div class="p-4 w-full max-w-full min-h-20 md:max-h-[600px] rounded-md shadow text-center">
+      <div class="flex justify-between items-center mb-3">
+        <div class="p-2 flex items-center gap-4 w-full max-w-full">
           @if (selectedItem.place) {
           <img [src]="selectedItem.place.image || selectedItem.place.category.image"
-            class="h-full w-full rounded-md object-cover" />
+            class="hidden md:flex object-cover rounded-md h-20 w-32" />
           }
-        </div>
 
-        <h2 class="text-xl md:text-3xl font-semibold mb-0 truncate max-w-96 md:mx-auto">{{ selectedItem.text }}</h2>
-        <div class="flex items-center gap-2">
-          <p-button icon="pi pi-trash" [disabled]="trip?.archived" severity="danger" (click)="deleteItem(selectedItem)"
-            text />
-          <p-button icon="pi pi-pencil" [disabled]="trip?.archived" (click)="editItem(selectedItem)" text />
-          <p-button icon="pi pi-times" [disabled]="trip?.archived" (click)="selectedItem = undefined" text />
+          <div class="flex items-center justify-between gap-2 w-full">
+            <h1 class="text-start font-semibold mb-0 line-clamp-1 md:text-xl">{{ selectedItem.text }}
+            </h1>
+
+            <div class="flex items-center gap-2 flex-none">
+              <p-button icon="pi pi-trash" [disabled]="trip?.archived" severity="danger"
+                (click)="deleteItem(selectedItem)" text />
+              <p-button icon="pi pi-pencil" [disabled]="trip?.archived" (click)="editItem(selectedItem)" text />
+              <p-button icon="pi pi-times" [disabled]="trip?.archived" (click)="selectedItem = undefined" text />
+            </div>
+          </div>
         </div>
       </div>
 
@@ -176,28 +186,21 @@
         @if (selectedItem.place) {
         <div class="rounded-md shadow p-4">
           <p class="font-bold mb-1">Place</p>
-          <div class="truncate">{{ selectedItem.place.name }}</div>
+          <div class="text-sm text-gray-500 truncate">{{ selectedItem.place.name }}</div>
         </div>
         }
 
         @if (selectedItem.comment) {
         <div class="md:col-span-2 rounded-md shadow p-4">
           <p class="font-bold mb-1">Comment</p>
-          <p class="text-sm text-gray-500 whitespace-pre-line">{{ selectedItem.comment }}</p>
+          <p class="text-sm text-gray-500 whitespace-pre-line" [innerHTML]="selectedItem.comment | linkify"></p>
         </div>
         }
 
         @if (selectedItem.lat) {
         <div class="rounded-md shadow p-4">
-          <p class="font-bold mb-1">Latitude</p>
-          <p class="text-sm text-gray-500">{{ selectedItem.lat }}</p>
-        </div>
-        }
-
-        @if (selectedItem.lng) {
-        <div class="rounded-md shadow p-4">
-          <p class="font-bold mb-1">Longitude</p>
-          <p class="text-sm text-gray-500">{{ selectedItem.lng }}</p>
+          <p class="font-bold mb-1 truncate">Latitude, Longitude</p>
+          <p class="text-sm text-gray-500 truncate">{{ selectedItem.lat }}, {{ selectedItem.lng }}</p>
         </div>
         }
 
@@ -258,7 +261,8 @@
           } @placeholder (minimum 0.4s) {
           <p-skeleton height="1.75rem" width="2.5rem" class="mr-1" />
           }
-          <p-button icon="pi pi-plus" [disabled]="trip?.archived" (click)="manageTripPlaces()" text />
+          <p-button icon="pi pi-plus" [disabled]="trip?.archived" (click)="addPlace()" text />
+          <p-button icon="pi pi-list-check" [disabled]="trip?.archived" (click)="manageTripPlaces()" text />
         </div>
       </div>
 
@@ -275,8 +279,8 @@
             <span class="text-xs text-gray-500 truncate">{{ p.place }}</span>
 
             <div class="flex gap-0.5">
-              <span
-                class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded flex gap-2 items-center truncate dark:bg-blue-100/85"><i
+              <span [style.color]="p.category.color" [style.background-color]="p.category.color + '1A'"
+                class="text-xs font-medium me-2 px-2.5 py-0.5 rounded flex gap-2 items-center truncate"><i
                   class="pi pi-box text-xs"></i>{{ p.category.name }}</span>
 
               @if (isPlaceUsed(p.id)) {
