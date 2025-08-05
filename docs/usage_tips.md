@@ -26,6 +26,12 @@ Supported formats include examples like:
 - `37°46'29.64" N, 122°25'9.84" W`
 - `37°46.494' N, 122°25.164' W`
 
+### Plus Code Parsing
+
+You can paste a [Plus Code](https://maps.google.com/pluscodes/) into the `latitude` input when creating a Place.
+
+Example: `849VCWC8+R9`
+
 ## Trip
 
 ### Display a day itinerary

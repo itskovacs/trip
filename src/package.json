@@ -28,6 +28,7 @@
     "leaflet": "^1.9.4",
     "@types/leaflet": "^1.9.19",
     "@types/leaflet.markercluster": "^1.5.5",
+    "open-location-code-typescript": "^1.5.0",
     "leaflet-contextmenu": "^1.4.0",
     "leaflet-ant-path": "1.3.0",
     "leaflet.markercluster": "^1.5.3",

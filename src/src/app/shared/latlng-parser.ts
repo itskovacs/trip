@@ -1,3 +1,5 @@
+import OpenLocationCode from "open-location-code-typescript";
+
 const patternDEC = /^\s*(-?\d{1,3}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)\s*$/;
 const patternDD =
   /^\s*(\d{1,3}(?:\.\d+)?)°?\s*([NS])\s*,\s*(\d{1,3}(?:\.\d+)?)°?\s*([EW])\s*$/i;
@@ -31,6 +33,12 @@ export function checkAndParseLatLng(
 ): [number, number] | undefined {
   if (value.constructor != String) {
     return;
+  }
+
+  // Parse PlusCode
+  if (OpenLocationCode.isValid(value)) {
+    const result = OpenLocationCode.decode(value);
+    return [result.latitudeCenter, result.longitudeCenter];
   }
 
   // Parse DMS, DD, DDM to decimal [Lat, Lng]
