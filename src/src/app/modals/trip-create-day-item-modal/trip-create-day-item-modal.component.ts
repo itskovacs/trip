@@ -66,7 +66,7 @@ export class TripCreateDayItemModalComponent {
       day_id: [null, Validators.required],
       place: null,
       status: null,
-      price: 0,
+      price: [null, Validators.pattern("[+-]?([0-9]*[.])?[0-9]+")],
       lat: [
         "",
         {
