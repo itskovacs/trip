@@ -1,11 +1,24 @@
-from sqlalchemy import event
+import asyncio
+from pathlib import Path
+
+from alembic import command
+from alembic.config import Config
+from sqlalchemy import event, text
 from sqlalchemy.engine import Engine
-from sqlmodel import Session, SQLModel, create_engine
+from sqlmodel import Session, create_engine
 
 from ..config import settings
 from ..models.models import Category
 
 _engine = None
+
+
+def _db_needs_stamp(engine: Engine) -> bool:
+    with engine.connect() as conn:
+        result = conn.execute(
+            text("SELECT name FROM sqlite_master WHERE type='table' AND name='alembic_version';")
+        )
+        return result.fetchone() is None
 
 
 def get_engine():
@@ -25,9 +38,24 @@ def set_sqlite_pragma(dbapi_connection, connection_record):
     cursor.close()
 
 
-def init_db():
+async def init_and_migrate_db():
+    alembic_cfg = Config("alembic.ini")
+    sqlite_file = Path(settings.SQLITE_FILE)
     engine = get_engine()
-    SQLModel.metadata.create_all(engine)
+
+    if not sqlite_file.exists():
+        # DB does not exist, upgrade to head
+        await asyncio.to_thread(command.upgrade, alembic_cfg, "head")
+        return
+
+    if _db_needs_stamp(engine):
+        # DB exists, but Alembic not initialized, we stamp
+        # b2ed4bf9c1b2 is the revision before Alembic introduction
+        await asyncio.to_thread(command.stamp, alembic_cfg, "b2ed4bf9c1b2")
+
+    # Alembic already introdcued, classic upgrade
+    await asyncio.to_thread(command.upgrade, alembic_cfg, "head")
+    return
 
 
 def init_user_data(session: Session, username: str):

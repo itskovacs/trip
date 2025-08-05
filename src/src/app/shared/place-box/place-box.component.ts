@@ -6,11 +6,12 @@ import { MenuItem } from "primeng/api";
 import { UtilsService } from "../../services/utils.service";
 import { Observable } from "rxjs";
 import { AsyncPipe } from "@angular/common";
+import { LinkifyPipe } from "../linkify.pipe";
 
 @Component({
   selector: "app-place-box",
   standalone: true,
-  imports: [ButtonModule, MenuModule, AsyncPipe],
+  imports: [ButtonModule, MenuModule, AsyncPipe, LinkifyPipe],
   templateUrl: "./place-box.component.html",
   styleUrls: ["./place-box.component.scss"],
 })

@@ -18,7 +18,10 @@ export interface MarkerOptions extends L.MarkerOptions {
   contextmenuItems: ContextMenuItem[];
 }
 
-export function createMap(contextMenuItems?: ContextMenuItem[]): L.Map {
+export function createMap(
+  contextMenuItems?: ContextMenuItem[],
+  tilelayer?: string,
+): L.Map {
   let southWest = L.latLng(-89.99, -180);
   let northEast = L.latLng(89.99, 180);
   let bounds = L.latLngBounds(southWest, northEast);
@@ -34,7 +37,8 @@ export function createMap(contextMenuItems?: ContextMenuItem[]): L.Map {
     .setMaxBounds(bounds);
 
   L.tileLayer(
-    "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
+    tilelayer ||
+      "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
     {
       maxZoom: 17,
       minZoom: 3,
@@ -48,7 +52,7 @@ export function createMap(contextMenuItems?: ContextMenuItem[]): L.Map {
 
 export function placeHoverTooltip(place: Place): string {
   let content = `<div class="font-semibold mb-1 truncate" style="font-size:1.1em">${place.name}</div>`;
-  content += `<div><span class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded">${place.category.name}</span></div>`;
+  content += `<div><span style="color:${place.category.color}; background:${place.category.color}1A;" class="text-xs font-medium px-2.5 py-0.5 rounded">${place.category.name}</span></div>`;
   return content;
 }
 
@@ -99,6 +103,7 @@ export function placeToMarker(
   place: Place,
   isLowNet: boolean = true,
   grayscale: boolean = false,
+  gpxInBubble: boolean = false,
 ): L.Marker {
   let marker: L.Marker;
   let options: any = {
@@ -108,30 +113,35 @@ export function placeToMarker(
     alt: "",
   };
 
-  marker = new L.Marker([+place.lat, +place.lng], options);
-
   const markerImage = isLowNet
     ? place.category.image
     : (place.image ?? place.category.image);
 
-  let markerClasses = place.visited ? "image-marker visited" : "image-marker";
+  let markerClasses = "w-full h-full rounded-full bg-center bg-cover bg-white";
   if (grayscale) markerClasses += " grayscale";
+  const iconHtml = `
+    <div class="flex items-center justify-center relative rounded-full marker-anchor size-14 box-border" style="border: 2px solid ${place.category.color};">
+      <div class="${markerClasses}" style="background-image: url('${markerImage}');"></div>
+      ${gpxInBubble && place.gpx ? '<div class="absolute -top-1 -left-1 size-6 flex justify-center items-center bg-white border-2 border-black rounded-full"><i class="pi pi-compass"></i></div>' : ""}
+    </div>
+  `;
 
-  marker.options.icon = L.icon({
-    iconUrl: markerImage,
+  const icon = L.divIcon({
+    html: iconHtml,
     iconSize: [56, 56],
-    iconAnchor: [28, 28],
-    shadowSize: [0, 0],
-    shadowAnchor: [0, 0],
-    popupAnchor: [0, -12],
-    className: markerClasses,
+    className: "",
+  });
+
+  marker = new L.Marker([+place.lat, +place.lng], {
+    ...options,
+    icon,
   });
 
   let touchDevice = "ontouchstart" in window;
   if (!touchDevice) {
     marker.bindTooltip(placeHoverTooltip(place), {
       direction: "right",
-      offset: [24, 0],
+      offset: [28, 0],
       className: "class-tooltip",
     });
   }

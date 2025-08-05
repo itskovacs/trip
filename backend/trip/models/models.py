@@ -66,10 +66,14 @@ class Image(ImageBase, table=True):
 
 
 class UserBase(SQLModel):
-    mapLat: float = 48.107
-    mapLng: float = -2.988
-    currency: str = "€"
+    map_lat: float = settings.DEFAULT_MAP_LAT
+    map_lng: float = settings.DEFAULT_MAP_LNG
+    currency: str = settings.DEFAULT_CURRENCY
     do_not_display: str = ""
+    tile_layer: str | None = None
+    mode_low_network: bool | None = True
+    mode_dark: bool | None = False
+    mode_gpx_in_place: bool | None = False
 
 
 class User(UserBase, table=True):
@@ -78,8 +82,8 @@ class User(UserBase, table=True):
 
 
 class UserUpdate(UserBase):
-    mapLat: float | None = None
-    mapLng: float | None = None
+    map_lat: float | None = None
+    map_lng: float | None = None
     currency: str | None = None
     do_not_display: list[str] | None = None
 
@@ -92,15 +96,20 @@ class UserRead(UserBase):
     def serialize(cls, obj: User) -> "UserRead":
         return cls(
             username=obj.username,
-            mapLat=obj.mapLat,
-            mapLng=obj.mapLng,
+            map_lat=obj.map_lat,
+            map_lng=obj.map_lng,
             currency=obj.currency,
             do_not_display=obj.do_not_display.split(",") if obj.do_not_display else [],
+            tile_layer=obj.tile_layer if obj.tile_layer else settings.DEFAULT_TILE,
+            mode_low_network=obj.mode_low_network,
+            mode_dark=obj.mode_dark,
+            mode_gpx_in_place=obj.mode_gpx_in_place,
         )
 
 
 class CategoryBase(SQLModel):
     name: str
+    color: str | None = None
 
 
 class Category(CategoryBase, table=True):
@@ -114,17 +123,20 @@ class Category(CategoryBase, table=True):
 class CategoryCreate(CategoryBase):
     name: str
     image: str | None = None
+    color: str | None = None
 
 
 class CategoryUpdate(CategoryBase):
     name: str | None = None
     image: str | None = None
+    color: str | None = None
 
 
 class CategoryRead(CategoryBase):
     id: int
     image: str | None
     image_id: int | None
+    color: str
 
     @classmethod
     def serialize(cls, obj: Category) -> "CategoryRead":
@@ -133,6 +145,7 @@ class CategoryRead(CategoryBase):
             name=obj.name,
             image_id=obj.image_id,
             image=_prefix_assets_url(obj.image.filename) if obj.image else "/favicon.png",
+            color=obj.color if obj.color else "#000000",
         )
 
 
@@ -349,6 +362,7 @@ class TripItemUpdate(TripItemBase):
     time: str | None = None
     text: str | None = None
     place: int | None = None
+    day_id: int | None = None
     status: TripItemStatusEnum | None = None
 
 

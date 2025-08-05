@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -8,7 +9,7 @@ from starlette.middleware.gzip import GZipMiddleware
 
 from . import __version__
 from .config import settings
-from .db.core import init_db
+from .db.core import init_and_migrate_db
 from .routers import auth, categories, places
 from .routers import settings as settings_r
 from .routers import trips
@@ -18,7 +19,14 @@ if not Path(settings.FRONTEND_FOLDER).is_dir():
 
 Path(settings.ASSETS_FOLDER).mkdir(parents=True, exist_ok=True)
 
-app = FastAPI()
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    await init_and_migrate_db()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -29,7 +37,6 @@ app.add_middleware(
 )
 
 app.add_middleware(GZipMiddleware, minimum_size=1000)
-
 
 app.include_router(auth.router)
 app.include_router(categories.router)
@@ -49,11 +56,6 @@ async def not_found_to_spa(request: Request, call_next):
     if response.status_code == 404 and not request.url.path.startswith(("/api", "/assets")):
         return FileResponse(Path(settings.FRONTEND_FOLDER) / "index.html")
     return response
-
-
-@app.on_event("startup")
-def startup_event():
-    init_db()
 
 
 app.mount("/api/assets", StaticFiles(directory=settings.ASSETS_FOLDER), name="static")

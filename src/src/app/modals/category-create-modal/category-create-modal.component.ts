@@ -10,6 +10,7 @@ import { DynamicDialogConfig, DynamicDialogRef } from "primeng/dynamicdialog";
 import { FloatLabelModule } from "primeng/floatlabel";
 import { InputTextModule } from "primeng/inputtext";
 import { FocusTrapModule } from "primeng/focustrap";
+import { ColorPickerModule } from "primeng/colorpicker";
 
 @Component({
   selector: "app-category-create-modal",
@@ -17,6 +18,7 @@ import { FocusTrapModule } from "primeng/focustrap";
     FloatLabelModule,
     InputTextModule,
     ButtonModule,
+    ColorPickerModule,
     ReactiveFormsModule,
     FocusTrapModule,
   ],
@@ -37,6 +39,15 @@ export class CategoryCreateModalComponent {
     this.categoryForm = this.fb.group({
       id: -1,
       name: ["", Validators.required],
+      color: [
+        "#000000",
+        {
+          validators: [
+            Validators.required,
+            Validators.pattern("\#[abcdefABCDEF0-9]{6}"),
+          ],
+        },
+      ],
       image: null,
     });
 

@@ -27,7 +27,7 @@ def post_category(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ) -> CategoryRead:
-    new_category = Category(name=category.name, user=current_user)
+    new_category = Category(name=category.name, color=category.color, user=current_user)
 
     if category.image:
         image_bytes = b64img_decode(category.image)

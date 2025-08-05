@@ -4,51 +4,22 @@ import { TripStatus } from "../types/trip";
 import { ApiService } from "./api.service";
 import { map } from "rxjs";
 
-const DISABLE_LOWNET = "TRIP_DISABLE_LOWNET";
-const DARK = "DARKMODE";
-
 @Injectable({
   providedIn: "root",
 })
 export class UtilsService {
   private apiService = inject(ApiService);
   currency$ = this.apiService.settings$.pipe(map((s) => s?.currency ?? "€"));
-  public isLowNet: boolean = true;
-  public isDarkMode: boolean = false;
 
-  constructor(private ngMessageService: MessageService) {
-    this.isLowNet = !localStorage.getItem(DISABLE_LOWNET);
-    this.isDarkMode = !!localStorage.getItem(DARK);
-    if (this.isDarkMode) this.renderDarkMode();
-  }
+  constructor(private ngMessageService: MessageService) {}
 
   toGithubTRIP() {
     window.open("https://github.com/itskovacs/trip", "_blank");
   }
 
-  toggleLowNet() {
-    if (this.isLowNet) {
-      localStorage.setItem(DISABLE_LOWNET, "1");
-    } else {
-      localStorage.removeItem(DISABLE_LOWNET);
-    }
-    this.isLowNet = !this.isLowNet;
-  }
-
-  renderDarkMode() {
+  toggleDarkMode() {
     const element = document.querySelector("html");
     element?.classList.toggle("dark");
-  }
-
-  toggleDarkMode() {
-    if (this.isDarkMode) {
-      localStorage.removeItem(DARK);
-      this.isDarkMode = false;
-    } else {
-      localStorage.setItem(DARK, "1");
-      this.isDarkMode = true;
-    }
-    this.renderDarkMode();
   }
 
   get statuses(): TripStatus[] {

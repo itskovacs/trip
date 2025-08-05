@@ -117,23 +117,12 @@ html {
   width: 24px;
 }
 
-.image-marker {
-  border-radius: 50%;
-  border: 2px solid #405cf5;
-  background: white;
-  object-fit: cover;
-
-  &.visited {
-    border: 2px solid #9ca3af;
-  }
-}
-
 .listHover {
   .custom-cluster {
     background-color: red;
   }
-  &.image-marker {
-    border: 4px dashed red;
+  .marker-anchor {
+    border: 3px dashed red !important;
   }
 }
 

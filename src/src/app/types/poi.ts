@@ -3,6 +3,7 @@ export interface Category {
   name: string;
   image_id: number;
   image: string;
+  color?: string;
 }
 
 export interface Place {

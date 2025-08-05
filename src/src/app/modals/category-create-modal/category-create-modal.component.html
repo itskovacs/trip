@@ -1,8 +1,12 @@
 <div pFocusTrap class="grid items-center gap-4" [formGroup]="categoryForm">
-  <p-floatlabel variant="in">
-    <input id="name" formControlName="name" pInputText fluid (keyup.enter)="closeDialog()" />
-    <label for="name">Name</label>
-  </p-floatlabel>
+  <div class="flex gap-2 items-center">
+    <p-colorpicker formControlName="color" />
+
+    <p-floatlabel variant="in" class="w-full">
+      <input id="name" formControlName="name" pInputText fluid (keyup.enter)="closeDialog()" />
+      <label for="name">Name</label>
+    </p-floatlabel>
+  </div>
 
   <input type="file" accept="image/*" #fileInput class="hidden" (change)="onFileSelected($event)" />
   <div class="grid place-items-center">

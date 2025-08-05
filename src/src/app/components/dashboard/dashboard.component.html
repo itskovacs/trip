@@ -88,8 +88,8 @@
               class="pi pi-eye-slash text-xs"></i></span>
           }
 
-          <span
-            class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded flex gap-2 items-center truncate dark:bg-blue-100/85"><i
+          <span [style.color]="p.category.color" [style.background-color]="p.category.color + '1A'"
+            class="text-xs font-medium me-2 px-2.5 py-0.5 rounded flex gap-2 items-center truncate"><i
               class="pi pi-box text-xs"></i>{{ p.category.name }}</span>
         </div>
       </div>
@@ -160,18 +160,18 @@
           <i class="pi pi-info-circle"></i><span class="font-bold whitespace-nowrap">About</span>
         </p-tab>
         <p-tab value="1" class="flex items-center gap-2">
-          <i class="pi pi-map"></i><span class="font-bold whitespace-nowrap">Settings</span>
+          <i class="pi pi-sliders-v"></i><span class="font-bold whitespace-nowrap">Tweaks</span>
         </p-tab>
         <p-tab value="2" class="flex items-center gap-2">
-          <i class="pi pi-th-large"></i><span class="font-bold whitespace-nowrap">Categories</span>
+          <i class="pi pi-map"></i><span class="font-bold whitespace-nowrap">Map</span>
         </p-tab>
         <p-tab value="3" class="flex items-center gap-2">
-          <i class="pi pi-database"></i><span class="font-bold whitespace-nowrap">Data</span>
+          <i class="pi pi-th-large"></i><span class="font-bold whitespace-nowrap">Categories</span>
         </p-tab>
       </p-tablist>
       <p-tabpanels>
         <p-tabpanel value="0">
-          <div class="mt-1 flex justify-between align-items">
+          <div class="mt-2 flex justify-between align-items">
             <h1 class="font-semibold tracking-tight text-xl">About</h1>
 
             <div class="flex">
@@ -192,15 +192,21 @@
             <button class="custom-button orange" (click)="toGithub()">
               Open Github
             </button>
-            <span class="text-center flex items-center gap-2 text-gray-400">TRIP {{ this.info?.update }}
-              available on
-              Github</span>
+            <div class="text-center text-gray-400">TRIP {{ this.info?.update }} available on
+              Github. <a [href]="'https://github.com/itskovacs/trip/releases/tag/' + this.info?.update"
+                class="text-blue-500 font-semibold" target="_blank">Changelog</a></div>
             } @else {
             <button class="custom-button" (click)="check_update()">
               Check for updates
             </button>
             <span class="text-center flex items-center gap-2 text-gray-400">TRIP {{ info?.version }}</span>
             }
+          </div>
+
+          <div class="flex justify-around mt-8 gap-4">
+            <p-button (click)="exportData()" text icon="pi pi-download" label="Export" />
+            <p-button (click)="fileUpload.click()" text icon="pi pi-upload" label="Import" />
+            <input type="file" class="file-input" style="display: none;" (change)="importData($event)" #fileUpload>
           </div>
 
           <div class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">Made with ❤️ in BZH</div>
@@ -225,6 +231,17 @@
             <p-toggleswitch [(ngModel)]="isDarkMode" (onChange)="toggleDarkMode()" />
           </div>
 
+          <div class="mt-4">
+            <h1 class="font-semibold tracking-tight text-xl">GPX Indication</h1>
+            <span class="text-xs text-gray-500 dark:text-gray-400">If enabled, display a compass in Place bubble when a
+              GPX is present.</span>
+          </div>
+          <div class="mt-4 flex justify-between">
+            <div>Enable GPX indication</div>
+            <p-toggleswitch [(ngModel)]="isGpxInPlaceMode" (onChange)="toggleGpxInPlace()" />
+          </div>
+        </p-tabpanel>
+        <p-tabpanel value="2">
           <section [formGroup]="settingsForm">
             <div class="mt-4 flex justify-between items-center">
               <div>
@@ -239,13 +256,18 @@
 
             <div class="grid grid-cols-2 gap-4 mt-4">
               <p-floatlabel variant="in">
-                <input id="mapLat" formControlName="mapLat" pInputText fluid />
-                <label for="mapLat">Lat.</label>
+                <input id="map_lat" formControlName="map_lat" pInputText fluid />
+                <label for="map_lat">Lat.</label>
               </p-floatlabel>
 
               <p-floatlabel variant="in">
-                <input id="mapLng" formControlName="mapLng" pInputText fluid />
-                <label for="mapLng">Long.</label>
+                <input id="map_lng" formControlName="map_lng" pInputText fluid />
+                <label for="map_lng">Long.</label>
+              </p-floatlabel>
+
+              <p-floatlabel variant="in" class="col-span-full">
+                <input id="tile_layer" formControlName="tile_layer" pInputText fluid />
+                <label for="tile_layer">Tile Layer</label>
               </p-floatlabel>
             </div>
 
@@ -279,8 +301,7 @@
             </div>
           </section>
         </p-tabpanel>
-        <p-tabpanel value="2">
-
+        <p-tabpanel value="3">
           <div class="mt-1 p-2 mb-2 flex justify-between items-center">
             <div>
               <h1 class="font-semibold tracking-tight text-xl">Categories</h1>
@@ -291,11 +312,13 @@
             <p-button icon="pi pi-plus" (click)="addCategory()" text />
           </div>
 
-          <div class="mt-4 flex flex-col">
+          <div class="mt-4 flex flex-col overflow-y-auto">
             @for (category of categories; track category.id) {
             <div class="p-3 flex items-center justify-between rounded-md hover:bg-gray-50 dark:hover:bg-gray-800">
               <div class="flex items-center gap-2">
-                <img [src]="category.image" class="size-8 rounded-full" />{{ category.name }}
+                <img [src]="category.image" style="border: 2px solid" [style.border-color]="category.color"
+                  class="size-8 rounded-full" />{{
+                category.name }}
               </div>
 
               <div class="flex gap-4">
@@ -304,18 +327,6 @@
               </div>
             </div>
             }
-          </div>
-        </p-tabpanel>
-        <p-tabpanel value="3">
-          <div class="mt-1">
-            <h1 class="font-semibold tracking-tight text-xl">Data</h1>
-            <span class="text-xs text-gray-500">You can import/export your data</span>
-          </div>
-
-          <div class="flex justify-around mt-4 gap-4">
-            <p-button (click)="exportData()" text icon="pi pi-download" label="Export" />
-            <p-button (click)="fileUpload.click()" text icon="pi pi-upload" label="Import" />
-            <input type="file" class="file-input" style="display: none;" (change)="importData($event)" #fileUpload>
           </div>
         </p-tabpanel>
       </p-tabpanels>

@@ -81,6 +81,7 @@ export class DashboardComponent implements AfterViewInit {
   info: Info | undefined;
   isLowNet: boolean = false;
   isDarkMode: boolean = false;
+  isGpxInPlaceMode: boolean = false;
 
   viewSettings = false;
   viewFilters = false;
@@ -115,11 +116,9 @@ export class DashboardComponent implements AfterViewInit {
     private fb: FormBuilder,
   ) {
     this.currencySigns = this.utilsService.currencySigns();
-    this.isLowNet = this.utilsService.isLowNet;
-    this.isDarkMode = this.utilsService.isDarkMode;
 
     this.settingsForm = this.fb.group({
-      mapLat: [
+      map_lat: [
         "",
         {
           validators: [
@@ -128,7 +127,7 @@ export class DashboardComponent implements AfterViewInit {
           ],
         },
       ],
-      mapLng: [
+      map_lng: [
         "",
         {
           validators: [
@@ -141,6 +140,7 @@ export class DashboardComponent implements AfterViewInit {
       ],
       currency: ["", Validators.required],
       do_not_display: [],
+      tile_layer: ["", Validators.required],
     });
 
     this.apiService.getInfo().subscribe({
@@ -180,7 +180,6 @@ export class DashboardComponent implements AfterViewInit {
   }
 
   ngAfterViewInit(): void {
-    this.initMap();
     combineLatest({
       categories: this.apiService.getCategories(),
       places: this.apiService.getPlaces(),
@@ -188,18 +187,18 @@ export class DashboardComponent implements AfterViewInit {
     })
       .pipe(
         tap(({ categories, places, settings }) => {
+          this.settings = settings;
+          this.initMap();
+
           this.categories = categories;
           this.activeCategories = new Set(categories.map((c) => c.name));
 
-          this.settings = settings;
-          this.map.setView(L.latLng(settings.mapLat, +settings.mapLng));
+          this.isLowNet = !!settings.mode_low_network;
+          this.isDarkMode = !!settings.mode_dark;
+          this.isGpxInPlaceMode = !!settings.mode_gpx_in_place;
+          if (this.isDarkMode) this.utilsService.toggleDarkMode();
           this.resetFilters();
 
-          this.map.on("moveend zoomend", () => {
-            this.setVisibleMarkers();
-          });
-
-          this.markerClusterGroup = createClusterGroup().addTo(this.map);
           this.places.push(...places);
           this.updateMarkersAndClusters(); //Not optimized as I could do it on the forEach, but it allows me to modify only one function instead of multiple places
         }),
@@ -208,6 +207,8 @@ export class DashboardComponent implements AfterViewInit {
   }
 
   initMap(): void {
+    if (!this.settings) return;
+
     let contentMenuItems = [
       {
         text: "Add Point of Interest",
@@ -217,7 +218,12 @@ export class DashboardComponent implements AfterViewInit {
         },
       },
     ];
-    this.map = createMap(contentMenuItems);
+    this.map = createMap(contentMenuItems, this.settings?.tile_layer);
+    this.map.setView(L.latLng(this.settings.map_lat, this.settings.map_lng));
+    this.map.on("moveend zoomend", () => {
+      this.setVisibleMarkers();
+    });
+    this.markerClusterGroup = createClusterGroup().addTo(this.map);
   }
 
   setVisibleMarkers() {
@@ -255,14 +261,31 @@ export class DashboardComponent implements AfterViewInit {
   }
 
   toggleLowNet() {
-    this.utilsService.toggleLowNet();
-    setTimeout(() => {
-      this.updateMarkersAndClusters();
-    }, 200);
+    this.apiService.putSettings({ mode_low_network: this.isLowNet }).subscribe({
+      next: (_) => {
+        setTimeout(() => {
+          this.updateMarkersAndClusters();
+        }, 100);
+      },
+    });
   }
 
   toggleDarkMode() {
-    this.utilsService.toggleDarkMode();
+    this.apiService.putSettings({ mode_dark: this.isDarkMode }).subscribe({
+      next: (_) => {
+        this.utilsService.toggleDarkMode();
+      },
+    });
+  }
+
+  toggleGpxInPlace() {
+    this.apiService
+      .putSettings({ mode_gpx_in_place: this.isGpxInPlaceMode })
+      .subscribe({
+        next: (_) => {
+          this.updateMarkersAndClusters();
+        },
+      });
   }
 
   get filteredPlaces(): Place[] {
@@ -285,7 +308,12 @@ export class DashboardComponent implements AfterViewInit {
   }
 
   placeToMarker(place: Place): L.Marker {
-    let marker = placeToMarker(place, this.isLowNet);
+    let marker = placeToMarker(
+      place,
+      this.isLowNet,
+      place.visited,
+      this.isGpxInPlaceMode,
+    );
     marker
       .on("click", (e) => {
         this.selectedPlace = place;
@@ -596,7 +624,7 @@ export class DashboardComponent implements AfterViewInit {
 
   setMapCenterToCurrent() {
     let latlng: L.LatLng = this.map.getCenter();
-    this.settingsForm.patchValue({ mapLat: latlng.lat, mapLng: latlng.lng });
+    this.settingsForm.patchValue({ map_lat: latlng.lat, map_lng: latlng.lng });
     this.settingsForm.markAsDirty();
   }
 
@@ -636,7 +664,13 @@ export class DashboardComponent implements AfterViewInit {
   updateSettings() {
     this.apiService.putSettings(this.settingsForm.value).subscribe({
       next: (settings) => {
+        const refreshMap = this.settings!.tile_layer != settings.tile_layer;
         this.settings = settings;
+        if (refreshMap) {
+          this.map.remove();
+          this.initMap();
+          this.updateMarkersAndClusters();
+        }
         this.resetFilters();
         this.toggleSettings();
       },

@@ -11,7 +11,8 @@ from ..deps import SessionDep, get_current_username
 from ..models.models import (Category, CategoryRead, Image, Place, PlaceRead,
                              Trip, TripDay, TripItem, TripRead, User, UserRead,
                              UserUpdate)
-from ..utils.utils import b64e, b64img_decode, check_update, save_image_to_file
+from ..utils.utils import (b64e, b64img_decode, check_update, remove_image,
+                           save_image_to_file)
 
 router = APIRouter(prefix="/api/settings", tags=["settings"])
 
@@ -100,7 +101,42 @@ async def import_data(
             select(Category).filter(Category.user == current_user, Category.name == category_name)
         ).first()
         if category_exists:
-            continue  # This category label exists
+            # Update color if present in import data
+            if category.get("color"):
+                category_exists.color = category.get("color")
+
+            # Handle image update
+            if category.get("image_id"):
+                b64_image = category.get("images", {}).get(str(category.get("image_id")))
+                if b64_image:
+                    image_bytes = b64img_decode(b64_image)
+                    filename = save_image_to_file(image_bytes, settings.PLACE_IMAGE_SIZE)
+                    if not filename:
+                        raise HTTPException(status_code=500, detail="Error saving image")
+
+                    image = Image(filename=filename, user=current_user)
+                    session.add(image)
+                    session.flush()
+                    session.refresh(image)
+
+                    if category_exists.image_id:
+                        old_image = session.get(Image, category_exists.image_id)
+                        try:
+                            remove_image(old_image.filename)
+                            session.delete(old_image)
+                            category_exists.image_id = None
+                            session.flush()
+                        except Exception:
+                            raise HTTPException(
+                                status_code=500, detail="Failed to remove old image during import"
+                            )
+
+                    category_exists.image_id = image.id
+
+            session.add(category_exists)
+            session.flush()
+            session.refresh(category_exists)
+            continue
 
         category_data = {
             key: category[key] for key in category.keys() if key not in {"id", "image", "image_id"}
@@ -169,11 +205,11 @@ async def import_data(
     db_user = session.get(User, current_user)
     if data.get("settings"):
         settings_data = data["settings"]
-        if settings_data.get("mapLat"):
-            db_user.mapLat = settings_data["mapLat"]
+        if settings_data.get("map_lat"):
+            db_user.map_lat = settings_data["map_lat"]
 
-        if settings_data.get("mapLng"):
-            db_user.mapLng = settings_data["mapLng"]
+        if settings_data.get("map_lng"):
+            db_user.map_lng = settings_data["map_lng"]
 
         if settings_data.get("currency"):
             db_user.currency = settings_data["currency"]
