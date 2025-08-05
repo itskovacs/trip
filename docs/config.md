@@ -4,6 +4,9 @@ You can modify the configuration by setting values in the `storage/config.yml` f
 > [!NOTE]
 > After a `config.yml` edit, you must restart the container for the changes to take effect.
 
+> [!TIP]
+> Setting environment variable also work.
+
 
 ### Change Token duration
 
@@ -49,6 +52,14 @@ By default, images are resized to `500px` for places and `600px` for trips. You 
 PLACE_IMAGE_SIZE=500
 TRIP_IMAGE_SIZE=600
 ```
+
+### Change default values
+
+You can configure the default values for new users with the following settings: `DEFAULT_TILE`, `DEFAULT_CURRENCY`, `DEFAULT_MAP_LAT`, `DEFAULT_MAP_LNG`.
+
+> [!WARN]
+> Changing these values does not update settings for existing users, it only affects new users.
+
 
 ### Troubleshoot SSL Error / Certificate <a name = "tbshoot-cert"></a>
 
