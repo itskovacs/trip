@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     OIDC_CLIENT_SECRET: str = ""
     OIDC_REDIRECT_URI: str = ""
 
+    DEFAULT_TILE: str = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+    DEFAULT_CURRENCY: str = "€"
+    DEFAULT_MAP_LAT: float = 48.107
+    DEFAULT_MAP_LNG: float = -2.988
+
     class Config:
         env_file = "storage/config.yml"
 
