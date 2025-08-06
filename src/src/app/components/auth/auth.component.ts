@@ -4,7 +4,6 @@ import { FloatLabelModule } from "primeng/floatlabel";
 import {
   FormBuilder,
   FormGroup,
-  FormsModule,
   ReactiveFormsModule,
   Validators,
 } from "@angular/forms";
@@ -12,7 +11,7 @@ import { ActivatedRoute, Router } from "@angular/router";
 import { InputTextModule } from "primeng/inputtext";
 import { ButtonModule } from "primeng/button";
 import { FocusTrapModule } from "primeng/focustrap";
-import { AuthParams, AuthService, Token } from "../../services/auth.service";
+import { AuthParams, AuthService } from "../../services/auth.service";
 import { MessageModule } from "primeng/message";
 import { HttpErrorResponse } from "@angular/common/http";
 import { SkeletonModule } from "primeng/skeleton";
