@@ -3,7 +3,7 @@ import { HttpClient } from "@angular/common/http";
 import { Category, Place } from "../types/poi";
 import { BehaviorSubject, Observable, tap } from "rxjs";
 import { Info } from "../types/info";
-import { Settings } from "../types/settings";
+import { ImportResponse, Settings } from "../types/settings";
 import { Trip, TripBase, TripDay, TripItem } from "../types/trip";
 
 @Injectable({
@@ -220,12 +220,21 @@ export class ApiService {
     return this.httpClient.get<any>(`${this.apiBaseUrl}/settings/export`);
   }
 
-  settingsUserImport(formdata: FormData): Observable<Place[]> {
+  settingsUserImport(formdata: FormData): Observable<ImportResponse> {
     const headers = { enctype: "multipart/form-data" };
-    return this.httpClient.post<Place[]>(
-      `${this.apiBaseUrl}/settings/import`,
-      formdata,
-      { headers: headers },
-    );
+    return this.httpClient
+      .post<ImportResponse>(`${this.apiBaseUrl}/settings/import`, formdata, {
+        headers: headers,
+      })
+      .pipe(
+        tap((resp) => {
+          if (resp.categories) {
+            this._categoriesSubjectNext(resp.categories);
+          }
+          if (resp.settings) {
+            this.settingsSubject.next(resp.settings);
+          }
+        }),
+      );
   }
 }

@@ -80,12 +80,12 @@ def export_data(session: SessionDep, current_user: Annotated[str, Depends(get_cu
     return data
 
 
-@router.post("/import", response_model=list[PlaceRead])
+@router.post("/import")
 async def import_data(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
     file: UploadFile = File(...),
-) -> list[PlaceRead]:
+):
     if file.content_type != "application/json":
         raise HTTPException(status_code=415, detail="File must be a JSON file")
 
@@ -107,7 +107,7 @@ async def import_data(
 
             # Handle image update
             if category.get("image_id"):
-                b64_image = category.get("images", {}).get(str(category.get("image_id")))
+                b64_image = data.get("images", {}).get(str(category.get("image_id")))
                 if b64_image:
                     image_bytes = b64img_decode(b64_image)
                     filename = save_image_to_file(image_bytes, settings.PLACE_IMAGE_SIZE)
@@ -144,7 +144,7 @@ async def import_data(
         category_data["user"] = current_user
 
         if category.get("image_id"):
-            b64_image = category.get("images", {}).get(str(category.get("image_id")))
+            b64_image = data.get("images", {}).get(str(category.get("image_id")))
             if b64_image is None:
                 continue
 
@@ -205,16 +205,32 @@ async def import_data(
     db_user = session.get(User, current_user)
     if data.get("settings"):
         settings_data = data["settings"]
-        if settings_data.get("map_lat"):
+        if "map_lat" in settings_data:
             db_user.map_lat = settings_data["map_lat"]
 
-        if settings_data.get("map_lng"):
+        if "map_lng" in settings_data:
             db_user.map_lng = settings_data["map_lng"]
 
-        if settings_data.get("currency"):
+        if "currency" in settings_data:
             db_user.currency = settings_data["currency"]
 
+        if "tile_layer" in settings_data:
+            db_user.tile_layer = settings_data["tile_layer"]
+
+        if "do_not_display" in settings_data:
+            db_user.do_not_display = ",".join(settings_data["do_not_display"])
+
+        if "mode_low_network" in settings_data:
+            db_user.mode_low_network = settings_data["mode_low_network"]
+
+        if "mode_dark" in settings_data:
+            db_user.mode_dark = settings_data["mode_dark"]
+
+        if "mode_gpx_in_place" in settings_data:
+            db_user.mode_gpx_in_place = settings_data["mode_gpx_in_place"]
+
         session.add(db_user)
+        session.flush()
         session.refresh(db_user)
 
     trip_place_id_map = {p["id"]: new_p.id for p, new_p in zip(data.get("places", []), places)}
@@ -271,4 +287,11 @@ async def import_data(
                 session.add(trip_item)
     session.commit()
 
-    return [PlaceRead.serialize(p) for p in places]
+    return {
+        "places": [PlaceRead.serialize(p) for p in places],
+        "categories": [
+            CategoryRead.serialize(c)
+            for c in session.exec(select(Category).filter(Category.user == current_user))
+        ],
+        "settings": UserRead.serialize(session.get(User, current_user)),
+    }

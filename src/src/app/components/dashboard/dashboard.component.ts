@@ -617,13 +617,24 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .settingsUserImport(formdata)
       .pipe(take(1))
       .subscribe({
-        next: (places) => {
-          this.places = [...this.places, ...places].sort((a, b) =>
+        next: (resp) => {
+          this.places = [...this.places, ...resp.places].sort((a, b) =>
             a.name.localeCompare(b.name),
           );
-          setTimeout(() => {
-            this.updateMarkersAndClusters();
-          }, 10);
+
+          this.categories = resp.categories;
+          this.activeCategories = new Set(resp.categories.map((c) => c.name));
+
+          this.settings = resp.settings;
+          this.isLowNet = !!resp.settings.mode_low_network;
+          this.isDarkMode = !!resp.settings.mode_dark;
+          this.isGpxInPlaceMode = !!resp.settings.mode_gpx_in_place;
+          if (this.isDarkMode) this.utilsService.toggleDarkMode();
+          this.resetFilters();
+
+          this.map?.remove();
+          this.initMap();
+          this.updateMarkersAndClusters();
           this.viewSettings = false;
         },
       });
