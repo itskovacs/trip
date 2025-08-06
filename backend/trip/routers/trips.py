@@ -32,10 +32,10 @@ def read_trip(
     return TripRead.serialize(db_trip)
 
 
-@router.post("", response_model=TripRead)
+@router.post("", response_model=TripReadBase)
 def create_trip(
     trip: TripCreate, session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]
-) -> TripRead:
+) -> TripReadBase:
     new_trip = Trip(
         name=trip.name,
         user=current_user,
@@ -63,7 +63,7 @@ def create_trip(
     session.add(new_trip)
     session.commit()
     session.refresh(new_trip)
-    return TripRead.serialize(new_trip)
+    return TripReadBase.serialize(new_trip)
 
 
 @router.put("/{trip_id}", response_model=TripRead)

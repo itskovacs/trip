@@ -1,12 +1,12 @@
-import { Component } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 import { ApiService } from "../../services/api.service";
 import { ButtonModule } from "primeng/button";
 import { SkeletonModule } from "primeng/skeleton";
 import { TripBase } from "../../types/trip";
-import { Category } from "../../types/poi";
 import { DialogService, DynamicDialogRef } from "primeng/dynamicdialog";
 import { TripCreateModalComponent } from "../../modals/trip-create-modal/trip-create-modal.component";
 import { Router } from "@angular/router";
+import { take } from "rxjs";
 
 @Component({
   selector: "app-trips",
@@ -15,50 +15,40 @@ import { Router } from "@angular/router";
   templateUrl: "./trips.component.html",
   styleUrls: ["./trips.component.scss"],
 })
-export class TripsComponent {
-  categories: Category[] = [];
-  map: any;
-  mapSettings: L.LatLng | undefined;
-  markerClusterGroup: any;
-
+export class TripsComponent implements OnInit {
   trips: TripBase[] = [];
 
   constructor(
     private apiService: ApiService,
     private dialogService: DialogService,
     private router: Router,
-  ) {
-    this.apiService.getTrips().subscribe({
-      next: (trips) => {
-        this.trips = trips;
-        this.sortTrips();
-      },
-    });
-  }
+  ) {}
 
-  viewTrip(id: number) {
-    this.router.navigateByUrl(`/trips/${id}`);
-  }
-
-  sortTrips() {
-    this.trips = this.trips.sort((a, b) => {
-      if (!!a.archived !== !!b.archived) {
-        return Number(!!a.archived) - Number(!!b.archived);
-      }
-
-      return a.name.localeCompare(b.name);
-    });
+  ngOnInit() {
+    this.apiService
+      .getTrips()
+      .pipe(take(1))
+      .subscribe({
+        next: (trips) => {
+          this.trips = trips;
+          this.sortTrips();
+        },
+      });
   }
 
   gotoMap() {
     this.router.navigateByUrl("/");
   }
 
+  viewTrip(id: number) {
+    this.router.navigateByUrl(`/trips/${id}`);
+  }
+
   addTrip() {
     const modal: DynamicDialogRef = this.dialogService.open(
       TripCreateModalComponent,
       {
-        header: "Create Place",
+        header: "Create Trip",
         modal: true,
         appendTo: "body",
         closable: true,
@@ -70,7 +60,7 @@ export class TripsComponent {
       },
     );
 
-    modal.onClose.subscribe({
+    modal.onClose.pipe(take(1)).subscribe({
       next: (trip: TripBase | null) => {
         if (!trip) return;
 
@@ -81,6 +71,16 @@ export class TripsComponent {
           },
         });
       },
+    });
+  }
+
+  sortTrips() {
+    this.trips = this.trips.sort((a, b) => {
+      if (!!a.archived !== !!b.archived) {
+        return Number(!!a.archived) - Number(!!b.archived);
+      }
+
+      return a.name.localeCompare(b.name);
     });
   }
 }
