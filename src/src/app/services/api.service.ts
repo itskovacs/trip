@@ -1,13 +1,7 @@
 import { inject, Injectable } from "@angular/core";
 import { HttpClient } from "@angular/common/http";
 import { Category, Place } from "../types/poi";
-import {
-  BehaviorSubject,
-  distinctUntilChanged,
-  Observable,
-  shareReplay,
-  tap,
-} from "rxjs";
+import { BehaviorSubject, Observable, tap } from "rxjs";
 import { Info } from "../types/info";
 import { Settings } from "../types/settings";
 import { Trip, TripBase, TripDay, TripItem } from "../types/trip";
@@ -16,7 +10,7 @@ import { Trip, TripBase, TripDay, TripItem } from "../types/trip";
   providedIn: "root",
 })
 export class ApiService {
-  public apiBaseUrl: string = "/api";
+  public readonly apiBaseUrl: string = "/api";
 
   private categoriesSubject = new BehaviorSubject<Category[] | null>(null);
   public categories$: Observable<Category[] | null> =
@@ -33,7 +27,7 @@ export class ApiService {
 
   _categoriesSubjectNext(categories: Category[]) {
     this.categoriesSubject.next(
-      categories.sort((categoryA: Category, categoryB: Category) =>
+      [...categories].sort((categoryA: Category, categoryB: Category) =>
         categoryA.name.localeCompare(categoryB.name),
       ),
     );
@@ -43,11 +37,7 @@ export class ApiService {
     if (!this.categoriesSubject.value) {
       return this.httpClient
         .get<Category[]>(`${this.apiBaseUrl}/categories`)
-        .pipe(
-          tap((categories) => this._categoriesSubjectNext(categories)),
-          distinctUntilChanged(),
-          shareReplay(),
-        );
+        .pipe(tap((categories) => this._categoriesSubjectNext(categories)));
     }
     return this.categories$ as Observable<Category[]>;
   }
@@ -70,11 +60,12 @@ export class ApiService {
       .put<Category>(this.apiBaseUrl + `/categories/${c_id}`, c)
       .pipe(
         tap((category) => {
-          let categories = this.categoriesSubject.value || [];
-          let categoryIndex = categories?.findIndex((c) => c.id == c_id) || -1;
-          if (categoryIndex > -1) {
-            categories[categoryIndex] = category;
-            this._categoriesSubjectNext(categories);
+          const categories = this.categoriesSubject.value || [];
+          const idx = categories?.findIndex((c) => c.id == c_id) || -1;
+          if (idx > -1) {
+            const updated = [...categories];
+            updated[idx] = category;
+            this._categoriesSubjectNext(updated);
           }
         }),
       );
@@ -84,22 +75,19 @@ export class ApiService {
     return this.httpClient
       .delete<{}>(this.apiBaseUrl + `/categories/${category_id}`)
       .pipe(
-        tap((_) => {
-          let categories = this.categoriesSubject.value || [];
-          let categoryIndex =
-            categories?.findIndex((c) => c.id == category_id) || -1;
-          if (categoryIndex > -1) {
-            categories.splice(categoryIndex, 1);
-            this._categoriesSubjectNext(categories);
+        tap(() => {
+          const categories = this.categoriesSubject.value || [];
+          const idx = categories?.findIndex((c) => c.id == category_id) || -1;
+          if (idx > -1) {
+            const updated = categories.filter((_, i) => i != idx);
+            this._categoriesSubjectNext(updated);
           }
         }),
       );
   }
 
   getPlaces(): Observable<Place[]> {
-    return this.httpClient
-      .get<Place[]>(`${this.apiBaseUrl}/places`)
-      .pipe(distinctUntilChanged(), shareReplay());
+    return this.httpClient.get<Place[]>(`${this.apiBaseUrl}/places`);
   }
 
   postPlace(place: Place): Observable<Place> {
@@ -131,15 +119,11 @@ export class ApiService {
   }
 
   getTrips(): Observable<TripBase[]> {
-    return this.httpClient
-      .get<TripBase[]>(`${this.apiBaseUrl}/trips`)
-      .pipe(distinctUntilChanged(), shareReplay());
+    return this.httpClient.get<TripBase[]>(`${this.apiBaseUrl}/trips`);
   }
 
   getTrip(id: number): Observable<Trip> {
-    return this.httpClient
-      .get<Trip>(`${this.apiBaseUrl}/trips/${id}`)
-      .pipe(distinctUntilChanged(), shareReplay());
+    return this.httpClient.get<Trip>(`${this.apiBaseUrl}/trips/${id}`);
   }
 
   postTrip(trip: TripBase): Observable<TripBase> {
