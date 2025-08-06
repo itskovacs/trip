@@ -40,7 +40,7 @@
 
         <p-floatlabel variant="in" class="mt-4">
           <input pInputText type="password" inputId="password" formControlName="password" fluid
-            (keyup.enter)="auth_or_register()" />
+            (keyup.enter)="onKeypressEnter()" />
           <label for="password">Password</label>
         </p-floatlabel>
         @if (

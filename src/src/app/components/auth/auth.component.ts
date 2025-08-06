@@ -1,4 +1,4 @@
-import { Component } from "@angular/core";
+import { Component, OnInit } from "@angular/core";
 
 import { FloatLabelModule } from "primeng/floatlabel";
 import {
@@ -16,6 +16,7 @@ import { AuthParams, AuthService, Token } from "../../services/auth.service";
 import { MessageModule } from "primeng/message";
 import { HttpErrorResponse } from "@angular/common/http";
 import { SkeletonModule } from "primeng/skeleton";
+import { take } from "rxjs";
 
 @Component({
   selector: "app-auth",
@@ -24,7 +25,6 @@ import { SkeletonModule } from "primeng/skeleton";
     FloatLabelModule,
     ReactiveFormsModule,
     ButtonModule,
-    FormsModule,
     InputTextModule,
     SkeletonModule,
     FocusTrapModule,
@@ -33,11 +33,11 @@ import { SkeletonModule } from "primeng/skeleton";
   templateUrl: "./auth.component.html",
   styleUrl: "./auth.component.scss",
 })
-export class AuthComponent {
-  private redirectURL: string;
+export class AuthComponent implements OnInit {
+  readonly redirectURL: string;
   authParams: AuthParams | undefined;
   authForm: FormGroup;
-  error: string = "";
+  error: string | undefined;
   isRegistering: boolean = false;
 
   constructor(
@@ -46,8 +46,17 @@ export class AuthComponent {
     private route: ActivatedRoute,
     private fb: FormBuilder,
   ) {
-    this.route.queryParams.subscribe((params) => {
-      if (!Object.keys(params).length) return;
+    this.redirectURL =
+      this.route.snapshot.queryParams["redirectURL"] || "/home";
+
+    this.authForm = this.fb.group({
+      username: ["", { validators: Validators.required }],
+      password: ["", { validators: Validators.required }],
+    });
+  }
+
+  ngOnInit(): void {
+    this.route.queryParams.pipe(take(1)).subscribe((params) => {
       const code = params["code"];
       const state = params["state"];
       if (code && state) {
@@ -59,33 +68,24 @@ export class AuthComponent {
             }
             this.router.navigateByUrl(this.redirectURL);
           },
+          error: (err: HttpErrorResponse) => {
+            this.error =
+              err.error.detail || "Login failed, check console for details";
+          },
         });
+      } else {
+        this.getAuthParams();
       }
-    });
-
-    // Timeout to handle race condition
-    setTimeout(() => {
-      this.authService.authParams().subscribe({
-        next: (params) => (this.authParams = params),
-      });
-    }, 100);
-
-    this.redirectURL =
-      this.route.snapshot.queryParams["redirectURL"] || "/home";
-
-    this.authForm = this.fb.group({
-      username: ["", { validators: Validators.required }],
-      password: ["", { validators: Validators.required }],
     });
   }
 
-  auth_or_register() {
+  onKeypressEnter() {
     if (this.isRegistering) this.register();
     else this.authenticate();
   }
 
   register(): void {
-    this.error = "";
+    this.error = undefined;
     if (this.authForm.valid) {
       this.authService.register(this.authForm.value).subscribe({
         next: () => {
@@ -93,14 +93,16 @@ export class AuthComponent {
         },
         error: (err: HttpErrorResponse) => {
           this.authForm.reset();
-          this.error = err.error.detail;
+          this.error =
+            err.error.detail ||
+            "Registration failed, check console for details";
         },
       });
     }
   }
 
   authenticate(): void {
-    this.error = "";
+    this.error = undefined;
     if (this.authParams?.oidc) {
       window.location.replace(this.authParams.oidc);
     }
@@ -117,5 +119,14 @@ export class AuthComponent {
         this.authForm.reset();
       },
     });
+  }
+
+  getAuthParams() {
+    this.authService
+      .authParams()
+      .pipe(take(1))
+      .subscribe({
+        next: (params) => (this.authParams = params),
+      });
   }
 }
