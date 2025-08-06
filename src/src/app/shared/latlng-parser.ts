@@ -14,12 +14,12 @@ function _dmsToDecimal(
   sec: number,
   dir: string,
 ): number {
-  let dec = deg + min / 60 + sec / 3600;
+  const dec = deg + min / 60 + sec / 3600;
   return /[SW]/i.test(dir) ? -dec : dec;
 }
 
 function _dmmToDecimal(deg: number, min: number, dir: string): number {
-  let dec = deg + min / 60;
+  const dec = deg + min / 60;
   return /[SW]/i.test(dir) ? -dec : dec;
 }
 
@@ -31,9 +31,7 @@ export function formatLatLng(num: number): string {
 export function checkAndParseLatLng(
   value: string | number,
 ): [number, number] | undefined {
-  if (value.constructor != String) {
-    return;
-  }
+  if (typeof value !== "string") return undefined;
 
   // Parse PlusCode
   if (OpenLocationCode.isValid(value)) {

@@ -11,6 +11,7 @@ import { FloatLabelModule } from "primeng/floatlabel";
 import { InputTextModule } from "primeng/inputtext";
 import { FocusTrapModule } from "primeng/focustrap";
 import { ColorPickerModule } from "primeng/colorpicker";
+import { Category } from "../../types/poi";
 
 @Component({
   selector: "app-category-create-modal",
@@ -28,7 +29,6 @@ import { ColorPickerModule } from "primeng/colorpicker";
 })
 export class CategoryCreateModalComponent {
   categoryForm: FormGroup;
-  previous_image: string | null = null;
   updatedImage = false;
 
   constructor(
@@ -51,10 +51,8 @@ export class CategoryCreateModalComponent {
       image: null,
     });
 
-    if (this.config.data) {
-      let patchValue = this.config.data.category;
-      this.categoryForm.patchValue(patchValue);
-    }
+    const patchValue = this.config.data?.category as Category | undefined;
+    if (patchValue) this.categoryForm.patchValue(patchValue);
   }
 
   closeDialog() {
@@ -67,7 +65,7 @@ export class CategoryCreateModalComponent {
 
   onFileSelected(event: Event) {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
+    if (input.files?.length) {
       const file = input.files[0];
       const reader = new FileReader();
 
@@ -83,5 +81,6 @@ export class CategoryCreateModalComponent {
 
   clearImage() {
     this.categoryForm.get("image")?.setValue(null);
+    this.updatedImage = false;
   }
 }

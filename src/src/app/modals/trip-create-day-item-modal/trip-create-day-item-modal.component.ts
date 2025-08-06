@@ -16,6 +16,7 @@ import { TextareaModule } from "primeng/textarea";
 import { InputMaskModule } from "primeng/inputmask";
 import { UtilsService } from "../../services/utils.service";
 import { checkAndParseLatLng, formatLatLng } from "../../shared/latlng-parser";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 
 @Component({
   selector: "app-trip-create-day-item-modal",
@@ -84,50 +85,62 @@ export class TripCreateDayItemModalComponent {
       ],
     });
 
-    if (this.config.data) {
-      const item = this.config.data.item;
-      if (item)
-        this.itemForm.patchValue({ ...item, place: item.place?.id || null });
+    const data = this.config.data;
+    if (data) {
+      this.places = data.places ?? [];
+      this.days = data.days ?? [];
 
-      this.places = this.config.data.places;
-      this.days = this.config.data.days;
-      if (this.config.data.selectedDay)
-        this.itemForm.get("day_id")?.setValue(this.config.data.selectedDay);
+      if (data.item)
+        this.itemForm.patchValue({
+          ...data.item,
+          place: data.item.place?.id ?? null,
+        });
+
+      if (data.selectedDay)
+        this.itemForm.get("day_id")?.setValue(data.selectedDay);
     }
 
-    this.itemForm.get("place")?.valueChanges.subscribe({
-      next: (value?: number) => {
-        if (!value) {
-          this.itemForm.get("lat")?.setValue("");
-          this.itemForm.get("lng")?.setValue("");
-        }
-        if (value) {
+    this.itemForm
+      .get("place")
+      ?.valueChanges.pipe(takeUntilDestroyed())
+      .subscribe({
+        next: (value?: number) => {
+          if (!value) {
+            this.itemForm.get("lat")?.setValue("");
+            this.itemForm.get("lng")?.setValue("");
+            return;
+          }
+
           const p: Place = this.places.find((p) => p.id === value) as Place;
-          this.itemForm.get("lat")?.setValue(p.lat);
-          this.itemForm.get("lng")?.setValue(p.lng);
-          this.itemForm.get("price")?.setValue(p.price || 0);
-          if (!this.itemForm.get("text")?.value)
-            this.itemForm.get("text")?.setValue(p.name);
-        }
-      },
-    });
+          if (p) {
+            this.itemForm.get("lat")?.setValue(p.lat);
+            this.itemForm.get("lng")?.setValue(p.lng);
+            this.itemForm.get("price")?.setValue(p.price || 0);
+            if (!this.itemForm.get("text")?.value)
+              this.itemForm.get("text")?.setValue(p.name);
+          }
+        },
+      });
 
-    this.itemForm.get("lat")?.valueChanges.subscribe({
-      next: (value: string) => {
-        const result = checkAndParseLatLng(value);
-        if (!result) return;
+    this.itemForm
+      .get("lat")
+      ?.valueChanges.pipe(takeUntilDestroyed())
+      .subscribe({
+        next: (value: string) => {
+          const result = checkAndParseLatLng(value);
+          if (!result) return;
 
-        const [lat, lng] = result;
-        const latControl = this.itemForm.get("lat");
-        const lngControl = this.itemForm.get("lng");
+          const [lat, lng] = result;
+          const latControl = this.itemForm.get("lat");
+          const lngControl = this.itemForm.get("lng");
 
-        latControl?.setValue(formatLatLng(lat).trim(), { emitEvent: false });
-        lngControl?.setValue(formatLatLng(lng).trim(), { emitEvent: false });
+          latControl?.setValue(formatLatLng(lat).trim(), { emitEvent: false });
+          lngControl?.setValue(formatLatLng(lng).trim(), { emitEvent: false });
 
-        lngControl?.markAsDirty();
-        lngControl?.updateValueAndValidity();
-      },
-    });
+          lngControl?.markAsDirty();
+          lngControl?.updateValueAndValidity();
+        },
+      });
   }
 
   closeDialog() {

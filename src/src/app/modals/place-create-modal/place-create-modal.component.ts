@@ -1,4 +1,5 @@
 import { Component } from "@angular/core";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import {
   FormBuilder,
   FormGroup,
@@ -97,37 +98,41 @@ export class PlaceCreateModalComponent {
       gpx: null,
     });
 
-    if (this.config.data) {
-      let patchValue: Place = this.config.data.place;
-      this.placeForm.patchValue(patchValue);
-    }
+    const patchValue = this.config.data?.place as Place | undefined;
+    if (patchValue) this.placeForm.patchValue(patchValue);
 
-    this.placeForm.get("place")?.valueChanges.subscribe({
-      next: (value: string) => {
-        const isGoogleMapsURL =
-          /^(https?:\/\/)?(www\.)?google\.[a-z.]+\/maps/.test(value);
-        if (isGoogleMapsURL) {
-          this.parseGoogleMapsUrl(value);
-        }
-      },
-    });
+    this.placeForm
+      .get("place")
+      ?.valueChanges.pipe(takeUntilDestroyed())
+      .subscribe({
+        next: (value: string) => {
+          const isGoogleMapsURL =
+            /^(https?:\/\/)?(www\.)?google\.[a-z.]+\/maps/.test(value);
+          if (isGoogleMapsURL) {
+            this.parseGoogleMapsUrl(value);
+          }
+        },
+      });
 
-    this.placeForm.get("lat")?.valueChanges.subscribe({
-      next: (value: string) => {
-        const result = checkAndParseLatLng(value);
-        if (!result) return;
-        const [lat, lng] = result;
+    this.placeForm
+      .get("lat")
+      ?.valueChanges.pipe(takeUntilDestroyed())
+      .subscribe({
+        next: (value: string) => {
+          const result = checkAndParseLatLng(value);
+          if (!result) return;
+          const [lat, lng] = result;
 
-        const latControl = this.placeForm.get("lat");
-        const lngControl = this.placeForm.get("lng");
+          const latControl = this.placeForm.get("lat");
+          const lngControl = this.placeForm.get("lng");
 
-        latControl?.setValue(formatLatLng(lat).trim(), { emitEvent: false });
-        lngControl?.setValue(formatLatLng(lng).trim(), { emitEvent: false });
+          latControl?.setValue(formatLatLng(lat).trim(), { emitEvent: false });
+          lngControl?.setValue(formatLatLng(lng).trim(), { emitEvent: false });
 
-        lngControl?.markAsDirty();
-        lngControl?.updateValueAndValidity();
-      },
-    });
+          lngControl?.markAsDirty();
+          lngControl?.updateValueAndValidity();
+        },
+      });
   }
 
   closeDialog() {
@@ -135,8 +140,6 @@ export class PlaceCreateModalComponent {
     let ret = this.placeForm.value;
     ret["category_id"] = ret["category"];
     delete ret["category"];
-    if (!ret["price"]) ret["price"] = null;
-    if (!ret["duration"]) ret["duration"] = null;
     if (ret["image_id"]) {
       delete ret["image"];
       delete ret["image_id"];
@@ -148,9 +151,7 @@ export class PlaceCreateModalComponent {
 
   parseGoogleMapsUrl(url: string): void {
     const [place, latlng] = this.utilsService.parseGoogleMapsUrl(url);
-    if (!place || !latlng) {
-      return;
-    }
+    if (!place || !latlng) return;
 
     const [lat, lng] = latlng.split(",");
     this.placeForm.get("place")?.setValue(place);
@@ -163,7 +164,7 @@ export class PlaceCreateModalComponent {
 
   onImageSelected(event: Event) {
     const input = event.target as HTMLInputElement;
-    if (input.files && input.files.length > 0) {
+    if (input.files?.length) {
       const file = input.files[0];
       const reader = new FileReader();
 
