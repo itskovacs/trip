@@ -1,12 +1,44 @@
-import { HttpErrorResponse, HttpEvent, HttpHandlerFn, HttpRequest } from "@angular/common/http";
+import {
+  HttpErrorResponse,
+  HttpEvent,
+  HttpHandlerFn,
+  HttpRequest,
+} from "@angular/common/http";
 import { inject } from "@angular/core";
-import { catchError, Observable, switchMap, throwError } from "rxjs";
+import { catchError, Observable, switchMap, take, throwError } from "rxjs";
 import { AuthService } from "./auth.service";
 import { UtilsService } from "./utils.service";
 
-export const Interceptor = (req: HttpRequest<unknown>, next: HttpHandlerFn): Observable<HttpEvent<unknown>> => {
+const ERROR_CONFIG: Record<number, { title: string; detail: string }> = {
+  400: {
+    title: "Bad Request",
+    detail: "Unknown error, check console for details",
+  },
+  403: { title: "Forbidden", detail: "You are not allowed to do this" },
+  409: { title: "Conflict", detail: "Conflict on resource" },
+  413: { title: "Request Entity Too Large", detail: "The resource is too big" },
+  422: {
+    title: "Unprocessable Entity",
+    detail: "The resource you sent was unprocessable",
+  },
+  502: {
+    title: "Bad Gateway",
+    detail: "Check your connectivity and ensure the server is up",
+  },
+  503: { title: "Service Unavailable", detail: "Resource not available" },
+};
+
+export const Interceptor = (
+  req: HttpRequest<unknown>,
+  next: HttpHandlerFn,
+): Observable<HttpEvent<unknown>> => {
   const authService = inject(AuthService);
   const utilsService = inject(UtilsService);
+
+  function showAndThrowError(title: string, details: string) {
+    utilsService.toast("error", title, details);
+    return throwError(() => details);
+  }
 
   if (!req.headers.has("enctype") && !req.headers.has("Content-Type")) {
     req = req.clone({
@@ -17,7 +49,10 @@ export const Interceptor = (req: HttpRequest<unknown>, next: HttpHandlerFn): Obs
     });
   }
 
-  if (authService.accessToken && !authService.isTokenExpired(authService.accessToken)) {
+  if (
+    authService.accessToken &&
+    !authService.isTokenExpired(authService.accessToken)
+  ) {
     if (req.url.startsWith(authService.apiBaseUrl)) {
       req = req.clone({
         setHeaders: { Authorization: `Bearer ${authService.accessToken}` },
@@ -27,60 +62,13 @@ export const Interceptor = (req: HttpRequest<unknown>, next: HttpHandlerFn): Obs
 
   return next(req).pipe(
     catchError((err: HttpErrorResponse) => {
-      if (err.status == 400) {
+      const errDetails = ERROR_CONFIG[err.status];
+      if (errDetails) {
         console.error(err);
-        utilsService.toast(
-          "error",
-          "Bad Request",
-          `${err.error?.detail || err.error || "Unknown error, check console for details"}`
+        return showAndThrowError(
+          errDetails.title,
+          `${err.error?.detail || err.error || errDetails.detail}`,
         );
-        return throwError(
-          () => `Bad Request: ${err.error?.detail || err.error || "Unknown error, check console for details"}`
-        );
-      }
-
-      if (err.status == 403) {
-        console.error(err);
-        utilsService.toast("error", "Error", `${err.error?.detail || err.error || "You are not allowed to do this"}`);
-        return throwError(() => `Bad Request: ${err.error?.detail || err.error || "You are not allowed to do this"}`);
-      }
-
-      if (err.status == 409) {
-        console.error(err);
-        utilsService.toast("error", "Error", `${err.error?.detail || err.error || "Conflict on resource"}`);
-        return throwError(() => `Bad Request: ${err.error?.detail || err.error || "Conflict on resource"}`);
-      }
-
-      if (err.status == 413) {
-        console.error(err);
-        utilsService.toast(
-          "error",
-          "Request entity too large",
-          "The resource you are trying to upload or create is too big"
-        );
-        return throwError(() => "Request entity too large, the resource you are trying to upload or create is too big");
-      }
-
-      if (err.status == 422) {
-        console.error(err);
-        utilsService.toast("error", "Unprocessable Entity ", "The resource you sent was unprocessable");
-        return throwError(() => "Resource sent was unprocessable");
-      }
-
-      if (err.status == 502) {
-        console.error(err);
-        utilsService.toast("error", "Bad Gateway", "Check your connectivity and ensure the server is up and running");
-        return throwError(() => "Bad Request: Check your connectivity and ensure the server is up and running");
-      }
-
-      if (err.status == 503) {
-        console.error(err);
-        utilsService.toast(
-          "error",
-          "Service Unavailable",
-          `${err.error?.detail || err.statusText || "Resource not available"}`
-        );
-        return throwError(() => "Service Unavailable: Resource not available");
       }
 
       if (err.status == 401 && authService.accessToken) {
@@ -92,25 +80,29 @@ export const Interceptor = (req: HttpRequest<unknown>, next: HttpHandlerFn): Obs
 
         // Unauthenticated, AT exists but is expired (authServices.accessToken truethy), we refresh it
         return authService.refreshAccessToken().pipe(
+          take(1),
           switchMap((tokens) => {
-            req = req.clone({
+            const refreshedReq = req.clone({
               setHeaders: {
                 Authorization: `Bearer ${tokens.access_token}`,
               },
             });
-            return next(req);
-          })
+            return next(refreshedReq);
+          }),
         );
-      } else {
+      } else if (err.status == 401 && !req.url.endsWith("/refresh")) {
         //  If any API route 401 -> redirect to login. We skip /refresh/ to prevent toast on login errors.
-        if (!req.url.endsWith("/refresh")) {
-          if (err instanceof HttpErrorResponse && err.status === 401) {
-            authService.logout(`${err.error?.detail || err.error || "You must be authenticated"}`, true);
-          }
-        }
+        authService.logout(
+          `${err.error?.detail || err.error || "You must be authenticated"}`,
+          true,
+        );
       }
 
-      return throwError(() => err);
-    })
+      console.error(err);
+      return showAndThrowError(
+        "Request Error",
+        `${err.error?.detail || err.error || "Unknown error, check console for details"}`,
+      );
+    }),
   );
 };

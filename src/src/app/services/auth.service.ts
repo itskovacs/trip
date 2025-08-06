@@ -1,7 +1,7 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Router } from "@angular/router";
-import { Observable, of } from "rxjs";
+import { Observable, of, ReplaySubject } from "rxjs";
 import { tap } from "rxjs/operators";
 import { ApiService } from "./api.service";
 import { UtilsService } from "./utils.service";
@@ -22,7 +22,8 @@ const JWT_USER = "TRIP_USER";
 
 @Injectable({ providedIn: "root" })
 export class AuthService {
-  public apiBaseUrl: string;
+  public readonly apiBaseUrl: string;
+  private refreshInProgressLock$: ReplaySubject<Token> | null = null;
 
   constructor(
     private httpClient: HttpClient,
@@ -73,15 +74,32 @@ export class AuthService {
   }
 
   refreshAccessToken(): Observable<Token> {
-    return this.httpClient
+    if (this.refreshInProgressLock$) {
+      return this.refreshInProgressLock$.asObservable();
+    }
+
+    this.refreshInProgressLock$ = new ReplaySubject(1);
+
+    this.httpClient
       .post<Token>(this.apiBaseUrl + "/auth/refresh", {
         refresh_token: this.refreshToken,
       })
       .pipe(
         tap((tokens: Token) => {
           this.accessToken = tokens.access_token;
+          this.refreshInProgressLock$?.next(tokens);
+          this.refreshInProgressLock$?.complete();
+          this.refreshInProgressLock$ = null;
         }),
-      );
+      )
+      .subscribe({
+        error: (err) => {
+          this.refreshInProgressLock$?.error(err);
+          this.refreshInProgressLock$ = null;
+        },
+      });
+
+    return this.refreshInProgressLock$.asObservable();
   }
 
   login(authForm: { username: string; password: string }): Observable<Token> {
