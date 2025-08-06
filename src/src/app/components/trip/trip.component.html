@@ -166,7 +166,8 @@
               <p-button icon="pi pi-trash" [disabled]="trip?.archived" severity="danger"
                 (click)="deleteItem(selectedItem)" text />
               <p-button icon="pi pi-pencil" [disabled]="trip?.archived" (click)="editItem(selectedItem)" text />
-              <p-button icon="pi pi-times" [disabled]="trip?.archived" (click)="selectedItem = undefined" text />
+              <p-button icon="pi pi-times" [disabled]="trip?.archived"
+                (click)="selectedItem = undefined; resetPlaceHighlightMarker()" text />
             </div>
           </div>
         </div>
