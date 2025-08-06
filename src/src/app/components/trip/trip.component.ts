@@ -779,10 +779,10 @@ export class TripComponent implements AfterViewInit {
               td.items.push(resp);
               this.flattenTripDayItems();
 
+              this.dayStatsCache.delete(resp.day_id);
               if (resp.price) this.updateTotalPrice(resp.price);
               if (resp.place?.id) {
                 this.placesUsedInTable.add(resp.place.id);
-                this.dayStatsCache.delete(resp.day_id);
                 this.setPlacesAndMarkers();
               }
             },
@@ -998,9 +998,9 @@ export class TripComponent implements AfterViewInit {
       this.flattenTripDayItems();
     }
 
+    if (item.price) this.updateTotalPrice(-item.price);
     if (item.place?.id) {
       this.placesUsedInTable.delete(item.place.id);
-      if (item.place.price) this.updateTotalPrice(-item.place.price);
       this.setPlacesAndMarkers();
     }
     this.dayStatsCache.delete(item.day_id);
