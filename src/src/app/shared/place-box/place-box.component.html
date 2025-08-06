@@ -12,8 +12,8 @@
                     <div class="hidden md:flex mt-2 gap-1">
                         <span [style.color]="selectedPlace.category.color"
                             [style.background-color]="selectedPlace.category.color + '1A'"
-                            class="text-xs font-medium me-2 px-2.5 py-0.5 rounded flex gap-2 items-center truncate"><i
-                                class="pi pi-box text-xs"></i>{{ selectedPlace.category.name }}</span>
+                            class="text-sm font-medium me-2 px-2.5 py-0.5 rounded flex gap-2 items-center truncate"><i
+                                class="pi pi-box text-sm"></i>{{ selectedPlace.category.name }}</span>
 
                         @if (selectedPlace.allowdog) {
                         <span
@@ -27,11 +27,11 @@
 
                         @if (selectedPlace.visited) {
                         <span
-                            class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300"><i
+                            class="flex items-center gap-1 bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300"><i
                                 class="pi pi-eye text-xs"></i> Done</span>
                         } @else {
                         <span
-                            class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300"><i
+                            class="flex items-center gap-1 bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300"><i
                                 class="pi pi-eye-slash text-xs"></i> To do</span>
                         }
                     </div>
@@ -67,12 +67,12 @@
             <div class="grid grid-cols-2 col-span-2">
                 <div class="flex flex-col mb-4">
                     <span class="text-gray-500">Latitude</span>
-                    <span>{{ selectedPlace.lat }}</span>
+                    <span class="truncate">{{ selectedPlace.lat }}</span>
                 </div>
 
                 <div class="flex flex-col mb-4">
                     <span class="text-gray-500">Longitude</span>
-                    <span>{{ selectedPlace.lng }}</span>
+                    <span class="truncate">{{ selectedPlace.lng }}</span>
                 </div>
 
                 <div class="flex flex-col mb-4">
@@ -95,26 +95,26 @@
         <div class="flex md:hidden mt-2 justify-center gap-1">
             <span [style.color]="selectedPlace.category.color"
                 [style.background-color]="selectedPlace.category.color + '1A'"
-                class="text-xs font-medium me-2 px-2.5 py-0.5 rounded flex gap-2 items-center truncate"><i
-                    class="pi pi-box text-xs"></i>{{ selectedPlace.category.name }}</span>
+                class="text-sm font-medium me-2 px-2.5 py-0.5 rounded flex gap-2 items-center truncate"><i
+                    class="pi pi-box text-sm"></i>{{ selectedPlace.category.name }}</span>
 
             @if (selectedPlace.allowdog) {
             <span
-                class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300 ">🐶
+                class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300 truncate">🐶
                 Yes</span>
             } @else {
             <span
-                class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300">🐶
+                class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300 truncate">🐶
                 No</span>
             }
 
             @if (selectedPlace.visited) {
             <span
-                class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300"><i
+                class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-green-900 dark:text-green-300 truncate"><i
                     class="pi pi-eye text-xs"></i> Done</span>
             } @else {
             <span
-                class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300"><i
+                class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-red-900 dark:text-red-300 truncate"><i
                     class="pi pi-eye-slash text-xs"></i> To do</span>
             }
         </div>
