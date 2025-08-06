@@ -3,6 +3,8 @@ import "leaflet.markercluster";
 import "leaflet-contextmenu";
 import { Place } from "../types/poi";
 
+export const DEFAULT_TILE_URL =
+  "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
 export interface ContextMenuItem {
   text: string;
   index?: number;
@@ -19,41 +21,34 @@ export interface MarkerOptions extends L.MarkerOptions {
 }
 
 export function createMap(
-  contextMenuItems?: ContextMenuItem[],
-  tilelayer?: string,
+  contextMenuItems: ContextMenuItem[] = [],
+  tilelayer: string = DEFAULT_TILE_URL,
 ): L.Map {
-  let southWest = L.latLng(-89.99, -180);
-  let northEast = L.latLng(89.99, 180);
-  let bounds = L.latLngBounds(southWest, northEast);
+  const southWest = L.latLng(-89.99, -180);
+  const northEast = L.latLng(89.99, 180);
+  const bounds = L.latLngBounds(southWest, northEast);
 
-  let _contextMenuItems = contextMenuItems || [];
-  let map = L.map("map", {
+  const map = L.map("map", {
     maxBoundsViscosity: 1.0,
     zoomControl: false,
     contextmenu: true,
-    contextmenuItems: _contextMenuItems,
+    contextmenuItems: contextMenuItems,
   } as MapOptions)
     .setZoom(10)
     .setMaxBounds(bounds);
 
-  L.tileLayer(
-    tilelayer ||
-      "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png",
-    {
-      maxZoom: 17,
-      minZoom: 3,
-      attribution:
-        '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>',
-    },
-  ).addTo(map);
+  L.tileLayer(tilelayer, {
+    maxZoom: 17,
+    minZoom: 3,
+    attribution:
+      '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>',
+  }).addTo(map);
 
   return map;
 }
 
 export function placeHoverTooltip(place: Place): string {
-  let content = `<div class="font-semibold mb-1 truncate" style="font-size:1.1em">${place.name}</div>`;
-  content += `<div><span style="color:${place.category.color}; background:${place.category.color}1A;" class="text-xs font-medium px-2.5 py-0.5 rounded">${place.category.name}</span></div>`;
-  return content;
+  return `<div class="font-semibold mb-1 truncate" style="font-size:1.1em">${place.name}</div><div><span style="color:${place.category.color}; background:${place.category.color}1A;" class="text-xs font-medium px-2.5 py-0.5 rounded">${place.category.name}</span></div>`.trim();
 }
 
 export function createClusterGroup(): L.MarkerClusterGroup {
@@ -62,7 +57,7 @@ export function createClusterGroup(): L.MarkerClusterGroup {
     disableClusteringAtZoom: 11,
     showCoverageOnHover: false,
     maxClusterRadius: 50,
-    iconCreateFunction: function (cluster) {
+    iconCreateFunction: (cluster) => {
       const count = cluster.getChildCount();
       return L.divIcon({
         html: `<div class="custom-cluster">${count}</div>`,
@@ -85,7 +80,7 @@ export function tripDayMarker(item: {
     }),
   });
 
-  let touchDevice = "ontouchstart" in window;
+  const touchDevice = "ontouchstart" in window;
   if (!touchDevice) {
     marker.bindTooltip(
       `<div class="font-semibold mb-1 truncate text-base">${item.text}</div>`,
@@ -105,11 +100,9 @@ export function placeToMarker(
   grayscale: boolean = false,
   gpxInBubble: boolean = false,
 ): L.Marker {
-  let marker: L.Marker;
-  let options: any = {
+  const options: Partial<L.MarkerOptions> = {
     riseOnHover: true,
     title: place.name,
-    place_id: place.id,
     alt: "",
   };
 
@@ -119,6 +112,7 @@ export function placeToMarker(
 
   let markerClasses = "w-full h-full rounded-full bg-center bg-cover bg-white";
   if (grayscale) markerClasses += " grayscale";
+
   const iconHtml = `
     <div class="flex items-center justify-center relative rounded-full marker-anchor size-14 box-border" style="border: 2px solid ${place.category.color};">
       <div class="${markerClasses}" style="background-image: url('${markerImage}');"></div>
@@ -127,17 +121,17 @@ export function placeToMarker(
   `;
 
   const icon = L.divIcon({
-    html: iconHtml,
+    html: iconHtml.trim(),
     iconSize: [56, 56],
     className: "",
   });
 
-  marker = new L.Marker([+place.lat, +place.lng], {
+  const marker = new L.Marker([+place.lat, +place.lng], {
     ...options,
     icon,
   });
 
-  let touchDevice = "ontouchstart" in window;
+  const touchDevice = "ontouchstart" in window;
   if (!touchDevice) {
     marker.bindTooltip(placeHoverTooltip(place), {
       direction: "right",
@@ -153,12 +147,13 @@ export function gpxToPolyline(gpx: string): L.Polyline {
   const gpxDoc = parser.parseFromString(gpx, "application/xml");
 
   const trkpts = Array.from(gpxDoc.querySelectorAll("trkpt"));
-  const latlngs = trkpts.map((pt) => {
-    return [
-      parseFloat(pt.getAttribute("lat")!),
-      parseFloat(pt.getAttribute("lon")!),
-    ] as [number, number];
-  });
+  const latlngs = trkpts.map(
+    (pt) =>
+      [
+        parseFloat(pt.getAttribute("lat")!),
+        parseFloat(pt.getAttribute("lon")!),
+      ] as [number, number],
+  );
 
   return L.polyline(latlngs, { color: "blue" });
 }
