@@ -334,10 +334,7 @@ export class TripComponent implements AfterViewInit {
     this.totalPrice =
       this.trip?.days
         .flatMap((d) => d.items)
-        .reduce(
-          (price, item) => price + (item.price ?? item.place?.price ?? 0),
-          0,
-        ) ?? 0;
+        .reduce((price, item) => price + (item.price ?? 0), 0) ?? 0;
   }
 
   resetPlaceHighlightMarker() {
@@ -447,22 +444,33 @@ export class TripComponent implements AfterViewInit {
       "#e6beff",
       "#808000",
     ];
-    Object.values(dayGroups).forEach((group, idx) => {
-      const path = antPath(
-        group.map((day: any) => [day.lat, day.lng]),
-        {
-          delay: 600,
-          dashArray: [10, 20],
-          weight: 5,
-          color: COLORS[idx % 14],
-          pulseColor: "#FFFFFF",
-          paused: false,
-          reverse: false,
-          hardwareAccelerated: true,
-        },
-      );
+    let prevPoint: [number, number] | null = null;
 
-      layGroup.addLayer(path);
+    Object.values(dayGroups).forEach((group, idx) => {
+      const coords = group.map((day: any) => [day.lat, day.lng]);
+      const pathOptions = {
+        delay: 600,
+        dashArray: [10, 20],
+        weight: 5,
+        color: COLORS[idx % COLORS.length],
+        pulseColor: "#FFFFFF",
+        paused: false,
+        reverse: false,
+        hardwareAccelerated: true,
+      };
+
+      if (coords.length >= 2) {
+        const path = antPath(coords, pathOptions);
+        layGroup.addLayer(path);
+        prevPoint = coords[coords.length - 1];
+      } else if (coords.length === 1 && prevPoint) {
+        const path = antPath([prevPoint, coords[0]], pathOptions);
+        layGroup.addLayer(path);
+        prevPoint = coords[0];
+      } else if (coords.length === 1) {
+        prevPoint = coords[0];
+      }
+
       group.forEach((day: any) => {
         if (!day.isPlace) layGroup.addLayer(tripDayMarker(day));
       });
