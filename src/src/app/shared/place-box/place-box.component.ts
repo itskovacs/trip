@@ -1,4 +1,12 @@
-import { Component, EventEmitter, Input, Output } from "@angular/core";
+import {
+  ChangeDetectionStrategy,
+  Component,
+  EventEmitter,
+  Input,
+  OnDestroy,
+  OnInit,
+  Output,
+} from "@angular/core";
 import { ButtonModule } from "primeng/button";
 import { MenuModule } from "primeng/menu";
 import { Place } from "../../types/poi";
@@ -14,24 +22,27 @@ import { LinkifyPipe } from "../linkify.pipe";
   imports: [ButtonModule, MenuModule, AsyncPipe, LinkifyPipe],
   templateUrl: "./place-box.component.html",
   styleUrls: ["./place-box.component.scss"],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PlaceBoxComponent {
+export class PlaceBoxComponent implements OnInit {
   @Input() selectedPlace: Place | undefined = undefined;
 
-  @Output() editEmitter = new EventEmitter<any>();
-  @Output() deleteEmitter = new EventEmitter<any>();
-  @Output() visitEmitter = new EventEmitter<any>();
-  @Output() favoriteEmitter = new EventEmitter<any>();
-  @Output() gpxEmitter = new EventEmitter<any>();
-  @Output() closeEmitter = new EventEmitter<any>();
+  @Output() editEmitter = new EventEmitter<void>();
+  @Output() deleteEmitter = new EventEmitter<void>();
+  @Output() visitEmitter = new EventEmitter<void>();
+  @Output() favoriteEmitter = new EventEmitter<void>();
+  @Output() gpxEmitter = new EventEmitter<void>();
+  @Output() closeEmitter = new EventEmitter<void>();
 
   menuItems: MenuItem[] = [];
-  currency$: Observable<string>;
+  readonly currency$: Observable<string>;
 
   constructor(private utilsService: UtilsService) {
     this.currency$ = this.utilsService.currency$;
+  }
 
-    let items = [
+  ngOnInit() {
+    const items = [
       {
         label: "Edit",
         icon: "pi pi-pencil",
@@ -67,7 +78,7 @@ export class PlaceBoxComponent {
     ];
 
     if (this.selectedPlace?.gpx) {
-      items.push({
+      items.unshift({
         label: "Display GPX",
         icon: "pi pi-compass",
         iconClass: "text-gray-500!",
