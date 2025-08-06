@@ -41,8 +41,8 @@ export class TripCreateModalComponent {
       image_id: null,
     });
 
-    if (this.config.data) {
-      let patchValue = this.config.data.trip;
+    const patchValue = this.config.data?.trip;
+    if (patchValue) {
       if (!patchValue.image_id) delete patchValue["image"];
       this.tripForm.patchValue(patchValue);
     }

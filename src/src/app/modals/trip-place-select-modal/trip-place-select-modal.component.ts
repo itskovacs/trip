@@ -43,9 +43,9 @@ export class TripPlaceSelectModalComponent {
       },
     });
 
-    if (this.config.data) {
-      let places: Place[] = this.config.data.places;
-      this.selectedPlaces.push(...places);
+    const places: Place[] | undefined = this.config.data?.places;
+    if (places) {
+      this.selectedPlaces = [...places];
       this.selectedPlacesID = places.map((p) => p.id);
     }
 
@@ -56,7 +56,7 @@ export class TripPlaceSelectModalComponent {
           return;
         }
 
-        let v = value.toLowerCase();
+        const v = value.toLowerCase();
         this.displayedPlaces = this.places.filter(
           (p) =>
             p.name.toLowerCase().includes(v) ||
