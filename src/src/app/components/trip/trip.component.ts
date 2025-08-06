@@ -81,7 +81,7 @@ export class TripComponent implements AfterViewInit {
   map?: L.Map;
   markerClusterGroup?: L.MarkerClusterGroup;
   hoveredElement?: HTMLElement;
-  tripMapAntLayer?: L.LayerGroup<any>;
+  tripMapAntLayer?: L.FeatureGroup;
   tripMapAntLayerDayID?: number;
 
   readonly menuTripActionsItems: MenuItem[] = [
@@ -186,13 +186,13 @@ export class TripComponent implements AfterViewInit {
           this.trip = trip;
           this.flattenTripDayItems();
           this.updateTotalPrice();
-          this.setupMap(settings);
+          this.initMap(settings);
         }),
       )
       .subscribe();
   }
 
-  setupMap(settings: Settings): void {
+  initMap(settings: Settings): void {
     const contentMenuItems = [
       {
         text: "Copy coordinates",
@@ -321,8 +321,9 @@ export class TripComponent implements AfterViewInit {
 
     setTimeout(() => {
       this.map?.invalidateSize();
-      this.resetMapBounds();
-    }, 50);
+      if (!this.tripMapAntLayer) this.resetMapBounds();
+      else this.map?.fitBounds(this.tripMapAntLayer.getBounds());
+    }, 10);
   }
 
   updateTotalPrice(n?: number) {
@@ -376,11 +377,44 @@ export class TripComponent implements AfterViewInit {
     }
   }
 
-  highlightTripPath(
-    items: { text: string; lat: number; lng: number; isPlace: boolean }[],
-    layerId: number,
-    antDelay = 400,
-  ): void {
+  toggleTripDaysHighlight() {
+    if (this.tripMapAntLayerDayID == -1) {
+      this.map?.removeLayer(this.tripMapAntLayer!);
+      this.tripMapAntLayerDayID = undefined;
+      this.tripMapAntLayer = undefined;
+      this.resetMapBounds();
+      return;
+    }
+    if (!this.trip) return;
+
+    const items = this.trip.days
+      .flatMap((day, idx) =>
+        day.items
+          .sort((a, b) => a.time.localeCompare(b.time))
+          .map((item) => {
+            let data = {
+              text: item.text,
+              isPlace: !!item.place,
+              idx: idx,
+            };
+
+            if (item.lat && item.lng)
+              return {
+                ...data,
+                lat: item.lat,
+                lng: item.lng,
+              };
+            if (item.place)
+              return {
+                ...data,
+                lat: item.place.lat,
+                lng: item.place.lng,
+              };
+            return undefined;
+          }),
+      )
+      .filter((n) => n !== undefined);
+
     if (items.length < 2) {
       this.utilsService.toast(
         "info",
@@ -390,30 +424,54 @@ export class TripComponent implements AfterViewInit {
       return;
     }
 
+    const dayGroups: { [idx: number]: any } = {};
+    items.forEach((item) => {
+      if (!dayGroups[item.idx]) dayGroups[item.idx] = [];
+      dayGroups[item.idx].push(item);
+    });
+
+    const layGroup = L.featureGroup();
+    const COLORS: string[] = [
+      "#e6194b",
+      "#3cb44b",
+      "#ffe119",
+      "#4363d8",
+      "#9a6324",
+      "#f58231",
+      "#911eb4",
+      "#46f0f0",
+      "#f032e6",
+      "#bcf60c",
+      "#fabebe",
+      "#008080",
+      "#e6beff",
+      "#808000",
+    ];
+    Object.values(dayGroups).forEach((group, idx) => {
+      const path = antPath(
+        group.map((day: any) => [day.lat, day.lng]),
+        {
+          delay: 600,
+          dashArray: [10, 20],
+          weight: 5,
+          color: COLORS[idx % 14],
+          pulseColor: "#FFFFFF",
+          paused: false,
+          reverse: false,
+          hardwareAccelerated: true,
+        },
+      );
+
+      layGroup.addLayer(path);
+      group.forEach((day: any) => {
+        if (!day.isPlace) layGroup.addLayer(tripDayMarker(day));
+      });
+    });
+
     this.map?.fitBounds(
       items.map((c) => [c.lat, c.lng]),
       { padding: [30, 30] },
     );
-
-    const path = antPath(
-      items.map((c) => [c.lat, c.lng]),
-      {
-        delay: antDelay,
-        dashArray: [10, 20],
-        weight: 5,
-        color: "#0000FF",
-        pulseColor: "#FFFFFF",
-        paused: false,
-        reverse: false,
-        hardwareAccelerated: true,
-      },
-    );
-
-    const layGroup = L.layerGroup();
-    layGroup.addLayer(path);
-    items.forEach((item) => {
-      if (!item.isPlace) layGroup.addLayer(tripDayMarker(item));
-    });
 
     if (this.tripMapAntLayer) {
       this.map?.removeLayer(this.tripMapAntLayer);
@@ -425,40 +483,7 @@ export class TripComponent implements AfterViewInit {
     }, 200);
 
     this.tripMapAntLayer = layGroup;
-    this.tripMapAntLayerDayID = layerId;
-  }
-
-  toggleTripDaysHighlight() {
-    if (this.tripMapAntLayerDayID == -1) {
-      this.map?.removeLayer(this.tripMapAntLayer!);
-      this.tripMapAntLayerDayID = undefined;
-      this.resetMapBounds();
-      return;
-    }
-    if (!this.trip) return;
-
-    const items = this.trip.days
-      .flatMap((day) => day.items.sort((a, b) => a.time.localeCompare(b.time)))
-      .map((item) => {
-        if (item.lat && item.lng)
-          return {
-            text: item.text,
-            lat: item.lat,
-            lng: item.lng,
-            isPlace: !!item.place,
-          };
-        if (item.place)
-          return {
-            text: item.text,
-            lat: item.place.lat,
-            lng: item.place.lng,
-            isPlace: true,
-          };
-        return undefined;
-      })
-      .filter((n) => n !== undefined);
-
-    this.highlightTripPath(items, -1, 600); //Hardcoded value for global trace
+    this.tripMapAntLayerDayID = -1; //Hardcoded value for global trace
   }
 
   toggleTripDayHighlightPathDay(day_id: number) {
@@ -466,6 +491,7 @@ export class TripComponent implements AfterViewInit {
     if (this.tripMapAntLayerDayID == day_id) {
       this.map?.removeLayer(this.tripMapAntLayer!);
       this.tripMapAntLayerDayID = undefined;
+      this.tripMapAntLayer = undefined;
       this.resetMapBounds();
       return;
     }
@@ -495,7 +521,51 @@ export class TripComponent implements AfterViewInit {
       })
       .filter((n) => n !== undefined);
 
-    this.highlightTripPath(items, day_id);
+    if (items.length < 2) {
+      this.utilsService.toast(
+        "info",
+        "Info",
+        "Not enough values to map an itinerary",
+      );
+      return;
+    }
+
+    this.map?.fitBounds(
+      items.map((c) => [c.lat, c.lng]),
+      { padding: [30, 30] },
+    );
+
+    const path = antPath(
+      items.map((c) => [c.lat, c.lng]),
+      {
+        delay: 400,
+        dashArray: [10, 20],
+        weight: 5,
+        color: "#0000FF",
+        pulseColor: "#FFFFFF",
+        paused: false,
+        reverse: false,
+        hardwareAccelerated: true,
+      },
+    );
+
+    const layGroup = L.featureGroup();
+    layGroup.addLayer(path);
+    items.forEach((item) => {
+      if (!item.isPlace) layGroup.addLayer(tripDayMarker(item));
+    });
+
+    if (this.tripMapAntLayer) {
+      this.map?.removeLayer(this.tripMapAntLayer);
+      this.tripMapAntLayerDayID = undefined;
+    }
+
+    setTimeout(() => {
+      layGroup.addTo(this.map!);
+    }, 200);
+
+    this.tripMapAntLayer = layGroup;
+    this.tripMapAntLayerDayID = day_id;
   }
 
   onRowClick(item: FlattenedTripItem) {
