@@ -67,7 +67,7 @@ export const Interceptor = (
         console.error(err);
         return showAndThrowError(
           errDetails.title,
-          `${err.error?.detail || err.error || errDetails.detail}`,
+          `${err.error?.detail || err.message || errDetails.detail}`,
         );
       }
 
@@ -93,7 +93,7 @@ export const Interceptor = (
       } else if (err.status == 401 && !req.url.endsWith("/refresh")) {
         //  If any API route 401 -> redirect to login. We skip /refresh/ to prevent toast on login errors.
         authService.logout(
-          `${err.error?.detail || err.error || "You must be authenticated"}`,
+          `${err.error?.detail || err.message || "You must be authenticated"}`,
           true,
         );
       }
@@ -101,7 +101,7 @@ export const Interceptor = (
       console.error(err);
       return showAndThrowError(
         "Request Error",
-        `${err.error?.detail || err.error || "Unknown error, check console for details"}`,
+        `${err.error?.detail || err.message || "Unknown error, check console for details"}`,
       );
     }),
   );
