@@ -26,8 +26,8 @@
 
     <div class="mt-4 grid md:grid-cols-7 gap-4">
       <p-floatlabel variant="in" class="md:col-span-2">
-        <p-select [options]="places" optionValue="id" optionLabel="name" inputId="place" id="place"
-          formControlName="place" [showClear]="true" class="capitalize" fluid>
+        <p-select [options]="places" appendTo="body" optionValue="id" optionLabel="name" inputId="place" id="place"
+          [filter]="true" filterBy="name" formControlName="place" [showClear]="true" class="capitalize" fluid>
 
           <ng-template let-place #item>
             <div class="flex items-center whitespace-normal gap-2" [class.text-gray-500]="place.placeUsage">
@@ -50,7 +50,7 @@
       </p-floatlabel>
 
       <p-floatlabel variant="in">
-        <input id="price" formControlName="price" type="number" pInputText fluid />
+        <input id="price" formControlName="price" pInputText fluid />
         <label for="price">Price</label>
       </p-floatlabel>
 
