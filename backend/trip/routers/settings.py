@@ -62,7 +62,7 @@ def export_data(session: SessionDep, current_user: Annotated[str, Depends(get_cu
             for c in session.exec(select(Category).filter(Category.user == current_user))
         ],
         "places": [
-            PlaceRead.serialize(place)
+            PlaceRead.serialize(place, exclude_gpx=False)
             for place in session.exec(select(Place).filter(Place.user == current_user))
         ],
         "images": {},
