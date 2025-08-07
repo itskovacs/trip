@@ -175,6 +175,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           this.initMap();
 
           this.categories = categories;
+          this.sortCategories();
           this.activeCategories = new Set(categories.map((c) => c.name));
 
           this.isLowNet = !!settings.mode_low_network;
@@ -623,6 +624,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           );
 
           this.categories = resp.categories;
+          this.sortCategories();
           this.activeCategories = new Set(resp.categories.map((c) => c.name));
 
           this.settings = resp.settings;
@@ -707,6 +709,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
               this.categories = this.categories.map((cat) =>
                 cat.id === updated.id ? updated : cat,
               );
+              this.sortCategories();
 
               this.activeCategories = new Set(
                 this.categories.map((c) => c.name),
@@ -795,6 +798,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   gotoPlace(p: Place) {
     this.map?.flyTo([p.lat, p.lng]);
+  }
+
+  sortCategories() {
+    this.categories = [...this.categories].sort(
+      (categoryA: Category, categoryB: Category) =>
+        categoryA.name.localeCompare(categoryB.name),
+    );
   }
 
   gotoTrips() {
