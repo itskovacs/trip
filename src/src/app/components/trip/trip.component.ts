@@ -39,7 +39,7 @@ import {
 import { YesNoModalComponent } from "../../modals/yes-no-modal/yes-no-modal.component";
 import { UtilsService } from "../../services/utils.service";
 import { TripCreateModalComponent } from "../../modals/trip-create-modal/trip-create-modal.component";
-import { AsyncPipe } from "@angular/common";
+import { AsyncPipe, DecimalPipe } from "@angular/common";
 import { MenuItem } from "primeng/api";
 import { MenuModule } from "primeng/menu";
 import { LinkifyPipe } from "../../shared/linkify.pipe";
@@ -60,6 +60,7 @@ import { Settings } from "../../types/settings";
     FloatLabelModule,
     TableModule,
     ButtonModule,
+    DecimalPipe,
   ],
   templateUrl: "./trip.component.html",
   styleUrls: ["./trip.component.scss"],
@@ -71,6 +72,7 @@ export class TripComponent implements AfterViewInit {
   places: Place[] = [];
   flattenedTripItems: FlattenedTripItem[] = [];
   selectedItem?: TripItem & { status?: TripStatus };
+  tableExpandableMode = false;
 
   isMapFullscreen = false;
   totalPrice = 0;
@@ -80,7 +82,8 @@ export class TripComponent implements AfterViewInit {
 
   map?: L.Map;
   markerClusterGroup?: L.MarkerClusterGroup;
-  hoveredElement?: HTMLElement;
+  tripMapTemporaryMarker?: L.Marker;
+  tripMapHoveredElement?: HTMLElement;
   tripMapAntLayer?: L.FeatureGroup;
   tripMapAntLayerDayID?: number;
 
@@ -338,9 +341,16 @@ export class TripComponent implements AfterViewInit {
   }
 
   resetPlaceHighlightMarker() {
-    if (!this.hoveredElement) return;
-    this.hoveredElement.classList.remove("listHover");
-    this.hoveredElement = undefined;
+    if (this.tripMapHoveredElement) {
+      this.tripMapHoveredElement.classList.remove("listHover");
+      this.tripMapHoveredElement = undefined;
+    }
+
+    if (this.tripMapTemporaryMarker) {
+      this.map?.removeLayer(this.tripMapTemporaryMarker);
+      this.tripMapTemporaryMarker = undefined;
+    }
+    this.resetMapBounds();
   }
 
   placeHighlightMarker(lat: number, lng: number) {
@@ -353,12 +363,23 @@ export class TripComponent implements AfterViewInit {
       }
     });
 
-    if (!marker) return;
+    if (!marker) {
+      // TripItem without place, but latlng
+      const item = {
+        text: this.selectedItem?.text || "",
+        lat: lat,
+        lng: lng,
+      };
+      this.tripMapTemporaryMarker = tripDayMarker(item).addTo(this.map!);
+      this.map?.fitBounds([[lat, lng]], { padding: [30, 30] });
+      return;
+    }
+
     const markerElement = marker.getElement() as HTMLElement; // search for Marker. If 'null', is inside Cluster
     if (markerElement) {
       // marker, not clustered
       markerElement.classList.add("listHover");
-      this.hoveredElement = markerElement;
+      this.tripMapHoveredElement = markerElement;
     } else {
       // marker is clustered
       const parentCluster = (this.markerClusterGroup as any).getVisibleParent(
@@ -368,18 +389,22 @@ export class TripComponent implements AfterViewInit {
         const clusterEl = parentCluster.getElement();
         if (clusterEl) {
           clusterEl.classList.add("listHover");
-          this.hoveredElement = clusterEl;
+          this.tripMapHoveredElement = clusterEl;
         }
       }
     }
   }
 
+  resetDayHighlight() {
+    this.map?.removeLayer(this.tripMapAntLayer!);
+    this.tripMapAntLayerDayID = undefined;
+    this.tripMapAntLayer = undefined;
+    this.resetMapBounds();
+  }
+
   toggleTripDaysHighlight() {
     if (this.tripMapAntLayerDayID == -1) {
-      this.map?.removeLayer(this.tripMapAntLayer!);
-      this.tripMapAntLayerDayID = undefined;
-      this.tripMapAntLayer = undefined;
-      this.resetMapBounds();
+      this.resetDayHighlight();
       return;
     }
     if (!this.trip) return;
@@ -497,10 +522,7 @@ export class TripComponent implements AfterViewInit {
   toggleTripDayHighlightPathDay(day_id: number) {
     // Click on the currently displayed day: remove
     if (this.tripMapAntLayerDayID == day_id) {
-      this.map?.removeLayer(this.tripMapAntLayer!);
-      this.tripMapAntLayerDayID = undefined;
-      this.tripMapAntLayer = undefined;
-      this.resetMapBounds();
+      this.resetDayHighlight();
       return;
     }
 
@@ -1024,44 +1046,39 @@ export class TripComponent implements AfterViewInit {
   updateItemFromTrip(old: TripItem, updated: TripItem): void {
     if (!this.trip) return;
 
-    if (old.day_id != updated.day_id) {
-      const prevDayIdx = this.trip.days.findIndex((d) => d.id == old.day_id);
-      if (prevDayIdx === -1) {
-        const prevDay = this.trip.days[prevDayIdx];
-        const prevItemIdx = prevDay.items.findIndex((i) => i.id == updated.id);
-        if (prevItemIdx != -1) prevDay.items.splice(prevItemIdx, 1);
+    if (old.day_id !== updated.day_id) {
+      const oldDay = this.trip.days.find((d) => d.id === old.day_id);
+      if (oldDay) {
+        oldDay.items = oldDay.items.filter((i) => i.id !== old.id);
         this.dayStatsCache.delete(old.day_id);
       }
     }
 
-    const dayIdx = this.trip.days.findIndex((d) => d.id == updated.day_id);
-    if (dayIdx != -1) {
-      const day = this.trip.days[dayIdx];
-      const itemIdx = day.items.findIndex((i) => i.id === updated.id);
+    const newDay = this.trip.days.find((d) => d.id === updated.day_id);
+    if (newDay) {
+      const itemIdx = newDay.items.findIndex((i) => i.id === updated.id);
       if (itemIdx !== -1) {
-        day.items[itemIdx] = updated;
+        newDay.items[itemIdx] = updated;
+      } else {
+        newDay.items.push(updated);
       }
+      this.dayStatsCache.delete(updated.day_id);
     }
-
     this.flattenTripDayItems();
+    this.computePlacesUsedInTable();
+    const updatedPrice = (updated.price || 0) - (old.price || 0);
+    this.updateTotalPrice(updatedPrice);
+    if (this.tripMapAntLayerDayID) this.resetDayHighlight();
+    if (updated.place?.id || old.place?.id) this.setPlacesAndMarkers();
 
-    if (this.selectedItem && this.selectedItem.id === old.id)
+    if (this.selectedItem && this.selectedItem.id === old.id) {
       this.selectedItem = {
         ...updated,
         status: updated.status
           ? this.statusToTripStatus(updated.status as string)
           : undefined,
       };
-    this.dayStatsCache.delete(updated.day_id);
-    this.computePlacesUsedInTable();
-
-    const updatedPrice = (updated.price || 0) - (old.price || 0);
-    this.updateTotalPrice(updatedPrice);
-
-    if (this.tripMapAntLayerDayID == updated.day_id)
-      this.toggleTripDayHighlightPathDay(updated.day_id);
-
-    if (updated.place?.id || old.place?.id) this.setPlacesAndMarkers();
+    }
   }
 
   removeItemFromTrip(item: TripItem): void {
