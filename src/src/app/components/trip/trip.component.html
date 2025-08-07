@@ -29,8 +29,7 @@
 
       <span
         class="bg-gray-100 text-gray-800 text-xs md:text-sm font-medium me-2 px-2.5 py-0.5 rounded min-w-fit dark:bg-gray-400">{{
-        totalPrice
-        || '-' }} {{ currency$ | async }}</span>
+        (totalPrice | number:'1.0-2') || '-' }} {{ currency$ | async }}</span>
     </div>
   </div>
 </section>
@@ -55,6 +54,10 @@
       </div>
 
       <div class="flex items-center gap-2 print:hidden">
+        <p-button
+          [icon]="tableExpandableMode ? 'pi pi-arrow-up-right-and-arrow-down-left-from-center' : 'pi pi-arrow-down-left-and-arrow-up-right-to-center'"
+          (click)="tableExpandableMode = !tableExpandableMode" text />
+        <div class="border-l border-solid border-gray-700 h-4"></div>
         <p-button icon="pi pi-directions" [severity]="tripMapAntLayerDayID == -1 ? 'help' : 'primary'"
           (click)="toggleTripDaysHighlight()" text />
         <p-button icon="pi pi-print" (click)="printTable()" text />
@@ -67,7 +70,7 @@
     @defer {
     @if (flattenedTripItems.length) {
     <p-table [value]="flattenedTripItems" class="print-striped-rows" styleClass="max-w-[85vw] md:max-w-full"
-      rowGroupMode="rowspan" groupRowsBy="td_label">
+      [rowGroupMode]="tableExpandableMode ? 'subheader': 'rowspan'" groupRowsBy="td_label">
       <ng-template #header>
         <tr>
           <th>Day</th>
@@ -80,6 +83,59 @@
           <th class="w-12">Status</th>
         </tr>
       </ng-template>
+      @if (tableExpandableMode) {
+      <ng-template #groupheader let-tripitem let-rowIndex="rowIndex" let-expanded="expanded">
+        <tr>
+          <td colspan="8">
+            <button type="button" pButton pRipple [pRowToggler]="tripitem" text rounded plain class="mr-2"
+              [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'">
+            </button>
+            <span class="font-bold ml-2">{{ tripitem.td_label }}</span>
+            <p-button class="ml-2" text icon="pi pi-directions"
+              [severity]="tripMapAntLayerDayID == tripitem.day_id ? 'help' : 'primary'"
+              (click)="toggleTripDayHighlightPathDay(tripitem.day_id)" />
+          </td>
+        </tr>
+      </ng-template>
+
+      <ng-template #expandedrow let-tripitem>
+        <tr class="h-12 cursor-pointer" [class.font-bold]="selectedItem?.id === tripitem.id"
+          (click)="onRowClick(tripitem)">
+          <td class="font-mono text-sm max-w-20 truncate">{{ tripitem.td_label }}</td>
+          <td class="font-mono text-sm">{{ tripitem.time }}</td>
+          <td class="relative max-w-60 truncate">
+            <div class="relative">
+              {{ tripitem.text }}
+              @if (tripitem.status) {<div class="block xl:hidden absolute top-0 -left-1.5 size-1.5 rounded-full"
+                [style.background]="tripitem.status.color"></div>}
+            </div>
+          </td>
+          <td class="relative">
+            @if (tripitem.place) {
+            <div class="ml-7 print:ml-0 max-w-24 truncate print:whitespace-normal">
+              <img [src]="tripitem.place.image || tripitem.place.category.image"
+                class="absolute left-0 top-1/2 -translate-y-1/2 w-9 rounded-full object-cover print:hidden" /> {{
+              tripitem.place.name }}
+            </div>
+            } @else {-}
+          </td>
+          <td class="max-w-20 truncate print:whitespace-pre-line">{{ tripitem.comment || '-' }}</td>
+          <td class="font-mono text-sm">
+            <div class="max-w-20 print:max-w-full truncate">
+              @if (tripitem.lat) { {{ tripitem.lat }}, {{ tripitem.lng }} }
+              @else {-}
+            </div>
+          </td>
+          <td class="truncate">@if (tripitem.price) {<span
+              class="bg-gray-100 text-gray-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded">{{
+              tripitem.price }} {{ currency$ | async }}</span>}</td>
+          <td class="truncate">@if (tripitem.status) {<span [style.background]="tripitem.status.color+'1A'"
+              [style.color]="tripitem.status.color" class="text-xs font-medium me-2 px-2.5 py-0.5 rounded">{{
+              tripitem.status.label }}</span>}</td>
+        </tr>
+      </ng-template>
+      }
+      @else {
       <ng-template #body let-tripitem let-rowgroup="rowgroup" let-rowspan="rowspan">
         <tr class="h-12 cursor-pointer" [class.font-bold]="selectedItem?.id === tripitem.id"
           (click)="onRowClick(tripitem)">
@@ -122,6 +178,7 @@
               tripitem.status.label }}</span>}</td>
         </tr>
       </ng-template>
+      }
     </p-table>
     } @else {
     <div class="px-4 mx-auto max-w-screen-xl mt-8 col-span-full print:hidden">
