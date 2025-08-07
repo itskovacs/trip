@@ -144,6 +144,7 @@ export class PlaceCreateModalComponent {
       delete ret["image"];
       delete ret["image_id"];
     }
+    if (ret["gpx"] == "1") delete ret["gpx"];
     ret["lat"] = +ret["lat"];
     ret["lng"] = +ret["lng"];
     this.ref.close(ret);
