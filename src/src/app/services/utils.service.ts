@@ -68,6 +68,7 @@ export class UtilsService {
       { c: "GBP", s: "£" },
       { c: "JPY", s: "¥" },
       { c: "USD", s: "$" },
+      { c: "CHF", s: "CHF" },
     ];
   }
 }
