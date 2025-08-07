@@ -153,7 +153,7 @@
 @if (viewSettings) {
 <section class="absolute inset-0 flex items-center justify-center z-40 bg-black/30">
   <div
-    class="w-10/12 max-w-screen md:max-w-3xl h-fit max-h-screen bg-white rounded-xl shadow-2xl p-8 z-50 dark:bg-surface-900">
+    class="w-10/12 max-w-screen md:max-w-3xl h-fit max-h-screen bg-white rounded-xl shadow-2xl p-4 md:p-8 z-50 dark:bg-surface-900">
     <p-tabs value="0" scrollable>
       <p-tablist>
         <p-tab value="0" class="flex items-center gap-2">
@@ -312,16 +312,16 @@
             <p-button icon="pi pi-plus" (click)="addCategory()" text />
           </div>
 
-          <div class="mt-4 flex flex-col overflow-y-auto">
+          <div class="mt-4 flex flex-col overflow-y-auto h-full max-h-[500px]">
             @for (category of categories; track category.id) {
             <div class="p-3 flex items-center justify-between rounded-md hover:bg-gray-50 dark:hover:bg-gray-800">
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-2 w-full min-w-0">
                 <img [src]="category.image" style="border: 2px solid" [style.border-color]="category.color"
-                  class="size-8 rounded-full" />{{
-                category.name }}
+                  class="size-8 rounded-full" />
+                <span class="block truncate">{{ category.name }}</span>
               </div>
 
-              <div class="flex gap-4">
+              <div class="flex flex-none gap-2 md:gap-4 justify-end">
                 <p-button severity="danger" (click)="deleteCategory(category.id)" icon="pi pi-trash" text />
                 <p-button (click)="editCategory(category)" icon="pi pi-pencil" text />
               </div>
