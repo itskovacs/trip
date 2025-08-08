@@ -38,12 +38,13 @@
     </p-floatlabel>
 
     <p-floatlabel variant="in">
-      <input id="duration" formControlName="duration" pInputText fluid />
+      <p-inputnumber id="duration" formControlName="duration" mode="decimal" fluid />
       <label for="duration">Duration</label>
     </p-floatlabel>
 
     <p-floatlabel variant="in">
-      <input id="price" formControlName="price" pInputText fluid />
+      <p-inputnumber id="price" formControlName="price" mode="decimal" [minFractionDigits]="0" [maxFractionDigits]="2"
+        fluid />
       <label for="price">Price</label>
     </p-floatlabel>
 

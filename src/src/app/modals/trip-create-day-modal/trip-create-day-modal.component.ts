@@ -35,7 +35,6 @@ export class TripCreateDayModalComponent {
     this.dayForm = this.fb.group({
       id: -1,
       label: ["", Validators.required],
-      order: 0,
     });
 
     if (this.config.data) {

@@ -23,12 +23,14 @@ import { Category, Place } from "../../types/poi";
 import { CheckboxModule } from "primeng/checkbox";
 import { TooltipModule } from "primeng/tooltip";
 import { checkAndParseLatLng, formatLatLng } from "../../shared/latlng-parser";
+import { InputNumberModule } from "primeng/inputnumber";
 
 @Component({
   selector: "app-place-create-modal",
   imports: [
     FloatLabelModule,
     InputTextModule,
+    InputNumberModule,
     ButtonModule,
     SelectModule,
     ReactiveFormsModule,
@@ -90,7 +92,7 @@ export class PlaceCreateModalComponent {
       category: [null, Validators.required],
       description: null,
       duration: [null, Validators.pattern("\\d+")],
-      price: [null, Validators.pattern("[+-]?([0-9]*[.])?[0-9]+")],
+      price: null,
       allowdog: false,
       visited: false,
       image: null,

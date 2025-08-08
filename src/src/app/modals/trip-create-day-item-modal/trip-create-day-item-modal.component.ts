@@ -17,12 +17,14 @@ import { InputMaskModule } from "primeng/inputmask";
 import { UtilsService } from "../../services/utils.service";
 import { checkAndParseLatLng, formatLatLng } from "../../shared/latlng-parser";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { InputNumberModule } from "primeng/inputnumber";
 
 @Component({
   selector: "app-trip-create-day-item-modal",
   imports: [
     FloatLabelModule,
     InputTextModule,
+    InputNumberModule,
     ButtonModule,
     SelectModule,
     ReactiveFormsModule,
@@ -67,7 +69,7 @@ export class TripCreateDayItemModalComponent {
       day_id: [null, Validators.required],
       place: null,
       status: null,
-      price: [null, Validators.pattern("[+-]?([0-9]*[.])?[0-9]+")],
+      price: null,
       lat: [
         "",
         {
