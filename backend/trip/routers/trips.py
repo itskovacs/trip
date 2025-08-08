@@ -80,9 +80,11 @@ def update_trip(
         raise HTTPException(status_code=400, detail="Bad request")
 
     trip_data = trip.model_dump(exclude_unset=True)
-    if trip_data.get("image"):
+
+    image_b64 = trip_data.pop("image", None)
+    if image_b64:
         try:
-            image_bytes = b64img_decode(trip_data.pop("image"))
+            image_bytes = b64img_decode(image_b64)
         except Exception:
             raise HTTPException(status_code=400, detail="Bad request")
 
