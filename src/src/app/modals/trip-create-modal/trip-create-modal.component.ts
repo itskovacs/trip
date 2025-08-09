@@ -10,12 +10,14 @@ import { DynamicDialogConfig, DynamicDialogRef } from "primeng/dynamicdialog";
 import { FloatLabelModule } from "primeng/floatlabel";
 import { InputTextModule } from "primeng/inputtext";
 import { FocusTrapModule } from "primeng/focustrap";
+import { DatePickerModule } from "primeng/datepicker";
 
 @Component({
   selector: "app-trip-create-modal",
   imports: [
     FloatLabelModule,
     InputTextModule,
+    DatePickerModule,
     ButtonModule,
     ReactiveFormsModule,
     FocusTrapModule,
@@ -39,6 +41,8 @@ export class TripCreateModalComponent {
       name: ["", Validators.required],
       image: "",
       image_id: null,
+      from: null,
+      to: null,
     });
 
     const patchValue = this.config.data?.trip;

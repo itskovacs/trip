@@ -4,6 +4,20 @@
     <label for="name">Name</label>
   </p-floatlabel>
 
+  @if (tripForm.get("id")?.value === -1) {
+  <div class="grid grid-cols-2 gap-2">
+    <p-floatlabel variant="in">
+      <p-datepicker id="from" formControlName="from" [iconDisplay]="'input'" [showIcon]="true" appendTo="body" fluid />
+      <label for="from">From</label>
+    </p-floatlabel>
+
+    <p-floatlabel variant="in">
+      <p-datepicker id="to" formControlName="to" [iconDisplay]="'input'" [showIcon]="true" appendTo="body" fluid />
+      <label for="to">To</label>
+    </p-floatlabel>
+  </div>
+  }
+
   <div class="grid place-items-center">
     @if (tripForm.get("image_id")?.value) {
     <div class="max-w-80 max-h-80 relative group cursor-pointer" (click)="fileInput.click()">

@@ -6,7 +6,12 @@ import { TripBase } from "../../types/trip";
 import { DialogService, DynamicDialogRef } from "primeng/dynamicdialog";
 import { TripCreateModalComponent } from "../../modals/trip-create-modal/trip-create-modal.component";
 import { Router } from "@angular/router";
-import { take } from "rxjs";
+import { forkJoin, take } from "rxjs";
+
+interface TripBaseWithDates extends TripBase {
+  from?: Date;
+  to?: Date;
+}
 
 @Component({
   selector: "app-trips",
@@ -61,12 +66,26 @@ export class TripsComponent implements OnInit {
     );
 
     modal.onClose.pipe(take(1)).subscribe({
-      next: (trip: TripBase | null) => {
+      next: (trip: TripBaseWithDates | null) => {
         if (!trip) return;
 
         this.apiService.postTrip(trip).subscribe({
-          next: (trip: TripBase) => {
-            this.trips.push(trip);
+          next: (new_trip: TripBase) => {
+            let dayCount = 0;
+
+            if (trip.from && trip.to) {
+              const obs$ = this.generateDaysLabel(trip.from!, trip.to!).map(
+                (label) =>
+                  this.apiService.postTripDay(
+                    { id: -1, label: label, items: [] },
+                    new_trip.id,
+                  ),
+              );
+              dayCount = obs$.length;
+              forkJoin(obs$).pipe(take(1)).subscribe();
+            }
+
+            this.trips.push({ ...new_trip, days: dayCount });
             this.sortTrips();
           },
         });
@@ -82,5 +101,40 @@ export class TripsComponent implements OnInit {
 
       return a.name.localeCompare(b.name);
     });
+  }
+
+  generateDaysLabel(from: Date, to: Date): string[] {
+    const labels: string[] = [];
+    const sameMonth =
+      from.getFullYear() === to.getFullYear() &&
+      from.getMonth() === to.getMonth();
+
+    const months = [
+      "Jan.",
+      "Feb.",
+      "Mar.",
+      "Apr.",
+      "May.",
+      "Jun.",
+      "Jul.",
+      "Aug.",
+      "Sep.",
+      "Oct.",
+      "Nov.",
+      "Dec.",
+    ];
+
+    const current = new Date(from);
+    while (current <= to) {
+      let label = "";
+      if (sameMonth) {
+        label = `${current.getDate().toString().padStart(2, "0")} ${months[current.getMonth()]}`;
+      } else {
+        label = `${(current.getMonth() + 1).toString().padStart(2, "0")}/${current.getDate().toString().padStart(2, "0")}`;
+      }
+      labels.push(label);
+      current.setDate(current.getDate() + 1);
+    }
+    return labels;
   }
 }
