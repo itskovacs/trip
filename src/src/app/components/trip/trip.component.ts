@@ -350,11 +350,11 @@ export class TripComponent implements AfterViewInit {
       this.map?.removeLayer(this.tripMapTemporaryMarker);
       this.tripMapTemporaryMarker = undefined;
     }
-    this.resetMapBounds();
   }
 
   placeHighlightMarker(lat: number, lng: number) {
-    this.resetPlaceHighlightMarker();
+    if (this.tripMapHoveredElement || this.tripMapTemporaryMarker)
+      this.resetPlaceHighlightMarker();
 
     let marker: L.Marker | undefined;
     this.markerClusterGroup?.eachLayer((layer: any) => {
@@ -371,15 +371,17 @@ export class TripComponent implements AfterViewInit {
         lng: lng,
       };
       this.tripMapTemporaryMarker = tripDayMarker(item).addTo(this.map!);
-      this.map?.fitBounds([[lat, lng]], { padding: [30, 30] });
+      this.map?.fitBounds([[lat, lng]], { padding: [60, 60] });
       return;
     }
 
+    let targetLatLng: L.LatLng | null = null;
     const markerElement = marker.getElement() as HTMLElement; // search for Marker. If 'null', is inside Cluster
     if (markerElement) {
       // marker, not clustered
       markerElement.classList.add("listHover");
       this.tripMapHoveredElement = markerElement;
+      targetLatLng = marker.getLatLng();
     } else {
       // marker is clustered
       const parentCluster = (this.markerClusterGroup as any).getVisibleParent(
@@ -391,6 +393,18 @@ export class TripComponent implements AfterViewInit {
           clusterEl.classList.add("listHover");
           this.tripMapHoveredElement = clusterEl;
         }
+        targetLatLng = parentCluster.getLatLng();
+      }
+    }
+
+    if (targetLatLng && this.map) {
+      const currentBounds = this.map.getBounds();
+
+      // If point is not inside map bounsd, move map w/o touching zoom
+      if (!currentBounds.contains(targetLatLng)) {
+        setTimeout(() => {
+          this.map!.setView(targetLatLng, this.map!.getZoom());
+        }, 50);
       }
     }
   }
@@ -728,6 +742,14 @@ export class TripComponent implements AfterViewInit {
           });
       },
     });
+  }
+
+  itemToNavigation() {
+    if (!this.selectedItem) return;
+    // TODO: More services
+    // const url = `http://maps.apple.com/?daddr=${this.selectedItem.lat},${this.selectedItem.lng}`;
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${this.selectedItem.lat},${this.selectedItem.lng}`;
+    window.open(url, "_blank");
   }
 
   editDay(day: TripDay) {

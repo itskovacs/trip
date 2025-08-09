@@ -220,6 +220,9 @@
             </h1>
 
             <div class="flex items-center gap-2 flex-none">
+              @if (selectedItem.lat && selectedItem.lng) {
+              <p-button icon="pi pi-car" (click)="itemToNavigation()" text />
+              }
               <p-button icon="pi pi-trash" [disabled]="trip?.archived" severity="danger"
                 (click)="deleteItem(selectedItem)" text />
               <p-button icon="pi pi-pencil" [disabled]="trip?.archived" (click)="editItem(selectedItem)" text />
