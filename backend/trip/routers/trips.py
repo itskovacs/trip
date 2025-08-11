@@ -8,9 +8,11 @@ from ..deps import SessionDep, get_current_username
 from ..models.models import (Image, Place, Trip, TripCreate, TripDay,
                              TripDayBase, TripDayRead, TripItem,
                              TripItemCreate, TripItemRead, TripItemUpdate,
-                             TripPlaceLink, TripRead, TripReadBase, TripUpdate)
+                             TripPlaceLink, TripRead, TripReadBase, TripShare,
+                             TripShareURL, TripUpdate)
 from ..security import verify_exists_and_owns
-from ..utils.utils import b64img_decode, remove_image, save_image_to_file
+from ..utils.utils import (b64img_decode, generate_urlsafe, remove_image,
+                           save_image_to_file)
 
 router = APIRouter(prefix="/api/trips", tags=["trips"])
 
@@ -336,5 +338,72 @@ def delete_tripitem(
         raise HTTPException(status_code=400, detail="Bad request")
 
     session.delete(db_item)
+    session.commit()
+    return {}
+
+
+@router.get("/shared/{token}", response_model=TripRead)
+def read_shared_trip(
+    session: SessionDep,
+    token: str,
+) -> TripRead:
+    share = session.exec(select(TripShare).where(TripShare.token == token)).first()
+    if not share:
+        raise HTTPException(status_code=404, detail="Not found")
+
+    db_trip = session.get(Trip, share.trip_id)
+    return TripRead.serialize(db_trip)
+
+
+@router.get("/{trip_id}/share", response_model=TripShareURL)
+def get_shared_trip_url(
+    session: SessionDep,
+    trip_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+) -> TripShareURL:
+    db_trip = session.get(Trip, trip_id)
+    verify_exists_and_owns(current_user, db_trip)
+
+    share = session.exec(select(TripShare).where(TripShare.trip_id == trip_id)).first()
+    if not share:
+        raise HTTPException(status_code=404, detail="Not found")
+
+    return {"url": f"/s/t/{share.token}"}
+
+
+@router.post("/{trip_id}/share", response_model=TripShareURL)
+def create_shared_trip(
+    session: SessionDep,
+    trip_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+) -> TripShareURL:
+    db_trip = session.get(Trip, trip_id)
+    verify_exists_and_owns(current_user, db_trip)
+
+    shared = session.exec(select(TripShare).where(TripShare.trip_id == trip_id)).first()
+    if shared:
+        raise HTTPException(status_code=409, detail="The resource already exists")
+
+    token = generate_urlsafe()
+    trip_share = TripShare(token=token, trip_id=trip_id, user=current_user)
+    session.add(trip_share)
+    session.commit()
+    return {"url": f"/s/t/{token}"}
+
+
+@router.delete("/{trip_id}/share")
+def delete_shared_trip(
+    session: SessionDep,
+    trip_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+):
+    db_trip = session.get(Trip, trip_id)
+    verify_exists_and_owns(current_user, db_trip)
+
+    db_share = session.exec(select(TripShare).where(TripShare.trip_id == trip_id)).first()
+    if not db_share:
+        raise HTTPException(status_code=404, detail="Not found")
+
+    session.delete(db_share)
     session.commit()
     return {}

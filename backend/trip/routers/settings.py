@@ -236,7 +236,9 @@ async def import_data(
     trip_place_id_map = {p["id"]: new_p.id for p, new_p in zip(data.get("places", []), places)}
     for trip in data.get("trips", []):
         trip_data = {
-            key: trip[key] for key in trip.keys() if key not in {"id", "image", "image_id", "places", "days"}
+            key: trip[key]
+            for key in trip.keys()
+            if key not in {"id", "image", "image_id", "places", "days", "shared"}
         }
         trip_data["user"] = current_user
 

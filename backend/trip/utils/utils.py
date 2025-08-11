@@ -2,6 +2,7 @@ import base64
 from datetime import date
 from io import BytesIO
 from pathlib import Path
+from secrets import token_urlsafe
 from uuid import uuid4
 
 import httpx
@@ -12,6 +13,10 @@ from .. import __version__
 from ..config import Settings
 
 settings = Settings()
+
+
+def generate_urlsafe() -> str:
+    return token_urlsafe(32)
 
 
 def generate_filename(format: str) -> str:

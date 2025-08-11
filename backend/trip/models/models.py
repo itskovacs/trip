@@ -39,6 +39,10 @@ class TripItemStatusEnum(str, Enum):
     OPTIONAL = "optional"
 
 
+class TripShareURL(BaseModel):
+    url: str
+
+
 class LoginRegisterModel(BaseModel):
     username: Annotated[
         str,
@@ -246,6 +250,7 @@ class Trip(TripBase, table=True):
 
     places: list["Place"] = Relationship(back_populates="trips", link_model=TripPlaceLink)
     days: list["TripDay"] = Relationship(back_populates="trip", cascade_delete=True)
+    shares: list["TripShare"] = Relationship(back_populates="trip", cascade_delete=True)
 
 
 class TripCreate(TripBase):
@@ -283,6 +288,7 @@ class TripRead(TripBase):
     image_id: int | None
     days: list["TripDayRead"]
     places: list["PlaceRead"]
+    shared: bool
 
     @classmethod
     def serialize(cls, obj: Trip) -> "TripRead":
@@ -294,6 +300,7 @@ class TripRead(TripBase):
             image_id=obj.image_id,
             days=[TripDayRead.serialize(day) for day in obj.days],
             places=[PlaceRead.serialize(place) for place in obj.places],
+            shared=bool(obj.shares),
         )
 
 
@@ -386,3 +393,11 @@ class TripItemRead(TripItemBase):
             status=obj.status,
             place=PlaceRead.serialize(obj.place) if obj.place else None,
         )
+
+
+class TripShare(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    token: str = Field(index=True, unique=True)
+
+    trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE")
+    trip: Trip | None = Relationship(back_populates="shares")
