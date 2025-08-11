@@ -40,6 +40,11 @@ export const Interceptor = (
     return throwError(() => details);
   }
 
+  if (req.headers.has("no_auth")) {
+    // Shared Trip must be anonymous
+    return next(req);
+  }
+
   if (!req.headers.has("enctype") && !req.headers.has("Content-Type")) {
     req = req.clone({
       setHeaders: {

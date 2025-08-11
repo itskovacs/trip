@@ -16,6 +16,7 @@ export interface Trip {
   archived?: boolean;
   user: string;
   days: TripDay[];
+  shared?: boolean;
 
   // POST / PUT
   places: Place[];
@@ -59,4 +60,8 @@ export interface FlattenedTripItem {
   lng?: number;
   day_id: number;
   status?: TripStatus;
+}
+
+export interface SharedTripURL {
+  url: string;
 }

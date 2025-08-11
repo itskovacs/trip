@@ -6,6 +6,7 @@ import { DashboardComponent } from "./components/dashboard/dashboard.component";
 import { AuthGuard } from "./services/auth.guard";
 import { TripComponent } from "./components/trip/trip.component";
 import { TripsComponent } from "./components/trips/trips.component";
+import { SharedTripComponent } from "./components/shared-trip/shared-trip.component";
 
 export const routes: Routes = [
   {
@@ -13,6 +14,19 @@ export const routes: Routes = [
     pathMatch: "full",
     component: AuthComponent,
     title: "TRIP - Authentication",
+  },
+
+  {
+    path: "s",
+    children: [
+      {
+        path: "t/:token",
+        component: SharedTripComponent,
+        title: "TRIP - Shared Trip",
+      },
+
+      { path: "**", redirectTo: "/home", pathMatch: "full" },
+    ],
   },
 
   {

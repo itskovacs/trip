@@ -45,6 +45,8 @@ import { MenuModule } from "primeng/menu";
 import { LinkifyPipe } from "../../shared/linkify.pipe";
 import { PlaceCreateModalComponent } from "../../modals/place-create-modal/place-create-modal.component";
 import { Settings } from "../../types/settings";
+import { DialogModule } from "primeng/dialog";
+import { ClipboardModule } from "@angular/cdk/clipboard";
 
 @Component({
   selector: "app-trip",
@@ -61,12 +63,15 @@ import { Settings } from "../../types/settings";
     TableModule,
     ButtonModule,
     DecimalPipe,
+    DialogModule,
+    ClipboardModule,
   ],
   templateUrl: "./trip.component.html",
   styleUrls: ["./trip.component.scss"],
 })
 export class TripComponent implements AfterViewInit {
   currency$: Observable<string>;
+  tripSharedURL$?: Observable<string>;
   statuses: TripStatus[] = [];
   trip?: Trip;
   places: Place[] = [];
@@ -79,6 +84,7 @@ export class TripComponent implements AfterViewInit {
   collapsedTripDays = false;
   collapsedTripPlaces = false;
   collapsedTripStatuses = false;
+  shareDialogVisible = false;
 
   map?: L.Map;
   markerClusterGroup?: L.MarkerClusterGroup;
@@ -105,6 +111,13 @@ export class TripComponent implements AfterViewInit {
           iconClass: "text-orange-500!",
           command: () => {
             this.toggleArchiveTrip();
+          },
+        },
+        {
+          label: "Share",
+          icon: "pi pi-share-alt",
+          command: () => {
+            this.shareDialogVisible = true;
           },
         },
         {
@@ -207,7 +220,10 @@ export class TripComponent implements AfterViewInit {
         take(1),
         tap((params) => {
           const id = params.get("id");
-          if (id) this.loadTripData(+id);
+          if (id) {
+            this.loadTripData(+id);
+            this.tripSharedURL$ = this.apiService.getSharedTripURL(+id);
+          }
         }),
       )
       .subscribe();
@@ -1179,5 +1195,52 @@ export class TripComponent implements AfterViewInit {
     this.dayStatsCache.delete(item.day_id);
     this.selectedItem = undefined;
     this.resetPlaceHighlightMarker();
+  }
+
+  getSharedTripURL() {
+    if (!this.trip) return;
+    this.apiService.getSharedTripURL(this.trip?.id!).pipe(take(1)).subscribe();
+  }
+
+  shareTrip() {
+    if (!this.trip) return;
+    this.apiService
+      .createSharedTrip(this.trip?.id!)
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.trip!.shared = true;
+        },
+      });
+  }
+
+  unshareTrip() {
+    if (!this.trip) return;
+
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: "Confirm deletion",
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      breakpoints: {
+        "640px": "90vw",
+      },
+      data: `Stop sharing ${this.trip.name} ?`,
+    });
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (bool) => {
+        if (!bool) return;
+        this.apiService
+          .deleteSharedTrip(this.trip?.id!)
+          .pipe(take(1))
+          .subscribe({
+            next: () => {
+              this.trip!.shared = false;
+              this.shareDialogVisible = false;
+            },
+          });
+      },
+    });
   }
 }

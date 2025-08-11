@@ -1,10 +1,11 @@
+@defer {
+@if (trip) {
 <section class="mt-4">
   <div class="p-4 print:p-0 flex items-center justify-between">
     <div class="flex items-center gap-2">
-      <p-button text icon="pi pi-chevron-left" class="print:hidden" (click)="back()" severity="secondary" />
       <div class="flex flex-col max-w-[55vw] md:max-w-full">
-        <h1 class="font-medium tracking-tight text-2xl truncate">{{ trip?.name }}</h1>
-        <span class="text-xs text-gray-500">{{ trip?.days?.length }} {{ trip?.days!.length > 1 ? 'days' : 'day'}}</span>
+        <h1 class="font-medium tracking-tight text-2xl truncate">{{ trip.name }}</h1>
+        <span class="text-xs text-gray-500">{{ trip.days.length }} {{ trip.days!.length > 1 ? 'days' : 'day'}}</span>
       </div>
     </div>
 
@@ -13,24 +14,6 @@
       <div class="flex gap-2 items-center text-xs text-gray-500"><i class="pi pi-github"></i>itskovacs/trip</div>
     </div>
     <div class="flex items-center gap-2 print:hidden">
-      @if (!trip?.archived) {
-      <div class="hidden md:flex items-center gap-2">
-        <p-button text (click)="shareDialogVisible = true" icon="pi pi-share-alt" />
-        <p-button text (click)="toggleArchiveTrip()" icon="pi pi-box" severity="warn" />
-        <div class="border-l border-solid border-gray-700 h-4"></div>
-        <p-button text (click)="deleteTrip()" icon="pi pi-trash" severity="danger" />
-        <p-button text (click)="editTrip()" icon="pi pi-pencil" />
-        <div class="border-l border-solid border-gray-700 h-4"></div>
-        <p-button text icon="pi pi-check-square" severity="help" />
-        <p-button text icon="pi pi-briefcase" severity="help" />
-      </div>
-
-      <div class="flex md:hidden">
-        <p-button (click)="menuTripActions.toggle($event)" severity="secondary" text icon="pi pi-ellipsis-h" />
-        <p-menu #menuTripActions [model]="menuTripActionsItems" [popup]="true" />
-      </div>
-      }
-
       <span
         class="bg-gray-100 text-gray-800 text-xs md:text-sm font-medium me-2 px-2.5 py-0.5 rounded min-w-fit dark:bg-gray-400">{{
         (totalPrice | number:'1.0-2') || '-' }} {{ currency$ | async }}</span>
@@ -38,23 +21,13 @@
   </div>
 </section>
 
-@if (trip?.archived) {
-<div class="mx-auto p-4 my-4 w-fit max-w-[400px] text-center text-orange-800 rounded-lg bg-orange-50">
-  <div class="flex items-center justify-between">
-    <div class="font-semibold">Archived</div>
-    <p-button text icon="pi pi-box" label="Restore" (click)="toggleArchiveTrip()" [size]="'small'" />
-  </div>
-  This Trip is archived, you cannot modify it.
-</div>
-}
-
 <section class="p-4 print:px-1 grid lg:grid-cols-3 gap-4 print:block">
   <div class="p-4 shadow self-start rounded-md lg:col-span-2 max-w-screen print:col-span-full">
     <div [class.sticky]="!isMapFullscreen"
       class="top-0 z-10 bg-white p-2 mb-2 flex justify-between items-center dark:bg-surface-900">
       <div>
         <h1 class="font-semibold tracking-tight text-xl">Plans</h1>
-        <span class="text-xs text-gray-500 line-clamp-1">{{ trip?.name }} plans</span>
+        <span class="text-xs text-gray-500 line-clamp-1">{{ trip.name }} plans</span>
       </div>
 
       <div class="flex items-center gap-2 print:hidden">
@@ -67,15 +40,12 @@
           <p-button icon="pi pi-directions" [severity]="tripMapAntLayerDayID == -1 ? 'help' : 'primary'"
             (click)="toggleTripDaysHighlight()" text />
           <p-button icon="pi pi-print" (click)="printTable()" text />
-          <div class="border-l border-solid border-gray-700 h-4"></div>
-          <p-button icon="pi pi-ellipsis-v" [disabled]="trip?.archived" (click)="addItems()" text />
         </div>
 
         <div class="flex md:hidden items-center">
           <p-button (click)="menuTripTableActions.toggle($event)" severity="secondary" text icon="pi pi-ellipsis-h" />
           <p-menu #menuTripTableActions [model]="menuTripTableActionsItems" appendTo="body" [popup]="true" />
         </div>
-        <p-button icon="pi pi-plus" [disabled]="trip?.archived" (click)="addItem()" text />
       </div>
     </div>
 
@@ -124,7 +94,7 @@
           </td>
           <td class="relative">
             @if (tripitem.place) {
-            <div class="ml-7 print:ml-0 max-w-24 truncate print:whitespace-normal">
+            <div class="ml-7 print:ml-0 print:whitespace-normal">
               <img [src]="tripitem.place.image || tripitem.place.category.image"
                 class="absolute left-0 top-1/2 -translate-y-1/2 w-9 rounded-full object-cover print:hidden" /> {{
               tripitem.place.name }}
@@ -198,12 +168,6 @@
         <h2 class="mb-0 text-4xl text-center tracking-tight font-extrabold text-gray-900 dark:text-gray-200">
           No Trip.
         </h2>
-
-        <p class="mt-4 font-light text-gray-500 sm:text-xl">
-          Add <i>Day</i> to your <i>Trip</i> to start organizing !
-        </p>
-
-        <p-button styleClass="mt-4" label="Add" icon="pi pi-plus" [disabled]="trip?.archived" (click)="addDay()" text />
       </div>
     </div>
     <div class="hidden print:block text-center text-sm text-gray-500 mt-4">
@@ -235,11 +199,6 @@
               @if (selectedItem.lat && selectedItem.lng) {
               <p-button icon="pi pi-car" (click)="itemToNavigation()" text />
               }
-              <p-button icon="pi pi-trash" [disabled]="trip?.archived" severity="danger"
-                (click)="deleteItem(selectedItem)" text />
-              <p-button icon="pi pi-pencil" [disabled]="trip?.archived" (click)="editItem(selectedItem)" text />
-              <p-button icon="pi pi-times" [disabled]="trip?.archived"
-                (click)="selectedItem = undefined; resetPlaceHighlightMarker()" text />
             </div>
           </div>
         </div>
@@ -300,7 +259,7 @@
       <div class="p-2 mb-2 flex justify-between items-center">
         <div>
           <h1 class="font-semibold tracking-tight text-xl">Map</h1>
-          <span class="text-xs text-gray-500 line-clamp-1">{{ trip?.name }} places</span>
+          <span class="text-xs text-gray-500 line-clamp-1">{{ trip.name }} places</span>
         </div>
 
         <div class="flex gap-2">
@@ -318,7 +277,7 @@
       <div class="p-2 mb-2 flex justify-between items-center">
         <div class="group relative">
           <h1 class="font-semibold tracking-tight text-xl">Places</h1>
-          <span class="text-xs text-gray-500 line-clamp-1">{{ trip?.name }} places</span>
+          <span class="text-xs text-gray-500 line-clamp-1">{{ trip.name }} places</span>
 
           <div
             class="bg-white rounded py-2 absolute top-1/2 -translate-y-1/2 left-0 hidden group-hover:block slide-x dark:bg-surface-900">
@@ -334,8 +293,6 @@
           } @placeholder (minimum 0.4s) {
           <p-skeleton height="1.75rem" width="2.5rem" class="mr-1" />
           }
-          <p-button icon="pi pi-plus" [disabled]="trip?.archived" (click)="addPlace()" text />
-          <p-button icon="pi pi-list-check" [disabled]="trip?.archived" (click)="manageTripPlaces()" text />
         </div>
       </div>
 
@@ -373,7 +330,7 @@
           </div>
         </div>
         } @empty {
-        <p-button label="Add" icon="pi pi-plus" [disabled]="trip?.archived" (click)="manageTripPlaces()" text />
+        No place
         }
         } @placeholder (minimum 0.4s) {
         <div class="flex flex-col gap-4">
@@ -392,7 +349,7 @@
       <div class="p-2 mb-2 flex justify-between items-center">
         <div class="group relative">
           <h1 class="font-semibold tracking-tight text-xl">Days</h1>
-          <span class="text-xs text-gray-500 line-clamp-1">{{ trip?.name }} days</span>
+          <span class="text-xs text-gray-500 line-clamp-1">{{ trip.name }} days</span>
 
           <div
             class="bg-white rounded py-2 absolute top-1/2 -translate-y-1/2 left-0 hidden group-hover:block slide-x dark:bg-surface-900">
@@ -400,41 +357,25 @@
               (click)="collapsedTripDays = !collapsedTripDays" />
           </div>
         </div>
-
-        <p-button icon="pi pi-plus" [disabled]="trip?.archived" (click)="addDay()" text />
       </div>
 
       @if (!collapsedTripDays) {
       <div class="max-h-[20vh] overflow-y-auto">
         @defer {
-        @for (d of trip?.days; track d.id) {
-        <div
-          class="group flex items-center gap-4 rounded-md justify-between h-10 px-4 py-2 hover:bg-gray-50 w-full max-w-full dark:hover:bg-gray-800">
+        @for (d of trip.days; track d.id) {
+        <div class="flex items-center gap-4 rounded-md justify-between h-10 px-4 py-2 w-full max-w-full">
           <div class="line-clamp-1 dark:text-surface-300">
             {{ d.label }}
           </div>
           <div class="flex items-center gap-2 flex-none">
-            <span
-              class="bg-gray-100 text-gray-800 text-sm px-2.5 py-0.5 rounded-md min-w-fit group-hover:hidden dark:bg-gray-100/85">{{
+            <span class="bg-gray-100 text-gray-800 text-sm px-2.5 py-0.5 rounded-md min-w-fit dark:bg-gray-100/85">{{
               getDayStats(d).price || '-' }} {{ currency$ | async }}</span>
-            <span
-              class="bg-blue-100 text-blue-800 text-sm px-2.5 py-0.5 rounded-md group-hover:hidden dark:bg-blue-100/85">{{
+            <span class="bg-blue-100 text-blue-800 text-sm px-2.5 py-0.5 rounded-md dark:bg-blue-100/85">{{
               getDayStats(d).places }}</span>
-
-            <div class="flex md:hidden">
-              <p-button (click)="selectedTripDayForMenu = d; menuTripDayActions.toggle($event)" severity="secondary"
-                text icon="pi pi-ellipsis-h" />
-            </div>
-          </div>
-
-          <div class="hidden group-hover:flex gap-2 items-center flex-none">
-            <p-button icon="pi pi-trash" severity="danger" [disabled]="trip?.archived" (click)="deleteDay(d)" text />
-            <p-button icon="pi pi-pencil" [disabled]="trip?.archived" (click)="editDay(d)" label="Edit" text />
-            <p-button icon="pi pi-plus" [disabled]="trip?.archived" (click)="addItem(d.id)" label="Item" text />
           </div>
         </div>
         } @empty {
-        <p-button label="Add" icon="pi pi-plus" [disabled]="trip?.archived" (click)="addDay()" text />
+        No day
         }
         } @placeholder (minimum 0.4s) {
         <div class="h-16">
@@ -448,7 +389,7 @@
     <div class="p-4 shadow rounded-md w-full min-h-20">
       <div class="group relative p-2 mb-2 flex flex-col items-start">
         <h1 class="font-semibold tracking-tight text-xl">Watchlist</h1>
-        <span class="text-xs text-gray-500 line-clamp-1">{{ trip?.name }} pending/constraints</span>
+        <span class="text-xs text-gray-500 line-clamp-1">{{ trip.name }} pending/constraints</span>
 
         <div
           class="bg-white rounded py-2 absolute top-1/2 -translate-y-1/2 left-0 hidden group-hover:block slide-x dark:bg-surface-900">
@@ -485,7 +426,6 @@
     }
   </div>
 </section>
-<p-menu #menuTripDayActions [model]="menuTripDayActionsItems" appendTo="body" [popup]="true" />
 
 @if (isMapFullscreen) {
 <div class="fixed top-2 right-2 p-2 bg-white shadow rounded dark:bg-surface-900">
@@ -497,33 +437,18 @@
     [severity]="tripMapAntLayerDayID == -1 ? 'help' : 'secondary'" />
 </div>
 }
-
-<p-dialog header="Share" [draggable]="false" [dismissableMask]="true" [modal]="true" [(visible)]="shareDialogVisible"
-  [style]="{ width: '25rem' }">
-  @if (shareDialogVisible) {
-  <ng-container>
-    @if (trip?.shared) {
-    <div class="flex items-center flex-col gap-2">
-      <span>{{ trip?.name }} is shared on this link:</span>
-
-      <div class="flex items-center w-full rounded-xl border border-gray-300 bg-white p-2 pl-3 pr-2 shadow-sm">
-        <p-button text icon="pi pi-trash" severity="danger" (click)="unshareTrip()" />
-        <span class="text-sm font-semibold text-gray-800 truncate">
-          {{ (tripSharedURL$ | async) || '' }}
-        </span>
-        <p-button text icon="pi pi-copy" [cdkCopyToClipboard]="(tripSharedURL$ | async) || ''" />
-      </div>
-    </div>
-    } @else {
-    <div class="flex items-center flex-col gap-2">
-      <span>{{ trip?.name }} is not currently shared.</span>
-      <p-button (click)="shareTrip()" styleClass="mt-4" text label="Share" icon="pi pi-share-alt" />
-    </div>
-    }
-  </ng-container>
-  }
-
-  <div class="flex justify-center mt-4">
-    <p-button label="Quit" (click)="shareDialogVisible = false" />
+} @else {
+<section class="min-h-screen my-auto flex flex-col items-center justify-center gap-8">
+  <div class="mx-auto w-full text-center">
+    <h1 class="text-2xl font-semibold text-gray-800 tracking-tight dark:text-white md:text-4xl">Trip not found</h1>
+    <p class="mt-2 text-gray-500 dark:text-gray-400">The requested Trip does not exist</p>
   </div>
-</p-dialog>
+
+  <div class="mx-auto">
+    <img class="w-full lg:h-[32rem] h-80 md:h-96 rounded-lg object-cover" src="cover.webp">
+  </div>
+
+  <p-button text label="itskovacs/trip" icon="pi pi-github" (click)="toGithub()" />
+</section>
+}
+}

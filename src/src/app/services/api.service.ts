@@ -1,10 +1,20 @@
 import { inject, Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { Category, Place } from "../types/poi";
-import { BehaviorSubject, Observable, tap } from "rxjs";
+import { BehaviorSubject, map, Observable, shareReplay, tap } from "rxjs";
 import { Info } from "../types/info";
 import { ImportResponse, Settings } from "../types/settings";
-import { Trip, TripBase, TripDay, TripItem } from "../types/trip";
+import {
+  SharedTripURL,
+  Trip,
+  TripBase,
+  TripDay,
+  TripItem,
+} from "../types/trip";
+
+const NO_AUTH_HEADER = {
+  no_auth: "1",
+};
 
 @Injectable({
   providedIn: "root",
@@ -191,6 +201,34 @@ export class ApiService {
   ): Observable<null> {
     return this.httpClient.delete<null>(
       `${this.apiBaseUrl}/trips/${trip_id}/days/${day_id}/items/${item_id}`,
+    );
+  }
+
+  getSharedTrip(token: string): Observable<Trip> {
+    return this.httpClient.get<Trip>(
+      `${this.apiBaseUrl}/trips/shared/${token}`,
+      { headers: NO_AUTH_HEADER },
+    );
+  }
+
+  getSharedTripURL(trip_id: number): Observable<string> {
+    return this.httpClient
+      .get<SharedTripURL>(`${this.apiBaseUrl}/trips/${trip_id}/share`)
+      .pipe(
+        map((t) => t.url),
+        shareReplay(),
+      );
+  }
+
+  createSharedTrip(trip_id: number): Observable<string> {
+    return this.httpClient
+      .post<SharedTripURL>(`${this.apiBaseUrl}/trips/${trip_id}/share`, {})
+      .pipe(map((t) => t.url));
+  }
+
+  deleteSharedTrip(trip_id: number): Observable<null> {
+    return this.httpClient.delete<null>(
+      `${this.apiBaseUrl}/trips/${trip_id}/share`,
     );
   }
 
