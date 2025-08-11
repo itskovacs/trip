@@ -118,6 +118,41 @@ export class TripComponent implements AfterViewInit {
       ],
     },
   ];
+  readonly menuTripTableActionsItems: MenuItem[] = [
+    {
+      label: "Actions",
+      items: [
+        {
+          label: "Directions",
+          icon: "pi pi-directions",
+          command: () => {
+            this.toggleTripDaysHighlight();
+          },
+        },
+        {
+          label: "Navigation",
+          icon: "pi pi-car",
+          command: () => {
+            this.tripToNavigation();
+          },
+        },
+        {
+          label: "Expand / Group",
+          icon: "pi pi-arrow-down-left-and-arrow-up-right-to-center",
+          command: () => {
+            this.tableExpandableMode = !this.tableExpandableMode;
+          },
+        },
+        {
+          label: "Print",
+          icon: "pi pi-print",
+          command: () => {
+            this.printTable();
+          },
+        },
+      ],
+    },
+  ];
   readonly menuTripDayActionsItems: MenuItem[] = [
     {
       label: "Actions",
@@ -223,7 +258,7 @@ export class TripComponent implements AfterViewInit {
     this.selectedItem = undefined;
     setTimeout(() => {
       window.print();
-    }, 30);
+    }, 100);
   }
 
   sortTripDays() {
@@ -311,7 +346,16 @@ export class TripComponent implements AfterViewInit {
   }
 
   resetMapBounds() {
-    if (!this.places.length) return;
+    if (!this.places.length) {
+      this.map?.fitBounds(
+        this.flattenedTripItems
+          .filter((i) => i.lat != null && i.lng != null)
+          .map((i) => [i.lat!, i.lng!]),
+        { padding: [30, 30] },
+      );
+      return;
+    }
+
     this.map?.fitBounds(
       this.places.map((p) => [p.lat, p.lng]),
       { padding: [30, 30] },
@@ -749,6 +793,18 @@ export class TripComponent implements AfterViewInit {
     // TODO: More services
     // const url = `http://maps.apple.com/?daddr=${this.selectedItem.lat},${this.selectedItem.lng}`;
     const url = `https://www.google.com/maps/dir/?api=1&destination=${this.selectedItem.lat},${this.selectedItem.lng}`;
+    window.open(url, "_blank");
+  }
+
+  tripToNavigation() {
+    // TODO: More services
+    const items = this.flattenedTripItems.filter(
+      (item) => item.lat && item.lng,
+    );
+    if (!items.length) return;
+
+    const waypoints = items.map((item) => `${item.lat},${item.lng}`).join("/");
+    const url = `https://www.google.com/maps/dir/${waypoints}`;
     window.open(url, "_blank");
   }
 

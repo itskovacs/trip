@@ -54,15 +54,23 @@
       </div>
 
       <div class="flex items-center gap-2 print:hidden">
-        <p-button
-          [icon]="tableExpandableMode ? 'pi pi-arrow-up-right-and-arrow-down-left-from-center' : 'pi pi-arrow-down-left-and-arrow-up-right-to-center'"
-          (click)="tableExpandableMode = !tableExpandableMode" text />
-        <div class="border-l border-solid border-gray-700 h-4"></div>
-        <p-button icon="pi pi-directions" [severity]="tripMapAntLayerDayID == -1 ? 'help' : 'primary'"
-          (click)="toggleTripDaysHighlight()" text />
-        <p-button icon="pi pi-print" (click)="printTable()" text />
-        <div class="border-l border-solid border-gray-700 h-4"></div>
-        <p-button icon="pi pi-ellipsis-v" [disabled]="trip?.archived" (click)="addItems()" text />
+        <div class="hidden md:flex items-center gap-2">
+          <p-button
+            [icon]="tableExpandableMode ? 'pi pi-arrow-up-right-and-arrow-down-left-from-center' : 'pi pi-arrow-down-left-and-arrow-up-right-to-center'"
+            (click)="tableExpandableMode = !tableExpandableMode" text />
+          <div class="border-l border-solid border-gray-700 h-4"></div>
+          <p-button icon="pi pi-car" (click)="tripToNavigation()" text />
+          <p-button icon="pi pi-directions" [severity]="tripMapAntLayerDayID == -1 ? 'help' : 'primary'"
+            (click)="toggleTripDaysHighlight()" text />
+          <p-button icon="pi pi-print" (click)="printTable()" text />
+          <div class="border-l border-solid border-gray-700 h-4"></div>
+          <p-button icon="pi pi-ellipsis-v" [disabled]="trip?.archived" (click)="addItems()" text />
+        </div>
+
+        <div class="flex md:hidden items-center">
+          <p-button (click)="menuTripTableActions.toggle($event)" severity="secondary" text icon="pi pi-ellipsis-h" />
+          <p-menu #menuTripTableActions [model]="menuTripTableActionsItems" appendTo="body" [popup]="true" />
+        </div>
         <p-button icon="pi pi-plus" [disabled]="trip?.archived" (click)="addItem()" text />
       </div>
     </div>
@@ -105,9 +113,9 @@
           <td class="font-mono text-sm">{{ tripitem.time }}</td>
           <td class="relative max-w-60 truncate">
             <div class="relative">
-              {{ tripitem.text }}
               @if (tripitem.status) {<div class="block xl:hidden absolute top-0 -left-1.5 size-1.5 rounded-full"
                 [style.background]="tripitem.status.color"></div>}
+              {{ tripitem.text }}
             </div>
           </td>
           <td class="relative">
