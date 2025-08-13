@@ -215,7 +215,7 @@ export class ApiService {
     return this.httpClient
       .get<SharedTripURL>(`${this.apiBaseUrl}/trips/${trip_id}/share`)
       .pipe(
-        map((t) => t.url),
+        map((t) => window.location.origin + t.url),
         shareReplay(),
       );
   }
