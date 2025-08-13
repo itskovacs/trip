@@ -53,7 +53,7 @@ export class PlaceCreateModalComponent {
   previous_image: string | null = null;
 
   placeInputTooltip: string =
-    "<div class='text-center'>You can paste a Google Maps Place link to fill <i>Name</i>, <i>Place</i>, <i>Lat</i>, <i>Lng</i>.</div>\n<div class='text-sm text-center'>https://google.com/maps/place/XXX</div>\n<div class='text-xs text-center'>Either « click » on a point of interest or « search » for it (eg: British Museum) and copy the URL</div>\n<div class='text-xs text-center'>Warning: there is often a slight offset from the actual coordinates.</div>";
+    "<div class='text-center'>You can paste a Google Maps Place link to fill <i>Name</i>, <i>Place</i>, <i>Lat</i>, <i>Lng</i>.</div>\n<div class='text-sm text-center'>https://google.com/maps/place/XXX</div>\n<div class='text-xs text-center'>Either « click » on a point of interest or « search » for it (eg: British Museum) and copy the URL</div>";
 
   constructor(
     private ref: DynamicDialogRef,
