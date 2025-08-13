@@ -47,7 +47,8 @@
 }
 
 <section class="p-4 print:px-1 grid lg:grid-cols-3 gap-4 print:block">
-  <div class="p-4 shadow self-start rounded-md lg:col-span-2 max-w-screen print:col-span-full">
+  <div [ngClass]="{ 'lg:col-span-2': !isExpanded, 'lg:col-span-3 lg:order-2': isExpanded }"
+    class="p-4 shadow self-start rounded-md max-w-screen print:col-span-full">
     <div [class.sticky]="!isMapFullscreen"
       class="top-0 z-10 bg-white p-2 mb-2 flex justify-between items-center dark:bg-surface-900">
       <div>
@@ -57,6 +58,7 @@
 
       <div class="flex items-center gap-2 print:hidden">
         <div class="hidden md:flex items-center gap-2">
+          <p-button class="hidden lg:flex" icon="pi pi-arrows-h" (click)="isExpanded = !isExpanded" text />
           <p-button
             [icon]="tableExpandableMode ? 'pi pi-arrow-up-right-and-arrow-down-left-from-center' : 'pi pi-arrow-down-left-and-arrow-up-right-to-center'"
             (click)="tableExpandableMode = !tableExpandableMode" text />
@@ -215,7 +217,8 @@
     }
   </div>
 
-  <div class="flex flex-col gap-4 sticky top-4 self-start max-w-screen print:hidden">
+  <div [ngClass]="{ 'grid col-span-full grid-cols-4': isExpanded, 'flex flex-col sticky': !isExpanded }"
+    class="gap-4 top-4 self-start max-w-screen print:hidden min-w-0">
     @if (selectedItem) {
     <div class="p-4 w-full max-w-full min-h-20 md:max-h-[600px] rounded-md shadow text-center">
       <div class="flex justify-between items-center mb-3">
@@ -292,8 +295,8 @@
         }
       </div>
     </div>
-
     }
+
     <div class="z-10 p-4 shadow rounded-md w-full min-h-20 max-h-full overflow-y-auto">
       <div class="p-2 mb-2 flex justify-between items-center">
         <div>
@@ -338,7 +341,7 @@
       </div>
 
       @if (!collapsedTripPlaces) {
-      <div class="max-h-[25vh] overflow-y-auto">
+      <div [class.max-h-64!]="!isExpanded" class="max-h-[28vh] overflow-y-auto">
         @defer {
         @for (p of places; track p.id) {
         <div class="flex items-center gap-4 py-2 px-4 hover:bg-gray-50 rounded-md overflow-auto dark:hover:bg-gray-800"
@@ -403,7 +406,7 @@
       </div>
 
       @if (!collapsedTripDays) {
-      <div class="max-h-[20vh] overflow-y-auto">
+      <div [class.max-h-64!]="!isExpanded" class="max-h-[28vh] overflow-y-auto">
         @defer {
         @for (d of trip?.days; track d.id) {
         <div
@@ -456,7 +459,7 @@
       </div>
 
       @if (!collapsedTripStatuses) {
-      <div class="max-h-[20vh] overflow-y-auto">
+      <div [class.max-h-40!]="!isExpanded" class="max-h-[28vh] overflow-y-auto">
         @defer {
         @for (item of getWatchlistData; track item.id) {
         <div class="flex items-center gap-2 h-10 px-4 py-2 w-full max-w-full">
@@ -520,8 +523,4 @@
     }
   </ng-container>
   }
-
-  <div class="flex justify-center mt-4">
-    <p-button label="Quit" (click)="shareDialogVisible = false" />
-  </div>
 </p-dialog>

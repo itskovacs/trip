@@ -39,7 +39,7 @@ import {
 import { YesNoModalComponent } from "../../modals/yes-no-modal/yes-no-modal.component";
 import { UtilsService } from "../../services/utils.service";
 import { TripCreateModalComponent } from "../../modals/trip-create-modal/trip-create-modal.component";
-import { AsyncPipe, DecimalPipe } from "@angular/common";
+import { AsyncPipe, CommonModule, DecimalPipe } from "@angular/common";
 import { MenuItem } from "primeng/api";
 import { MenuModule } from "primeng/menu";
 import { LinkifyPipe } from "../../shared/linkify.pipe";
@@ -52,6 +52,7 @@ import { ClipboardModule } from "@angular/cdk/clipboard";
   selector: "app-trip",
   standalone: true,
   imports: [
+    CommonModule,
     FormsModule,
     SkeletonModule,
     MenuModule,
@@ -85,6 +86,7 @@ export class TripComponent implements AfterViewInit {
   collapsedTripPlaces = false;
   collapsedTripStatuses = false;
   shareDialogVisible = false;
+  isExpanded = false;
 
   map?: L.Map;
   markerClusterGroup?: L.MarkerClusterGroup;
