@@ -274,7 +274,9 @@
         @if (selectedItem.lat) {
         <div class="rounded-md shadow p-4">
           <p class="font-bold mb-1 truncate">Latitude, Longitude</p>
-          <p class="text-sm text-gray-500 truncate">{{ selectedItem.lat }}, {{ selectedItem.lng }}</p>
+          <p class="text-sm text-gray-500 truncate cursor-copy"
+            [cdkCopyToClipboard]="selectedItem.lat + ',' + selectedItem.lng">{{
+            selectedItem.lat }}, {{ selectedItem.lng }}</p>
         </div>
         }
 
