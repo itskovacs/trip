@@ -32,6 +32,7 @@ import {
   combineLatest,
   forkJoin,
   Observable,
+  of,
   switchMap,
   take,
   tap,
@@ -1082,16 +1083,18 @@ export class TripComponent implements AfterViewInit {
           this.apiService.postTripDayItem(item, this.trip!.id!, item.day_id),
         );
 
-        forkJoin(obs$).subscribe({
-          next: (items: TripItem[]) => {
-            const index = this.trip!.days.findIndex((d) => d.id == day_id);
-            if (index === -1) return;
+        forkJoin(obs$)
+          .pipe(take(1))
+          .subscribe({
+            next: (items: TripItem[]) => {
+              const index = this.trip!.days.findIndex((d) => d.id == day_id);
+              if (index === -1) return;
 
-            const td: TripDay = this.trip!.days[index]!;
-            td.items.push(...items);
-            this.flattenTripDayItems();
-          },
-        });
+              const td: TripDay = this.trip!.days[index]!;
+              td.items.push(...items);
+              this.flattenTripDayItems();
+            },
+          });
       },
     });
   }
@@ -1210,8 +1213,9 @@ export class TripComponent implements AfterViewInit {
       .createSharedTrip(this.trip?.id!)
       .pipe(take(1))
       .subscribe({
-        next: () => {
+        next: (url) => {
           this.trip!.shared = true;
+          this.tripSharedURL$ = of(url);
         },
       });
   }
