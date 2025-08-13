@@ -94,7 +94,7 @@
           </td>
           <td class="relative">
             @if (tripitem.place) {
-            <div class="ml-7 print:ml-0 print:whitespace-normal">
+            <div class="ml-7 print:ml-0 max-w-24 print:whitespace-normal">
               <img [src]="tripitem.place.image || tripitem.place.category.image"
                 class="absolute left-0 top-1/2 -translate-y-1/2 w-9 rounded-full object-cover print:hidden" /> {{
               tripitem.place.name }}
