@@ -413,6 +413,7 @@ export class TripComponent implements AfterViewInit {
       this.map?.removeLayer(this.tripMapTemporaryMarker);
       this.tripMapTemporaryMarker = undefined;
     }
+    this.resetMapBounds();
   }
 
   placeHighlightMarker(lat: number, lng: number) {
@@ -961,27 +962,40 @@ export class TripComponent implements AfterViewInit {
     );
 
     modal.onClose.pipe(take(1)).subscribe({
-      next: (item: TripItem | null) => {
+      next: (item: (TripItem & { day_id: number[] }) | null) => {
         if (!item) return;
 
-        this.apiService
-          .postTripDayItem(item, this.trip!.id!, item.day_id)
+        const obs$ = item.day_id.map((day_id) =>
+          this.apiService.postTripDayItem(
+            { ...item, day_id },
+            this.trip!.id!,
+            day_id,
+          ),
+        );
+
+        forkJoin(obs$)
           .pipe(take(1))
           .subscribe({
-            next: (resp) => {
-              const idx = this.trip!.days.findIndex((d) => d.id == item.day_id);
-              if (idx === -1) return;
+            next: (items: TripItem[]) => {
+              items.forEach((item) => {
+                const idx = this.trip!.days.findIndex(
+                  (d) => d.id == item.day_id,
+                );
+                if (idx === -1) return;
 
-              const td: TripDay = this.trip!.days[idx];
-              td.items.push(resp);
+                const td: TripDay = this.trip!.days[idx];
+                td.items.push(item);
+
+                this.dayStatsCache.delete(item.day_id);
+                if (item.price) this.updateTotalPrice(item.price);
+                if (item.place?.id) {
+                  this.placesUsedInTable.add(item.place.id);
+                  this.setPlacesAndMarkers();
+                }
+              });
+
               this.flattenTripDayItems();
-
-              this.dayStatsCache.delete(resp.day_id);
-              if (resp.price) this.updateTotalPrice(resp.price);
-              if (resp.place?.id) {
-                this.placesUsedInTable.add(resp.place.id);
-                this.setPlacesAndMarkers();
-              }
+              this.setPlacesAndMarkers();
             },
           });
       },

@@ -18,6 +18,7 @@ import { UtilsService } from "../../services/utils.service";
 import { checkAndParseLatLng, formatLatLng } from "../../shared/latlng-parser";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { InputNumberModule } from "primeng/inputnumber";
+import { MultiSelectModule } from "primeng/multiselect";
 
 @Component({
   selector: "app-trip-create-day-item-modal",
@@ -34,6 +35,7 @@ import { InputNumberModule } from "primeng/inputnumber";
     ButtonModule,
     ReactiveFormsModule,
     InputMaskModule,
+    MultiSelectModule,
   ],
   standalone: true,
   templateUrl: "./trip-create-day-item-modal.component.html",
