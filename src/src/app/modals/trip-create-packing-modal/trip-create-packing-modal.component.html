@@ -1,0 +1,23 @@
+<div pFocusTrap class="grid items-center gap-4" [formGroup]="packingForm">
+
+  <p-floatlabel variant="in">
+    <p-inputnumber id="qt" formControlName="qt" mode="decimal" [maxFractionDigits]="0" min="0" fluid />
+    <label for="qt">Qt.</label>
+  </p-floatlabel>
+
+  <p-floatlabel variant="in">
+    <input class="col-span-2" id="text" formControlName="text" (keypress.enter)="closeDialog()" pInputText fluid />
+    <label for="text">Text</label>
+  </p-floatlabel>
+
+  <p-floatlabel variant="in">
+    <p-select [options]="packingCategories" id="category" appendTo="body" formControlName="category"
+      optionLabel="dispValue" optionValue="value" placeholder="Select Category" fluid />
+    <label for="category">Category</label>
+  </p-floatlabel>
+
+  <div class="mt-4 text-right">
+    <p-button (click)="closeDialog()" [disabled]="!packingForm.dirty || !packingForm.valid">{{
+      packingForm.get("id")?.value
+      !== -1 ? "Update" : "Create" }}</p-button>
+  </div>

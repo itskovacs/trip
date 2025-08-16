@@ -39,6 +39,14 @@ class TripItemStatusEnum(str, Enum):
     OPTIONAL = "optional"
 
 
+class PackingListCategoryEnum(str, Enum):
+    CLOTHES = "clothes"
+    TOILETRIES = "toiletries"
+    TECH = "tech"
+    DOCUMENTS = "documents"
+    OTHER = "other"
+
+
 class TripShareURL(BaseModel):
     url: str
 
@@ -251,6 +259,7 @@ class Trip(TripBase, table=True):
     places: list["Place"] = Relationship(back_populates="trips", link_model=TripPlaceLink)
     days: list["TripDay"] = Relationship(back_populates="trip", cascade_delete=True)
     shares: list["TripShare"] = Relationship(back_populates="trip", cascade_delete=True)
+    packing_items: list["TripPackingListItem"] = Relationship(back_populates="trip", cascade_delete=True)
 
 
 class TripCreate(TripBase):
@@ -401,3 +410,39 @@ class TripShare(SQLModel, table=True):
 
     trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE")
     trip: Trip | None = Relationship(back_populates="shares")
+
+
+class TripPackingListItemBase(SQLModel):
+    text: str | None = None
+    qt: int | None = None
+    category: PackingListCategoryEnum | None = None
+    packed: bool | None = None
+
+
+class TripPackingListItem(TripPackingListItemBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    user: str = Field(foreign_key="user.username", ondelete="CASCADE")
+
+    trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE")
+    trip: Trip | None = Relationship(back_populates="packing_items")
+
+
+class TripPackingListItemCreate(TripPackingListItemBase):
+    packed: bool = False
+
+
+class TripPackingListItemUpdate(TripPackingListItemBase): ...
+
+
+class TripPackingListItemRead(TripPackingListItemBase):
+    id: int
+
+    @classmethod
+    def serialize(cls, obj: "TripPackingListItem") -> "TripPackingListItemRead":
+        return cls(
+            id=obj.id,
+            text=obj.text,
+            qt=obj.qt,
+            category=obj.category,
+            packed=obj.packed,
+        )

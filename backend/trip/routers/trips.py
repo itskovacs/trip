@@ -8,8 +8,11 @@ from ..deps import SessionDep, get_current_username
 from ..models.models import (Image, Place, Trip, TripCreate, TripDay,
                              TripDayBase, TripDayRead, TripItem,
                              TripItemCreate, TripItemRead, TripItemUpdate,
-                             TripPlaceLink, TripRead, TripReadBase, TripShare,
-                             TripShareURL, TripUpdate)
+                             TripPackingListItem, TripPackingListItemCreate,
+                             TripPackingListItemRead,
+                             TripPackingListItemUpdate, TripPlaceLink,
+                             TripRead, TripReadBase, TripShare, TripShareURL,
+                             TripUpdate)
 from ..security import verify_exists_and_owns
 from ..utils.utils import (b64img_decode, generate_urlsafe, remove_image,
                            save_image_to_file)
@@ -405,5 +408,90 @@ def delete_shared_trip(
         raise HTTPException(status_code=404, detail="Not found")
 
     session.delete(db_share)
+    session.commit()
+    return {}
+
+
+@router.get("/{trip_id}/packing", response_model=list[TripPackingListItemRead])
+def read_packing_list(
+    session: SessionDep,
+    trip_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+) -> list[TripPackingListItemRead]:
+    p_items = session.exec(
+        select(TripPackingListItem)
+        .where(TripPackingListItem.trip_id == trip_id, TripPackingListItem.user == current_user)
+        .order_by(TripPackingListItem.id.asc())
+    ).all()
+
+    return [TripPackingListItemRead.serialize(i) for i in p_items]
+
+
+@router.post("/{trip_id}/packing", response_model=TripPackingListItemRead)
+def create_packing_item(
+    session: SessionDep,
+    trip_id: int,
+    data: TripPackingListItemCreate,
+    current_user: Annotated[str, Depends(get_current_username)],
+) -> TripPackingListItemRead:
+    item = TripPackingListItem(
+        **data.model_dump(),
+        trip_id=trip_id,
+        user=current_user,
+    )
+    session.add(item)
+    session.commit()
+    session.refresh(item)
+    return TripPackingListItemRead.serialize(item)
+
+
+@router.put("/{trip_id}/packing/{p_id}", response_model=TripPackingListItemRead)
+def update_packing_item(
+    session: SessionDep,
+    p_item: TripPackingListItemUpdate,
+    trip_id: int,
+    p_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+) -> TripPackingListItemRead:
+    db_item = session.exec(
+        select(TripPackingListItem).where(
+            TripPackingListItem.id == p_id,
+            TripPackingListItem.trip_id == trip_id,
+            TripPackingListItem.user == current_user,
+        )
+    ).one_or_none()
+
+    if not db_item:
+        raise HTTPException(status_code=404, detail="Not found")
+
+    item_data = p_item.model_dump(exclude_unset=True)
+    for key, value in item_data.items():
+        setattr(db_item, key, value)
+
+    session.add(db_item)
+    session.commit()
+    session.refresh(db_item)
+    return TripPackingListItemRead.serialize(db_item)
+
+
+@router.delete("/{trip_id}/packing/{p_id}")
+def delete_packing_item(
+    session: SessionDep,
+    trip_id: int,
+    p_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+):
+    item = session.exec(
+        select(TripPackingListItem).where(
+            TripPackingListItem.id == p_id,
+            TripPackingListItem.trip_id == trip_id,
+            TripPackingListItem.user == current_user,
+        )
+    ).one_or_none()
+
+    if not item:
+        raise HTTPException(status_code=404, detail="Not found")
+
+    session.delete(item)
     session.commit()
     return {}

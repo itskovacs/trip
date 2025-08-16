@@ -21,6 +21,8 @@
         <p-button pTooltip="Delete Trip" text (click)="deleteTrip()" icon="pi pi-trash" severity="danger" />
         <p-button pTooltip="Edit Trip" text (click)="editTrip()" icon="pi pi-pencil" />
         <div class="border-l border-solid border-gray-700 h-4"></div>
+        <p-button pTooltip="Packing list" tooltipPosition="left" text (click)="openPackingList()" icon="pi pi-briefcase"
+          severity="help" />
       </div>
 
       <div class="flex md:hidden">
@@ -550,4 +552,39 @@
     }
   </ng-container>
   }
+</p-dialog>
+
+<p-dialog header="Packing list" [draggable]="false" [dismissableMask]="true" [modal]="true"
+  [(visible)]="packingDialogVisible" styleClass="w-[95%] md:w-[70%] lg:w-[50%]">
+  <section class="md:max-w-3/4 md:mx-auto max-h-[80%] md:max-h-[600px]">
+    <div class="flex justify-center">
+      <p-button (click)="addPackingItem()" icon="pi pi-plus" label="Add item" text />
+    </div>
+
+    <div class="grid gap-2 mt-4 pb-4">
+      @for (c of dispPackingList | keyvalue; track c.key) {
+      <div class="mt-4 text-md font-semibold capitalize">{{ c.key }}</div>
+
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        @for (item of c.value; track item.id) {
+        <div class="relative group flex items-center gap-3 rounded-md p-2 hover:bg-gray-100 dark:hover:bg-white/5">
+          <label [for]="item.id" [class.line-through]="item.packed"
+            class="flex items-center gap-2 w-full cursor-pointer">
+            <p-checkbox (onChange)="onCheckPackingItem($event, item.id)" [binary]="true" [inputId]="item.id.toString()"
+              [(ngModel)]="item.packed" />
+            <div class="pr-6 md:pr-0 truncate select-none flex-1">
+              @if (item.qt) {<span class="text-gray-400 mr-0.5">{{ item.qt }}</span>}
+              <span>{{ item.text }}</span>
+            </div>
+          </label>
+          <div
+            class="md:opacity-0 absolute right-0 top-1/2 -translate-y-1/2 md:group-hover:opacity-100 bg-white md:bg-gray-100 rounded">
+            <p-button size="small" text icon="pi pi-trash" (click)="deletePackingItem(item)" severity="danger" />
+          </div>
+        </div>
+        }
+      </div>
+      }
+    </div>
+  </section>
 </p-dialog>

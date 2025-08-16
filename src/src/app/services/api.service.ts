@@ -5,6 +5,7 @@ import { BehaviorSubject, map, Observable, shareReplay, tap } from "rxjs";
 import { Info } from "../types/info";
 import { ImportResponse, Settings } from "../types/settings";
 import {
+  PackingItem,
   SharedTripURL,
   Trip,
   TripBase,
@@ -229,6 +230,39 @@ export class ApiService {
   deleteSharedTrip(trip_id: number): Observable<null> {
     return this.httpClient.delete<null>(
       `${this.apiBaseUrl}/trips/${trip_id}/share`,
+    );
+  }
+
+  getPackingList(trip_id: number): Observable<PackingItem[]> {
+    return this.httpClient.get<PackingItem[]>(
+      `${this.apiBaseUrl}/trips/${trip_id}/packing`,
+    );
+  }
+
+  postPackingItem(
+    trip_id: number,
+    p_item: PackingItem,
+  ): Observable<PackingItem> {
+    return this.httpClient.post<PackingItem>(
+      `${this.apiBaseUrl}/trips/${trip_id}/packing`,
+      p_item,
+    );
+  }
+
+  putPackingItem(
+    trip_id: number,
+    p_id: number,
+    p_item: Partial<PackingItem>,
+  ): Observable<PackingItem> {
+    return this.httpClient.put<PackingItem>(
+      `${this.apiBaseUrl}/trips/${trip_id}/packing/${p_id}`,
+      p_item,
+    );
+  }
+
+  deletePackingItem(trip_id: number, p_id: number): Observable<null> {
+    return this.httpClient.delete<null>(
+      `${this.apiBaseUrl}/trips/${trip_id}/packing/${p_id}`,
     );
   }
 

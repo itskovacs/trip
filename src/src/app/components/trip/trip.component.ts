@@ -14,6 +14,7 @@ import {
   TripDay,
   TripItem,
   TripStatus,
+  PackingItem,
 } from "../../types/trip";
 import { Place } from "../../types/poi";
 import {
@@ -52,6 +53,8 @@ import { ClipboardModule } from "@angular/cdk/clipboard";
 import { TooltipModule } from "primeng/tooltip";
 import { MultiSelectModule } from "primeng/multiselect";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { CheckboxChangeEvent, CheckboxModule } from "primeng/checkbox";
+import { TripCreatePackingModalComponent } from "../../modals/trip-create-packing-modal/trip-create-packing-modal.component";
 
 @Component({
   selector: "app-trip",
@@ -73,6 +76,7 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
     TooltipModule,
     ClipboardModule,
     MultiSelectModule,
+    CheckboxModule,
   ],
   templateUrl: "./trip.component.html",
   styleUrls: ["./trip.component.scss"],
@@ -93,8 +97,11 @@ export class TripComponent implements AfterViewInit {
   collapsedTripPlaces = false;
   collapsedTripStatuses = false;
   shareDialogVisible = false;
+  packingDialogVisible = false;
   isExpanded = false;
   isFilteringMode = false;
+  packingList: PackingItem[] = [];
+  dispPackingList: Record<string, PackingItem[]> = {};
 
   map?: L.Map;
   markerClusterGroup?: L.MarkerClusterGroup;
@@ -107,6 +114,14 @@ export class TripComponent implements AfterViewInit {
     {
       label: "Actions",
       items: [
+        {
+          label: "Packing",
+          icon: "pi pi-briefcase",
+          iconClass: "text-purple-500!",
+          command: () => {
+            this.openPackingList();
+          },
+        },
         {
           label: "Edit",
           icon: "pi pi-pencil",
@@ -1314,5 +1329,118 @@ export class TripComponent implements AfterViewInit {
           });
       },
     });
+  }
+
+  openPackingList() {
+    if (!this.trip) return;
+
+    if (!this.packingList.length)
+      this.apiService
+        .getPackingList(this.trip.id)
+        .pipe(take(1))
+        .subscribe({
+          next: (items) => {
+            this.packingList = [...items];
+            this.computeDispPackingList();
+          },
+        });
+    this.packingDialogVisible = true;
+  }
+
+  addPackingItem() {
+    if (!this.trip) return;
+
+    const modal: DynamicDialogRef = this.dialogService.open(
+      TripCreatePackingModalComponent,
+      {
+        header: "Create Packing",
+        modal: true,
+        appendTo: "body",
+        closable: true,
+        dismissableMask: true,
+        width: "40vw",
+        breakpoints: {
+          "1260px": "70vw",
+          "600px": "90vw",
+        },
+      },
+    );
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (item: PackingItem | null) => {
+        if (!item) return;
+
+        this.apiService
+          .postPackingItem(this.trip!.id, item)
+          .pipe(take(1))
+          .subscribe({
+            next: (item) => {
+              this.packingList.push(item);
+              this.computeDispPackingList();
+            },
+          });
+      },
+    });
+  }
+
+  onCheckPackingItem(e: CheckboxChangeEvent, id: number) {
+    if (!this.trip) return;
+    this.apiService
+      .putPackingItem(this.trip.id, id, { packed: e.checked })
+      .pipe(take(1))
+      .subscribe({
+        next: (item) => {
+          const i = this.packingList.find((p) => p.id == item.id);
+          if (i) i.packed = item.packed;
+          this.computeDispPackingList();
+        },
+      });
+  }
+
+  deletePackingItem(item: PackingItem) {
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: "Confirm deletion",
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      breakpoints: {
+        "640px": "90vw",
+      },
+      data: `Delete ${item.text.substring(0, 50)} ?`,
+    });
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (bool) => {
+        if (!bool) return;
+        this.apiService
+          .deletePackingItem(this.trip!.id, item.id)
+          .pipe(take(1))
+          .subscribe({
+            next: () => {
+              const index = this.packingList.findIndex((p) => p.id == item.id);
+              if (index > -1) this.packingList.splice(index, 1);
+              this.computeDispPackingList();
+            },
+          });
+      },
+    });
+  }
+
+  computeDispPackingList() {
+    const sorted: PackingItem[] = [...this.packingList].sort((a, b) =>
+      a.packed !== b.packed
+        ? a.packed
+          ? 1
+          : -1
+        : a.text.localeCompare(b.text),
+    );
+
+    this.dispPackingList = sorted.reduce<Record<string, PackingItem[]>>(
+      (acc, item) => {
+        (acc[item.category] ??= []).push(item);
+        return acc;
+      },
+      {},
+    );
   }
 }

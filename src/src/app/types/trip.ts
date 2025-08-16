@@ -65,3 +65,11 @@ export interface FlattenedTripItem {
 export interface SharedTripURL {
   url: string;
 }
+
+export interface PackingItem {
+  id: number;
+  text: string;
+  category: string;
+  qt?: number;
+  packed?: boolean;
+}
