@@ -15,11 +15,11 @@
     <div class="flex items-center gap-2 print:hidden">
       @if (!trip?.archived) {
       <div class="hidden md:flex items-center gap-2">
-        <p-button text (click)="shareDialogVisible = true" icon="pi pi-share-alt" />
-        <p-button text (click)="toggleArchiveTrip()" icon="pi pi-box" severity="warn" />
+        <p-button pTooltip="Share Trip" text (click)="shareDialogVisible = true" icon="pi pi-share-alt" />
+        <p-button pTooltip="Archive Trip" text (click)="toggleArchiveTrip()" icon="pi pi-box" severity="warn" />
         <div class="border-l border-solid border-gray-700 h-4"></div>
-        <p-button text (click)="deleteTrip()" icon="pi pi-trash" severity="danger" />
-        <p-button text (click)="editTrip()" icon="pi pi-pencil" />
+        <p-button pTooltip="Delete Trip" text (click)="deleteTrip()" icon="pi pi-trash" severity="danger" />
+        <p-button pTooltip="Edit Trip" text (click)="editTrip()" icon="pi pi-pencil" />
         <div class="border-l border-solid border-gray-700 h-4"></div>
       </div>
 
@@ -47,7 +47,7 @@
 }
 
 <section class="p-4 print:px-1 grid lg:grid-cols-3 gap-4 print:block">
-  <div [ngClass]="{ 'lg:col-span-2': !isExpanded, 'lg:col-span-3 lg:order-2': isExpanded }"
+  <div [ngClass]="{ 'lg:col-span-2': !isExpanded, 'lg:col-span-3': isExpanded }"
     class="p-4 shadow self-start rounded-md max-w-screen print:col-span-full">
     <div [class.sticky]="!isMapFullscreen"
       class="top-0 z-10 bg-white p-2 mb-2 flex justify-between items-center dark:bg-surface-900">
@@ -58,17 +58,17 @@
 
       <div class="flex items-center gap-2 print:hidden">
         <div class="hidden md:flex items-center gap-2">
-          <p-button class="hidden lg:flex" icon="pi pi-arrows-h" (click)="isExpanded = !isExpanded" text />
-          <p-button
+          <p-button pTooltip="Expand table" class="hidden lg:flex" icon="pi pi-arrows-h"
+            (click)="isExpanded = !isExpanded" text />
+          <p-button [pTooltip]="tableExpandableMode ? 'f' : 'Switch table mode, allow column resizing'"
             [icon]="tableExpandableMode ? 'pi pi-arrow-up-right-and-arrow-down-left-from-center' : 'pi pi-arrow-down-left-and-arrow-up-right-to-center'"
             (click)="tableExpandableMode = !tableExpandableMode" text />
           <div class="border-l border-solid border-gray-700 h-4"></div>
-          <p-button icon="pi pi-car" (click)="tripToNavigation()" text />
-          <p-button icon="pi pi-directions" [severity]="tripMapAntLayerDayID == -1 ? 'help' : 'primary'"
-            (click)="toggleTripDaysHighlight()" text />
-          <p-button icon="pi pi-print" (click)="printTable()" text />
+          <p-button pTooltip="Open Google Maps directions" icon="pi pi-car" (click)="tripToNavigation()" text />
+          <p-button pTooltip="Show itinerary on map" icon="pi pi-directions"
+            [severity]="tripMapAntLayerDayID == -1 ? 'help' : 'primary'" (click)="toggleTripDaysHighlight()" text />
+          <p-button pTooltip="Print Trip" icon="pi pi-print" (click)="printTable()" text />
           <div class="border-l border-solid border-gray-700 h-4"></div>
-          <p-button icon="pi pi-ellipsis-v" [disabled]="trip?.archived" (click)="addItems()" text />
         </div>
 
         <div class="flex md:hidden items-center">
@@ -307,8 +307,10 @@
         </div>
 
         <div class="flex gap-2">
-          <p-button icon="pi pi-window-maximize" (click)="toggleMapFullscreen()" text />
-          <p-button icon="pi pi-refresh" [disabled]="!places.length" (click)="resetMapBounds()" text />
+          <p-button pTooltip="Fullscreen" tooltipPosition="left" icon="pi pi-window-maximize"
+            (click)="toggleMapFullscreen()" text />
+          <p-button pTooltip="Reset bounds" tooltipPosition="left" icon="pi pi-refresh" [disabled]="!places.length"
+            (click)="resetMapBounds()" text />
         </div>
       </div>
 
@@ -337,13 +339,15 @@
           } @placeholder (minimum 0.4s) {
           <p-skeleton height="1.75rem" width="2.5rem" class="mr-1" />
           }
-          <p-button icon="pi pi-plus" [disabled]="trip?.archived" (click)="addPlace()" text />
-          <p-button icon="pi pi-list-check" [disabled]="trip?.archived" (click)="manageTripPlaces()" text />
+          <p-button pTooltip="Create Place" tooltipPosition="left" icon="pi pi-plus" [disabled]="trip?.archived"
+            (click)="addPlace()" text />
+          <p-button pTooltip="Manage associated places" tooltipPosition="left" icon="pi pi-list-check"
+            [disabled]="trip?.archived" (click)="manageTripPlaces()" text />
         </div>
       </div>
 
       @if (!collapsedTripPlaces) {
-      <div [class.max-h-64!]="!isExpanded" class="max-h-[28vh] overflow-y-auto">
+      <div [class.max-h-64!]="!isExpanded" class="max-h-[340px] overflow-y-auto">
         @defer {
         @for (p of places; track p.id) {
         <div class="flex items-center gap-4 py-2 px-4 hover:bg-gray-50 rounded-md overflow-auto dark:hover:bg-gray-800"
@@ -408,7 +412,7 @@
       </div>
 
       @if (!collapsedTripDays) {
-      <div [class.max-h-64!]="!isExpanded" class="max-h-[28vh] overflow-y-auto">
+      <div [class.max-h-64!]="!isExpanded" class="max-h-[340px] overflow-y-auto">
         @defer {
         @for (d of trip?.days; track d.id) {
         <div
@@ -461,7 +465,7 @@
       </div>
 
       @if (!collapsedTripStatuses) {
-      <div [class.max-h-40!]="!isExpanded" class="max-h-[28vh] overflow-y-auto">
+      <div [class.max-h-40!]="!isExpanded" class="max-h-[340px] overflow-y-auto">
         @defer {
         @for (item of getWatchlistData; track item.id) {
         <div class="flex items-center gap-2 h-10 px-4 py-2 w-full max-w-full">
