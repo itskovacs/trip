@@ -11,6 +11,7 @@ import {
   TripDay,
   TripItem,
   TripStatus,
+  PackingItem,
 } from "../../types/trip";
 import { Place } from "../../types/poi";
 import {
@@ -20,29 +21,45 @@ import {
   tripDayMarker,
 } from "../../shared/map";
 import { ActivatedRoute } from "@angular/router";
-import { Observable, take, tap } from "rxjs";
+import { debounceTime, Observable, take, tap } from "rxjs";
 import { UtilsService } from "../../services/utils.service";
-import { AsyncPipe, DecimalPipe } from "@angular/common";
+import { AsyncPipe, CommonModule, DecimalPipe } from "@angular/common";
 import { MenuItem } from "primeng/api";
 import { MenuModule } from "primeng/menu";
 import { LinkifyPipe } from "../../shared/linkify.pipe";
+import { TooltipModule } from "primeng/tooltip";
+import { FormControl, FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { MultiSelectModule } from "primeng/multiselect";
+import { DialogModule } from "primeng/dialog";
+import { CheckboxModule } from "primeng/checkbox";
+import { InputTextModule } from "primeng/inputtext";
 
 @Component({
   selector: "app-shared-trip",
   standalone: true,
   imports: [
+    CommonModule,
     SkeletonModule,
     MenuModule,
     LinkifyPipe,
     TableModule,
     ButtonModule,
     DecimalPipe,
+    TooltipModule,
+    DialogModule,
+    ReactiveFormsModule,
+    InputTextModule,
+    FormsModule,
+    MultiSelectModule,
+    CheckboxModule,
     AsyncPipe,
   ],
   templateUrl: "./shared-trip.component.html",
   styleUrls: ["./shared-trip.component.scss"],
 })
 export class SharedTripComponent implements AfterViewInit {
+  token?: string;
   currency$: Observable<string>;
   statuses: TripStatus[] = [];
   trip?: Trip;
@@ -56,6 +73,11 @@ export class SharedTripComponent implements AfterViewInit {
   collapsedTripDays = false;
   collapsedTripPlaces = false;
   collapsedTripStatuses = false;
+  packingDialogVisible = false;
+  isExpanded = false;
+  isFilteringMode = false;
+  packingList: PackingItem[] = [];
+  dispPackingList: Record<string, PackingItem[]> = {};
 
   map?: L.Map;
   markerClusterGroup?: L.MarkerClusterGroup;
@@ -104,6 +126,13 @@ export class SharedTripComponent implements AfterViewInit {
           },
         },
         {
+          label: "Filter",
+          icon: "pi pi-filter",
+          command: () => {
+            this.toggleFiltering();
+          },
+        },
+        {
           label: "Expand / Group",
           icon: "pi pi-arrow-down-left-and-arrow-up-right-to-center",
           command: () => {
@@ -120,6 +149,24 @@ export class SharedTripComponent implements AfterViewInit {
       ],
     },
   ];
+  readonly tripTableColumns: string[] = [
+    "day",
+    "time",
+    "text",
+    "place",
+    "comment",
+    "LatLng",
+    "price",
+    "status",
+  ];
+  tripTableSelectedColumns: string[] = [
+    "day",
+    "time",
+    "text",
+    "place",
+    "comment",
+  ];
+  tripTableSearchInput = new FormControl("");
 
   dayStatsCache = new Map<number, { price: number; places: number }>();
   placesUsedInTable = new Set<number>();
@@ -131,6 +178,14 @@ export class SharedTripComponent implements AfterViewInit {
   ) {
     this.currency$ = this.utilsService.currency$;
     this.statuses = this.utilsService.statuses;
+    this.tripTableSearchInput.valueChanges
+      .pipe(takeUntilDestroyed(), debounceTime(300))
+      .subscribe({
+        next: (value) => {
+          if (value) this.flattenTripDayItems(value.toLowerCase());
+          else this.flattenTripDayItems();
+        },
+      });
   }
 
   ngAfterViewInit(): void {
@@ -140,6 +195,7 @@ export class SharedTripComponent implements AfterViewInit {
         tap((params) => {
           const token = params.get("token");
           if (token) {
+            this.token = token;
             this.loadTripData(token);
           }
         }),
@@ -193,6 +249,11 @@ export class SharedTripComponent implements AfterViewInit {
     this.trip?.days.sort((a, b) => a.label.localeCompare(b.label));
   }
 
+  toggleFiltering() {
+    this.isFilteringMode = !this.isFilteringMode;
+    if (!this.isFilteringMode) this.flattenTripDayItems();
+  }
+
   toGithub() {
     this.utilsService.toGithubTRIP();
   }
@@ -236,10 +297,17 @@ export class SharedTripComponent implements AfterViewInit {
     return this.statuses.find((s) => s.label == status);
   }
 
-  flattenTripDayItems() {
+  flattenTripDayItems(searchValue?: string) {
     this.sortTripDays();
     this.flattenedTripItems = this.trip!.days.flatMap((day) =>
       [...day.items]
+        .filter((item) =>
+          searchValue
+            ? item.text.toLowerCase().includes(searchValue) ||
+              item.place?.name.toLowerCase().includes(searchValue) ||
+              item.comment?.toLowerCase().includes(searchValue)
+            : true,
+        )
         .sort((a, b) => a.time.localeCompare(b.time))
         .map((item) => ({
           td_id: day.id,
@@ -616,5 +684,39 @@ export class SharedTripComponent implements AfterViewInit {
     const waypoints = items.map((item) => `${item.lat},${item.lng}`).join("/");
     const url = `https://www.google.com/maps/dir/${waypoints}`;
     window.open(url, "_blank");
+  }
+
+  openPackingList() {
+    if (!this.token) return;
+
+    if (!this.packingList.length)
+      this.apiService
+        .getSharedTripPackingList(this.token)
+        .pipe(take(1))
+        .subscribe({
+          next: (items) => {
+            this.packingList = [...items];
+            this.computeDispPackingList();
+          },
+        });
+    this.packingDialogVisible = true;
+  }
+
+  computeDispPackingList() {
+    const sorted: PackingItem[] = [...this.packingList].sort((a, b) =>
+      a.packed !== b.packed
+        ? a.packed
+          ? 1
+          : -1
+        : a.text.localeCompare(b.text),
+    );
+
+    this.dispPackingList = sorted.reduce<Record<string, PackingItem[]>>(
+      (acc, item) => {
+        (acc[item.category] ??= []).push(item);
+        return acc;
+      },
+      {},
+    );
   }
 }

@@ -239,6 +239,12 @@ export class ApiService {
     );
   }
 
+  getSharedTripPackingList(token: string): Observable<PackingItem[]> {
+    return this.httpClient.get<PackingItem[]>(
+      `${this.apiBaseUrl}/trips/shared/${token}/packing`,
+    );
+  }
+
   postPackingItem(
     trip_id: number,
     p_item: PackingItem,

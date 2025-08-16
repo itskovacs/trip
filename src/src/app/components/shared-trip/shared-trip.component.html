@@ -14,6 +14,8 @@
       <div class="flex gap-2 items-center text-xs text-gray-500"><i class="pi pi-github"></i>itskovacs/trip</div>
     </div>
     <div class="flex items-center gap-2 print:hidden">
+      <p-button pTooltip="Packing list" tooltipPosition="left" text (click)="openPackingList()" icon="pi pi-briefcase"
+        severity="help" />
       <span
         class="bg-gray-100 text-gray-800 text-xs md:text-sm font-medium me-2 px-2.5 py-0.5 rounded min-w-fit dark:bg-gray-400">{{
         (totalPrice | number:'1.0-2') || '-' }} {{ currency$ | async }}</span>
@@ -22,7 +24,8 @@
 </section>
 
 <section class="p-4 print:px-1 grid lg:grid-cols-3 gap-4 print:block">
-  <div class="p-4 shadow self-start rounded-md lg:col-span-2 max-w-screen print:col-span-full">
+  <div [ngClass]="{ 'lg:col-span-2': !isExpanded, 'lg:col-span-3': isExpanded }"
+    class="p-4 shadow self-start rounded-md max-w-screen print:col-span-full">
     <div [class.sticky]="!isMapFullscreen"
       class="top-0 z-10 bg-white p-2 mb-2 flex justify-between items-center dark:bg-surface-900">
       <div>
@@ -32,14 +35,17 @@
 
       <div class="flex items-center gap-2 print:hidden">
         <div class="hidden md:flex items-center gap-2">
-          <p-button
+          <p-button pTooltip="Expand table" class="hidden lg:flex" icon="pi pi-arrows-h"
+            (click)="isExpanded = !isExpanded" text />
+          <p-button pTooltip="Show filters" icon="pi pi-filter" (click)="toggleFiltering()" text />
+          <p-button [pTooltip]="tableExpandableMode ? 'f' : 'Switch table mode, allow column resizing'"
             [icon]="tableExpandableMode ? 'pi pi-arrow-up-right-and-arrow-down-left-from-center' : 'pi pi-arrow-down-left-and-arrow-up-right-to-center'"
             (click)="tableExpandableMode = !tableExpandableMode" text />
           <div class="border-l border-solid border-gray-700 h-4"></div>
-          <p-button icon="pi pi-car" (click)="tripToNavigation()" text />
-          <p-button icon="pi pi-directions" [severity]="tripMapAntLayerDayID == -1 ? 'help' : 'primary'"
-            (click)="toggleTripDaysHighlight()" text />
-          <p-button icon="pi pi-print" (click)="printTable()" text />
+          <p-button pTooltip="Open Google Maps directions" icon="pi pi-car" (click)="tripToNavigation()" text />
+          <p-button pTooltip="Show itinerary on map" icon="pi pi-directions"
+            [severity]="tripMapAntLayerDayID == -1 ? 'help' : 'primary'" (click)="toggleTripDaysHighlight()" text />
+          <p-button pTooltip="Print Trip" icon="pi pi-print" (click)="printTable()" text />
         </div>
 
         <div class="flex md:hidden items-center">
@@ -49,20 +55,31 @@
       </div>
     </div>
 
+    @if (isFilteringMode) {
+    <div class="grid md:grid-cols-2 gap-2 mb-2">
+      <p-multiselect display="chip" [options]="tripTableColumns" [(ngModel)]="tripTableSelectedColumns"
+        styleClass="capitalize" selectedItemsLabel="{0} columns selected" placeholder="Choose Columns" />
+
+      <input [formControl]="tripTableSearchInput" pInputText placeholder="Search..." />
+    </div>
+    }
+
     @defer {
     @if (flattenedTripItems.length) {
     <p-table [value]="flattenedTripItems" class="print-striped-rows" styleClass="max-w-[85vw] md:max-w-full"
-      [rowGroupMode]="tableExpandableMode ? 'subheader': 'rowspan'" groupRowsBy="td_label">
+      [rowGroupMode]="tableExpandableMode ? 'subheader': 'rowspan'" groupRowsBy="td_label"
+      [resizableColumns]="tableExpandableMode">
       <ng-template #header>
         <tr>
-          <th>Day</th>
-          <th class="w-10">Time</th>
-          <th>Text</th>
-          <th class="w-24">Place</th>
-          <th>Comment</th>
-          <th class="w-20">LatLng</th>
-          <th class="w-12">Price</th>
-          <th class="w-12">Status</th>
+          @if (!tableExpandableMode && tripTableSelectedColumns.includes('day')) {<th class="w-24" pResizableColumn>Day
+          </th>}
+          @if (tripTableSelectedColumns.includes('time')) {<th class="w-12" pResizableColumn>Time</th>}
+          @if (tripTableSelectedColumns.includes('text')) {<th pResizableColumn>Text</th>}
+          @if (tripTableSelectedColumns.includes('place')) {<th pResizableColumn>Place</th>}
+          @if (tripTableSelectedColumns.includes('comment')) {<th pResizableColumn>Comment</th>}
+          @if (tripTableSelectedColumns.includes('LatLng')) {<th class="w-12" pResizableColumn>LatLng</th>}
+          @if (tripTableSelectedColumns.includes('price')) {<th class="w-12" pResizableColumn>Price</th>}
+          @if (tripTableSelectedColumns.includes('status')) {<th class="w-12" pResizableColumn>Status</th>}
         </tr>
       </ng-template>
       @if (tableExpandableMode) {
@@ -83,37 +100,41 @@
       <ng-template #expandedrow let-tripitem>
         <tr class="h-12 cursor-pointer" [class.font-bold]="selectedItem?.id === tripitem.id"
           (click)="onRowClick(tripitem)">
-          <td class="font-mono text-sm max-w-20 truncate">{{ tripitem.td_label }}</td>
-          <td class="font-mono text-sm">{{ tripitem.time }}</td>
-          <td class="relative max-w-60 truncate">
-            <div class="relative">
-              @if (tripitem.status) {<div class="block xl:hidden absolute top-0 -left-1.5 size-1.5 rounded-full"
+          @if (tripTableSelectedColumns.includes('time')) {<td class="font-mono text-sm">{{ tripitem.time }}</td>}
+          @if (tripTableSelectedColumns.includes('text')) {<td class="relative">
+            <div class="truncate">
+              @if (tripitem.status) {<div class="block absolute top-3 left-1.5 size-2 rounded-full"
                 [style.background]="tripitem.status.color"></div>}
               {{ tripitem.text }}
             </div>
-          </td>
-          <td class="relative">
+          </td>}
+          @if (tripTableSelectedColumns.includes('place')) {<td class="relative">
             @if (tripitem.place) {
-            <div class="ml-7 print:ml-0 max-w-24 print:whitespace-normal">
+            <div class="ml-7 print:ml-0 truncate print:whitespace-normal">
               <img [src]="tripitem.place.image || tripitem.place.category.image"
                 class="absolute left-0 top-1/2 -translate-y-1/2 w-9 rounded-full object-cover print:hidden" /> {{
               tripitem.place.name }}
             </div>
             } @else {-}
-          </td>
-          <td class="max-w-20 truncate print:whitespace-pre-line">{{ tripitem.comment || '-' }}</td>
-          <td class="font-mono text-sm">
-            <div class="max-w-20 print:max-w-full truncate">
+          </td>}
+          @if (tripTableSelectedColumns.includes('comment')) {<td>
+            <div class="line-clamp-1 whitespace-pre-line print:line-clamp-none">
+              {{ tripitem.comment || '-' }}
+            </div>
+          </td>}
+          @if (tripTableSelectedColumns.includes('LatLng')) {<td class="font-mono text-sm">
+            <div class="print:max-w-full truncate">
               @if (tripitem.lat) { {{ tripitem.lat }}, {{ tripitem.lng }} }
               @else {-}
             </div>
-          </td>
-          <td class="truncate">@if (tripitem.price) {<span
+          </td>}
+          @if (tripTableSelectedColumns.includes('price')) {<td class="truncate">@if (tripitem.price) {<span
               class="bg-gray-100 text-gray-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded">{{
-              tripitem.price }} {{ currency$ | async }}</span>}</td>
-          <td class="truncate">@if (tripitem.status) {<span [style.background]="tripitem.status.color+'1A'"
-              [style.color]="tripitem.status.color" class="text-xs font-medium me-2 px-2.5 py-0.5 rounded">{{
-              tripitem.status.label }}</span>}</td>
+              tripitem.price }} {{ currency$ | async }}</span>}</td>}
+          @if (tripTableSelectedColumns.includes('status')) {<td class="truncate">@if (tripitem.status) {<span
+              [style.background]="tripitem.status.color+'1A'" [style.color]="tripitem.status.color"
+              class="text-xs font-medium me-2 px-2.5 py-0.5 rounded">{{
+              tripitem.status.label }}</span>}</td>}
         </tr>
       </ng-template>
       }
@@ -121,22 +142,22 @@
       <ng-template #body let-tripitem let-rowgroup="rowgroup" let-rowspan="rowspan">
         <tr class="h-12 cursor-pointer" [class.font-bold]="selectedItem?.id === tripitem.id"
           (click)="onRowClick(tripitem)">
-          @if (rowgroup) {
+          @if (tripTableSelectedColumns.includes('day') && rowgroup) {
           <td [attr.rowspan]="rowspan" class="font-normal! max-w-20 truncate cursor-pointer"
             [class.text-blue-500]="tripMapAntLayerDayID == tripitem.day_id"
             (click)="toggleTripDayHighlightPathDay(tripitem.day_id); $event.stopPropagation()">
             <div class="truncate">{{tripitem.td_label }}</div>
           </td>
           }
-          <td class="font-mono text-sm">{{ tripitem.time }}</td>
-          <td class="relative max-w-60 truncate">
-            <div class="relative">
-              {{ tripitem.text }}
-              @if (tripitem.status) {<div class="block xl:hidden absolute top-0 -left-1.5 size-1.5 rounded-full"
+          @if (tripTableSelectedColumns.includes('time')) {<td class="font-mono text-sm">{{ tripitem.time }}</td>}
+          @if (tripTableSelectedColumns.includes('text')) {<td class="relative max-w-60">
+            <div class="truncate">
+              @if (tripitem.status) {<div class="block absolute top-3 left-1.5 size-2 rounded-full"
                 [style.background]="tripitem.status.color"></div>}
+              {{ tripitem.text }}
             </div>
-          </td>
-          <td class="relative">
+          </td>}
+          @if (tripTableSelectedColumns.includes('place')) {<td class="relative">
             @if (tripitem.place) {
             <div class="ml-7 print:ml-0 max-w-24 truncate print:whitespace-normal">
               <img [src]="tripitem.place.image || tripitem.place.category.image"
@@ -144,20 +165,25 @@
               tripitem.place.name }}
             </div>
             } @else {-}
-          </td>
-          <td class="max-w-20 truncate print:whitespace-pre-line">{{ tripitem.comment || '-' }}</td>
-          <td class="font-mono text-sm">
+          </td>}
+          @if (tripTableSelectedColumns.includes('comment')) {<td>
+            <div class="line-clamp-1 whitespace-pre-line print:line-clamp-none">
+              {{ tripitem.comment || '-' }}
+            </div>
+          </td>}
+          @if (tripTableSelectedColumns.includes('LatLng')) {<td class="font-mono text-sm">
             <div class="max-w-20 print:max-w-full truncate">
               @if (tripitem.lat) { {{ tripitem.lat }}, {{ tripitem.lng }} }
               @else {-}
             </div>
-          </td>
-          <td class="truncate">@if (tripitem.price) {<span
+          </td>}
+          @if (tripTableSelectedColumns.includes('price')) {<td class="truncate">@if (tripitem.price) {<span
               class="bg-gray-100 text-gray-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded">{{
-              tripitem.price }} {{ currency$ | async }}</span>}</td>
-          <td class="truncate">@if (tripitem.status) {<span [style.background]="tripitem.status.color+'1A'"
-              [style.color]="tripitem.status.color" class="text-xs font-medium me-2 px-2.5 py-0.5 rounded">{{
-              tripitem.status.label }}</span>}</td>
+              tripitem.price }} {{ currency$ | async }}</span>}</td>}
+          @if (tripTableSelectedColumns.includes('status')) {<td class="truncate">@if (tripitem.status) {<span
+              [style.background]="tripitem.status.color+'1A'" [style.color]="tripitem.status.color"
+              class="text-xs font-medium me-2 px-2.5 py-0.5 rounded">{{
+              tripitem.status.label }}</span>}</td>}
         </tr>
       </ng-template>
       }
@@ -181,7 +207,8 @@
     }
   </div>
 
-  <div class="flex flex-col gap-4 sticky top-4 self-start max-w-screen print:hidden">
+  <div [ngClass]="{ 'grid col-span-full grid-cols-4': isExpanded, 'flex flex-col sticky': !isExpanded }"
+    class="gap-4 top-4 self-start max-w-screen print:hidden min-w-0">
     @if (selectedItem) {
     <div class="p-4 w-full max-w-full min-h-20 md:max-h-[600px] rounded-md shadow text-center">
       <div class="flex justify-between items-center mb-3">
@@ -263,8 +290,9 @@
         </div>
 
         <div class="flex gap-2">
-          <p-button icon="pi pi-window-maximize" (click)="toggleMapFullscreen()" text />
-          <p-button icon="pi pi-refresh" [disabled]="!places.length" (click)="resetMapBounds()" text />
+          <p-button pTooltip="Fullscreen" icon="pi pi-window-maximize" (click)="toggleMapFullscreen()" text />
+          <p-button pTooltip="Reset bounds" icon="pi pi-refresh" [disabled]="!places.length" (click)="resetMapBounds()"
+            text />
         </div>
       </div>
 
@@ -297,7 +325,7 @@
       </div>
 
       @if (!collapsedTripPlaces) {
-      <div class="max-h-[25vh] overflow-y-auto">
+      <div [class.max-h-64!]="!isExpanded" class="max-h-[340px] overflow-y-auto">
         @defer {
         @for (p of places; track p.id) {
         <div class="flex items-center gap-4 py-2 px-4 hover:bg-gray-50 rounded-md overflow-auto dark:hover:bg-gray-800"
@@ -360,7 +388,7 @@
       </div>
 
       @if (!collapsedTripDays) {
-      <div class="max-h-[20vh] overflow-y-auto">
+      <div [class.max-h-64!]="!isExpanded" class="max-h-[340px] overflow-y-auto">
         @defer {
         @for (d of trip.days; track d.id) {
         <div class="flex items-center gap-4 rounded-md justify-between h-10 px-4 py-2 w-full max-w-full">
@@ -399,7 +427,7 @@
       </div>
 
       @if (!collapsedTripStatuses) {
-      <div class="max-h-[20vh] overflow-y-auto">
+      <div [class.max-h-40!]="!isExpanded" class="max-h-[340px] overflow-y-auto">
         @defer {
         @for (item of getWatchlistData; track item.id) {
         <div class="flex items-center gap-2 h-10 px-4 py-2 w-full max-w-full">
@@ -452,3 +480,29 @@
 </section>
 }
 }
+
+<p-dialog header="Packing list" [draggable]="false" [dismissableMask]="true" [modal]="true"
+  [(visible)]="packingDialogVisible" styleClass="w-[95%] md:w-[70%] lg:w-[50%]">
+  <section class="md:max-w-3/4 md:mx-auto max-h-[80%] md:max-h-[600px]">
+    <div class="grid gap-2 mt-4 pb-4">
+      @for (c of dispPackingList | keyvalue; track c.key) {
+      <div class="mt-4 text-md font-semibold capitalize">{{ c.key }}</div>
+
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+        @for (item of c.value; track item.id) {
+        <div class="relative flex items-center gap-3 rounded-md p-2 hover:bg-gray-100 dark:hover:bg-white/5">
+          <label [for]="item.id" [class.line-through]="item.packed"
+            class="flex items-center gap-2 w-full cursor-pointer">
+            <p-checkbox disabled [binary]="true" [inputId]="item.id.toString()" [(ngModel)]="item.packed" />
+            <div class="pr-6 md:pr-0 truncate select-none flex-1">
+              @if (item.qt) {<span class="text-gray-400 mr-0.5">{{ item.qt }}</span>}
+              <span>{{ item.text }}</span>
+            </div>
+          </label>
+        </div>
+        }
+      </div>
+      }
+    </div>
+  </section>
+</p-dialog>
