@@ -1,6 +1,6 @@
 import { AfterViewInit, Component } from "@angular/core";
 import { ApiService } from "../../services/api.service";
-import { FormsModule, ReactiveFormsModule } from "@angular/forms";
+import { FormControl, FormsModule, ReactiveFormsModule } from "@angular/forms";
 import { ButtonModule } from "primeng/button";
 import { InputTextModule } from "primeng/inputtext";
 import { SkeletonModule } from "primeng/skeleton";
@@ -30,6 +30,7 @@ import { TripCreateDayItemModalComponent } from "../../modals/trip-create-day-it
 import { TripCreateItemsModalComponent } from "../../modals/trip-create-items-modal/trip-create-items-modal.component";
 import {
   combineLatest,
+  debounceTime,
   forkJoin,
   Observable,
   of,
@@ -48,16 +49,19 @@ import { PlaceCreateModalComponent } from "../../modals/place-create-modal/place
 import { Settings } from "../../types/settings";
 import { DialogModule } from "primeng/dialog";
 import { ClipboardModule } from "@angular/cdk/clipboard";
+import { TooltipModule } from "primeng/tooltip";
+import { MultiSelectModule } from "primeng/multiselect";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 
 @Component({
   selector: "app-trip",
   standalone: true,
   imports: [
     CommonModule,
+    ReactiveFormsModule,
     FormsModule,
     SkeletonModule,
     MenuModule,
-    ReactiveFormsModule,
     InputTextModule,
     AsyncPipe,
     LinkifyPipe,
@@ -66,7 +70,9 @@ import { ClipboardModule } from "@angular/cdk/clipboard";
     ButtonModule,
     DecimalPipe,
     DialogModule,
+    TooltipModule,
     ClipboardModule,
+    MultiSelectModule,
   ],
   templateUrl: "./trip.component.html",
   styleUrls: ["./trip.component.scss"],
@@ -88,6 +94,7 @@ export class TripComponent implements AfterViewInit {
   collapsedTripStatuses = false;
   shareDialogVisible = false;
   isExpanded = false;
+  isFilteringMode = false;
 
   map?: L.Map;
   markerClusterGroup?: L.MarkerClusterGroup;
@@ -153,6 +160,13 @@ export class TripComponent implements AfterViewInit {
           },
         },
         {
+          label: "Filter",
+          icon: "pi pi-filter",
+          command: () => {
+            this.toggleFiltering();
+          },
+        },
+        {
           label: "Expand / Group",
           icon: "pi pi-arrow-down-left-and-arrow-up-right-to-center",
           command: () => {
@@ -201,6 +215,24 @@ export class TripComponent implements AfterViewInit {
       ],
     },
   ];
+  readonly tripTableColumns: string[] = [
+    "day",
+    "time",
+    "text",
+    "place",
+    "comment",
+    "LatLng",
+    "price",
+    "status",
+  ];
+  tripTableSelectedColumns: string[] = [
+    "day",
+    "time",
+    "text",
+    "place",
+    "comment",
+  ];
+  tripTableSearchInput = new FormControl("");
   selectedTripDayForMenu?: TripDay;
 
   dayStatsCache = new Map<number, { price: number; places: number }>();
@@ -215,6 +247,14 @@ export class TripComponent implements AfterViewInit {
   ) {
     this.currency$ = this.utilsService.currency$;
     this.statuses = this.utilsService.statuses;
+    this.tripTableSearchInput.valueChanges
+      .pipe(takeUntilDestroyed(), debounceTime(300))
+      .subscribe({
+        next: (value) => {
+          if (value) this.flattenTripDayItems(value.toLowerCase());
+          else this.flattenTripDayItems();
+        },
+      });
   }
 
   ngAfterViewInit(): void {
@@ -284,6 +324,11 @@ export class TripComponent implements AfterViewInit {
     this.trip?.days.sort((a, b) => a.label.localeCompare(b.label));
   }
 
+  toggleFiltering() {
+    this.isFilteringMode = !this.isFilteringMode;
+    if (!this.isFilteringMode) this.flattenTripDayItems();
+  }
+
   getDayStats(day: TripDay): { price: number; places: number } {
     if (this.dayStatsCache.has(day.id)) return this.dayStatsCache.get(day.id)!;
 
@@ -323,10 +368,17 @@ export class TripComponent implements AfterViewInit {
     return this.statuses.find((s) => s.label == status);
   }
 
-  flattenTripDayItems() {
+  flattenTripDayItems(searchValue?: string) {
     this.sortTripDays();
     this.flattenedTripItems = this.trip!.days.flatMap((day) =>
       [...day.items]
+        .filter((item) =>
+          searchValue
+            ? item.text.toLowerCase().includes(searchValue) ||
+              item.place?.name.toLowerCase().includes(searchValue) ||
+              item.comment?.toLowerCase().includes(searchValue)
+            : true,
+        )
         .sort((a, b) => a.time.localeCompare(b.time))
         .map((item) => ({
           td_id: day.id,
