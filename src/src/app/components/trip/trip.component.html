@@ -92,7 +92,8 @@
     @defer {
     @if (flattenedTripItems.length) {
     <p-table [value]="flattenedTripItems" class="print-striped-rows" styleClass="max-w-[85vw] md:max-w-full"
-      [rowGroupMode]="tableExpandableMode ? 'subheader': 'rowspan'" groupRowsBy="td_label">
+      [rowGroupMode]="tableExpandableMode ? 'subheader': 'rowspan'" groupRowsBy="td_label"
+      [resizableColumns]="tableExpandableMode">
       <ng-template #header>
         <tr>
           @if (!tableExpandableMode && tripTableSelectedColumns.includes('day')) {<th class="w-24" pResizableColumn>Day
