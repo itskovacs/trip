@@ -224,7 +224,7 @@ export class ApiService {
   createSharedTrip(trip_id: number): Observable<string> {
     return this.httpClient
       .post<SharedTripURL>(`${this.apiBaseUrl}/trips/${trip_id}/share`, {})
-      .pipe(map((t) => t.url));
+      .pipe(map((t) => window.location.origin + t.url));
   }
 
   deleteSharedTrip(trip_id: number): Observable<null> {
