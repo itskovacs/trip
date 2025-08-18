@@ -57,7 +57,7 @@ TRIP_IMAGE_SIZE=600
 
 You can configure the default values for new users with the following settings: `DEFAULT_TILE`, `DEFAULT_CURRENCY`, `DEFAULT_MAP_LAT`, `DEFAULT_MAP_LNG`.
 
-> [!WARN]
+> [!INFO]
 > Changing these values does not update settings for existing users, it only affects new users.
 
 
