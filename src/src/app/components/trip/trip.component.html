@@ -60,9 +60,10 @@
 
       <div class="flex items-center gap-2 print:hidden">
         <div class="hidden md:flex items-center gap-2">
+          <p-button pTooltip="Show filters" icon="pi pi-filter" (click)="toggleFiltering()" text />
+          <div class="border-l border-solid border-gray-700 h-4"></div>
           <p-button pTooltip="Expand table" class="hidden lg:flex" icon="pi pi-arrows-h"
             (click)="isExpanded = !isExpanded" text />
-          <p-button pTooltip="Show filters" icon="pi pi-filter" (click)="toggleFiltering()" text />
           <p-button [pTooltip]="tableExpandableMode ? 'f' : 'Switch table mode, allow column resizing'"
             [icon]="tableExpandableMode ? 'pi pi-arrow-up-right-and-arrow-down-left-from-center' : 'pi pi-arrow-down-left-and-arrow-up-right-to-center'"
             (click)="tableExpandableMode = !tableExpandableMode" text />
@@ -70,6 +71,7 @@
           <p-button pTooltip="Open Google Maps directions" icon="pi pi-car" (click)="tripToNavigation()" text />
           <p-button pTooltip="Show itinerary on map" icon="pi pi-directions"
             [severity]="tripMapAntLayerDayID == -1 ? 'help' : 'primary'" (click)="toggleTripDaysHighlight()" text />
+          <div class="border-l border-solid border-gray-700 h-4"></div>
           <p-button pTooltip="Print Trip" icon="pi pi-print" (click)="printTable()" text />
           <div class="border-l border-solid border-gray-700 h-4"></div>
         </div>
@@ -93,9 +95,9 @@
 
     @defer {
     @if (flattenedTripItems.length) {
-    <p-table [value]="flattenedTripItems" class="print-striped-rows" styleClass="max-w-[85vw] md:max-w-full"
-      [rowGroupMode]="tableExpandableMode ? 'subheader': 'rowspan'" groupRowsBy="td_label"
-      [resizableColumns]="tableExpandableMode">
+    <p-table [value]="flattenedTripItems" class="print-striped-rows" [class.table-colored-resizer]="tableExpandableMode"
+      styleClass="max-w-[85vw] md:max-w-full" [rowGroupMode]="tableExpandableMode ? 'subheader': 'rowspan'"
+      groupRowsBy="td_label" [resizableColumns]="tableExpandableMode">
       <ng-template #header>
         <tr>
           @if (!tableExpandableMode && tripTableSelectedColumns.includes('day')) {<th class="w-24" pResizableColumn>Day

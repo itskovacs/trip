@@ -126,6 +126,11 @@ html {
   }
 }
 
+.table-colored-resizer .p-datatable-column-resizer {
+  width: 2px;
+  background-color: #999;
+}
+
 @keyframes slideYcenteredX {
   0% {
     opacity: 0;
