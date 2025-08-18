@@ -132,7 +132,7 @@
           @if (tripTableSelectedColumns.includes('time')) {<td class="font-mono text-sm">{{ tripitem.time }}</td>}
           @if (tripTableSelectedColumns.includes('text')) {<td class="relative">
             <div class="truncate">
-              @if (tripitem.status) {<div class="block absolute top-3 left-1.5 size-2 rounded-full"
+              @if (tripitem.status) {<div class="block absolute top-3 left-1 size-2.5 rounded-full"
                 [style.background]="tripitem.status.color"></div>}
               {{ tripitem.text }}
             </div>
@@ -181,7 +181,7 @@
           @if (tripTableSelectedColumns.includes('time')) {<td class="font-mono text-sm">{{ tripitem.time }}</td>}
           @if (tripTableSelectedColumns.includes('text')) {<td class="relative max-w-60">
             <div class="truncate">
-              @if (tripitem.status) {<div class="block absolute top-3 left-1.5 size-2 rounded-full"
+              @if (tripitem.status) {<div class="block absolute top-3 left-1 size-2.5 rounded-full"
                 [style.background]="tripitem.status.color"></div>}
               {{ tripitem.text }}
             </div>

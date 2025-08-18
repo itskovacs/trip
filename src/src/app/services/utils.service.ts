@@ -15,7 +15,7 @@ export class UtilsService {
 
   readonly statuses: TripStatus[] = [
     { label: "pending", color: "#3258A8" },
-    { label: "booked", color: "#007A30" },
+    { label: "booked", color: "#00A341" },
     { label: "constraint", color: "#FFB900" },
     { label: "optional", color: "#625A84" },
   ];
