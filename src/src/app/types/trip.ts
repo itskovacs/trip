@@ -16,11 +16,11 @@ export interface Trip {
   archived?: boolean;
   user: string;
   days: TripDay[];
-  shared?: boolean;
 
   // POST / PUT
   places: Place[];
   place_ids: number[];
+  shared?: boolean;
 }
 
 export interface TripDay {
@@ -72,4 +72,10 @@ export interface PackingItem {
   category: string;
   qt?: number;
   packed?: boolean;
+}
+
+export interface ChecklistItem {
+  id: number;
+  text: string;
+  checked?: boolean;
 }

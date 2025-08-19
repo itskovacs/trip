@@ -15,6 +15,7 @@ import {
   TripItem,
   TripStatus,
   PackingItem,
+  ChecklistItem,
 } from "../../types/trip";
 import { Place } from "../../types/poi";
 import {
@@ -55,6 +56,7 @@ import { MultiSelectModule } from "primeng/multiselect";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { CheckboxChangeEvent, CheckboxModule } from "primeng/checkbox";
 import { TripCreatePackingModalComponent } from "../../modals/trip-create-packing-modal/trip-create-packing-modal.component";
+import { TripCreateChecklistModalComponent } from "../../modals/trip-create-checklist-modal/trip-create-checklist-modal.component";
 
 @Component({
   selector: "app-trip",
@@ -95,13 +97,15 @@ export class TripComponent implements AfterViewInit {
   totalPrice = 0;
   collapsedTripDays = false;
   collapsedTripPlaces = false;
-  collapsedTripStatuses = false;
   shareDialogVisible = false;
   packingDialogVisible = false;
   isExpanded = false;
   isFilteringMode = false;
   packingList: PackingItem[] = [];
   dispPackingList: Record<string, PackingItem[]> = {};
+  checklistDialogVisible = false;
+  checklistItems: ChecklistItem[] = [];
+  dispchecklist: ChecklistItem[] = [];
 
   map?: L.Map;
   markerClusterGroup?: L.MarkerClusterGroup;
@@ -120,6 +124,14 @@ export class TripComponent implements AfterViewInit {
           iconClass: "text-purple-500!",
           command: () => {
             this.openPackingList();
+          },
+        },
+        {
+          label: "Checklist",
+          icon: "pi pi-check-square",
+          iconClass: "text-purple-500!",
+          command: () => {
+            this.openChecklist();
           },
         },
         {
@@ -666,7 +678,7 @@ export class TripComponent implements AfterViewInit {
     this.tripMapAntLayerDayID = -1; //Hardcoded value for global trace
   }
 
-  toggleTripDayHighlightPathDay(day_id: number) {
+  toggleTripDayHighlight(day_id: number) {
     // Click on the currently displayed day: remove
     if (this.tripMapAntLayerDayID == day_id) {
       this.resetDayHighlight();
@@ -1446,5 +1458,98 @@ export class TripComponent implements AfterViewInit {
       },
       {},
     );
+  }
+
+  openChecklist() {
+    if (!this.trip) return;
+
+    if (!this.checklistItems.length)
+      this.apiService
+        .getChecklist(this.trip.id)
+        .pipe(take(1))
+        .subscribe({
+          next: (items) => {
+            this.checklistItems = [...items];
+          },
+        });
+    this.checklistDialogVisible = true;
+  }
+
+  addChecklistItem() {
+    if (!this.trip) return;
+
+    const modal: DynamicDialogRef = this.dialogService.open(
+      TripCreateChecklistModalComponent,
+      {
+        header: "Create item",
+        modal: true,
+        appendTo: "body",
+        closable: true,
+        dismissableMask: true,
+        width: "40vw",
+        breakpoints: {
+          "1260px": "70vw",
+          "600px": "90vw",
+        },
+      },
+    );
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (item: ChecklistItem | null) => {
+        if (!item) return;
+
+        this.apiService
+          .postChecklistItem(this.trip!.id, item)
+          .pipe(take(1))
+          .subscribe({
+            next: (item) => {
+              this.checklistItems = [...this.checklistItems, item];
+            },
+          });
+      },
+    });
+  }
+
+  onCheckChecklistItem(e: CheckboxChangeEvent, id: number) {
+    if (!this.trip) return;
+    this.apiService
+      .putChecklistItem(this.trip.id, id, { checked: e.checked })
+      .pipe(take(1))
+      .subscribe({
+        next: (item) => {
+          const i = this.checklistItems.find((p) => p.id == item.id);
+          if (i) i.checked = item.checked;
+        },
+      });
+  }
+
+  deleteChecklistItem(item: ChecklistItem) {
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: "Confirm deletion",
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      breakpoints: {
+        "640px": "90vw",
+      },
+      data: `Delete ${item.text.substring(0, 50)} ?`,
+    });
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (bool) => {
+        if (!bool) return;
+        this.apiService
+          .deleteChecklistItem(this.trip!.id, item.id)
+          .pipe(take(1))
+          .subscribe({
+            next: () => {
+              const index = this.checklistItems.findIndex(
+                (p) => p.id == item.id,
+              );
+              if (index > -1) this.checklistItems.splice(index, 1);
+            },
+          });
+      },
+    });
   }
 }

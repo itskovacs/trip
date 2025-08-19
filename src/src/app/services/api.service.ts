@@ -1,10 +1,11 @@
 import { inject, Injectable } from "@angular/core";
-import { HttpClient, HttpHeaders } from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 import { Category, Place } from "../types/poi";
 import { BehaviorSubject, map, Observable, shareReplay, tap } from "rxjs";
 import { Info } from "../types/info";
 import { ImportResponse, Settings } from "../types/settings";
 import {
+  ChecklistItem,
   PackingItem,
   SharedTripURL,
   Trip,
@@ -269,6 +270,45 @@ export class ApiService {
   deletePackingItem(trip_id: number, p_id: number): Observable<null> {
     return this.httpClient.delete<null>(
       `${this.apiBaseUrl}/trips/${trip_id}/packing/${p_id}`,
+    );
+  }
+
+  getChecklist(trip_id: number): Observable<ChecklistItem[]> {
+    return this.httpClient.get<ChecklistItem[]>(
+      `${this.apiBaseUrl}/trips/${trip_id}/checklist`,
+    );
+  }
+
+  getSharedTripChecklist(token: string): Observable<ChecklistItem[]> {
+    return this.httpClient.get<ChecklistItem[]>(
+      `${this.apiBaseUrl}/trips/shared/${token}/checklist`,
+    );
+  }
+
+  postChecklistItem(
+    trip_id: number,
+    item: ChecklistItem,
+  ): Observable<ChecklistItem> {
+    return this.httpClient.post<ChecklistItem>(
+      `${this.apiBaseUrl}/trips/${trip_id}/checklist`,
+      item,
+    );
+  }
+
+  putChecklistItem(
+    trip_id: number,
+    id: number,
+    item: Partial<ChecklistItem>,
+  ): Observable<ChecklistItem> {
+    return this.httpClient.put<ChecklistItem>(
+      `${this.apiBaseUrl}/trips/${trip_id}/checklist/${id}`,
+      item,
+    );
+  }
+
+  deleteChecklistItem(trip_id: number, id: number): Observable<null> {
+    return this.httpClient.delete<null>(
+      `${this.apiBaseUrl}/trips/${trip_id}/checklist/${id}`,
     );
   }
 

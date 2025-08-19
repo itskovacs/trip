@@ -1,0 +1,11 @@
+<div pFocusTrap class="grid items-center gap-4" [formGroup]="checklistForm">
+  <p-floatlabel variant="in">
+    <input class="col-span-2" id="text" formControlName="text" (keypress.enter)="closeDialog()" pInputText fluid />
+    <label for="text">Text</label>
+  </p-floatlabel>
+
+  <div class="mt-4 text-right">
+    <p-button (click)="closeDialog()" [disabled]="!checklistForm.dirty || !checklistForm.valid">{{
+      checklistForm.get("id")?.value
+      !== -1 ? "Update" : "Create" }}</p-button>
+  </div>

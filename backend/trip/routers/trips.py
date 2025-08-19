@@ -5,14 +5,15 @@ from sqlmodel import select
 
 from ..config import settings
 from ..deps import SessionDep, get_current_username
-from ..models.models import (Image, Place, Trip, TripCreate, TripDay,
+from ..models.models import (Image, Place, Trip, TripChecklistItem,
+                             TripChecklistItemCreate, TripChecklistItemRead,
+                             TripChecklistItemUpdate, TripCreate, TripDay,
                              TripDayBase, TripDayRead, TripItem,
                              TripItemCreate, TripItemRead, TripItemUpdate,
                              TripPackingListItem, TripPackingListItemCreate,
-                             TripPackingListItemRead,
-                             TripPackingListItemUpdate, TripPlaceLink,
-                             TripRead, TripReadBase, TripShare, TripShareURL,
-                             TripUpdate)
+                             TripPackingListItemRead, TripPackingListItemUpdate,
+                             TripRead, TripReadBase, TripShare,
+                             TripShareURL, TripUpdate)
 from ..security import verify_exists_and_owns
 from ..utils.utils import (b64img_decode, generate_urlsafe, remove_image,
                            save_image_to_file)
@@ -486,6 +487,94 @@ def delete_packing_item(
             TripPackingListItem.id == p_id,
             TripPackingListItem.trip_id == trip_id,
             TripPackingListItem.user == current_user,
+        )
+    ).one_or_none()
+
+    if not item:
+        raise HTTPException(status_code=404, detail="Not found")
+
+    session.delete(item)
+    session.commit()
+    return {}
+
+
+@router.get("/{trip_id}/checklist", response_model=list[TripChecklistItemRead])
+def read_checklist(
+    session: SessionDep,
+    trip_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+) -> list[TripChecklistItemRead]:
+    _verify_trip_member(session, trip_id, current_user)
+    items = session.exec(select(TripChecklistItem).where(TripChecklistItem.trip_id == trip_id))
+    return [TripChecklistItemRead.serialize(i) for i in items]
+
+
+@router.get("/shared/{token}/checklist", response_model=list[TripChecklistItemRead])
+def read_shared_trip_checklist(
+    session: SessionDep,
+    token: str,
+) -> list[TripChecklistItemRead]:
+    items = session.exec(
+        select(TripChecklistItem).where(
+            TripChecklistItem.trip_id == _trip_from_token_or_404(session, token).trip_id
+        )
+    )
+    return [TripChecklistItemRead.serialize(i) for i in items]
+
+
+@router.post("/{trip_id}/checklist", response_model=TripChecklistItemRead)
+def create_checklist_item(
+    session: SessionDep,
+    trip_id: int,
+    data: TripChecklistItemCreate,
+    current_user: Annotated[str, Depends(get_current_username)],
+) -> TripChecklistItemRead:
+    _verify_trip_member(session, trip_id, current_user)
+    item = TripChecklistItem(**data.model_dump(), trip_id=trip_id)
+    session.add(item)
+    session.commit()
+    session.refresh(item)
+    return TripChecklistItemRead.serialize(item)
+
+
+@router.put("/{trip_id}/checklist/{id}", response_model=TripChecklistItemRead)
+def update_checklist_item(
+    session: SessionDep,
+    item: TripChecklistItemUpdate,
+    trip_id: int,
+    id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+) -> TripChecklistItemRead:
+    _verify_trip_member(session, trip_id, current_user)
+    db_item = session.exec(
+        select(TripChecklistItem).where(TripChecklistItem.id == id, TripChecklistItem.trip_id == trip_id)
+    ).one_or_none()
+
+    if not db_item:
+        raise HTTPException(status_code=404, detail="Not found")
+
+    item_data = item.model_dump(exclude_unset=True)
+    for key, value in item_data.items():
+        setattr(db_item, key, value)
+
+    session.add(db_item)
+    session.commit()
+    session.refresh(db_item)
+    return TripChecklistItemRead.serialize(db_item)
+
+
+@router.delete("/{trip_id}/checklist/{id}")
+def delete_checklist_item(
+    session: SessionDep,
+    trip_id: int,
+    id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+):
+    _verify_trip_member(session, trip_id, current_user)
+    item = session.exec(
+        select(TripChecklistItem).where(
+            TripChecklistItem.id == id,
+            TripChecklistItem.trip_id == trip_id,
         )
     ).one_or_none()
 

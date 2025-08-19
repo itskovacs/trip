@@ -260,6 +260,7 @@ class Trip(TripBase, table=True):
     days: list["TripDay"] = Relationship(back_populates="trip", cascade_delete=True)
     shares: list["TripShare"] = Relationship(back_populates="trip", cascade_delete=True)
     packing_items: list["TripPackingListItem"] = Relationship(back_populates="trip", cascade_delete=True)
+    checklist_items: list["TripChecklistItem"] = Relationship(back_populates="trip", cascade_delete=True)
 
 
 class TripCreate(TripBase):
@@ -297,7 +298,6 @@ class TripRead(TripBase):
     image_id: int | None
     days: list["TripDayRead"]
     places: list["PlaceRead"]
-    shared: bool
 
     @classmethod
     def serialize(cls, obj: Trip) -> "TripRead":
@@ -309,7 +309,6 @@ class TripRead(TripBase):
             image_id=obj.image_id,
             days=[TripDayRead.serialize(day) for day in obj.days],
             places=[PlaceRead.serialize(place) for place in obj.places],
-            shared=bool(obj.shares),
         )
 
 
@@ -445,4 +444,35 @@ class TripPackingListItemRead(TripPackingListItemBase):
             qt=obj.qt,
             category=obj.category,
             packed=obj.packed,
+        )
+
+
+class TripChecklistItemBase(SQLModel):
+    text: str | None = None
+    checked: bool | None = None
+
+
+class TripChecklistItem(TripChecklistItemBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+
+    trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE")
+    trip: Trip | None = Relationship(back_populates="checklist_items")
+
+
+class TripChecklistItemCreate(TripChecklistItemBase):
+    checked: bool = False
+
+
+class TripChecklistItemUpdate(TripChecklistItemBase): ...
+
+
+class TripChecklistItemRead(TripChecklistItemBase):
+    id: int
+
+    @classmethod
+    def serialize(cls, obj: "TripChecklistItem") -> "TripChecklistItemRead":
+        return cls(
+            id=obj.id,
+            text=obj.text,
+            checked=obj.checked,
         )
