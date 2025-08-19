@@ -504,8 +504,11 @@ def read_checklist(
     trip_id: int,
     current_user: Annotated[str, Depends(get_current_username)],
 ) -> list[TripChecklistItemRead]:
-    _verify_trip_member(session, trip_id, current_user)
-    items = session.exec(select(TripChecklistItem).where(TripChecklistItem.trip_id == trip_id))
+    items = session.exec(
+        select(TripChecklistItem).where(
+            TripChecklistItem.trip_id == trip_id, TripChecklistItem.user == current_user
+        )
+    )
     return [TripChecklistItemRead.serialize(i) for i in items]
 
 
@@ -529,8 +532,11 @@ def create_checklist_item(
     data: TripChecklistItemCreate,
     current_user: Annotated[str, Depends(get_current_username)],
 ) -> TripChecklistItemRead:
-    _verify_trip_member(session, trip_id, current_user)
-    item = TripChecklistItem(**data.model_dump(), trip_id=trip_id)
+    item = TripChecklistItem(
+        **data.model_dump(),
+        trip_id=trip_id,
+        user=current_user,
+    )
     session.add(item)
     session.commit()
     session.refresh(item)
@@ -545,9 +551,12 @@ def update_checklist_item(
     id: int,
     current_user: Annotated[str, Depends(get_current_username)],
 ) -> TripChecklistItemRead:
-    _verify_trip_member(session, trip_id, current_user)
     db_item = session.exec(
-        select(TripChecklistItem).where(TripChecklistItem.id == id, TripChecklistItem.trip_id == trip_id)
+        select(TripChecklistItem).where(
+            TripChecklistItem.id == id,
+            TripChecklistItem.trip_id == trip_id,
+            TripChecklistItem.user == current_user,
+        )
     ).one_or_none()
 
     if not db_item:
@@ -570,11 +579,11 @@ def delete_checklist_item(
     id: int,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip_member(session, trip_id, current_user)
     item = session.exec(
         select(TripChecklistItem).where(
             TripChecklistItem.id == id,
             TripChecklistItem.trip_id == trip_id,
+            TripChecklistItem.user == current_user,
         )
     ).one_or_none()
 
