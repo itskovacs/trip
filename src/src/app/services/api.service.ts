@@ -1,5 +1,5 @@
 import { inject, Injectable } from "@angular/core";
-import { HttpClient } from "@angular/common/http";
+import { HttpClient, HttpHeaders } from "@angular/common/http";
 import { Category, Place } from "../types/poi";
 import { BehaviorSubject, map, Observable, shareReplay, tap } from "rxjs";
 import { Info } from "../types/info";
@@ -11,7 +11,9 @@ import {
   Trip,
   TripBase,
   TripDay,
+  TripInvitation,
   TripItem,
+  TripMember,
 } from "../types/trip";
 
 const NO_AUTH_HEADER = {
@@ -309,6 +311,51 @@ export class ApiService {
   deleteChecklistItem(trip_id: number, id: number): Observable<null> {
     return this.httpClient.delete<null>(
       `${this.apiBaseUrl}/trips/${trip_id}/checklist/${id}`,
+    );
+  }
+
+  getHasTripsInvitations(): Observable<boolean> {
+    return this.httpClient.get<boolean>(
+      `${this.apiBaseUrl}/trips/invitations/pending`,
+    );
+  }
+
+  getTripsInvitations(): Observable<TripInvitation[]> {
+    return this.httpClient.get<TripInvitation[]>(
+      `${this.apiBaseUrl}/trips/invitations`,
+    );
+  }
+
+  getTripMembers(trip_id: number): Observable<TripMember[]> {
+    return this.httpClient.get<TripMember[]>(
+      `${this.apiBaseUrl}/trips/${trip_id}/members`,
+    );
+  }
+
+  deleteTripMember(trip_id: number, username: string): Observable<null> {
+    return this.httpClient.delete<null>(
+      `${this.apiBaseUrl}/trips/${trip_id}/members/${username}`,
+    );
+  }
+
+  inviteTripMember(trip_id: number, user: string): Observable<TripMember> {
+    return this.httpClient.post<TripMember>(
+      `${this.apiBaseUrl}/trips/${trip_id}/members`,
+      { user },
+    );
+  }
+
+  acceptTripMemberInvite(trip_id: number): Observable<null> {
+    return this.httpClient.post<null>(
+      `${this.apiBaseUrl}/trips/${trip_id}/members/accept`,
+      {},
+    );
+  }
+
+  declineTripMemberInvite(trip_id: number): Observable<null> {
+    return this.httpClient.post<null>(
+      `${this.apiBaseUrl}/trips/${trip_id}/members/decline`,
+      {},
     );
   }
 

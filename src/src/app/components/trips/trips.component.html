@@ -4,7 +4,10 @@
       <img src="favicon.png" (click)="gotoMap()" class="cursor-pointer w-24" />
     </div>
     <div class="flex gap-2">
-      <p-button icon="pi pi-map" (click)="gotoMap()" text />
+      <div class="relative">
+        <p-button icon="pi pi-bell" (click)="toggleInvitations()" text />
+        @if(hasPendingInvitations) {<div class="absolute top-1 right-2 size-2 bg-red-400 rounded-full"></div>}
+      </div>
       <p-button icon="pi pi-plus" (click)="addTrip()" text />
     </div>
   </div>
@@ -19,7 +22,13 @@
 
       <div class="absolute inset-0 bg-black/5 flex flex-col justify-end p-4 text-white">
         <h3 class="text-lg font-semibold line-clamp-2">{{ trip.name }}</h3>
-        <p class="text-sm ">{{ trip.days || 0 }} {{ trip.days > 1 ? 'days' : 'day'}}</p>
+
+        <div class="flex items-center gap-2 text-sm">
+          <p>{{ trip.days || 0 }} {{ trip.days > 1 ? 'days' : 'day'}}</p>
+          @if (trip.collaborators.length) {- <p>{{ trip.collaborators.length + 1 }} user{{ trip.collaborators.length > 0
+            ? 's'
+            : '' }}</p>}
+        </div>
 
         <i
           class="pi pi-arrow-right text-xl absolute right-4 bottom-4 h-4 opacity-0 -translate-x-4 group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300"></i>
@@ -49,3 +58,39 @@
     }
   </div>
 </div>
+
+<p-dialog header="Invitations" [draggable]="false" [dismissableMask]="true" [modal]="true"
+  [(visible)]="invitationsDialogVisible" styleClass="w-[95%] md:w-[40%] lg:w-[30%]">
+  <section class="p-4 max-w-full max-h-[80%] md:max-h-[600px]">
+    <div class="divide-y divide-gray-100">
+      @for (inv of invitations; track inv.id) {
+      <div class="flex items-center justify-between gap-x-6 py-5">
+        <div class="flex items-center min-w-0 gap-x-4">
+          <img [src]="inv.image" class="w-20 rounded-full object-cover">
+
+          <div class="flex flex-col min-w-0 gap-1">
+            <div class="capitalize truncate text-md font-semibold text-gray-900">{{ inv.name }}</div>
+            <div class="text-xs md:text-sm text-gray-500">On <i>{{ inv.invited_at | date: 'short'}}</i>, <i>{{
+                inv.invited_by
+                }}</i> invited you to collaborate </div>
+
+            <div class="flex justify-center md:hidden gap-4">
+              <p-button text (click)="acceptInvitation(inv.id)" icon="pi pi-check" severity="success" />
+              <p-button text (click)="declineInvitation(inv.id)" icon="pi pi-times" severity="danger" />
+            </div>
+          </div>
+        </div>
+
+        <div class="hidden md:flex gap-4">
+          <p-button text (click)="acceptInvitation(inv.id)" icon="pi pi-check" severity="success" />
+          <p-button text (click)="declineInvitation(inv.id)" icon="pi pi-times" severity="danger" />
+        </div>
+      </div>
+      } @empty {
+      <div class="text-center">
+        No invitation
+      </div>
+      }
+    </div>
+  </section>
+</p-dialog>

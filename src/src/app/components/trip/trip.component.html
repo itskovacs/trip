@@ -15,6 +15,7 @@
     <div class="flex items-center gap-2 print:hidden">
       @if (!trip?.archived) {
       <div class="hidden md:flex items-center gap-2">
+        <p-button pTooltip="Manage users" text (click)="openMembersDialog()" icon="pi pi-users" />
         <p-button pTooltip="Share Trip" text (click)="shareDialogVisible = true" icon="pi pi-share-alt" />
         <p-button pTooltip="Archive Trip" text (click)="toggleArchiveTrip()" icon="pi pi-box" severity="warn" />
         <div class="border-l border-solid border-gray-700 h-4"></div>
@@ -611,6 +612,62 @@
             <span>{{ item.text }}</span>
           </div>
         </label>
+      </div>
+      }
+    </div>
+  </section>
+</p-dialog>
+
+<p-dialog header="Members" [draggable]="false" [dismissableMask]="true" [modal]="true"
+  [(visible)]="membersDialogVisible" styleClass="w-[95%] md:w-[40%] lg:w-[30%]">
+  <section class="p-4 max-w-full max-h-[80%] md:max-h-[600px]">
+    <div class="flex justify-center">
+      <p-button (click)="addMember()" icon="pi pi-plus" label="Member" text />
+    </div>
+
+    <div class="divide-y divide-gray-100 mt-4 pb-4">
+      @for (m of tripMembers; track m.user) {
+      <div class="flex items-center justify-between gap-x-6 py-5">
+        <div class="flex items-center min-w-0 gap-x-4">
+          <div class="size-12 flex flex-none rounded-full items-center justify-center" [ngClass]="{
+            'bg-red-100': !m.invited_at,
+            'bg-gray-50': m.invited_at && !m.joined_at,
+            'bg-blue-100': m.invited_at && m.joined_at
+            }">
+            <i class="pi pi-user"></i>
+          </div>
+
+          <div class="flex min-w-0 gap-x-4">
+            <span class="capitalize truncate font-semibold text-gray-900">{{ m.user }}</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <span
+            class="text-center bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-md group-hover:hidden dark:bg-gray-100/85">-
+            {{ currency$ | async }}</span>
+
+          <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
+            @if (!m.invited_at) {
+            <span
+              class="text-center bg-red-100 text-red-800 text-xs px-2.5 py-0.5 rounded-md group-hover:hidden dark:bg-red-100/85">Owner</span>
+            }
+
+            @if (m.invited_at && !m.joined_at) {
+            <span
+              class="text-center bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-md group-hover:hidden dark:bg-gray-100/85">Invited</span>
+            }
+
+            @if (m.joined_at) {
+            <span
+              class="text-center bg-blue-100 text-blue-800 text-xs px-2.5 py-0.5 rounded-md group-hover:hidden dark:bg-blue-100/85">Member</span>
+            }
+          </div>
+
+          @if (m.invited_at) {
+          <p-button text (click)="deleteMember(m.user)" icon="pi pi-trash" severity="danger" />
+          }
+        </div>
       </div>
       }
     </div>

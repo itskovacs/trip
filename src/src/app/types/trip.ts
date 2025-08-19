@@ -7,6 +7,7 @@ export interface TripBase {
   archived?: boolean;
   user: string;
   days: number;
+  collaborators: TripMember[];
 }
 
 export interface Trip {
@@ -16,6 +17,7 @@ export interface Trip {
   archived?: boolean;
   user: string;
   days: TripDay[];
+  collaborators: TripMember[];
 
   // POST / PUT
   places: Place[];
@@ -60,6 +62,18 @@ export interface FlattenedTripItem {
   lng?: number;
   day_id: number;
   status?: TripStatus;
+}
+
+export interface TripMember {
+  user: string;
+  invited_by: string;
+  invited_at: string;
+  joined_at?: string;
+}
+
+export interface TripInvitation extends TripBase {
+  invited_by: string;
+  invited_at: string;
 }
 
 export interface SharedTripURL {

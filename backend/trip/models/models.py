@@ -261,6 +261,7 @@ class Trip(TripBase, table=True):
     shares: list["TripShare"] = Relationship(back_populates="trip", cascade_delete=True)
     packing_items: list["TripPackingListItem"] = Relationship(back_populates="trip", cascade_delete=True)
     checklist_items: list["TripChecklistItem"] = Relationship(back_populates="trip", cascade_delete=True)
+    memberships: list["TripMember"] = Relationship(back_populates="trip", cascade_delete=True)
 
 
 class TripCreate(TripBase):
@@ -279,6 +280,7 @@ class TripReadBase(TripBase):
     image: str | None
     image_id: int | None
     days: int
+    collaborators: list["TripMemberRead"]
 
     @classmethod
     def serialize(cls, obj: Trip) -> "TripRead":
@@ -289,6 +291,7 @@ class TripReadBase(TripBase):
             image=_prefix_assets_url(obj.image.filename) if obj.image else None,
             image_id=obj.image_id,
             days=len(obj.days),
+            collaborators=[TripMemberRead.serialize(m) for m in obj.memberships],
         )
 
 
@@ -298,6 +301,7 @@ class TripRead(TripBase):
     image_id: int | None
     days: list["TripDayRead"]
     places: list["PlaceRead"]
+    collaborators: list["TripMemberRead"]
 
     @classmethod
     def serialize(cls, obj: Trip) -> "TripRead":
@@ -309,7 +313,41 @@ class TripRead(TripBase):
             image_id=obj.image_id,
             days=[TripDayRead.serialize(day) for day in obj.days],
             places=[PlaceRead.serialize(place) for place in obj.places],
+            collaborators=[TripMemberRead.serialize(m) for m in obj.memberships],
         )
+
+
+class TripMember(SQLModel, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    user: str = Field(foreign_key="user.username", ondelete="CASCADE")
+    invited_by: str | None = Field(default=None, foreign_key="user.username", ondelete="SET NULL")
+    invited_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    joined_at: datetime | None = None
+
+    trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE")
+    trip: Trip | None = Relationship(back_populates="memberships")
+
+
+class TripMemberCreate(BaseModel):
+    user: str
+
+
+class TripMemberRead(BaseModel):
+    user: str
+    invited_by: str | None = None
+    invited_at: datetime | None = None
+    joined_at: datetime | None = None
+
+    @classmethod
+    def serialize(cls, obj: TripMember) -> "TripMemberRead":
+        return cls(
+            user=obj.user, invited_by=obj.invited_by, invited_at=obj.invited_at, joined_at=obj.joined_at
+        )
+
+
+class TripInvitationRead(TripReadBase):
+    invited_by: str | None = None
+    invited_at: datetime
 
 
 class TripDayBase(SQLModel):
@@ -318,8 +356,6 @@ class TripDayBase(SQLModel):
 
 class TripDay(TripDayBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    user: str = Field(foreign_key="user.username", ondelete="CASCADE")
-
     trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE")
     trip: Trip | None = Relationship(back_populates="days")
 
@@ -420,7 +456,6 @@ class TripPackingListItemBase(SQLModel):
 
 class TripPackingListItem(TripPackingListItemBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    user: str = Field(foreign_key="user.username", ondelete="CASCADE")
 
     trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE")
     trip: Trip | None = Relationship(back_populates="packing_items")

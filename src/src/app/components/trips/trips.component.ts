@@ -2,11 +2,13 @@ import { Component, OnInit } from "@angular/core";
 import { ApiService } from "../../services/api.service";
 import { ButtonModule } from "primeng/button";
 import { SkeletonModule } from "primeng/skeleton";
-import { TripBase } from "../../types/trip";
+import { TripBase, TripInvitation } from "../../types/trip";
 import { DialogService, DynamicDialogRef } from "primeng/dynamicdialog";
 import { TripCreateModalComponent } from "../../modals/trip-create-modal/trip-create-modal.component";
 import { Router } from "@angular/router";
 import { forkJoin, take } from "rxjs";
+import { DatePipe } from "@angular/common";
+import { DialogModule } from "primeng/dialog";
 
 interface TripBaseWithDates extends TripBase {
   from?: Date;
@@ -16,12 +18,15 @@ interface TripBaseWithDates extends TripBase {
 @Component({
   selector: "app-trips",
   standalone: true,
-  imports: [SkeletonModule, ButtonModule],
+  imports: [SkeletonModule, ButtonModule, DialogModule, DatePipe],
   templateUrl: "./trips.component.html",
   styleUrls: ["./trips.component.scss"],
 })
 export class TripsComponent implements OnInit {
   trips: TripBase[] = [];
+  hasPendingInvitations = false;
+  invitations: TripInvitation[] = [];
+  invitationsDialogVisible = false;
 
   constructor(
     private apiService: ApiService,
@@ -38,6 +43,12 @@ export class TripsComponent implements OnInit {
           this.trips = trips;
           this.sortTrips();
         },
+      });
+    this.apiService
+      .getHasTripsInvitations()
+      .pipe(take(1))
+      .subscribe({
+        next: (bool) => (this.hasPendingInvitations = bool),
       });
   }
 
@@ -136,5 +147,51 @@ export class TripsComponent implements OnInit {
       current.setDate(current.getDate() + 1);
     }
     return labels;
+  }
+
+  toggleInvitations() {
+    if (!this.invitations.length)
+      this.apiService
+        .getTripsInvitations()
+        .pipe(take(1))
+        .subscribe({
+          next: (items) => {
+            this.invitations = [...items];
+          },
+        });
+    this.invitationsDialogVisible = true;
+  }
+
+  removeInvitationAndHide(trip_id: number) {
+    this.invitations = this.invitations.filter((inv) => inv.id != trip_id);
+    this.hasPendingInvitations = !!this.invitations.length;
+    this.invitationsDialogVisible = false;
+  }
+
+  acceptInvitation(trip_id: number) {
+    this.apiService
+      .acceptTripMemberInvite(trip_id)
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          const index = this.invitations.findIndex((inv) => inv.id == trip_id);
+          if (index > -1) {
+            this.trips = [...this.trips, this.invitations[index]];
+            this.sortTrips();
+          }
+          this.removeInvitationAndHide(trip_id);
+        },
+      });
+  }
+
+  declineInvitation(trip_id: number) {
+    this.apiService
+      .declineTripMemberInvite(trip_id)
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.removeInvitationAndHide(trip_id);
+        },
+      });
   }
 }

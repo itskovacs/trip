@@ -16,6 +16,7 @@ import {
   TripStatus,
   PackingItem,
   ChecklistItem,
+  TripMember,
 } from "../../types/trip";
 import { Place } from "../../types/poi";
 import {
@@ -57,6 +58,7 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { CheckboxChangeEvent, CheckboxModule } from "primeng/checkbox";
 import { TripCreatePackingModalComponent } from "../../modals/trip-create-packing-modal/trip-create-packing-modal.component";
 import { TripCreateChecklistModalComponent } from "../../modals/trip-create-checklist-modal/trip-create-checklist-modal.component";
+import { TripInviteMemberModalComponent } from "../../modals/trip-invite-member-modal/trip-invite-member-modal.component";
 
 @Component({
   selector: "app-trip",
@@ -106,6 +108,8 @@ export class TripComponent implements AfterViewInit {
   checklistDialogVisible = false;
   checklistItems: ChecklistItem[] = [];
   dispchecklist: ChecklistItem[] = [];
+  membersDialogVisible = false;
+  tripMembers: TripMember[] = [];
 
   map?: L.Map;
   markerClusterGroup?: L.MarkerClusterGroup;
@@ -132,6 +136,14 @@ export class TripComponent implements AfterViewInit {
           iconClass: "text-purple-500!",
           command: () => {
             this.openChecklist();
+          },
+        },
+        {
+          label: "Members",
+          icon: "pi pi-users",
+          iconClass: "text-blue-500!",
+          command: () => {
+            this.openMembersDialog();
           },
         },
         {
@@ -1547,6 +1559,86 @@ export class TripComponent implements AfterViewInit {
                 (p) => p.id == item.id,
               );
               if (index > -1) this.checklistItems.splice(index, 1);
+            },
+          });
+      },
+    });
+  }
+
+  openMembersDialog() {
+    if (!this.trip) return;
+
+    if (!this.tripMembers.length)
+      this.apiService
+        .getTripMembers(this.trip.id)
+        .pipe(take(1))
+        .subscribe({
+          next: (items) => {
+            this.tripMembers = [...items];
+          },
+        });
+    this.membersDialogVisible = true;
+  }
+
+  addMember() {
+    if (!this.trip) return;
+
+    const modal: DynamicDialogRef = this.dialogService.open(
+      TripInviteMemberModalComponent,
+      {
+        header: "Invite member",
+        modal: true,
+        appendTo: "body",
+        closable: true,
+        dismissableMask: true,
+        width: "40vw",
+        breakpoints: {
+          "1260px": "70vw",
+          "600px": "90vw",
+        },
+      },
+    );
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (user: string | null) => {
+        if (!user) return;
+
+        this.apiService
+          .inviteTripMember(this.trip!.id, user)
+          .pipe(take(1))
+          .subscribe({
+            next: (member) => {
+              this.tripMembers = [...this.tripMembers, member];
+            },
+          });
+      },
+    });
+  }
+
+  deleteMember(username: string) {
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: "Confirm deletion",
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      breakpoints: {
+        "640px": "90vw",
+      },
+      data: `Delete ${username.substring(0, 50)} from Trip ?`,
+    });
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (bool) => {
+        if (!bool) return;
+        this.apiService
+          .deleteTripMember(this.trip!.id, username)
+          .pipe(take(1))
+          .subscribe({
+            next: () => {
+              const index = this.tripMembers.findIndex(
+                (p) => p.user == username,
+              );
+              if (index > -1) this.tripMembers.splice(index, 1);
             },
           });
       },

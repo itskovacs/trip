@@ -1,5 +1,5 @@
 import base64
-from datetime import date
+from datetime import UTC, date, datetime
 from io import BytesIO
 from pathlib import Path
 from secrets import token_urlsafe
@@ -46,6 +46,10 @@ def remove_image(path: str):
         fpath.unlink()
     except OSError as exc:
         raise Exception("Error deleting image:", exc, path)
+
+
+def utc_now():
+    return datetime.now(UTC)
 
 
 def parse_str_or_date_to_date(cdate: str | date) -> date:
