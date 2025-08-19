@@ -500,6 +500,7 @@ export class TripComponent implements AfterViewInit {
         text: this.selectedItem?.text || "",
         lat: lat,
         lng: lng,
+        time: this.selectedItem?.time || "",
       };
       this.tripMapTemporaryMarker = tripDayMarker(item).addTo(this.map!);
       this.map?.fitBounds([[lat, lng]], { padding: [60, 60] });
@@ -563,6 +564,7 @@ export class TripComponent implements AfterViewInit {
               text: item.text,
               isPlace: !!item.place,
               idx: idx,
+              time: item.time,
             };
 
             if (item.lat && item.lng)
@@ -684,6 +686,7 @@ export class TripComponent implements AfterViewInit {
             lat: item.lat,
             lng: item.lng,
             isPlace: !!item.place,
+            time: item.time,
           };
         if (item.place && item.place)
           return {
@@ -691,6 +694,7 @@ export class TripComponent implements AfterViewInit {
             lat: item.place.lat,
             lng: item.place.lng,
             isPlace: true,
+            time: item.time,
           };
         return undefined;
       })

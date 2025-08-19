@@ -72,6 +72,7 @@ export function tripDayMarker(item: {
   text: string;
   lat: number;
   lng: number;
+  time?: string;
 }): L.Marker {
   const marker = new L.Marker([item.lat!, item.lng], {
     icon: L.divIcon({
@@ -83,7 +84,7 @@ export function tripDayMarker(item: {
   const touchDevice = "ontouchstart" in window;
   if (!touchDevice) {
     marker.bindTooltip(
-      `<div class="font-semibold mb-1 truncate text-base">${item.text}</div>`,
+      `<div class="text-xs text-gray-500">${item.time}</div><div class="font-semibold mb-1 truncate text-base">${item.text}</div>`,
       {
         direction: "right",
         offset: [10, 0],
