@@ -491,6 +491,24 @@
   <p-button (click)="toggleTripDaysHighlight()" text icon="pi pi-directions"
     [severity]="tripMapAntLayerDayID == -1 ? 'help' : 'secondary'" />
 </div>
+
+<div
+  class="fixed bottom-4 left-2 bg-white shadow rounded dark:bg-surface-900 min-w-32 max-w-48 max-h-96 overflow-y-auto">
+  <div class="pr-4 py-4 grid gap-4">
+    <h2 class="pl-4 font-semibold text-md">Days</h2>
+    @for (day of trip?.days; track day.id) {
+    <div (click)="toggleTripDayHighlight(day.id)" class="flex gap-4 items-center cursor-pointer min-w-0 border-l-4 pl-2"
+      [ngClass]="{'border-transparent': tripMapAntLayerDayID != day.id, 'border-blue-400': tripMapAntLayerDayID == day.id}">
+      <span
+        class="w-10 text-center bg-blue-100 text-blue-800 text-sm px-2.5 py-0.5 rounded-md group-hover:hidden dark:bg-blue-100/85">{{
+        day.items.length }}</span>
+      <div class="truncate">
+        {{ day.label }}
+      </div>
+    </div>
+    }
+  </div>
+</div>
 }
 
 <p-dialog header="Share" [draggable]="false" [dismissableMask]="true" [modal]="true" [(visible)]="shareDialogVisible"
