@@ -130,6 +130,11 @@ html {
   width: 2px;
   background-color: #999;
 }
+@media print {
+  .table-colored-resizer .p-datatable-column-resizer {
+    background-color: transparent;
+  }
+}
 
 @keyframes slideYcenteredX {
   0% {
