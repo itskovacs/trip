@@ -302,6 +302,7 @@ class TripRead(TripBase):
     days: list["TripDayRead"]
     places: list["PlaceRead"]
     collaborators: list["TripMemberRead"]
+    shared: bool
 
     @classmethod
     def serialize(cls, obj: Trip) -> "TripRead":
@@ -314,6 +315,7 @@ class TripRead(TripBase):
             days=[TripDayRead.serialize(day) for day in obj.days],
             places=[PlaceRead.serialize(place) for place in obj.places],
             collaborators=[TripMemberRead.serialize(m) for m in obj.memberships],
+            shared=bool(obj.shares),
         )
 
 
