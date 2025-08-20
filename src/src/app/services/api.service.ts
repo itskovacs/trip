@@ -1,5 +1,5 @@
 import { inject, Injectable } from "@angular/core";
-import { HttpClient, HttpHeaders } from "@angular/common/http";
+import { HttpClient } from "@angular/common/http";
 import { Category, Place } from "../types/poi";
 import { BehaviorSubject, map, Observable, shareReplay, tap } from "rxjs";
 import { Info } from "../types/info";

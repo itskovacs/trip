@@ -1,5 +1,5 @@
 import base64
-from datetime import UTC, date, datetime
+from datetime import UTC, datetime
 from io import BytesIO
 from pathlib import Path
 from secrets import token_urlsafe
@@ -50,15 +50,6 @@ def remove_image(path: str):
 
 def utc_now():
     return datetime.now(UTC)
-
-
-def parse_str_or_date_to_date(cdate: str | date) -> date:
-    if isinstance(cdate, str):
-        try:
-            return date.fromisoformat(cdate)
-        except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid date format, use YYYY-MM-DD")
-    return cdate
 
 
 async def httpx_get(link: str) -> str:
