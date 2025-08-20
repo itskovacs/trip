@@ -387,8 +387,8 @@
 
             <div class="flex gap-0.5">
               <span [style.color]="p.category.color" [style.background-color]="p.category.color + '1A'"
-                class="text-xs font-medium me-2 px-2.5 py-0.5 rounded flex gap-2 items-center truncate"><i
-                  class="pi pi-box text-xs"></i>{{ p.category.name }}</span>
+                class="text-xs font-medium me-2 px-2.5 py-0.5 rounded flex gap-2 items-center max-w-28"><i
+                  class="pi pi-box text-xs"></i> <span class="truncate">{{ p.category.name }}</span></span>
 
               @if (isPlaceUsed(p.id)) {
               <span class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-green-100/85"><i
@@ -403,6 +403,10 @@
                 p.price || '-'
                 }} {{ currency$ | async }}</span>
 
+              @if (trip?.collaborators?.length) {
+              <span class="bg-gray-100 text-gray-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-gray-100/85">{{ p.user
+                }}</span>
+              }
             </div>
           </div>
         </div>

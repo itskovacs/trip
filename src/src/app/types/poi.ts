@@ -15,6 +15,7 @@ export interface Place {
   category: Category;
   category_id?: number;
 
+  user?: string;
   gpx?: string;
   image?: string;
   price?: number;

@@ -221,11 +221,13 @@ class PlaceRead(PlaceBase):
     category: CategoryRead
     image: str | None
     image_id: int | None
+    user: str
 
     @classmethod
     def serialize(cls, obj: Place, exclude_gpx=True) -> "PlaceRead":
         return cls(
             id=obj.id,
+            user=obj.user,
             name=obj.name,
             lat=obj.lat,
             lng=obj.lng,
