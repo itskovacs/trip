@@ -12,6 +12,7 @@ import {
   TripItem,
   TripStatus,
   PackingItem,
+  ChecklistItem,
 } from "../../types/trip";
 import { Place } from "../../types/poi";
 import {
@@ -72,12 +73,14 @@ export class SharedTripComponent implements AfterViewInit {
   totalPrice = 0;
   collapsedTripDays = false;
   collapsedTripPlaces = false;
-  collapsedTripStatuses = false;
   packingDialogVisible = false;
   isExpanded = false;
   isFilteringMode = false;
   packingList: PackingItem[] = [];
   dispPackingList: Record<string, PackingItem[]> = {};
+  checklistDialogVisible = false;
+  checklistItems: ChecklistItem[] = [];
+  dispchecklist: ChecklistItem[] = [];
 
   map?: L.Map;
   markerClusterGroup?: L.MarkerClusterGroup;
@@ -94,14 +97,15 @@ export class SharedTripComponent implements AfterViewInit {
           label: "Packing",
           icon: "pi pi-briefcase",
           command: () => {
-            // this.toggleArchiveTrip();
+            this.openPackingList();
           },
         },
         {
-          label: "Reminders",
+          label: "Checklist",
           icon: "pi pi-check-square",
+          iconClass: "text-purple-500!",
           command: () => {
-            // this.toggleArchiveTrip();
+            this.openChecklist();
           },
         },
       ],
@@ -718,5 +722,20 @@ export class SharedTripComponent implements AfterViewInit {
       },
       {},
     );
+  }
+
+  openChecklist() {
+    if (!this.trip) return;
+
+    if (!this.checklistItems.length)
+      this.apiService
+        .getChecklist(this.trip.id)
+        .pipe(take(1))
+        .subscribe({
+          next: (items) => {
+            this.checklistItems = [...items];
+          },
+        });
+    this.checklistDialogVisible = true;
   }
 }
