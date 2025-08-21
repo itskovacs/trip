@@ -177,8 +177,8 @@ def update_trip(
 
         image = Image(filename=filename, user=current_user)
         session.add(image)
-        session.refresh(image)
         session.flush()
+        session.refresh(image)
 
         if db_trip.image_id:
             old_image = session.get(Image, db_trip.image_id)
