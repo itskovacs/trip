@@ -41,6 +41,7 @@ import { YesNoModalComponent } from "../../modals/yes-no-modal/yes-no-modal.comp
 import { CategoryCreateModalComponent } from "../../modals/category-create-modal/category-create-modal.component";
 import { AuthService } from "../../services/auth.service";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { PlaceGPXComponent } from "../../shared/place-gpx/place-gpx.component";
 
 export interface ContextMenuItem {
   text: string;
@@ -62,6 +63,7 @@ export interface MarkerOptions extends L.MarkerOptions {
   standalone: true,
   imports: [
     PlaceBoxComponent,
+    PlaceGPXComponent,
     FormsModule,
     SkeletonModule,
     ToggleSwitchModule,
@@ -102,6 +104,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   visiblePlaces: Place[] = [];
   selectedPlace?: Place;
   categories: Category[] = [];
+  selectedGPX?: Place;
 
   filter_display_visited = false;
   filter_display_favorite_only = false;
@@ -531,21 +534,24 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   displayGPXOnMap(gpx: string) {
-    if (!this.map) return;
+    if (!this.map || !this.selectedPlace) return;
     if (!this.gpxLayerGroup)
       this.gpxLayerGroup = L.layerGroup().addTo(this.map);
     this.gpxLayerGroup.clearLayers();
 
     try {
       const gpxPolyline = gpxToPolyline(gpx);
+      const selectedPlaceWithGPX = { ...this.selectedPlace, gpx };
+
       gpxPolyline.on("click", () => {
-        this.gpxLayerGroup?.removeLayer(gpxPolyline);
+        this.selectedGPX = selectedPlaceWithGPX;
       });
       this.gpxLayerGroup?.addLayer(gpxPolyline);
       this.map.fitBounds(gpxPolyline.getBounds(), { padding: [20, 20] });
     } catch {
       this.utilsService.toast("error", "Error", "Couldn't parse GPX data");
     }
+    this.closePlaceBox();
   }
 
   getPlaceGPX() {
@@ -814,6 +820,28 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   closePlaceBox() {
     this.selectedPlace = undefined;
+  }
+
+  closePlaceGPX() {
+    this.selectedGPX = undefined;
+  }
+
+  downloadGPX() {
+    if (!this.selectedGPX?.gpx) return;
+    const dataBlob = new Blob([this.selectedGPX.gpx]);
+    const downloadURL = URL.createObjectURL(dataBlob);
+    const link = document.createElement("a");
+    link.href = downloadURL;
+    link.download = `TRIP_${this.selectedGPX.name}.gpx`;
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(downloadURL);
+  }
+
+  removeGPX() {
+    if (!this.gpxLayerGroup) return;
+    this.gpxLayerGroup.clearLayers();
+    this.closePlaceGPX();
   }
 
   toGithub() {

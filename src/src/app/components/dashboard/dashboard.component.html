@@ -6,6 +6,11 @@
   (closeEmitter)="closePlaceBox()"></app-place-box>
 }
 
+@if (selectedGPX) {
+<app-place-gpx [selectedPlace]="selectedGPX" (downloadEmitter)="downloadGPX()" (removeEmitter)="removeGPX()"
+  (closeEmitter)="closePlaceGPX()"></app-place-gpx>
+}
+
 <div class="absolute z-30 top-2 right-2 p-2 bg-white shadow rounded dark:bg-surface-900">
   <p-button (click)="toggleMarkersList()" text severity="secondary" icon="pi pi-map-marker" />
 </div>
