@@ -35,7 +35,7 @@
 
       <span
         class="bg-gray-100 text-gray-800 text-xs md:text-sm font-medium me-2 px-2.5 py-0.5 rounded min-w-fit dark:bg-gray-400">{{
-        (totalPrice | number:'1.0-2') || '-' }} @if (totalPrice) { {{ trip?.currency }} }</span>
+        (totalPrice | number:'1.0-2') || '-' }} {{ trip?.currency }}</span>
     </div>
   </div>
 </section>
