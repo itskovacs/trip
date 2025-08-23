@@ -8,6 +8,7 @@ export interface TripBase {
   user: string;
   days: number;
   collaborators: TripMember[];
+  currency: string;
 }
 
 export interface Trip {
@@ -18,6 +19,7 @@ export interface Trip {
   user: string;
   days: TripDay[];
   collaborators: TripMember[];
+  currency: string;
 
   // POST / PUT
   places: Place[];

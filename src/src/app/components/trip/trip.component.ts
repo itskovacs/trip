@@ -86,7 +86,6 @@ import { TripInviteMemberModalComponent } from "../../modals/trip-invite-member-
   styleUrls: ["./trip.component.scss"],
 })
 export class TripComponent implements AfterViewInit {
-  currency$: Observable<string>;
   tripSharedURL$?: Observable<string>;
   statuses: TripStatus[] = [];
   trip?: Trip;
@@ -284,7 +283,6 @@ export class TripComponent implements AfterViewInit {
     private utilsService: UtilsService,
     private route: ActivatedRoute,
   ) {
-    this.currency$ = this.utilsService.currency$;
     this.statuses = this.utilsService.statuses;
     this.tripTableSearchInput.valueChanges
       .pipe(takeUntilDestroyed(), debounceTime(300))

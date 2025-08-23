@@ -61,14 +61,4 @@ export class UtilsService {
     const latlng = `${latMatch[1]},${lngMatch[1]}`;
     return [place, latlng];
   }
-
-  static currencySigns(): { c: string; s: string }[] {
-    return [
-      { c: "EUR", s: "€" },
-      { c: "GBP", s: "£" },
-      { c: "JPY", s: "¥" },
-      { c: "USD", s: "$" },
-      { c: "CHF", s: "CHF" },
-    ];
-  }
 }

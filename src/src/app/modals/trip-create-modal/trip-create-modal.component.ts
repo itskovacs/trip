@@ -40,6 +40,7 @@ export class TripCreateModalComponent {
       id: -1,
       name: ["", Validators.required],
       image: "",
+      currency: null,
       image_id: null,
       from: null,
       to: null,

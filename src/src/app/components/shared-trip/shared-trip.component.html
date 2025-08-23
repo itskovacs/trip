@@ -19,7 +19,7 @@
         severity="help" />
       <span
         class="bg-gray-100 text-gray-800 text-xs md:text-sm font-medium me-2 px-2.5 py-0.5 rounded min-w-fit dark:bg-gray-400">{{
-        (totalPrice | number:'1.0-2') || '-' }} {{ currency$ | async }}</span>
+        (totalPrice | number:'1.0-2') || '-' }} @if (totalPrice) { {{ trip.currency }} }</span>
     </div>
   </div>
 </section>
@@ -131,7 +131,7 @@
           </td>}
           @if (tripTableSelectedColumns.includes('price')) {<td class="truncate">@if (tripitem.price) {<span
               class="bg-gray-100 text-gray-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded">{{
-              tripitem.price }} {{ currency$ | async }}</span>}</td>}
+              tripitem.price }} @if (tripitem.price) { {{ trip.currency }} }</span>}</td>}
           @if (tripTableSelectedColumns.includes('status')) {<td class="truncate">@if (tripitem.status) {<span
               [style.background]="tripitem.status.color+'1A'" [style.color]="tripitem.status.color"
               class="text-xs font-medium me-2 px-2.5 py-0.5 rounded">{{
@@ -180,7 +180,7 @@
           </td>}
           @if (tripTableSelectedColumns.includes('price')) {<td class="truncate">@if (tripitem.price) {<span
               class="bg-gray-100 text-gray-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded">{{
-              tripitem.price }} {{ currency$ | async }}</span>}</td>}
+              tripitem.price }} @if (tripitem.price) { {{ trip.currency }} }</span>}</td>}
           @if (tripTableSelectedColumns.includes('status')) {<td class="truncate">@if (tripitem.status) {<span
               [style.background]="tripitem.status.color+'1A'" [style.color]="tripitem.status.color"
               class="text-xs font-medium me-2 px-2.5 py-0.5 rounded">{{
@@ -267,7 +267,7 @@
         @if (selectedItem.price) {
         <div class="rounded-md shadow p-4">
           <p class="font-bold mb-1">Price</p>
-          <p class="text-sm text-gray-500">{{ selectedItem.price }} {{ currency$ | async }}</p>
+          <p class="text-sm text-gray-500">{{ selectedItem.price }} @if (selectedItem.price) { {{ trip.currency }} }</p>
         </div>
         }
 
@@ -353,7 +353,7 @@
               <span
                 class="bg-gray-100 text-gray-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-100/85">{{
                 p.price || '-'
-                }} {{ currency$ | async }}</span>
+                }} @if (p.price) { {{ trip.currency }} }</span>
 
               @if (trip.collaborators.length) {
               <span class="bg-gray-100 text-gray-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-gray-100/85">{{ p.user
@@ -402,7 +402,7 @@
           </div>
           <div class="flex items-center gap-2 flex-none">
             <span class="bg-gray-100 text-gray-800 text-sm px-2.5 py-0.5 rounded-md min-w-fit dark:bg-gray-100/85">{{
-              getDayStats(d).price || '-' }} {{ currency$ | async }}</span>
+              getDayStats(d).price || '-' }} @if (getDayStats(d).price) { {{ trip.currency }} }</span>
             <span class="bg-blue-100 text-blue-800 text-sm px-2.5 py-0.5 rounded-md dark:bg-blue-100/85">{{
               getDayStats(d).places }}</span>
           </div>

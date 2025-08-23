@@ -250,6 +250,7 @@ class PlaceRead(PlaceBase):
 class TripBase(SQLModel):
     name: str
     archived: bool | None = None
+    currency: str | None = settings.DEFAULT_CURRENCY
 
 
 class Trip(TripBase, table=True):
@@ -294,6 +295,7 @@ class TripReadBase(TripBase):
             image_id=obj.image_id,
             days=len(obj.days),
             collaborators=[TripMemberRead.serialize(m) for m in obj.memberships],
+            currency=obj.currency if obj.currency else settings.DEFAULT_CURRENCY,
         )
 
 
@@ -318,6 +320,7 @@ class TripRead(TripBase):
             places=[PlaceRead.serialize(place) for place in obj.places],
             collaborators=[TripMemberRead.serialize(m) for m in obj.memberships],
             shared=bool(obj.shares),
+            currency=obj.currency if obj.currency else settings.DEFAULT_CURRENCY,
         )
 
 

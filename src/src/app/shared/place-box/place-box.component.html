@@ -77,7 +77,7 @@
 
                 <div class="flex flex-col mb-4">
                     <span class="text-gray-500">Price</span>
-                    <span>{{ selectedPlace.price || '-' }} {{ currency$ | async }}</span>
+                    <span>{{ selectedPlace.price || '-' }} @if (selectedPlace.price) { {{ currency$ | async }} }</span>
                 </div>
 
                 <div class="flex flex-col mb-4">

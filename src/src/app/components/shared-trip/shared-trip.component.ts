@@ -54,14 +54,12 @@ import { InputTextModule } from "primeng/inputtext";
     FormsModule,
     MultiSelectModule,
     CheckboxModule,
-    AsyncPipe,
   ],
   templateUrl: "./shared-trip.component.html",
   styleUrls: ["./shared-trip.component.scss"],
 })
 export class SharedTripComponent implements AfterViewInit {
   token?: string;
-  currency$: Observable<string>;
   statuses: TripStatus[] = [];
   trip?: Trip;
   places: Place[] = [];
@@ -180,7 +178,6 @@ export class SharedTripComponent implements AfterViewInit {
     private utilsService: UtilsService,
     private route: ActivatedRoute,
   ) {
-    this.currency$ = this.utilsService.currency$;
     this.statuses = this.utilsService.statuses;
     this.tripTableSearchInput.valueChanges
       .pipe(takeUntilDestroyed(), debounceTime(300))

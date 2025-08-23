@@ -96,7 +96,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   markerClusterGroup?: L.MarkerClusterGroup;
   gpxLayerGroup?: L.LayerGroup;
   settings?: Settings;
-  currencySigns = UtilsService.currencySigns();
   doNotDisplayOptions: SelectItemGroup[] = [];
 
   places: Place[] = [];
@@ -117,8 +116,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     private router: Router,
     private fb: FormBuilder,
   ) {
-    this.currencySigns = UtilsService.currencySigns();
-
     this.settingsForm = this.fb.group({
       map_lat: [
         "",
