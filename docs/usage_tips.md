@@ -16,6 +16,44 @@ Try it yourself with this URL: `https://www.google.com/maps/place/British+Museum
 To have this, you can either *click* on a Point of Interest in Google Maps or *search* for one, then copy the URL.
 
 
+### Batch Creation
+Places can be created using the Batch creation dialog, that supports JSON (array required).
+
+Example:
+```
+[
+{ "category": "Culture",  "name": "Car Museum", "lat": 12.12, "lng": 50.89, "place": "Auto History Museum" },
+{ "category": "Nature & Outdoor",  "name": "An amazing park", "lat": 50.12, "lng": 12.89, "place": "The Park", "image": "https://upload.wikimedia.org/wikipedia/commons/b/be/Random_pyramids.jpg" }
+]
+```
+
+> [!NOTE]
+> Image links must include the file extension. URLs without it won't attach the image (the place is created, but no image).
+
+> [!WARNING]
+> Mandatory properties:
+> ```
+> "category": "Categoryn ame" (case-sensitive)
+> "name": "The name"
+> "lat": 0.00
+> "lng": 0.00
+> "place": "Your string"
+> ```
+
+> [!NOTE]
+> Optional properties:
+> ```
+> "image": "https://example.com/image.jpg"
+> "allowdog": true/false
+> "description": "A description for the place"
+> "price": 0.00
+> "duration": 0
+> "favorite": true/false
+> "visited": true/false
+> "gpx": "gpx file content"
+> ```
+
+
 ### LatLng Parsing
 
 You can paste a LatLng coordinate into the `latitude` input when creating a Place.
