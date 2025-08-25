@@ -101,7 +101,7 @@ export class TripCreateDayItemModalComponent {
         });
 
       if (data.selectedDay)
-        this.itemForm.get("day_id")?.setValue(data.selectedDay);
+        this.itemForm.get("day_id")?.setValue([data.selectedDay]);
     }
 
     this.itemForm
@@ -122,6 +122,8 @@ export class TripCreateDayItemModalComponent {
             this.itemForm.get("price")?.setValue(p.price || 0);
             if (!this.itemForm.get("text")?.value)
               this.itemForm.get("text")?.setValue(p.name);
+            if (p.description && !this.itemForm.get("comment")?.value)
+              this.itemForm.get("comment")?.setValue(p.description);
           }
         },
       });
