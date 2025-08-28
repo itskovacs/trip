@@ -47,7 +47,6 @@ html {
 }
 
 .class-tooltip {
-  background: white;
   border-radius: 8px;
   text-align: center;
   padding: 12px;
@@ -56,6 +55,7 @@ html {
     0 1px 2px 0 rgba(0, 0, 0, 0.06);
   width: 200px;
   white-space: pre-wrap;
+  @apply bg-white dark:bg-surface-900 dark:text-gray-300;
 }
 
 .custom-cluster {
@@ -205,5 +205,30 @@ html {
       rgba(50, 50, 93, 0.2) 0 6px 15px 0,
       rgba(0, 0, 0, 0.1) 0 2px 2px 0,
       rgba(50, 151, 211, 0.3) 0 0 0 4px;
+  }
+}
+
+.place-box-dialog {
+  animation: slideYcenteredX 0.3s both;
+  z-index: 999;
+  min-height: 100px;
+  max-height: 800px;
+  width: 95%;
+  max-width: 1200px;
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: none;
+  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  display: flex;
+  align-items: flex-end;
+
+  &-content {
+    position: relative;
+    padding: 2rem;
+    border-radius: 8px 8px 0 0;
+    width: 100%;
   }
 }
