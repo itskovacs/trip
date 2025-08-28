@@ -313,14 +313,16 @@ export class TripComponent implements AfterViewInit {
     combineLatest({
       trip: this.apiService.getTrip(+id),
       settings: this.apiService.getSettings(),
+      members: this.apiService.getTripMembers(+id),
     })
       .pipe(
         take(1),
-        tap(({ trip, settings }) => {
+        tap(({ trip, settings, members }) => {
           this.trip = trip;
           this.flattenTripDayItems();
           this.updateTotalPrice();
           this.initMap(settings);
+          this.tripMembers = members;
         }),
       )
       .subscribe();
@@ -448,9 +450,22 @@ export class TripComponent implements AfterViewInit {
     );
     this.markerClusterGroup?.clearLayers();
     this.places.forEach((p) => {
-      const marker = placeToMarker(p, false, !this.placesUsedInTable.has(p.id));
+      const marker = this._placeToMarker(p);
       this.markerClusterGroup?.addLayer(marker);
     });
+  }
+
+  _placeToMarker(place: Place): L.Marker {
+    const marker = placeToMarker(
+      place,
+      false,
+      !this.placesUsedInTable.has(place.id),
+    );
+    marker.on("click", () => {
+      this.onMapMarkerClick(place.id);
+      marker.closeTooltip();
+    });
+    return marker;
   }
 
   resetMapBounds() {
@@ -779,6 +794,24 @@ export class TripComponent implements AfterViewInit {
     }
   }
 
+  onMapMarkerClick(place_id: number) {
+    const item = this.flattenedTripItems.find(
+      (i) => i.place && i.place.id == place_id,
+    );
+    if (!item) {
+      this.utilsService.toast(
+        "info",
+        "Place not used",
+        "The place is not used in the table",
+      );
+      return;
+    }
+
+    this.resetPlaceHighlightMarker();
+    this.selectedItem = item;
+    this.placeHighlightMarker(item.lat!, item.lng!);
+  }
+
   deleteTrip() {
     const modal = this.dialogService.open(YesNoModalComponent, {
       header: "Confirm deletion",
@@ -1050,6 +1083,7 @@ export class TripComponent implements AfterViewInit {
           places: this.places,
           days: this.trip.days,
           selectedDay: day_id,
+          members: this.tripMembers,
         },
       },
     );
@@ -1117,6 +1151,7 @@ export class TripComponent implements AfterViewInit {
             ...item,
             status: item.status ? (item.status as TripStatus).label : null,
           },
+          members: this.tripMembers,
         },
       },
     );
@@ -1566,16 +1601,17 @@ export class TripComponent implements AfterViewInit {
   openMembersDialog() {
     if (!this.trip) return;
 
-    if (!this.tripMembers.length)
-      this.apiService
-        .getTripMembers(this.trip.id)
-        .pipe(take(1))
-        .subscribe({
-          next: (items) => {
-            this.tripMembers = [...items];
-          },
-        });
-    this.membersDialogVisible = true;
+    this.apiService
+      .getTripMembers(this.trip.id)
+      .pipe(take(1))
+      .subscribe({
+        next: (items) => {
+          this.tripMembers = [...items];
+        },
+      });
+    setTimeout(() => {
+      this.membersDialogVisible = true;
+    }, 100);
   }
 
   addMember() {
