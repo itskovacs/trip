@@ -70,6 +70,9 @@ You can paste a [Plus Code](https://maps.google.com/pluscodes/) into the `latitu
 
 Example: `849VCWC8+R9`
 
+> [!WARNING]
+> Only full Plus Codes are currently handled. The `+` sign is added after eight characters for full codes and after the four characters for short codes.
+
 ## Trip
 
 ### Display a day itinerary
