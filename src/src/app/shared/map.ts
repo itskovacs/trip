@@ -111,13 +111,14 @@ export function placeToMarker(
     ? place.category.image
     : (place.image ?? place.category.image);
 
-  let markerClasses = "w-full h-full rounded-full bg-center bg-cover bg-white";
+  let markerClasses =
+    "w-full h-full rounded-full bg-center bg-cover bg-white dark:bg-surface-900";
   if (grayscale) markerClasses += " grayscale";
 
   const iconHtml = `
     <div class="flex items-center justify-center relative rounded-full marker-anchor size-14 box-border" style="border: 2px solid ${place.category.color};">
       <div class="${markerClasses}" style="background-image: url('${markerImage}');"></div>
-      ${gpxInBubble && place.gpx ? '<div class="absolute -top-1 -left-1 size-6 flex justify-center items-center bg-white border-2 border-black rounded-full"><i class="pi pi-compass"></i></div>' : ""}
+      ${gpxInBubble && place.gpx ? '<div class="absolute -top-1 -left-1 size-6 flex justify-center items-center bg-white dark:bg-surface-900 border-2 border-black rounded-full"><i class="pi pi-compass"></i></div>' : ""}
     </div>
   `;
 
