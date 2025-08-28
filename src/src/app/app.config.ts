@@ -1,4 +1,8 @@
-import { ApplicationConfig, provideZoneChangeDetection, isDevMode } from "@angular/core";
+import {
+  ApplicationConfig,
+  provideZoneChangeDetection,
+  isDevMode,
+} from "@angular/core";
 import { provideAnimationsAsync } from "@angular/platform-browser/animations/async";
 import { provideRouter } from "@angular/router";
 
@@ -19,6 +23,9 @@ export const appConfig: ApplicationConfig = {
     provideAnimationsAsync(),
     provideHttpClient(withInterceptors([Interceptor])),
     providePrimeNG({
+      translation: {
+        firstDayOfWeek: 1,
+      },
       theme: {
         preset: TripThemePreset,
         options: {
