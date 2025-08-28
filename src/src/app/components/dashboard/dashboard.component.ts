@@ -80,7 +80,7 @@ export interface MarkerOptions extends L.MarkerOptions {
   styleUrls: ["./dashboard.component.scss"],
 })
 export class DashboardComponent implements OnInit, AfterViewInit {
-  searchInput = new FormControl("", { nonNullable: true });
+  searchInput = new FormControl("");
   info?: Info;
   isLowNet = false;
   isDarkMode = false;
@@ -181,7 +181,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           this.isLowNet = !!settings.mode_low_network;
           this.isDarkMode = !!settings.mode_dark;
           this.isGpxInPlaceMode = !!settings.mode_gpx_in_place;
-          if (this.isDarkMode) this.utilsService.toggleDarkMode();
+          if (this.isDarkMode) this.utilsService.enableDarkMode();
           this.resetFilters();
 
           this.places = [...places];
@@ -260,12 +260,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.markerClusterGroup?.clearLayers();
 
     this.filteredPlaces.forEach((place) => {
-      const marker = this.placeToMarker(place);
+      const marker = this._placeToMarker(place);
       this.markerClusterGroup?.addLayer(marker);
     });
   }
 
-  placeToMarker(place: Place): L.Marker {
+  _placeToMarker(place: Place): L.Marker {
     const marker = placeToMarker(
       place,
       this.isLowNet,
@@ -634,7 +634,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           this.isLowNet = !!resp.settings.mode_low_network;
           this.isDarkMode = !!resp.settings.mode_dark;
           this.isGpxInPlaceMode = !!resp.settings.mode_gpx_in_place;
-          if (this.isDarkMode) this.utilsService.toggleDarkMode();
+          if (this.isDarkMode) this.utilsService.enableDarkMode();
           this.resetFilters();
 
           this.map?.remove();

@@ -31,6 +31,11 @@ export class UtilsService {
     element?.classList.toggle("dark");
   }
 
+  enableDarkMode() {
+    const element = document.querySelector("html");
+    element?.classList.toggle("dark", true);
+  }
+
   toast(
     severity: ToastSeverity = "info",
     summary = "Info",
