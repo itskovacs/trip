@@ -1,8 +1,6 @@
 services:
   app:
-    #build: .
     image: ghcr.io/itskovacs/trip:1
-    user: "1000:1000"
     ports:
       - 127.0.0.1:8080:8000 #127.0.0.1: locally exposed, on port 8080 by default
     volumes:
