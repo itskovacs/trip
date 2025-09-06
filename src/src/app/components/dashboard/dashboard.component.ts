@@ -193,7 +193,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   initMap(): void {
     if (!this.settings) return;
-
+    const isTouch = "ontouchstart" in window;
     const contentMenuItems = [
       {
         text: "Add Point of Interest",
@@ -203,7 +203,15 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         },
       },
     ];
-    this.map = createMap(contentMenuItems, this.settings?.tile_layer);
+    this.map = createMap(
+      isTouch ? [] : contentMenuItems,
+      this.settings?.tile_layer,
+    );
+    if (isTouch) {
+      this.map.on("contextmenu", (e: any) => {
+        this.addPlaceModal(e);
+      });
+    }
     this.map.setView(L.latLng(this.settings.map_lat, this.settings.map_lng));
     this.map.on("moveend zoomend", () => this.setVisibleMarkers());
     this.markerClusterGroup = createClusterGroup().addTo(this.map);
