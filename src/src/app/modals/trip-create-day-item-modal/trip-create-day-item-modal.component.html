@@ -4,7 +4,7 @@
       @if (itemForm.get('id')?.value !== -1) {
       <p-floatlabel variant="in" class="min-w-0">
         <p-select [options]="days" optionValue="id" optionLabel="label" inputId="day_id" id="day_id"
-          formControlName="day_id" [checkmark]="true" fluid>
+        scrollHeight="320px" appendTo="body" formControlName="day_id" [checkmark]="true" fluid>
           <ng-template let-day #item>
             <div class="whitespace-normal">{{ day.label }}</div>
           </ng-template>
@@ -13,8 +13,8 @@
       </p-floatlabel>
       } @else {
       <p-multiselect [options]="days" optionValue="id" optionLabel="label" formControlName="day_id" placeholder="Days"
-        [filter]="false" [showToggleAll]="false" display="chip" styleClass="flex items-center"
-        selectedItemsLabel="{0} days selected" fluid>
+        [filter]="false" [showToggleAll]="false" display="chip" styleClass="flex items-center" scrollHeight="320px"
+        appendTo="body" selectedItemsLabel="{0} days selected" fluid>
         <ng-template let-day #item>
           <div class="whitespace-normal">{{ day.label }}</div>
         </ng-template>
