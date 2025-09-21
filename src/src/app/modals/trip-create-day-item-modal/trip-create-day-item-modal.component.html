@@ -4,7 +4,7 @@
       @if (itemForm.get('id')?.value !== -1) {
       <p-floatlabel variant="in" class="min-w-0">
         <p-select [options]="days" optionValue="id" optionLabel="label" inputId="day_id" id="day_id"
-        scrollHeight="320px" appendTo="body" formControlName="day_id" [checkmark]="true" fluid>
+          scrollHeight="320px" appendTo="body" formControlName="day_id" [checkmark]="true" [filter]="true" fluid>
           <ng-template let-day #item>
             <div class="whitespace-normal">{{ day.label }}</div>
           </ng-template>
@@ -14,7 +14,7 @@
       } @else {
       <p-multiselect [options]="days" optionValue="id" optionLabel="label" formControlName="day_id" placeholder="Days"
         [filter]="false" [showToggleAll]="false" display="chip" styleClass="flex items-center" scrollHeight="320px"
-        appendTo="body" selectedItemsLabel="{0} days selected" fluid>
+        appendTo="body" selectedItemsLabel="{0} days selected" [filter]="true" fluid>
         <ng-template let-day #item>
           <div class="whitespace-normal">{{ day.label }}</div>
         </ng-template>
@@ -34,8 +34,8 @@
       </div>
     </div>
 
-    <div class="mt-4 grid md:grid-cols-7 gap-4">
-      <p-floatlabel variant="in" class="md:col-span-2">
+    <div class="mt-4 grid md:grid-cols-7 grid-cols-2 gap-4">
+      <p-floatlabel variant="in" class="col-span-2">
         <p-select [options]="places" appendTo="body" optionValue="id" optionLabel="name" inputId="place" id="place"
           [filter]="true" filterBy="name" formControlName="place" [showClear]="true" class="capitalize" fluid>
 
@@ -84,11 +84,38 @@
       </p-floatlabel>
     </div>
 
-    <div class="mt-4">
-      <p-floatlabel variant="in" class="w-full">
-        <textarea pTextarea id="comment" formControlName="comment" rows="5" autoResize fluid></textarea>
+    <div class="mt-4 grid col-span-full md:grid-cols-7">
+      <p-floatlabel variant="in" class="col-span-full md:col-span-5">
+        <textarea pTextarea id="comment" formControlName="comment" rows="3" autoResize fluid></textarea>
         <label for="comment">Comment</label>
       </p-floatlabel>
+
+      <div class="mt-4 md:mt-0 grid place-items-center">
+        @if (itemForm.get("image")?.value) {
+        <div class="w-2/3 relative group cursor-pointer" (click)="clearImage()">
+          <img [src]="itemForm.get('image')?.value"
+            class="w-full max-h-20 object-cover rounded-md shadow-lg transition-transform duration-300" />
+          <div
+            class="absolute inset-0 bg-black/50 rounded-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <i class="pi pi-trash text-white text-3xl"></i>
+          </div>
+        </div>
+        } @else {
+        <p-button text label="Select image" icon="pi pi-image" (click)="imageInput.click()" />
+        }
+        <input type="file" accept="image/*" #imageInput class="hidden" (change)="onImageSelected($event)" />
+      </div>
+
+      <div class="mt-4 md:mt-0 grid place-items-center">
+        <div class="flex justify-center items-center">
+          @if (itemForm.get('gpx')?.value) {
+          <p-button text icon="pi pi-times" label="GPX" severity="danger" (click)="clearGPX()" />
+          } @else {
+          <p-button text icon="pi pi-paperclip" label="GPX" (click)="gpxInput.click()" />
+          }
+          <input type="file" accept=".gpx" #gpxInput class="hidden" (change)="onGPXSelected($event)" />
+        </div>
+      </div>
     </div>
   </div>
 
@@ -97,3 +124,14 @@
       !== -1 ? "Update" : "Create" }}</p-button>
   </div>
 </section>
+
+<p-popover #op>
+  <span class="font-medium block mb-2">Members</span>
+  <div class="flex flex-col gap-2">
+    @for (member of members; track member) {
+    <div class="flex items-center gap-2 p-2 hover:bg-emphasis cursor-pointer rounded-border"
+      [class.font-semibold]="selectedPriceMember == member.user" (click)="selectPriceMember(member.user)">{{ member.user
+      }}</div>
+    }
+  </div>
+</p-popover>

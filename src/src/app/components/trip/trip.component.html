@@ -111,6 +111,7 @@
           @if (tripTableSelectedColumns.includes('LatLng')) {<th class="w-12" pResizableColumn>LatLng</th>}
           @if (tripTableSelectedColumns.includes('price')) {<th class="w-12" pResizableColumn>Price</th>}
           @if (tripTableSelectedColumns.includes('status')) {<th class="w-12" pResizableColumn>Status</th>}
+          @if (tripTableSelectedColumns.includes('distance')) {<th pResizableColumn>Distance (km)</th>}
         </tr>
       </ng-template>
       @if (tableExpandableMode) {
@@ -148,10 +149,19 @@
             </div>
             } @else {-}
           </td>}
-          @if (tripTableSelectedColumns.includes('comment')) {<td>
+          @if (tripTableSelectedColumns.includes('comment')) {<td class="relative">
+            @if (tripitem.image) {
+            <div
+              class="ml-7 print:ml-0 truncate print:whitespace-normal line-clamp-1 whitespace-pre-line print:line-clamp-none">
+              <img [src]="tripitem.image"
+                class="absolute left-0 top-1/2 -translate-y-1/2 size-9 rounded-full object-cover print:hidden" /> {{
+              tripitem.comment }}
+            </div>
+            } @else {
             <div class="line-clamp-1 whitespace-pre-line print:line-clamp-none">
               {{ tripitem.comment || '-' }}
             </div>
+            }
           </td>}
           @if (tripTableSelectedColumns.includes('LatLng')) {<td class="font-mono text-sm">
             <div class="print:max-w-full truncate">
@@ -166,6 +176,9 @@
               [style.background]="tripitem.status.color+'1A'" [style.color]="tripitem.status.color"
               class="text-xs font-medium me-2 px-2.5 py-0.5 rounded">{{
               tripitem.status.label }}</span>}</td>}
+          @if (tripTableSelectedColumns.includes('distance')) {<td class="text-sm">
+            <div class="print:max-w-full truncate">{{ tripitem.distance || '-' }}</div>
+          </td>}
         </tr>
       </ng-template>
       }
@@ -192,15 +205,24 @@
             @if (tripitem.place) {
             <div class="ml-7 print:ml-0 max-w-24 truncate print:whitespace-normal">
               <img [src]="tripitem.place.image || tripitem.place.category.image"
-                class="absolute left-0 top-1/2 -translate-y-1/2 w-9 rounded-full object-cover print:hidden" /> {{
+                class="absolute left-0 top-1/2 -translate-y-1/2 size-9 rounded-full object-cover print:hidden" /> {{
               tripitem.place.name }}
             </div>
             } @else {-}
           </td>}
-          @if (tripTableSelectedColumns.includes('comment')) {<td>
+          @if (tripTableSelectedColumns.includes('comment')) {<td class="relative">
+            @if (tripitem.image) {
+            <div
+              class="ml-7 print:ml-0 truncate print:whitespace-normal line-clamp-1 whitespace-pre-line print:line-clamp-none">
+              <img [src]="tripitem.image"
+                class="absolute left-0 top-1/2 -translate-y-1/2 size-9 rounded-full object-cover print:hidden" /> {{
+              tripitem.comment }}
+            </div>
+            } @else {
             <div class="line-clamp-1 whitespace-pre-line print:line-clamp-none">
               {{ tripitem.comment || '-' }}
             </div>
+            }
           </td>}
           @if (tripTableSelectedColumns.includes('LatLng')) {<td class="font-mono text-sm">
             <div class="max-w-20 print:max-w-full truncate">
@@ -215,6 +237,9 @@
               [style.background]="tripitem.status.color+'1A'" [style.color]="tripitem.status.color"
               class="text-xs font-medium me-2 px-2.5 py-0.5 rounded">{{
               tripitem.status.label }}</span>}</td>}
+          @if (tripTableSelectedColumns.includes('distance')) {<td class="text-sm">
+            <div class="print:max-w-full truncate">{{ tripitem.distance || '-' }}</div>
+          </td>}
         </tr>
       </ng-template>
       }
@@ -247,7 +272,7 @@
   <div [ngClass]="{ 'grid col-span-full grid-cols-4': isExpanded, 'flex flex-col sticky': !isExpanded }"
     class="gap-4 top-4 self-start max-w-screen print:hidden min-w-0">
     @if (selectedItem) {
-    <div class="p-4 w-full max-w-full min-h-20 md:max-h-[600px] rounded-md shadow text-center">
+    <div class="p-4 w-full max-w-full min-h-20 rounded-md shadow text-center">
       <div class="flex justify-between items-center mb-3">
         <div class="p-2 flex items-center gap-4 w-full max-w-full">
           @if (selectedItem.place) {
@@ -260,6 +285,9 @@
             </h1>
 
             <div class="flex items-center gap-2 flex-none">
+              @if (selectedItem.gpx) {
+              <p-button icon="pi pi-compass" (click)="downloadItemGPX()" text />
+              }
               @if (selectedItem.lat && selectedItem.lng) {
               <p-button icon="pi pi-car" (click)="itemToNavigation()" text />
               }
@@ -285,9 +313,11 @@
         </div>
 
         @if (selectedItem.place) {
-        <div class="rounded-md shadow p-4">
+        <div class="relative rounded-md shadow p-4">
           <p class="font-bold mb-1">Place</p>
           <div class="text-sm text-gray-500 truncate">{{ selectedItem.place.name }}</div>
+          <div class="absolute top-2 right-2"><p-button severity="help" text icon="pi pi-pencil"
+              (click)="editPlace(selectedItem.place)" /></div>
         </div>
         }
 
@@ -324,6 +354,12 @@
         </div>
         }
       </div>
+
+      @if (selectedItem.image) {
+      <div class="p-4 px-2 gap-4 overflow-auto w-full min-h-0 max-h-64">
+        <img [src]="selectedItem.image" class="w-full object-cover rounded-md" />
+      </div>
+      }
     </div>
     }
 
@@ -379,7 +415,7 @@
         @defer {
         @for (p of places; track p.id) {
         <div class="flex items-center gap-4 py-2 px-4 hover:bg-gray-50 rounded-md overflow-auto dark:hover:bg-gray-800"
-          (mouseenter)="placeHighlightMarker(p.lat, p.lng)" (mouseleave)="resetPlaceHighlightMarker()">
+          (mouseenter)="placeHighlightMarker(p)" (mouseleave)="resetPlaceHighlightMarker()">
           <img [src]="p.image || p.category.image" class="w-12 rounded-full object-fit">
 
           <div class="flex flex-col gap-1 truncate">
@@ -546,8 +582,9 @@
 <p-dialog header="Packing list" [draggable]="false" [dismissableMask]="true" [modal]="true"
   [(visible)]="packingDialogVisible" styleClass="w-[95%] md:w-[70%] lg:w-[50%]">
   <section class="md:max-w-3/4 md:mx-auto max-h-[80%] md:max-h-[600px]">
-    <div class="flex justify-center">
+    <div class="flex items-center justify-center gap-4">
       <p-button (click)="addPackingItem()" icon="pi pi-plus" label="Add item" text />
+      <p-button icon="pi pi-ellipsis-h" text />
     </div>
 
     <div class="grid gap-2 mt-4 pb-4">

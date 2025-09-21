@@ -44,6 +44,9 @@ export interface TripItem {
   price?: number;
   day_id: number;
   status?: string | TripStatus;
+  image?: string;
+  image_id?: number;
+  gpx?: string;
 }
 
 export interface TripStatus {
@@ -64,6 +67,10 @@ export interface FlattenedTripItem {
   lng?: number;
   day_id: number;
   status?: TripStatus;
+  distance?: number;
+  image?: string;
+  image_id?: number;
+  gpx?: string;
 }
 
 export interface TripMember {

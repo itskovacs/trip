@@ -46,6 +46,8 @@ export class TripCreateDayItemModalComponent {
   days: TripDay[] = [];
   places: Place[] = [];
   statuses: TripStatus[] = [];
+  previous_image_id: number | null = null;
+  previous_image: string | null = null;
 
   constructor(
     private ref: DynamicDialogRef,
@@ -72,6 +74,9 @@ export class TripCreateDayItemModalComponent {
       place: null,
       status: null,
       price: null,
+      image: null,
+      image_id: null,
+      gpx: null,
       lat: [
         "",
         {
@@ -156,7 +161,64 @@ export class TripCreateDayItemModalComponent {
       ret["lat"] = null;
       ret["lng"] = null;
     }
+    if (ret["image_id"]) {
+      delete ret["image"];
+      delete ret["image_id"];
+    }
+    if (ret["gpx"] == "1") delete ret["gpx"];
     if (!ret["place"]) delete ret["place"];
     this.ref.close(ret);
+  }
+
+  onImageSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files?.length) {
+      const file = input.files[0];
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        if (this.itemForm.get("image_id")?.value) {
+          this.previous_image_id = this.itemForm.get("image_id")?.value;
+          this.previous_image = this.itemForm.get("image")?.value;
+          this.itemForm.get("image_id")?.setValue(null);
+        }
+
+        this.itemForm.get("image")?.setValue(e.target?.result as string);
+        this.itemForm.get("image")?.markAsDirty();
+      };
+
+      reader.readAsDataURL(file);
+    }
+  }
+
+  clearImage() {
+    this.itemForm.get("image")?.setValue(null);
+    this.itemForm.get("image_id")?.setValue(null);
+    this.itemForm.markAsDirty();
+
+    if (this.previous_image && this.previous_image_id) {
+      this.itemForm.get("image_id")?.setValue(this.previous_image_id);
+      this.itemForm.get("image")?.setValue(this.previous_image);
+    }
+  }
+
+  onGPXSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        this.itemForm.get("gpx")?.setValue(e.target?.result as string);
+        this.itemForm.get("gpx")?.markAsDirty();
+      };
+
+      reader.readAsText(file);
+    }
+  }
+
+  clearGPX() {
+    this.itemForm.get("gpx")?.setValue(null);
+    this.itemForm.get("gpx")?.markAsDirty();
   }
 }

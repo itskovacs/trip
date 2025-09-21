@@ -24,6 +24,7 @@ import {
   placeToMarker,
   createClusterGroup,
   tripDayMarker,
+  gpxToPolyline,
 } from "../../shared/map";
 import { ActivatedRoute, Router } from "@angular/router";
 import { DialogService, DynamicDialogRef } from "primeng/dynamicdialog";
@@ -59,6 +60,7 @@ import { CheckboxChangeEvent, CheckboxModule } from "primeng/checkbox";
 import { TripCreatePackingModalComponent } from "../../modals/trip-create-packing-modal/trip-create-packing-modal.component";
 import { TripCreateChecklistModalComponent } from "../../modals/trip-create-checklist-modal/trip-create-checklist-modal.component";
 import { TripInviteMemberModalComponent } from "../../modals/trip-invite-member-modal/trip-invite-member-modal.component";
+import { calculateDistanceBetween } from "../../shared/haversine";
 
 @Component({
   selector: "app-trip",
@@ -113,6 +115,7 @@ export class TripComponent implements AfterViewInit {
   map?: L.Map;
   markerClusterGroup?: L.MarkerClusterGroup;
   tripMapTemporaryMarker?: L.Marker;
+  tripMapGpxLayer?: L.Layer;
   tripMapHoveredElement?: HTMLElement;
   tripMapAntLayer?: L.FeatureGroup;
   tripMapAntLayerDayID?: number;
@@ -262,6 +265,7 @@ export class TripComponent implements AfterViewInit {
     "LatLng",
     "price",
     "status",
+    "distance",
   ];
   tripTableSelectedColumns: string[] = [
     "day",
@@ -409,6 +413,7 @@ export class TripComponent implements AfterViewInit {
 
   flattenTripDayItems(searchValue?: string) {
     this.sortTripDays();
+    let prevLat: number, prevLng: number;
     this.flattenedTripItems = this.trip!.days.flatMap((day) =>
       [...day.items]
         .filter((item) =>
@@ -419,20 +424,39 @@ export class TripComponent implements AfterViewInit {
             : true,
         )
         .sort((a, b) => a.time.localeCompare(b.time))
-        .map((item) => ({
-          td_id: day.id,
-          td_label: day.label,
-          id: item.id,
-          time: item.time,
-          text: item.text,
-          status: this.statusToTripStatus(item.status as string),
-          comment: item.comment,
-          price: item.price || undefined,
-          day_id: item.day_id,
-          place: item.place,
-          lat: item.lat || (item.place ? item.place.lat : undefined),
-          lng: item.lng || (item.place ? item.place.lng : undefined),
-        })),
+        .map((item) => {
+          const lat = item.lat ?? (item.place ? item.place.lat : undefined);
+          const lng = item.lng ?? (item.place ? item.place.lng : undefined);
+
+          let distance: number | undefined;
+          if (lat && lng) {
+            if (prevLat && prevLng) {
+              const d = calculateDistanceBetween(prevLat, prevLng, lat, lng);
+              distance = +(Math.round(d * 1000) / 1000).toFixed(2);
+            }
+            prevLat = lat;
+            prevLng = lng;
+          }
+
+          return {
+            td_id: day.id,
+            td_label: day.label,
+            id: item.id,
+            time: item.time,
+            text: item.text,
+            status: this.statusToTripStatus(item.status as string),
+            comment: item.comment,
+            price: item.price || undefined,
+            day_id: item.day_id,
+            place: item.place,
+            image: item.image,
+            image_id: item.image_id,
+            gpx: item.gpx,
+            lat,
+            lng,
+            distance,
+          };
+        }),
     );
   }
 
@@ -517,30 +541,39 @@ export class TripComponent implements AfterViewInit {
       this.map?.removeLayer(this.tripMapTemporaryMarker);
       this.tripMapTemporaryMarker = undefined;
     }
+
+    if (this.tripMapGpxLayer) {
+      this.map?.removeLayer(this.tripMapGpxLayer);
+      this.tripMapGpxLayer = undefined;
+    }
     this.resetMapBounds();
   }
 
-  placeHighlightMarker(lat: number, lng: number) {
+  placeHighlightMarker(item: any) {
     if (this.tripMapHoveredElement || this.tripMapTemporaryMarker)
       this.resetPlaceHighlightMarker();
 
     let marker: L.Marker | undefined;
     this.markerClusterGroup?.eachLayer((layer: any) => {
-      if (layer.getLatLng && layer.getLatLng().equals([lat, lng])) {
+      if (layer.getLatLng && layer.getLatLng().equals([item.lat, item.lng])) {
         marker = layer;
       }
     });
 
+    if (item.gpx) {
+      this.tripMapGpxLayer = gpxToPolyline(item.gpx);
+      this.tripMapGpxLayer.addTo(this.map!);
+    }
+
     if (!marker) {
       // TripItem without place, but latlng
-      const item = {
-        text: this.selectedItem?.text || "",
-        lat: lat,
-        lng: lng,
-        time: this.selectedItem?.time || "",
-      };
       this.tripMapTemporaryMarker = tripDayMarker(item).addTo(this.map!);
-      this.map?.fitBounds([[lat, lng]], { padding: [60, 60] });
+      if (this.tripMapGpxLayer) {
+        this.map?.fitBounds(
+          [[item.lat, item.lng], (this.tripMapGpxLayer as any).getBounds()],
+          { padding: [30, 30] },
+        );
+      } else this.map?.fitBounds([[item.lat, item.lng]], { padding: [60, 60] });
       return;
     }
 
@@ -602,6 +635,7 @@ export class TripComponent implements AfterViewInit {
               isPlace: !!item.place,
               idx: idx,
               time: item.time,
+              gpx: item.gpx,
             };
 
             if (item.lat && item.lng)
@@ -680,8 +714,9 @@ export class TripComponent implements AfterViewInit {
         prevPoint = coords[0];
       }
 
-      group.forEach((day: any) => {
-        if (!day.isPlace) layGroup.addLayer(tripDayMarker(day));
+      group.forEach((data: any) => {
+        if (!data.isPlace) layGroup.addLayer(tripDayMarker(data));
+        if (data.gpx) layGroup.addLayer(gpxToPolyline(data.gpx));
       });
     });
 
@@ -724,6 +759,7 @@ export class TripComponent implements AfterViewInit {
             lng: item.lng,
             isPlace: !!item.place,
             time: item.time,
+            gpx: item.gpx,
           };
         if (item.place && item.place)
           return {
@@ -732,6 +768,7 @@ export class TripComponent implements AfterViewInit {
             lng: item.place.lng,
             isPlace: true,
             time: item.time,
+            gpx: item.gpx,
           };
         return undefined;
       })
@@ -769,6 +806,7 @@ export class TripComponent implements AfterViewInit {
     layGroup.addLayer(path);
     items.forEach((item) => {
       if (!item.isPlace) layGroup.addLayer(tripDayMarker(item));
+      if (item.gpx) layGroup.addLayer(gpxToPolyline(item.gpx));
     });
 
     if (this.tripMapAntLayer) {
@@ -790,7 +828,7 @@ export class TripComponent implements AfterViewInit {
       this.resetPlaceHighlightMarker();
     } else {
       this.selectedItem = item;
-      if (item.lat && item.lng) this.placeHighlightMarker(item.lat, item.lng);
+      if (item.lat && item.lng) this.placeHighlightMarker(item);
     }
   }
 
@@ -809,7 +847,7 @@ export class TripComponent implements AfterViewInit {
 
     this.resetPlaceHighlightMarker();
     this.selectedItem = item;
-    this.placeHighlightMarker(item.lat!, item.lng!);
+    this.placeHighlightMarker(item);
   }
 
   deleteTrip() {
@@ -940,6 +978,18 @@ export class TripComponent implements AfterViewInit {
     // const url = `http://maps.apple.com/?daddr=${this.selectedItem.lat},${this.selectedItem.lng}`;
     const url = `https://www.google.com/maps/dir/?api=1&destination=${this.selectedItem.lat},${this.selectedItem.lng}`;
     window.open(url, "_blank");
+  }
+
+  downloadItemGPX() {
+    if (!this.selectedItem?.gpx) return;
+    const dataBlob = new Blob([this.selectedItem.gpx]);
+    const downloadURL = URL.createObjectURL(dataBlob);
+    const link = document.createElement("a");
+    link.href = downloadURL;
+    link.download = `TRIP_${this.trip?.name}_${this.selectedItem.text}.gpx`;
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(downloadURL);
   }
 
   tripToNavigation() {
@@ -1278,6 +1328,47 @@ export class TripComponent implements AfterViewInit {
               this.trip = trip;
               this.setPlacesAndMarkers();
               this.resetMapBounds();
+            },
+          });
+      },
+    });
+  }
+
+  editPlace(pEdit: Place) {
+    const modal: DynamicDialogRef = this.dialogService.open(
+      PlaceCreateModalComponent,
+      {
+        header: "Edit Place",
+        modal: true,
+        appendTo: "body",
+        closable: true,
+        dismissableMask: true,
+        width: "55vw",
+        breakpoints: {
+          "1920px": "70vw",
+          "1260px": "90vw",
+        },
+        data: {
+          place: { ...pEdit, category: pEdit.category.id },
+        },
+      },
+    );
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (p: Place | null) => {
+        if (!p) return;
+
+        this.apiService
+          .putPlace(p.id, p)
+          .pipe(take(1))
+          .subscribe({
+            next: (place: Place) => {
+              const places = [...this.places];
+              const idx = places.findIndex((p) => p.id == place.id);
+              if (idx > -1) places.splice(idx, 1, place);
+              places.push(place);
+              places.sort((a, b) => a.name.localeCompare(b.name));
+              if (this.selectedItem?.place) this.selectedItem.place = place;
             },
           });
       },
