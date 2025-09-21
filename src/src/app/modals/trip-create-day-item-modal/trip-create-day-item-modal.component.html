@@ -124,14 +124,3 @@
       !== -1 ? "Update" : "Create" }}</p-button>
   </div>
 </section>
-
-<p-popover #op>
-  <span class="font-medium block mb-2">Members</span>
-  <div class="flex flex-col gap-2">
-    @for (member of members; track member) {
-    <div class="flex items-center gap-2 p-2 hover:bg-emphasis cursor-pointer rounded-border"
-      [class.font-semibold]="selectedPriceMember == member.user" (click)="selectPriceMember(member.user)">{{ member.user
-      }}</div>
-    }
-  </div>
-</p-popover>
