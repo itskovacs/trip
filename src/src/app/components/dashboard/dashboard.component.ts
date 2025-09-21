@@ -497,7 +497,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const modal: DynamicDialogRef = this.dialogService.open(
       PlaceCreateModalComponent,
       {
-        header: "Create Place",
+        header: "Edit Place",
         modal: true,
         appendTo: "body",
         closable: true,
