@@ -346,6 +346,18 @@ def create_tripitem(
         status=item.status,
     )
 
+    if item.image:
+        image_bytes = b64img_decode(item.image)
+        filename = save_image_to_file(image_bytes, 0)
+        if not filename:
+            raise HTTPException(status_code=400, detail="Bad request")
+
+        image = Image(filename=filename, user=current_user)
+        session.add(image)
+        session.flush()
+        session.refresh(image)
+        new_item.image_id = image.id
+
     if item.place is not None:
         place_in_trip = any(place.id == item.place for place in db_trip.places)
         if not place_in_trip:
@@ -382,6 +394,46 @@ def update_tripitem(
         raise HTTPException(status_code=400, detail="Bad request")
 
     item_data = item.model_dump(exclude_unset=True)
+    # TODO: Optimize logic; image=data: parse / image=none: remove / no image key: pass
+    if "image" in item_data:  # no image key: pass
+        image_b64 = item_data.pop("image", None)  # image=data: parse
+        if image_b64:
+            try:
+                image_bytes = b64img_decode(image_b64)
+            except Exception:
+                raise HTTPException(status_code=400, detail="Bad request")
+
+            filename = save_image_to_file(image_bytes, 0)
+            if not filename:
+                raise HTTPException(status_code=400, detail="Bad request")
+
+            image = Image(filename=filename, user=current_user)
+            session.add(image)
+            session.flush()
+            session.refresh(image)
+
+            if db_item.image_id:
+                old_image = session.get(Image, db_item.image_id)
+                try:
+                    remove_image(old_image.filename)
+                    session.delete(old_image)
+                    db_item.image_id = None
+                    session.refresh(db_item)
+                except Exception:
+                    raise HTTPException(status_code=400, detail="Bad request")
+
+            db_item.image_id = image.id
+
+        else:  # image=none: remove if previous
+            if getattr(db_item, "image_id", None):
+                old_image = session.get(Image, db_item.image_id)
+                try:
+                    remove_image(old_image.filename)
+                    session.delete(old_image)
+                    db_item.image_id = None
+                    session.refresh(db_item)
+                except Exception:
+                    raise HTTPException(status_code=400, detail="Bad request")
 
     place_id = item_data.pop("place", None)
     db_item.place_id = place_id

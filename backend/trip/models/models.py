@@ -75,6 +75,7 @@ class Image(ImageBase, table=True):
     categories: list["Category"] = Relationship(back_populates="image")
     places: list["Place"] = Relationship(back_populates="image")
     trips: list["Trip"] = Relationship(back_populates="image")
+    tripitems: list["TripItem"] = Relationship(back_populates="image")
 
 
 class UserBase(SQLModel):
@@ -199,7 +200,6 @@ class Place(PlaceBase, table=True):
 class PlaceCreate(PlaceBase):
     image: str | None = None
     category_id: int
-    gpx: str | None = None
 
 
 class PlacesCreate(PlaceBase):
@@ -393,6 +393,7 @@ class TripItemBase(SQLModel):
     price: float | None = None
     lng: float | None = None
     status: TripItemStatusEnum | None = None
+    gpx: str | None = None
 
     @field_validator("time", mode="before")
     def pad_mm_if_needed(cls, value: str) -> str:
@@ -407,6 +408,9 @@ class TripItem(TripItemBase, table=True):
     place_id: int | None = Field(default=None, foreign_key="place.id")
     place: Place | None = Relationship(back_populates="trip_items")
 
+    image_id: int | None = Field(default=None, foreign_key="image.id", ondelete="CASCADE")
+    image: Image | None = Relationship(back_populates="tripitems")
+
     day_id: int = Field(foreign_key="tripday.id", ondelete="CASCADE")
     day: TripDay | None = Relationship(back_populates="items")
 
@@ -414,6 +418,7 @@ class TripItem(TripItemBase, table=True):
 class TripItemCreate(TripItemBase):
     place: int | None = None
     status: TripItemStatusEnum | None = None
+    image: str | None = None
 
 
 class TripItemUpdate(TripItemBase):
@@ -422,6 +427,7 @@ class TripItemUpdate(TripItemBase):
     place: int | None = None
     day_id: int | None = None
     status: TripItemStatusEnum | None = None
+    image: str | None = None
 
 
 class TripItemRead(TripItemBase):
@@ -429,6 +435,8 @@ class TripItemRead(TripItemBase):
     place: PlaceRead | None
     day_id: int
     status: TripItemStatusEnum | None
+    image: str | None
+    image_id: int | None
 
     @classmethod
     def serialize(cls, obj: TripItem) -> "TripItemRead":
@@ -443,6 +451,9 @@ class TripItemRead(TripItemBase):
             day_id=obj.day_id,
             status=obj.status,
             place=PlaceRead.serialize(obj.place) if obj.place else None,
+            image=_prefix_assets_url(obj.image.filename) if obj.image else None,
+            image_id=obj.image_id,
+            gpx=obj.gpx,
         )
 
 
