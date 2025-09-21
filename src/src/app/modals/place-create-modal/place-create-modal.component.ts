@@ -188,6 +188,7 @@ export class PlaceCreateModalComponent {
 
   clearImage() {
     this.placeForm.get("image")?.setValue(null);
+    this.placeForm.get("image_id")?.setValue(null);
 
     if (this.previous_image && this.previous_image_id) {
       this.placeForm.get("image_id")?.setValue(this.previous_image_id);
