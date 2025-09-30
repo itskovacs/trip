@@ -363,10 +363,6 @@ export class TripComponent implements AfterViewInit {
     }, 100);
   }
 
-  sortTripDays() {
-    this.trip?.days.sort((a, b) => a.label.localeCompare(b.label));
-  }
-
   toggleFiltering() {
     this.isFilteringMode = !this.isFilteringMode;
     if (!this.isFilteringMode) this.flattenTripDayItems();
@@ -412,7 +408,6 @@ export class TripComponent implements AfterViewInit {
   }
 
   flattenTripDayItems(searchValue?: string) {
-    this.sortTripDays();
     let prevLat: number, prevLng: number;
     this.flattenedTripItems = this.trip!.days.flatMap((day) =>
       [...day.items]
