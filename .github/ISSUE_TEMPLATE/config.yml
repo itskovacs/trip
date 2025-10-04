@@ -1,0 +1,14 @@
+blank_issues_enabled: true
+issue_templates:
+  - name: "Bug Report"
+    description: "Report something that is not working as expected."
+    title: "BUG: "
+    labels: ["bug"]
+  - name: "Feature Request"
+    description: "Suggest a new feature or an enhancement."
+    title: "FR: "
+    labels: ["enhancement"]
+  - name: "General Question"
+    description: "Ask a question."
+    title: "Q: "
+    labels: ["question"]
