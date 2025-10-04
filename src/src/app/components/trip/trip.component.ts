@@ -61,6 +61,7 @@ import { TripCreatePackingModalComponent } from "../../modals/trip-create-packin
 import { TripCreateChecklistModalComponent } from "../../modals/trip-create-checklist-modal/trip-create-checklist-modal.component";
 import { TripInviteMemberModalComponent } from "../../modals/trip-invite-member-modal/trip-invite-member-modal.component";
 import { calculateDistanceBetween } from "../../shared/haversine";
+import { orderByPipe } from "../../shared/order-by.pipe";
 
 @Component({
   selector: "app-trip",
@@ -83,6 +84,7 @@ import { calculateDistanceBetween } from "../../shared/haversine";
     ClipboardModule,
     MultiSelectModule,
     CheckboxModule,
+    orderByPipe,
   ],
   templateUrl: "./trip.component.html",
   styleUrls: ["./trip.component.scss"],
@@ -95,6 +97,7 @@ export class TripComponent implements AfterViewInit {
   flattenedTripItems: FlattenedTripItem[] = [];
   selectedItem?: TripItem & { status?: TripStatus };
   tableExpandableMode = false;
+  isPrinting = false;
 
   isMapFullscreen = false;
   totalPrice = 0;
@@ -127,7 +130,6 @@ export class TripComponent implements AfterViewInit {
         {
           label: "Checklist",
           icon: "pi pi-check-square",
-          iconClass: "text-purple-500!",
           command: () => {
             this.openChecklist();
           },
@@ -135,7 +137,6 @@ export class TripComponent implements AfterViewInit {
         {
           label: "Packing",
           icon: "pi pi-briefcase",
-          iconClass: "text-purple-500!",
           command: () => {
             this.openPackingList();
           },
@@ -148,7 +149,6 @@ export class TripComponent implements AfterViewInit {
         {
           label: "Members",
           icon: "pi pi-users",
-          iconClass: "text-blue-500!",
           command: () => {
             this.openMembersDialog();
           },
@@ -166,9 +166,15 @@ export class TripComponent implements AfterViewInit {
       label: "Trip",
       items: [
         {
+          label: "Pretty Print",
+          icon: "pi pi-print",
+          command: () => {
+            this.togglePrint();
+          },
+        },
+        {
           label: "Archive",
           icon: "pi pi-box",
-          iconClass: "text-orange-500!",
           command: () => {
             this.toggleArchiveTrip();
           },
@@ -176,7 +182,6 @@ export class TripComponent implements AfterViewInit {
         {
           label: "Edit",
           icon: "pi pi-pencil",
-          iconClass: "text-blue-500!",
           command: () => {
             this.editTrip();
           },
@@ -184,7 +189,6 @@ export class TripComponent implements AfterViewInit {
         {
           label: "Delete",
           icon: "pi pi-trash",
-          iconClass: "text-red-500!",
           command: () => {
             this.deleteTrip();
           },
@@ -197,10 +201,10 @@ export class TripComponent implements AfterViewInit {
       label: "Actions",
       items: [
         {
-          label: "Print",
+          label: "Pretty Print",
           icon: "pi pi-print",
           command: () => {
-            this.printTable();
+            this.togglePrint();
           },
         },
       ],
@@ -213,13 +217,6 @@ export class TripComponent implements AfterViewInit {
           icon: "pi pi-filter",
           command: () => {
             this.toggleFiltering();
-          },
-        },
-        {
-          label: "Full width",
-          icon: "pi pi-arrows-h",
-          command: () => {
-            this.isExpanded = !this.isExpanded;
           },
         },
         {
@@ -383,10 +380,11 @@ export class TripComponent implements AfterViewInit {
     this.router.navigateByUrl("/trips");
   }
 
-  printTable() {
-    this.selectedItem = undefined;
+  togglePrint() {
+    this.isPrinting = true;
     setTimeout(() => {
       window.print();
+      this.isPrinting = false;
     }, 100);
   }
 
@@ -445,7 +443,7 @@ export class TripComponent implements AfterViewInit {
               item.comment?.toLowerCase().includes(searchValue)
             : true,
         )
-        .sort((a, b) => a.time.localeCompare(b.time))
+        .sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0))
         .map((item) => {
           const lat = item.lat ?? (item.place ? item.place.lat : undefined);
           const lng = item.lng ?? (item.place ? item.place.lng : undefined);
@@ -492,7 +490,7 @@ export class TripComponent implements AfterViewInit {
   setPlacesAndMarkers() {
     this.computePlacesUsedInTable();
     this.places = [...(this.trip?.places ?? [])].sort((a, b) =>
-      a.name.localeCompare(b.name),
+      a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
     );
     this.markerClusterGroup?.clearLayers();
     this.places.forEach((p) => {
@@ -650,7 +648,7 @@ export class TripComponent implements AfterViewInit {
     const items = this.trip.days
       .flatMap((day, idx) =>
         day.items
-          .sort((a, b) => a.time.localeCompare(b.time))
+          .sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0))
           .map((item) => {
             let data = {
               text: item.text,
@@ -770,7 +768,7 @@ export class TripComponent implements AfterViewInit {
     const idx = this.trip?.days.findIndex((d) => d.id === day_id);
     if (!this.trip || idx === undefined || idx == -1) return;
     const data = this.trip.days[idx].items.sort((a, b) =>
-      a.time.localeCompare(b.time),
+      a.time < b.time ? -1 : a.time > b.time ? 1 : 0,
     );
     const items = data
       .map((item) => {
@@ -1018,7 +1016,7 @@ export class TripComponent implements AfterViewInit {
     const idx = this.trip?.days.findIndex((d) => d.id === day_id);
     if (!this.trip || idx === undefined || idx == -1) return;
     const data = this.trip.days[idx].items.sort((a, b) =>
-      a.time.localeCompare(b.time),
+      a.time < b.time ? -1 : a.time > b.time ? 1 : 0,
     );
     const items = data.filter((item) => item.lat && item.lng);
     if (!items.length) return;
@@ -1403,7 +1401,9 @@ export class TripComponent implements AfterViewInit {
               const idx = places.findIndex((p) => p.id == place.id);
               if (idx > -1) places.splice(idx, 1, place);
               places.push(place);
-              places.sort((a, b) => a.name.localeCompare(b.name));
+              places.sort((a, b) =>
+                a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
+              );
               if (this.selectedItem?.place) this.selectedItem.place = place;
             },
           });
@@ -1620,7 +1620,11 @@ export class TripComponent implements AfterViewInit {
         ? a.packed
           ? 1
           : -1
-        : a.text.localeCompare(b.text),
+        : a.text < b.text
+          ? -1
+          : a.text > b.text
+            ? 1
+            : 0,
     );
 
     this.dispPackingList = sorted.reduce<Record<string, PackingItem[]>>(
