@@ -247,7 +247,9 @@ export class SharedTripComponent implements AfterViewInit {
   }
 
   sortTripDays() {
-    this.trip?.days.sort((a, b) => a.label.localeCompare(b.label));
+    this.trip?.days.sort((a, b) =>
+      a.label < b.label ? -1 : a.label > b.label ? 1 : 0,
+    );
   }
 
   toggleFiltering() {
@@ -309,7 +311,7 @@ export class SharedTripComponent implements AfterViewInit {
               item.comment?.toLowerCase().includes(searchValue)
             : true,
         )
-        .sort((a, b) => a.time.localeCompare(b.time))
+        .sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0))
         .map((item) => ({
           td_id: day.id,
           td_label: day.label,
@@ -337,7 +339,7 @@ export class SharedTripComponent implements AfterViewInit {
   setPlacesAndMarkers() {
     this.computePlacesUsedInTable();
     this.places = [...(this.trip?.places ?? [])].sort((a, b) =>
-      a.name.localeCompare(b.name),
+      a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
     );
     this.markerClusterGroup?.clearLayers();
     this.places.forEach((p) => {
@@ -471,7 +473,7 @@ export class SharedTripComponent implements AfterViewInit {
     const items = this.trip.days
       .flatMap((day, idx) =>
         day.items
-          .sort((a, b) => a.time.localeCompare(b.time))
+          .sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0))
           .map((item) => {
             let data = {
               text: item.text,
@@ -588,7 +590,7 @@ export class SharedTripComponent implements AfterViewInit {
     const idx = this.trip?.days.findIndex((d) => d.id === day_id);
     if (!this.trip || idx === undefined || idx == -1) return;
     const data = this.trip.days[idx].items.sort((a, b) =>
-      a.time.localeCompare(b.time),
+      a.time < b.time ? -1 : a.time > b.time ? 1 : 0,
     );
     const items = data
       .map((item) => {
@@ -709,7 +711,11 @@ export class SharedTripComponent implements AfterViewInit {
         ? a.packed
           ? 1
           : -1
-        : a.text.localeCompare(b.text),
+        : a.text < b.text
+          ? -1
+          : a.text > b.text
+            ? 1
+            : 0,
     );
 
     this.dispPackingList = sorted.reduce<Record<string, PackingItem[]>>(

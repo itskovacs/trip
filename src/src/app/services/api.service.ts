@@ -41,8 +41,8 @@ export class ApiService {
 
   _categoriesSubjectNext(categories: Category[]) {
     this.categoriesSubject.next(
-      [...categories].sort((categoryA: Category, categoryB: Category) =>
-        categoryA.name.localeCompare(categoryB.name),
+      [...categories].sort((a, b) =>
+        a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
       ),
     );
   }

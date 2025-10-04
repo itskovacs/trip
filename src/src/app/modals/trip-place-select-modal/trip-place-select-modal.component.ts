@@ -38,7 +38,9 @@ export class TripPlaceSelectModalComponent {
   ) {
     this.apiService.getPlaces().subscribe({
       next: (places) => {
-        this.places = places.sort((a, b) => a.name.localeCompare(b.name));
+        this.places = places.sort((a, b) =>
+          a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
+        );
         this.displayedPlaces = places;
       },
     });
@@ -78,7 +80,9 @@ export class TripPlaceSelectModalComponent {
 
     this.selectedPlacesID.push(p.id);
     this.selectedPlaces.push(p);
-    this.selectedPlaces.sort((a, b) => a.name.localeCompare(b.name));
+    this.selectedPlaces.sort((a, b) =>
+      a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
+    );
   }
 
   closeDialog() {

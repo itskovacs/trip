@@ -110,7 +110,7 @@ export class TripsComponent implements OnInit {
         return Number(!!a.archived) - Number(!!b.archived);
       }
 
-      return a.name.localeCompare(b.name);
+      return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
     });
   }
 

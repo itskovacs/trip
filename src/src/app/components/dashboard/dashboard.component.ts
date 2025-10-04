@@ -233,7 +233,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           p.description?.toLowerCase().includes(searchValue),
       );
 
-    this.visiblePlaces.sort((a, b) => a.name.localeCompare(b.name));
+    this.visiblePlaces.sort((a, b) =>
+      a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
+    );
   }
 
   resetFilters() {
@@ -326,7 +328,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           .subscribe({
             next: (place: Place) => {
               this.places = [...this.places, place].sort((a, b) =>
-                a.name.localeCompare(b.name),
+                a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
               );
               setTimeout(() => {
                 this.updateMarkersAndClusters();
@@ -372,7 +374,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           .pipe(take(1))
           .subscribe((places) => {
             this.places = [...this.places, ...places].sort((a, b) =>
-              a.name.localeCompare(b.name),
+              a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
             );
             setTimeout(() => {
               this.updateMarkersAndClusters();
@@ -528,7 +530,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
               const places = [...this.places];
               const idx = places.findIndex((p) => p.id == place.id);
               if (idx > -1) places.splice(idx, 1, place);
-              places.sort((a, b) => a.name.localeCompare(b.name));
+              places.sort((a, b) =>
+                a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
+              );
               this.places = places;
               this.selectedPlace = { ...place };
               setTimeout(() => {
@@ -631,7 +635,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .subscribe({
         next: (resp) => {
           this.places = [...this.places, ...resp.places].sort((a, b) =>
-            a.name.localeCompare(b.name),
+            a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
           );
 
           this.categories = resp.categories;
@@ -766,8 +770,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           .subscribe({
             next: (category: Category) => {
               this.categories.push(category);
-              this.categories.sort((categoryA: Category, categoryB: Category) =>
-                categoryA.name.localeCompare(categoryB.name),
+              this.categories.sort((a, b) =>
+                a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
               );
               this.activeCategories.add(category.name);
             },
@@ -812,9 +816,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   sortCategories() {
-    this.categories = [...this.categories].sort(
-      (categoryA: Category, categoryB: Category) =>
-        categoryA.name.localeCompare(categoryB.name),
+    this.categories = [...this.categories].sort((a, b) =>
+      a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
     );
   }
 
