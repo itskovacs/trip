@@ -4,7 +4,15 @@
       <p-button text icon="pi pi-chevron-left" class="print:hidden" (click)="back()" severity="secondary" />
       <div class="flex flex-col max-w-[55vw] md:max-w-full">
         <h1 class="font-medium tracking-tight text-2xl truncate">{{ trip?.name }}</h1>
-        <span class="text-xs text-gray-500">{{ trip?.days?.length }} {{ trip?.days!.length > 1 ? 'days' : 'day'}}</span>
+        <div class="mt-1 flex items-center">
+          <span
+            class="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded min-w-fit dark:bg-gray-400">{{
+            trip?.days?.length }} {{ trip?.days!.length > 1 ? 'days' :
+            'day'}}</span>
+          <span
+            class="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded min-w-fit dark:bg-gray-400">{{
+            (totalPrice | number:'1.0-2') || '-' }} {{ trip?.currency }}</span>
+        </div>
       </div>
     </div>
 
@@ -14,28 +22,11 @@
     </div>
     <div class="flex items-center gap-2 print:hidden">
       @if (!trip?.archived) {
-      <div class="hidden md:flex items-center gap-2">
-        <p-button pTooltip="Manage users" text (click)="openMembersDialog()" icon="pi pi-users" />
-        <p-button pTooltip="Share Trip" text (click)="shareDialogVisible = true" icon="pi pi-share-alt" />
-        <p-button pTooltip="Archive Trip" text (click)="toggleArchiveTrip()" icon="pi pi-box" severity="warn" />
-        <div class="border-l border-solid border-gray-700 h-4"></div>
-        <p-button pTooltip="Delete Trip" text (click)="deleteTrip()" icon="pi pi-trash" severity="danger" />
-        <p-button pTooltip="Edit Trip" text (click)="editTrip()" icon="pi pi-pencil" />
-        <div class="border-l border-solid border-gray-700 h-4"></div>
-        <p-button pTooltip="Checklist" text (click)="openChecklist()" icon="pi pi-check-square" severity="help" />
-        <p-button pTooltip="Packing list" tooltipPosition="left" text (click)="openPackingList()" icon="pi pi-briefcase"
-          severity="help" />
-      </div>
-
-      <div class="flex md:hidden">
+      <div class="flex">
         <p-button (click)="menuTripActions.toggle($event)" severity="secondary" text icon="pi pi-ellipsis-h" />
         <p-menu #menuTripActions [model]="menuTripActionsItems" [popup]="true" />
       </div>
       }
-
-      <span
-        class="bg-gray-100 text-gray-800 text-xs md:text-sm font-medium me-2 px-2.5 py-0.5 rounded min-w-fit dark:bg-gray-400">{{
-        (totalPrice | number:'1.0-2') || '-' }} {{ trip?.currency }}</span>
     </div>
   </div>
 </section>
@@ -62,23 +53,21 @@
 
       <div class="flex items-center gap-2 print:hidden">
         <div class="hidden md:flex items-center gap-2">
-          <p-button pTooltip="Show filters" icon="pi pi-filter" (click)="toggleFiltering()" text />
-          <div class="border-l border-solid border-gray-700 h-4"></div>
-          <p-button pTooltip="Expand table" class="hidden lg:flex" icon="pi pi-arrows-h"
+          <p-button label="Filters" icon="pi pi-filter" (click)="toggleFiltering()" text />
+          <p-button label="Expand" pTooltip="Expand table to full width" class="hidden lg:flex" icon="pi pi-arrows-h"
             (click)="isExpanded = !isExpanded" text />
-          <p-button [pTooltip]="tableExpandableMode ? 'f' : 'Switch table mode, allow column resizing'"
+          <p-button [label]="tableExpandableMode ? 'Rowspan' : 'Group'"
+            [pTooltip]="tableExpandableMode ? 'Switch table mode' : 'Switch table mode, allow column resizing'"
             [icon]="tableExpandableMode ? 'pi pi-arrow-up-right-and-arrow-down-left-from-center' : 'pi pi-arrow-down-left-and-arrow-up-right-to-center'"
             (click)="tableExpandableMode = !tableExpandableMode" text />
-          <div class="border-l border-solid border-gray-700 h-4"></div>
-          <p-button pTooltip="Open Google Maps directions" icon="pi pi-car" (click)="tripToNavigation()" text />
-          <p-button pTooltip="Show itinerary on map" icon="pi pi-directions"
+          <p-button label="GMaps" pTooltip="Open Google Maps directions" icon="pi pi-car" (click)="tripToNavigation()"
+            text />
+          <p-button label="Highlight" pTooltip="Show itinerary on map" icon="pi pi-directions"
             [severity]="tripMapAntLayerDayID == -1 ? 'help' : 'primary'" (click)="toggleTripDaysHighlight()" text />
-          <div class="border-l border-solid border-gray-700 h-4"></div>
           <p-button pTooltip="Print Trip" icon="pi pi-print" (click)="printTable()" text />
-          <div class="border-l border-solid border-gray-700 h-4"></div>
         </div>
 
-        <div class="flex md:hidden items-center">
+        <div class="flex md:hidden">
           <p-button (click)="menuTripTableActions.toggle($event)" severity="secondary" text icon="pi pi-ellipsis-h" />
           <p-menu #menuTripTableActions [model]="menuTripTableActionsItems" appendTo="body" [popup]="true" />
         </div>
@@ -118,13 +107,18 @@
       <ng-template #groupheader let-tripitem let-rowIndex="rowIndex" let-expanded="expanded">
         <tr>
           <td colspan="8">
-            <button type="button" pButton pRipple [pRowToggler]="tripitem" text rounded plain class="mr-2"
-              [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'">
-            </button>
-            <span class="font-bold ml-2">{{ tripitem.td_label }}</span>
-            <p-button class="ml-2" text icon="pi pi-directions"
-              [severity]="tripMapAntLayerDayID == tripitem.day_id ? 'help' : 'primary'"
-              (click)="toggleTripDayHighlight(tripitem.day_id)" />
+            <div class="flex items-center gap-2 w-full">
+              <button type="button" pButton pRipple [pRowToggler]="tripitem" text rounded plain
+                [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'">
+              </button>
+              <span class="font-bold w-xs max-w-xs min-w-0 inline-block truncate">{{ tripitem.td_label }}</span>
+
+              <p-button class="ml-2" label="Highlight" pTooltip="Show itinerary on map" text icon="pi pi-directions"
+                [severity]="tripMapAntLayerDayID == tripitem.day_id ? 'help' : 'primary'"
+                (click)="toggleTripDayHighlight(tripitem.day_id)" />
+              <p-button label="GMaps" pTooltip="Open Google Maps directions" text icon="pi pi-car"
+                (click)="tripDayToNavigation(tripitem.day_id)" />
+            </div>
           </td>
         </tr>
       </ng-template>
@@ -625,7 +619,7 @@
     <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mt-4 pb-4">
       @for (item of checklistItems; track item.id) {
       <div class="relative group flex items-center gap-3 rounded-md p-2 hover:bg-gray-100 dark:hover:bg-white/5">
-        <label [for]="item.id" [class.line-through]="item.checked"
+        <label [for]="item.id" [pTooltip]="item.text" [class.line-through]="item.checked"
           class="flex items-center gap-2 w-full cursor-pointer">
           <p-checkbox (onChange)="onCheckChecklistItem($event, item.id)" [binary]="true" [inputId]="item.id.toString()"
             [(ngModel)]="item.checked" />
@@ -644,7 +638,7 @@
     <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mt-4 pb-4">
       @for (item of getWatchlistData; track item.id) {
       <div class="flex items-center gap-3 rounded-md p-2 hover:bg-gray-100 dark:hover:bg-white/5">
-        <label [for]="item.id" class="flex items-center gap-2 w-full">
+        <label [for]="item.id" [pTooltip]="item.text" class="flex items-center gap-2 w-full">
           <div class="relative">
             @if (item.status) {<div class="z-50 block absolute top-0 left-3 size-2.5 rounded-full"
               [style.background]="item.status.color"></div>}

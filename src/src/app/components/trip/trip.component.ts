@@ -122,16 +122,8 @@ export class TripComponent implements AfterViewInit {
 
   readonly menuTripActionsItems: MenuItem[] = [
     {
-      label: "Actions",
+      label: "Lists",
       items: [
-        {
-          label: "Packing",
-          icon: "pi pi-briefcase",
-          iconClass: "text-purple-500!",
-          command: () => {
-            this.openPackingList();
-          },
-        },
         {
           label: "Checklist",
           icon: "pi pi-check-square",
@@ -141,6 +133,19 @@ export class TripComponent implements AfterViewInit {
           },
         },
         {
+          label: "Packing",
+          icon: "pi pi-briefcase",
+          iconClass: "text-purple-500!",
+          command: () => {
+            this.openPackingList();
+          },
+        },
+      ],
+    },
+    {
+      label: "Collaboration",
+      items: [
+        {
           label: "Members",
           icon: "pi pi-users",
           iconClass: "text-blue-500!",
@@ -149,13 +154,17 @@ export class TripComponent implements AfterViewInit {
           },
         },
         {
-          label: "Edit",
-          icon: "pi pi-pencil",
-          iconClass: "text-blue-500!",
+          label: "Share",
+          icon: "pi pi-share-alt",
           command: () => {
-            this.editTrip();
+            this.shareDialogVisible = true;
           },
         },
+      ],
+    },
+    {
+      label: "Trip",
+      items: [
         {
           label: "Archive",
           icon: "pi pi-box",
@@ -165,10 +174,11 @@ export class TripComponent implements AfterViewInit {
           },
         },
         {
-          label: "Share",
-          icon: "pi pi-share-alt",
+          label: "Edit",
+          icon: "pi pi-pencil",
+          iconClass: "text-blue-500!",
           command: () => {
-            this.shareDialogVisible = true;
+            this.editTrip();
           },
         },
         {
@@ -187,19 +197,17 @@ export class TripComponent implements AfterViewInit {
       label: "Actions",
       items: [
         {
-          label: "Directions",
-          icon: "pi pi-directions",
+          label: "Print",
+          icon: "pi pi-print",
           command: () => {
-            this.toggleTripDaysHighlight();
+            this.printTable();
           },
         },
-        {
-          label: "Navigation",
-          icon: "pi pi-car",
-          command: () => {
-            this.tripToNavigation();
-          },
-        },
+      ],
+    },
+    {
+      label: "Table",
+      items: [
         {
           label: "Filter",
           icon: "pi pi-filter",
@@ -208,17 +216,36 @@ export class TripComponent implements AfterViewInit {
           },
         },
         {
-          label: "Expand / Group",
+          label: "Full width",
+          icon: "pi pi-arrows-h",
+          command: () => {
+            this.isExpanded = !this.isExpanded;
+          },
+        },
+        {
+          label: "Group",
           icon: "pi pi-arrow-down-left-and-arrow-up-right-to-center",
           command: () => {
             this.tableExpandableMode = !this.tableExpandableMode;
           },
         },
+      ],
+    },
+    {
+      label: "Directions",
+      items: [
         {
-          label: "Print",
-          icon: "pi pi-print",
+          label: "Highlight",
+          icon: "pi pi-directions",
           command: () => {
-            this.printTable();
+            this.toggleTripDaysHighlight();
+          },
+        },
+        {
+          label: "GMaps itinerary",
+          icon: "pi pi-car",
+          command: () => {
+            this.tripToNavigation();
           },
         },
       ],
@@ -756,7 +783,7 @@ export class TripComponent implements AfterViewInit {
             time: item.time,
             gpx: item.gpx,
           };
-        if (item.place && item.place)
+        if (item.place)
           return {
             text: item.text,
             lat: item.place.lat,
@@ -985,6 +1012,20 @@ export class TripComponent implements AfterViewInit {
     link.click();
     link.remove();
     URL.revokeObjectURL(downloadURL);
+  }
+
+  tripDayToNavigation(day_id: number) {
+    const idx = this.trip?.days.findIndex((d) => d.id === day_id);
+    if (!this.trip || idx === undefined || idx == -1) return;
+    const data = this.trip.days[idx].items.sort((a, b) =>
+      a.time.localeCompare(b.time),
+    );
+    const items = data.filter((item) => item.lat && item.lng);
+    if (!items.length) return;
+
+    const waypoints = items.map((item) => `${item.lat},${item.lng}`).join("/");
+    const url = `https://www.google.com/maps/dir/${waypoints}`;
+    window.open(url, "_blank");
   }
 
   tripToNavigation() {
