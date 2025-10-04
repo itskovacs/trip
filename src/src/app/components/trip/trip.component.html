@@ -1,4 +1,4 @@
-<section class="mt-4">
+<section class="mt-4" [class.prettyprint]="isPrinting">
   <div class="p-4 print:p-0 flex items-center justify-between">
     <div class="flex items-center gap-2">
       <p-button text icon="pi pi-chevron-left" class="print:hidden" (click)="back()" severity="secondary" />
@@ -32,7 +32,8 @@
 </section>
 
 @if (trip?.archived) {
-<div class="mx-auto p-4 my-4 w-fit max-w-[400px] text-center text-orange-800 rounded-lg bg-orange-50">
+<div class="mx-auto p-4 my-4 w-fit max-w-[400px] text-center text-orange-800 rounded-lg bg-orange-50"
+  [class.prettyprint]="isPrinting">
   <div class="flex items-center justify-between">
     <div class="font-semibold">Archived</div>
     <p-button text icon="pi pi-box" label="Restore" (click)="toggleArchiveTrip()" [size]="'small'" />
@@ -41,9 +42,9 @@
 </div>
 }
 
-<section class="p-4 print:px-1 grid lg:grid-cols-3 gap-4 print:block">
+<section class="p-4 print:px-1 grid lg:grid-cols-3 gap-4 print:block" [class.prettyprint]="isPrinting">
   <div [ngClass]="{ 'lg:col-span-2': !isExpanded, 'lg:col-span-3': isExpanded }"
-    class="p-4 shadow self-start rounded-md max-w-screen print:col-span-full">
+    class="p-4 shadow self-start rounded-md max-w-screen">
     <div [class.sticky]="!isMapFullscreen"
       class="top-0 z-10 bg-white p-2 mb-2 flex justify-between items-center dark:bg-surface-900">
       <div>
@@ -64,7 +65,7 @@
             text />
           <p-button label="Highlight" pTooltip="Show itinerary on map" icon="pi pi-directions"
             [severity]="tripMapAntLayerDayID == -1 ? 'help' : 'primary'" (click)="toggleTripDaysHighlight()" text />
-          <p-button pTooltip="Print Trip" icon="pi pi-print" (click)="printTable()" text />
+          <p-button pTooltip="Pretty Print" icon="pi pi-print" (click)="togglePrint()" text />
         </div>
 
         <div class="flex md:hidden">
@@ -134,12 +135,14 @@
               {{ tripitem.text }}
             </div>
           </td>}
-          @if (tripTableSelectedColumns.includes('place')) {<td class="relative">
+          @if (tripTableSelectedColumns.includes('place')) {<td>
             @if (tripitem.place) {
-            <div class="ml-7 print:ml-0 truncate print:whitespace-normal">
-              <img [src]="tripitem.place.image || tripitem.place.category.image"
-                class="absolute left-0 top-1/2 -translate-y-1/2 w-9 rounded-full object-cover print:hidden" /> {{
-              tripitem.place.name }}
+            <div
+              class="inline-flex items-center gap-2 bg-gray-100 text-gray-800 font-medium px-1 py-1 pr-3 rounded-full">
+              <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden flex-shrink-0">
+                <img [src]="tripitem.place.image" class="size-full object-cover" />
+              </div>
+              <span class="text-sm truncate min-w-0">{{ tripitem.place.name }}</span>
             </div>
             } @else {-}
           </td>}
@@ -148,7 +151,7 @@
             <div
               class="ml-7 print:ml-0 truncate print:whitespace-normal line-clamp-1 whitespace-pre-line print:line-clamp-none">
               <img [src]="tripitem.image"
-                class="absolute left-0 top-1/2 -translate-y-1/2 size-9 rounded-full object-cover print:hidden" /> {{
+                class="absolute left-0 top-1/2 -translate-y-1/2 size-9 rounded-full object-cover" /> {{
               tripitem.comment }}
             </div>
             } @else {
@@ -195,12 +198,14 @@
               {{ tripitem.text }}
             </div>
           </td>}
-          @if (tripTableSelectedColumns.includes('place')) {<td class="relative">
+          @if (tripTableSelectedColumns.includes('place')) {<td>
             @if (tripitem.place) {
-            <div class="ml-7 print:ml-0 max-w-24 truncate print:whitespace-normal">
-              <img [src]="tripitem.place.image || tripitem.place.category.image"
-                class="absolute left-0 top-1/2 -translate-y-1/2 size-9 rounded-full object-cover print:hidden" /> {{
-              tripitem.place.name }}
+            <div
+              class="inline-flex items-center gap-2 bg-gray-100 text-gray-800 font-medium px-1 py-1 pr-3 rounded-full">
+              <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden flex-shrink-0">
+                <img [src]="tripitem.place.image" class="size-full object-cover" />
+              </div>
+              <span class="text-sm truncate min-w-0">{{ tripitem.place.name }}</span>
             </div>
             } @else {-}
           </td>}
@@ -372,8 +377,7 @@
         </div>
       </div>
 
-      <div id="map" [class.fullscreen-map]="isMapFullscreen" class="w-full rounded-md min-h-96 h-1/3 max-h-full">
-      </div>
+      <div id="map" [class.fullscreen-map]="isMapFullscreen" class="w-full rounded-md min-h-96 h-1/3 max-h-full"></div>
     </div>
 
     @if (!selectedItem) {
@@ -519,17 +523,18 @@
 <p-menu #menuTripDayActions [model]="menuTripDayActionsItems" appendTo="body" [popup]="true" />
 
 @if (isMapFullscreen) {
-<div class="fixed top-2 right-2 p-2 bg-white shadow rounded dark:bg-surface-900">
+<div class="fixed top-2 right-2 p-2 bg-white shadow rounded dark:bg-surface-900" [class.prettyprint]="isPrinting">
   <p-button (click)="toggleMapFullscreen()" severity="secondary" text icon="pi pi-window-minimize" />
 </div>
 
-<div class="fixed top-20 right-2 p-2 bg-white shadow rounded dark:bg-surface-900">
+<div class="fixed top-20 right-2 p-2 bg-white shadow rounded dark:bg-surface-900" [class.prettyprint]="isPrinting">
   <p-button (click)="toggleTripDaysHighlight()" text icon="pi pi-directions"
     [severity]="tripMapAntLayerDayID == -1 ? 'help' : 'secondary'" />
 </div>
 
 <div
-  class="fixed bottom-4 left-2 bg-white shadow rounded dark:bg-surface-900 min-w-32 max-w-48 max-h-96 overflow-y-auto">
+  class="fixed bottom-4 left-2 bg-white shadow rounded dark:bg-surface-900 min-w-32 max-w-48 max-h-96 overflow-y-auto"
+  [class.prettyprint]="isPrinting">
   <div class="pr-4 py-4 grid gap-4">
     <h2 class="pl-4 font-semibold text-md">Days</h2>
     @for (day of trip?.days; track day.id) {
@@ -709,3 +714,108 @@
     </div>
   </section>
 </p-dialog>
+
+@if (isPrinting) {
+<section class="hidden print:block">
+  <div class="flex items-center justify-center">
+    <div class="flex flex-col items-center max-w-[55vw] md:max-w-full">
+      <div class="flex flex-col items-center">
+        <img src="favicon.png" class="size-20">
+        <div class="flex gap-2 items-center text-xs text-gray-500"><i class="pi pi-github"></i>itskovacs/trip</div>
+      </div>
+
+      <h1 class="mt-4 tracking-tight text-3xl font-semibold truncate p-2">{{ trip?.name }}</h1>
+      <div class="flex items-center">
+        <span
+          class="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-1 rounded min-w-fit flex items-center gap-2"><i
+            class="pi pi-calendar text-xs"></i> {{
+          trip?.days?.length }} {{ trip?.days!.length > 1 ? 'days' :
+          'day'}}</span>
+        <span
+          class="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-1 rounded min-w-fit flex items-center gap-2"><i
+            class="pi pi-wallet text-xs"></i> {{
+          (totalPrice | number:'1.0-2') || '-' }} {{ trip?.currency }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <div class="text-2xl font-semibold">Notes</div>
+
+    <div class="mt-4 border-l-3 border-gray-900 pl-6 py-2">
+      <p class="text-gray-800 text-lg leading-loose whitespace-pre-line font-light">Nothing there.</p>
+    </div>
+  </div>
+
+  <div class="mt-8">
+    <div class="text-2xl font-semibold">Itinerary</div>
+
+    <div class="mt-4">
+      @for (day of trip?.days; track day.id) {
+      <div class="mb-12">
+        <div class="flex items-center gap-4 mb-6">
+          <h2 class="text-xl font-semibold text-gray-900 whitespace-nowrap">{{ day.label }}</h2>
+          <div class="flex-1 h-px bg-gray-300"></div>
+        </div>
+
+        @for (item of day.items | orderBy: 'time'; track item.id) {
+        <div class="flex gap-4 items-center rounded-lg p-3 -mx-3">
+          <span class="bg-gray-900 text-white text-xs font-mono px-3 py-1 rounded-full">{{ item.time }}</span>
+
+          <div class="flex-1 min-w-0">
+            @if (item.place) {
+            <div
+              class="inline-flex items-center gap-2 bg-gray-100 text-gray-800 font-medium px-1 py-1 pr-3 rounded-full">
+              <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden flex-shrink-0">
+                <img [src]="item.place.image" class="size-full object-cover" />
+              </div>
+              <span class="text-sm">{{ item.place.name }}</span>
+            </div>
+            } @else {
+            <h4 class="font-semibold text-gray-900">{{ item.text }}</h4>
+            }
+
+            @if (item.comment) {
+            <p class="text-sm text-gray-500 italic">{{ item.comment }}</p>
+            }
+          </div>
+
+          <div class="flex items-center">
+            @if (item.price) {
+            <span class="text-sm font-semibold text-gray-900 me-2">{{ item.price }} {{ trip?.currency }}</span>
+            }
+            @if (item.status) {
+            <span class="text-xs font-medium px-2.5 py-1 rounded min-w-fit"
+              [style.background]="statusToTripStatus(item.status)?.color + '1A'"
+              [style.color]="statusToTripStatus(item.status)?.color">{{
+              statusToTripStatus(item.status)?.label
+              }}</span>
+            }
+          </div>
+        </div>
+        } @empty {
+        <div class="mt-4 border-l-3 border-gray-900 pl-6 py-2">
+          <p class="text-gray-800 text-lg leading-loose whitespace-pre-line font-light">Nothing there.</p>
+        </div>
+        }
+      </div>
+      }
+    </div>
+  </div>
+
+  <div class="mt-8 break-inside-avoid">
+    <div class="text-2xl font-semibold">📍 Places</div>
+
+    <div class="mt-4">
+      @for(place of trip?.places; track place.id) {
+      <div class="inline-flex items-center gap-2 bg-gray-100 text-gray-800 font-medium px-1 py-1 pr-3 rounded-full m-1">
+        <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden flex-shrink-0">
+          <img [src]="place.image" class="size-full object-cover" />
+        </div>
+        <span class="text-sm">{{ place.name }}</span>
+      </div>
+      }
+    </div>
+  </div>
+</section>
+}
