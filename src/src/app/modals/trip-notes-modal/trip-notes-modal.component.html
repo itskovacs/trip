@@ -1,0 +1,12 @@
+<section>
+  <div>
+    <p-floatlabel variant="in">
+      <textarea pTextarea id="notes" [formControl]="notes" rows="4" autoResize fluid></textarea>
+      <label for="notes">Notes</label>
+    </p-floatlabel>
+  </div>
+
+  <div class="mt-4 text-right">
+    <p-button (click)="closeDialog()" label="Confirm" />
+  </div>
+</section>

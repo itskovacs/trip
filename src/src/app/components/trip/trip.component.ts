@@ -62,6 +62,7 @@ import { TripCreateChecklistModalComponent } from "../../modals/trip-create-chec
 import { TripInviteMemberModalComponent } from "../../modals/trip-invite-member-modal/trip-invite-member-modal.component";
 import { calculateDistanceBetween } from "../../shared/haversine";
 import { orderByPipe } from "../../shared/order-by.pipe";
+import { TripNotesModalComponent } from "../../modals/trip-notes-modal/trip-notes-modal.component";
 
 @Component({
   selector: "app-trip",
@@ -170,6 +171,13 @@ export class TripComponent implements AfterViewInit {
           icon: "pi pi-print",
           command: () => {
             this.togglePrint();
+          },
+        },
+        {
+          label: "Notes",
+          icon: "pi pi-info-circle",
+          command: () => {
+            this.openTripNotesModal();
           },
         },
         {
@@ -313,7 +321,7 @@ export class TripComponent implements AfterViewInit {
   ) {
     this.statuses = this.utilsService.statuses;
     this.tripTableSearchInput.valueChanges
-      .pipe(takeUntilDestroyed(), debounceTime(300))
+      .pipe(debounceTime(300), takeUntilDestroyed())
       .subscribe({
         next: (value) => {
           if (value) this.flattenTripDayItems(value.toLowerCase());
@@ -339,7 +347,7 @@ export class TripComponent implements AfterViewInit {
 
   loadTripData(id: number): void {
     combineLatest({
-      trip: this.apiService.getTrip(+id),
+      trip: this.apiService.getTrip(id),
       settings: this.apiService.getSettings(),
       members: this.apiService.getTripMembers(+id),
     })
@@ -475,6 +483,7 @@ export class TripComponent implements AfterViewInit {
             lat,
             lng,
             distance,
+            paid_by: item.paid_by,
           };
         }),
     );
@@ -1738,6 +1747,17 @@ export class TripComponent implements AfterViewInit {
       .subscribe({
         next: (items) => {
           this.tripMembers = [...items];
+
+          if (items.length > 1) {
+            this.apiService.getTripBalance(this.trip!.id).subscribe({
+              next: (resp) => {
+                this.tripMembers = this.tripMembers.map((m) => ({
+                  ...m,
+                  balance: resp[m.user] ?? 0,
+                }));
+              },
+            });
+          }
         },
       });
     setTimeout(() => {
@@ -1805,6 +1825,32 @@ export class TripComponent implements AfterViewInit {
               );
               if (index > -1) this.tripMembers.splice(index, 1);
             },
+          });
+      },
+    });
+  }
+
+  openTripNotesModal() {
+    const modal = this.dialogService.open(TripNotesModalComponent, {
+      header: "Notes",
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      width: "40vw",
+      breakpoints: {
+        "1024px": "70vw",
+        "640px": "90vw",
+      },
+      data: this.trip?.notes,
+    });
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (notes: string | null) => {
+        this.apiService
+          .putTrip({ notes: notes ?? "" }, this.trip!.id)
+          .pipe(take(1))
+          .subscribe({
+            next: (trip) => (this.trip = trip),
           });
       },
     });

@@ -140,6 +140,12 @@ export class ApiService {
     return this.httpClient.get<Trip>(`${this.apiBaseUrl}/trips/${id}`);
   }
 
+  getTripBalance(id: number): Observable<{ [user: string]: number }> {
+    return this.httpClient.get<{ [user: string]: number }>(
+      `${this.apiBaseUrl}/trips/${id}/balance`,
+    );
+  }
+
   postTrip(trip: TripBase): Observable<TripBase> {
     return this.httpClient.post<TripBase>(`${this.apiBaseUrl}/trips`, trip);
   }

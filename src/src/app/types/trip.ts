@@ -20,6 +20,7 @@ export interface Trip {
   days: TripDay[];
   collaborators: TripMember[];
   currency: string;
+  notes?: string;
 
   // POST / PUT
   places: Place[];
@@ -47,6 +48,7 @@ export interface TripItem {
   image?: string;
   image_id?: number;
   gpx?: string;
+  paid_by?: string;
 }
 
 export interface TripStatus {
@@ -71,6 +73,7 @@ export interface FlattenedTripItem {
   image?: string;
   image_id?: number;
   gpx?: string;
+  paid_by?: string;
 }
 
 export interface TripMember {
@@ -78,6 +81,8 @@ export interface TripMember {
   invited_by: string;
   invited_at: string;
   joined_at?: string;
+
+  balance?: number; // Injected
 }
 
 export interface TripInvitation extends TripBase {

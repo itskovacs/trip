@@ -1,4 +1,4 @@
-import { Component } from "@angular/core";
+import { Component, ViewChild } from "@angular/core";
 import {
   FormBuilder,
   FormGroup,
@@ -9,7 +9,7 @@ import { ButtonModule } from "primeng/button";
 import { DynamicDialogConfig, DynamicDialogRef } from "primeng/dynamicdialog";
 import { FloatLabelModule } from "primeng/floatlabel";
 import { InputTextModule } from "primeng/inputtext";
-import { TripDay, TripStatus } from "../../types/trip";
+import { TripDay, TripMember, TripStatus } from "../../types/trip";
 import { Place } from "../../types/poi";
 import { SelectModule } from "primeng/select";
 import { TextareaModule } from "primeng/textarea";
@@ -19,6 +19,9 @@ import { checkAndParseLatLng, formatLatLng } from "../../shared/latlng-parser";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { InputNumberModule } from "primeng/inputnumber";
 import { MultiSelectModule } from "primeng/multiselect";
+import { InputGroupModule } from "primeng/inputgroup";
+import { InputGroupAddonModule } from "primeng/inputgroupaddon";
+import { Popover, PopoverModule } from "primeng/popover";
 
 @Component({
   selector: "app-trip-create-day-item-modal",
@@ -36,12 +39,17 @@ import { MultiSelectModule } from "primeng/multiselect";
     ReactiveFormsModule,
     InputMaskModule,
     MultiSelectModule,
+    InputGroupModule,
+    InputGroupAddonModule,
+    PopoverModule,
   ],
   standalone: true,
   templateUrl: "./trip-create-day-item-modal.component.html",
   styleUrl: "./trip-create-day-item-modal.component.scss",
 })
 export class TripCreateDayItemModalComponent {
+  @ViewChild("op") op!: Popover;
+  members: TripMember[] = [];
   itemForm: FormGroup;
   days: TripDay[] = [];
   places: Place[] = [];
@@ -92,10 +100,12 @@ export class TripCreateDayItemModalComponent {
           ),
         },
       ],
+      paid_by: null,
     });
 
     const data = this.config.data;
     if (data) {
+      this.members = data.members ?? [];
       this.places = data.places ?? [];
       this.days = data.days ?? [];
 
@@ -168,6 +178,25 @@ export class TripCreateDayItemModalComponent {
     if (ret["gpx"] == "1") delete ret["gpx"];
     if (!ret["place"]) delete ret["place"];
     this.ref.close(ret);
+  }
+
+  togglePriceMembersPopover(e: any) {
+    this.op.toggle(e);
+  }
+
+  get paidByControl(): any {
+    return this.itemForm.get("paid_by");
+  }
+
+  selectPriceMember(member: any) {
+    this.itemForm.markAsDirty();
+    if (this.paidByControl.value == member) {
+      this.paidByControl.setValue(null);
+      this.op.hide();
+      return;
+    }
+    this.paidByControl.setValue(member);
+    this.op.hide();
   }
 
   onImageSelected(event: Event) {

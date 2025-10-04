@@ -246,6 +246,34 @@ def delete_trip(
     return {}
 
 
+@router.get("/{trip_id}/balance")
+def get_trip_balance(
+    session: SessionDep,
+    trip_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+):
+    _verify_trip_member(session, trip_id, current_user)
+
+    members = _trip_usernames(session, trip_id)
+    if len(members) < 2:
+        raise HTTPException(status_code=400, detail="Bad request")
+
+    trip_items = session.exec(
+        select(TripItem)
+        .join(TripDay)
+        .where(TripDay.trip_id == trip_id, TripItem.price.is_not(None), TripItem.paid_by.is_not(None))
+    ).all()
+
+    paid_by_map = {m: 0 for m in members}
+    for item in trip_items:
+        if not item.price or not item.paid_by:
+            continue
+        paid_by_map[item.paid_by] += item.price
+    xpected_per_person = sum(paid_by_map.values()) / len(members)
+
+    return {member: paid_by_map[member] - xpected_per_person for member in paid_by_map}
+
+
 @router.post("/{trip_id}/days", response_model=TripDayRead)
 def create_tripday(
     td: TripDayBase,
@@ -364,6 +392,14 @@ def create_tripitem(
             raise HTTPException(status_code=400, detail="Bad request")
         new_item.place_id = item.place
 
+    if item.paid_by:
+        if db_trip.user != item.paid_by:
+            is_member = item.paid_by in _trip_usernames(session, trip_id)
+            if not is_member:
+                raise HTTPException(status_code=400, detail="User is not a trip member")
+
+        new_item.paid_by = item.paid_by
+
     session.add(new_item)
     session.commit()
     session.refresh(new_item)
@@ -441,6 +477,17 @@ def update_tripitem(
         place_in_trip = any(p.id == place_id for p in db_trip.places)
         if not place_in_trip:
             raise HTTPException(status_code=400, detail="Bad request")
+
+    if "paid_by" in item_data:
+        paid_by = item_data.pop("paid_by")
+        if paid_by:
+            if paid_by != db_trip.user:
+                is_member = item.paid_by in _trip_usernames(session, trip_id)
+                if not is_member:
+                    raise HTTPException(status_code=400, detail="User is not a trip member")
+            db_item.paid_by = paid_by
+        else:
+            db_item.paid_by = None
 
     for key, value in item_data.items():
         setattr(db_item, key, value)
@@ -756,7 +803,6 @@ def invite_trip_member(
         raise HTTPException(status_code=409, detail="The resource already exists")
 
     db_user = session.get(User, data.user)
-    print(data.user, db_user)
     if not db_user:
         raise HTTPException(status_code=404, detail="Not found")
 
@@ -774,7 +820,6 @@ def delete_trip_member(
     username: str,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    print("yo")
     db_trip = _get_trip_or_404(session, trip_id)
     _verify_trip_member(session, trip_id, current_user)
 
@@ -792,6 +837,14 @@ def delete_trip_member(
     ).one_or_none()
     if not member:
         raise HTTPException(status_code=404, detail="Not found")
+
+    # Set NULL to TripItem.paid_by for this username
+    trip_items = session.exec(
+        select(TripItem).join(TripDay).where(TripDay.trip_id == trip_id, TripItem.paid_by == username)
+    ).all()
+    for item in trip_items:
+        item.paid_by = None
+    session.add_all(trip_items)
 
     session.delete(member)
     session.commit()

@@ -57,7 +57,7 @@
           <p-button label="Filters" icon="pi pi-filter" (click)="toggleFiltering()" text />
           <p-button label="Expand" pTooltip="Expand table to full width" class="hidden lg:flex" icon="pi pi-arrows-h"
             (click)="isExpanded = !isExpanded" text />
-          <p-button [label]="tableExpandableMode ? 'Rowspan' : 'Group'"
+          <p-button [label]="tableExpandableMode ? 'Ungroup' : 'Group'"
             [pTooltip]="tableExpandableMode ? 'Switch table mode' : 'Switch table mode, allow column resizing'"
             [icon]="tableExpandableMode ? 'pi pi-arrow-up-right-and-arrow-down-left-from-center' : 'pi pi-arrow-down-left-and-arrow-up-right-to-center'"
             (click)="tableExpandableMode = !tableExpandableMode" text />
@@ -137,8 +137,8 @@
           </td>}
           @if (tripTableSelectedColumns.includes('place')) {<td>
             @if (tripitem.place) {
-            <div
-              class="inline-flex items-center gap-2 bg-gray-100 text-gray-800 font-medium px-1 py-1 pr-3 rounded-full">
+            <div [style.background]="tripitem.place.category.color + '1A'"
+              class="inline-flex items-center gap-2 text-gray-800 font-medium px-1 py-1 pr-3 rounded-full">
               <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden flex-shrink-0">
                 <img [src]="tripitem.place.image" class="size-full object-cover" />
               </div>
@@ -200,8 +200,8 @@
           </td>}
           @if (tripTableSelectedColumns.includes('place')) {<td>
             @if (tripitem.place) {
-            <div
-              class="inline-flex items-center gap-2 bg-gray-100 text-gray-800 font-medium px-1 py-1 pr-3 rounded-full">
+            <div [style.background]="tripitem.place.category.color + '1A'"
+              class="inline-flex items-center gap-2 text-gray-800 font-medium px-1 py-1 pr-3 rounded-full">
               <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden flex-shrink-0">
                 <img [src]="tripitem.place.image" class="size-full object-cover" />
               </div>
@@ -293,8 +293,7 @@
               <p-button icon="pi pi-trash" [disabled]="trip?.archived" severity="danger"
                 (click)="deleteItem(selectedItem)" text />
               <p-button icon="pi pi-pencil" [disabled]="trip?.archived" (click)="editItem(selectedItem)" text />
-              <p-button icon="pi pi-times" [disabled]="trip?.archived"
-                (click)="selectedItem = undefined; resetPlaceHighlightMarker()" text />
+              <p-button icon="pi pi-times" (click)="selectedItem = undefined; resetPlaceHighlightMarker()" text />
             </div>
           </div>
         </div>
@@ -340,6 +339,7 @@
         <div class="rounded-md shadow p-4">
           <p class="font-bold mb-1">Price</p>
           <p class="text-sm text-gray-500">{{ selectedItem.price }} @if (selectedItem.price) { {{ trip?.currency }} }
+            @if (selectedItem.paid_by) {<span class="text-xs text-gray-500">(by {{ selectedItem.paid_by }})</span>}
           </p>
         </div>
         }
@@ -668,8 +668,8 @@
 
     <div class="divide-y divide-gray-100 mt-4 pb-4">
       @for (m of tripMembers; track m.user) {
-      <div class="flex items-center justify-between gap-x-6 py-5">
-        <div class="flex items-center min-w-0 gap-x-4">
+      <div class="flex items-center justify-between gap-6 py-5">
+        <div class="flex items-center min-w-0 gap-4">
           <div class="size-12 flex flex-none rounded-full items-center justify-center" [ngClass]="{
             'bg-red-100': !m.invited_at,
             'bg-gray-50': m.invited_at && !m.joined_at,
@@ -678,32 +678,33 @@
             <i class="pi pi-user"></i>
           </div>
 
-          <div class="flex min-w-0 gap-x-4">
+          <div class="flex flex-col gap-1 min-w-0">
             <span class="capitalize truncate font-semibold text-gray-900">{{ m.user }}</span>
+
+            <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
+              @if (!m.invited_at) {
+              <span
+                class="text-center bg-red-100 text-red-800 text-xs px-2.5 py-0.5 rounded-md group-hover:hidden dark:bg-red-100/85">Owner</span>
+              }
+
+              @if (m.invited_at && !m.joined_at) {
+              <span
+                class="text-center bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-md group-hover:hidden dark:bg-gray-100/85">Invited</span>
+              }
+
+              @if (m.joined_at) {
+              <span
+                class="text-center bg-blue-100 text-blue-800 text-xs px-2.5 py-0.5 rounded-md group-hover:hidden dark:bg-blue-100/85">Member</span>
+              }
+            </div>
           </div>
         </div>
 
         <div class="flex items-center gap-2">
           <span
-            class="text-center bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-md group-hover:hidden dark:bg-gray-100/85">-
-            {{ trip?.currency }}</span>
-
-          <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
-            @if (!m.invited_at) {
-            <span
-              class="text-center bg-red-100 text-red-800 text-xs px-2.5 py-0.5 rounded-md group-hover:hidden dark:bg-red-100/85">Owner</span>
-            }
-
-            @if (m.invited_at && !m.joined_at) {
-            <span
-              class="text-center bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-md group-hover:hidden dark:bg-gray-100/85">Invited</span>
-            }
-
-            @if (m.joined_at) {
-            <span
-              class="text-center bg-blue-100 text-blue-800 text-xs px-2.5 py-0.5 rounded-md group-hover:hidden dark:bg-blue-100/85">Member</span>
-            }
-          </div>
+            [ngClass]="m.balance ? m.balance > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'"
+            class="text-center text-xs px-2.5 py-0.5 rounded-md group-hover:hidden">{{
+            m.balance || '-' }} {{ trip?.currency }}</span>
 
           @if (m.invited_at) {
           <p-button text (click)="deleteMember(m.user)" icon="pi pi-trash" severity="danger" />
@@ -743,7 +744,8 @@
     <div class="text-2xl font-semibold">Notes</div>
 
     <div class="mt-4 border-l-3 border-gray-900 pl-6 py-2">
-      <p class="text-gray-800 text-lg leading-loose whitespace-pre-line font-light">Nothing there.</p>
+      <p class="text-sm leading-relaxed text-gray-800 whitespace-pre-line">{{ trip?.notes || 'Nothing there.'
+        }}</p>
     </div>
   </div>
 

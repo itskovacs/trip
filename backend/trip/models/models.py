@@ -251,6 +251,7 @@ class TripBase(SQLModel):
     name: str
     archived: bool | None = None
     currency: str | None = settings.DEFAULT_CURRENCY
+    notes: str | None = None
 
 
 class Trip(TripBase, table=True):
@@ -259,8 +260,12 @@ class Trip(TripBase, table=True):
     image: Image | None = Relationship(back_populates="trips")
     user: str = Field(foreign_key="user.username", ondelete="CASCADE")
 
-    places: list["Place"] = Relationship(back_populates="trips", sa_relationship_kwargs={"order_by": "Place.name"}, link_model=TripPlaceLink)
-    days: list["TripDay"] = Relationship(back_populates="trip", sa_relationship_kwargs={"order_by": "TripDay.label"}, cascade_delete=True)
+    places: list["Place"] = Relationship(
+        back_populates="trips", sa_relationship_kwargs={"order_by": "Place.name"}, link_model=TripPlaceLink
+    )
+    days: list["TripDay"] = Relationship(
+        back_populates="trip", sa_relationship_kwargs={"order_by": "TripDay.label"}, cascade_delete=True
+    )
     shares: list["TripShare"] = Relationship(back_populates="trip", cascade_delete=True)
     packing_items: list["TripPackingListItem"] = Relationship(back_populates="trip", cascade_delete=True)
     checklist_items: list["TripChecklistItem"] = Relationship(back_populates="trip", cascade_delete=True)
@@ -321,6 +326,7 @@ class TripRead(TripBase):
             collaborators=[TripMemberRead.serialize(m) for m in obj.memberships],
             shared=bool(obj.shares),
             currency=obj.currency if obj.currency else settings.DEFAULT_CURRENCY,
+            notes=obj.notes,
         )
 
 
@@ -414,11 +420,14 @@ class TripItem(TripItemBase, table=True):
     day_id: int = Field(foreign_key="tripday.id", ondelete="CASCADE")
     day: TripDay | None = Relationship(back_populates="items")
 
+    paid_by: int | None = Field(default=None, foreign_key="user.username", ondelete="SET NULL")
+
 
 class TripItemCreate(TripItemBase):
     place: int | None = None
     status: TripItemStatusEnum | None = None
     image: str | None = None
+    paid_by: str | None = None
 
 
 class TripItemUpdate(TripItemBase):
@@ -428,6 +437,7 @@ class TripItemUpdate(TripItemBase):
     day_id: int | None = None
     status: TripItemStatusEnum | None = None
     image: str | None = None
+    paid_by: str | None = None
 
 
 class TripItemRead(TripItemBase):
@@ -437,6 +447,7 @@ class TripItemRead(TripItemBase):
     status: TripItemStatusEnum | None
     image: str | None
     image_id: int | None
+    paid_by: str | None
 
     @classmethod
     def serialize(cls, obj: TripItem) -> "TripItemRead":
@@ -454,6 +465,7 @@ class TripItemRead(TripItemBase):
             image=_prefix_assets_url(obj.image.filename) if obj.image else None,
             image_id=obj.image_id,
             gpx=obj.gpx,
+            paid_by=obj.paid_by,
         )
 
 
