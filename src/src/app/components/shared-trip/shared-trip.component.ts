@@ -20,11 +20,12 @@ import {
   placeToMarker,
   createClusterGroup,
   tripDayMarker,
+  gpxToPolyline,
 } from "../../shared/map";
 import { ActivatedRoute } from "@angular/router";
-import { debounceTime, Observable, take, tap } from "rxjs";
+import { debounceTime, take, tap } from "rxjs";
 import { UtilsService } from "../../services/utils.service";
-import { AsyncPipe, CommonModule, DecimalPipe } from "@angular/common";
+import { CommonModule, DecimalPipe } from "@angular/common";
 import { MenuItem } from "primeng/api";
 import { MenuModule } from "primeng/menu";
 import { LinkifyPipe } from "../../shared/linkify.pipe";
@@ -35,6 +36,9 @@ import { MultiSelectModule } from "primeng/multiselect";
 import { DialogModule } from "primeng/dialog";
 import { CheckboxModule } from "primeng/checkbox";
 import { InputTextModule } from "primeng/inputtext";
+import { ClipboardModule } from "@angular/cdk/clipboard";
+import { calculateDistanceBetween } from "../../shared/haversine";
+import { orderByPipe } from "../../shared/order-by.pipe";
 
 @Component({
   selector: "app-shared-trip",
@@ -54,6 +58,8 @@ import { InputTextModule } from "primeng/inputtext";
     FormsModule,
     MultiSelectModule,
     CheckboxModule,
+    ClipboardModule,
+    orderByPipe,
   ],
   templateUrl: "./shared-trip.component.html",
   styleUrls: ["./shared-trip.component.scss"],
@@ -66,8 +72,10 @@ export class SharedTripComponent implements AfterViewInit {
   flattenedTripItems: FlattenedTripItem[] = [];
   selectedItem?: TripItem & { status?: TripStatus };
   tableExpandableMode = false;
+  isPrinting = false;
 
   isMapFullscreen = false;
+  isMapFullscreenDays = false;
   totalPrice = 0;
   collapsedTripDays = false;
   collapsedTripPlaces = false;
@@ -83,14 +91,22 @@ export class SharedTripComponent implements AfterViewInit {
   map?: L.Map;
   markerClusterGroup?: L.MarkerClusterGroup;
   tripMapTemporaryMarker?: L.Marker;
+  tripMapGpxLayer?: L.Layer;
   tripMapHoveredElement?: HTMLElement;
   tripMapAntLayer?: L.FeatureGroup;
   tripMapAntLayerDayID?: number;
 
   readonly menuTripActionsItems: MenuItem[] = [
     {
-      label: "Actions",
+      label: "Lists",
       items: [
+        {
+          label: "Checklist",
+          icon: "pi pi-check-square",
+          command: () => {
+            this.openChecklist();
+          },
+        },
         {
           label: "Packing",
           icon: "pi pi-briefcase",
@@ -98,12 +114,16 @@ export class SharedTripComponent implements AfterViewInit {
             this.openPackingList();
           },
         },
+      ],
+    },
+    {
+      label: "Trip",
+      items: [
         {
-          label: "Checklist",
-          icon: "pi pi-check-square",
-          iconClass: "text-purple-500!",
+          label: "Pretty Print",
+          icon: "pi pi-print",
           command: () => {
-            this.openChecklist();
+            this.togglePrint();
           },
         },
       ],
@@ -114,19 +134,17 @@ export class SharedTripComponent implements AfterViewInit {
       label: "Actions",
       items: [
         {
-          label: "Directions",
-          icon: "pi pi-directions",
+          label: "Pretty Print",
+          icon: "pi pi-print",
           command: () => {
-            this.toggleTripDaysHighlight();
+            this.togglePrint();
           },
         },
-        {
-          label: "Navigation",
-          icon: "pi pi-car",
-          command: () => {
-            this.tripToNavigation();
-          },
-        },
+      ],
+    },
+    {
+      label: "Table",
+      items: [
         {
           label: "Filter",
           icon: "pi pi-filter",
@@ -135,17 +153,29 @@ export class SharedTripComponent implements AfterViewInit {
           },
         },
         {
-          label: "Expand / Group",
+          label: "Group",
           icon: "pi pi-arrow-down-left-and-arrow-up-right-to-center",
           command: () => {
             this.tableExpandableMode = !this.tableExpandableMode;
           },
         },
+      ],
+    },
+    {
+      label: "Directions",
+      items: [
         {
-          label: "Print",
-          icon: "pi pi-print",
+          label: "Highlight",
+          icon: "pi pi-directions",
           command: () => {
-            this.printTable();
+            this.toggleTripDaysHighlight();
+          },
+        },
+        {
+          label: "GMaps itinerary",
+          icon: "pi pi-car",
+          command: () => {
+            this.tripToNavigation();
           },
         },
       ],
@@ -160,6 +190,7 @@ export class SharedTripComponent implements AfterViewInit {
     "LatLng",
     "price",
     "status",
+    "distance",
   ];
   tripTableSelectedColumns: string[] = [
     "day",
@@ -180,7 +211,7 @@ export class SharedTripComponent implements AfterViewInit {
   ) {
     this.statuses = this.utilsService.statuses;
     this.tripTableSearchInput.valueChanges
-      .pipe(takeUntilDestroyed(), debounceTime(300))
+      .pipe(debounceTime(300), takeUntilDestroyed())
       .subscribe({
         next: (value) => {
           if (value) this.flattenTripDayItems(value.toLowerCase());
@@ -234,22 +265,16 @@ export class SharedTripComponent implements AfterViewInit {
       this.map = createMap(contentMenuItems);
       this.markerClusterGroup = createClusterGroup().addTo(this.map);
       this.setPlacesAndMarkers();
-      // this.map.setView([settings.map_lat, settings.map_lng]);
       this.resetMapBounds();
     }, 50); // HACK: Prevent map not found due to @if
   }
 
-  printTable() {
-    this.selectedItem = undefined;
+  togglePrint() {
+    this.isPrinting = true;
     setTimeout(() => {
       window.print();
+      this.isPrinting = false;
     }, 100);
-  }
-
-  sortTripDays() {
-    this.trip?.days.sort((a, b) =>
-      a.label < b.label ? -1 : a.label > b.label ? 1 : 0,
-    );
   }
 
   toggleFiltering() {
@@ -301,7 +326,7 @@ export class SharedTripComponent implements AfterViewInit {
   }
 
   flattenTripDayItems(searchValue?: string) {
-    this.sortTripDays();
+    let prevLat: number, prevLng: number;
     this.flattenedTripItems = this.trip!.days.flatMap((day) =>
       [...day.items]
         .filter((item) =>
@@ -312,20 +337,40 @@ export class SharedTripComponent implements AfterViewInit {
             : true,
         )
         .sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0))
-        .map((item) => ({
-          td_id: day.id,
-          td_label: day.label,
-          id: item.id,
-          time: item.time,
-          text: item.text,
-          status: this.statusToTripStatus(item.status as string),
-          comment: item.comment,
-          price: item.price || undefined,
-          day_id: item.day_id,
-          place: item.place,
-          lat: item.lat || (item.place ? item.place.lat : undefined),
-          lng: item.lng || (item.place ? item.place.lng : undefined),
-        })),
+        .map((item) => {
+          const lat = item.lat ?? (item.place ? item.place.lat : undefined);
+          const lng = item.lng ?? (item.place ? item.place.lng : undefined);
+
+          let distance: number | undefined;
+          if (lat && lng) {
+            if (prevLat && prevLng) {
+              const d = calculateDistanceBetween(prevLat, prevLng, lat, lng);
+              distance = +(Math.round(d * 1000) / 1000).toFixed(2);
+            }
+            prevLat = lat;
+            prevLng = lng;
+          }
+
+          return {
+            td_id: day.id,
+            td_label: day.label,
+            id: item.id,
+            time: item.time,
+            text: item.text,
+            status: this.statusToTripStatus(item.status as string),
+            comment: item.comment,
+            price: item.price || undefined,
+            day_id: item.day_id,
+            place: item.place,
+            image: item.image,
+            image_id: item.image_id,
+            gpx: item.gpx,
+            lat,
+            lng,
+            distance,
+            paid_by: item.paid_by,
+          };
+        }),
     );
   }
 
@@ -343,9 +388,22 @@ export class SharedTripComponent implements AfterViewInit {
     );
     this.markerClusterGroup?.clearLayers();
     this.places.forEach((p) => {
-      const marker = placeToMarker(p, false, !this.placesUsedInTable.has(p.id));
+      const marker = this._placeToMarker(p);
       this.markerClusterGroup?.addLayer(marker);
     });
+  }
+
+  _placeToMarker(place: Place): L.Marker {
+    const marker = placeToMarker(
+      place,
+      false,
+      !this.placesUsedInTable.has(place.id),
+    );
+    marker.on("click", () => {
+      this.onMapMarkerClick(place.id);
+      marker.closeTooltip();
+    });
+    return marker;
   }
 
   resetMapBounds() {
@@ -376,6 +434,10 @@ export class SharedTripComponent implements AfterViewInit {
     }, 10);
   }
 
+  toggleMapFullscreenDays() {
+    this.isMapFullscreenDays = !this.isMapFullscreenDays;
+  }
+
   updateTotalPrice(n?: number) {
     if (n) {
       this.totalPrice += n;
@@ -389,7 +451,7 @@ export class SharedTripComponent implements AfterViewInit {
 
   resetPlaceHighlightMarker() {
     if (this.tripMapHoveredElement) {
-      this.tripMapHoveredElement.classList.remove("listHover");
+      this.tripMapHoveredElement.classList.remove("list-hover");
       this.tripMapHoveredElement = undefined;
     }
 
@@ -397,28 +459,39 @@ export class SharedTripComponent implements AfterViewInit {
       this.map?.removeLayer(this.tripMapTemporaryMarker);
       this.tripMapTemporaryMarker = undefined;
     }
+
+    if (this.tripMapGpxLayer) {
+      this.map?.removeLayer(this.tripMapGpxLayer);
+      this.tripMapGpxLayer = undefined;
+    }
+    this.resetMapBounds();
   }
 
-  placeHighlightMarker(lat: number, lng: number) {
+  placeHighlightMarker(item: any) {
     if (this.tripMapHoveredElement || this.tripMapTemporaryMarker)
       this.resetPlaceHighlightMarker();
 
     let marker: L.Marker | undefined;
     this.markerClusterGroup?.eachLayer((layer: any) => {
-      if (layer.getLatLng && layer.getLatLng().equals([lat, lng])) {
+      if (layer.getLatLng && layer.getLatLng().equals([item.lat, item.lng])) {
         marker = layer;
       }
     });
 
+    if (item.gpx) {
+      this.tripMapGpxLayer = gpxToPolyline(item.gpx);
+      this.tripMapGpxLayer.addTo(this.map!);
+    }
+
     if (!marker) {
       // TripItem without place, but latlng
-      const item = {
-        text: this.selectedItem?.text || "",
-        lat: lat,
-        lng: lng,
-      };
       this.tripMapTemporaryMarker = tripDayMarker(item).addTo(this.map!);
-      this.map?.fitBounds([[lat, lng]], { padding: [60, 60] });
+      if (this.tripMapGpxLayer) {
+        this.map?.fitBounds(
+          [[item.lat, item.lng], (this.tripMapGpxLayer as any).getBounds()],
+          { padding: [30, 30] },
+        );
+      } else this.map?.fitBounds([[item.lat, item.lng]], { padding: [60, 60] });
       return;
     }
 
@@ -426,7 +499,7 @@ export class SharedTripComponent implements AfterViewInit {
     const markerElement = marker.getElement() as HTMLElement; // search for Marker. If 'null', is inside Cluster
     if (markerElement) {
       // marker, not clustered
-      markerElement.classList.add("listHover");
+      markerElement.classList.add("list-hover");
       this.tripMapHoveredElement = markerElement;
       targetLatLng = marker.getLatLng();
     } else {
@@ -437,7 +510,7 @@ export class SharedTripComponent implements AfterViewInit {
       if (parentCluster) {
         const clusterEl = parentCluster.getElement();
         if (clusterEl) {
-          clusterEl.classList.add("listHover");
+          clusterEl.classList.add("list-hover");
           this.tripMapHoveredElement = clusterEl;
         }
         targetLatLng = parentCluster.getLatLng();
@@ -479,6 +552,8 @@ export class SharedTripComponent implements AfterViewInit {
               text: item.text,
               isPlace: !!item.place,
               idx: idx,
+              time: item.time,
+              gpx: item.gpx,
             };
 
             if (item.lat && item.lng)
@@ -557,8 +632,9 @@ export class SharedTripComponent implements AfterViewInit {
         prevPoint = coords[0];
       }
 
-      group.forEach((day: any) => {
-        if (!day.isPlace) layGroup.addLayer(tripDayMarker(day));
+      group.forEach((data: any) => {
+        if (!data.isPlace) layGroup.addLayer(tripDayMarker(data));
+        if (data.gpx) layGroup.addLayer(gpxToPolyline(data.gpx));
       });
     });
 
@@ -580,7 +656,7 @@ export class SharedTripComponent implements AfterViewInit {
     this.tripMapAntLayerDayID = -1; //Hardcoded value for global trace
   }
 
-  toggleTripDayHighlightPathDay(day_id: number) {
+  toggleTripDayHighlight(day_id: number) {
     // Click on the currently displayed day: remove
     if (this.tripMapAntLayerDayID == day_id) {
       this.resetDayHighlight();
@@ -600,13 +676,17 @@ export class SharedTripComponent implements AfterViewInit {
             lat: item.lat,
             lng: item.lng,
             isPlace: !!item.place,
+            time: item.time,
+            gpx: item.gpx,
           };
-        if (item.place && item.place)
+        if (item.place)
           return {
             text: item.text,
             lat: item.place.lat,
             lng: item.place.lng,
             isPlace: true,
+            time: item.time,
+            gpx: item.gpx,
           };
         return undefined;
       })
@@ -644,6 +724,7 @@ export class SharedTripComponent implements AfterViewInit {
     layGroup.addLayer(path);
     items.forEach((item) => {
       if (!item.isPlace) layGroup.addLayer(tripDayMarker(item));
+      if (item.gpx) layGroup.addLayer(gpxToPolyline(item.gpx));
     });
 
     if (this.tripMapAntLayer) {
@@ -665,8 +746,26 @@ export class SharedTripComponent implements AfterViewInit {
       this.resetPlaceHighlightMarker();
     } else {
       this.selectedItem = item;
-      if (item.lat && item.lng) this.placeHighlightMarker(item.lat, item.lng);
+      if (item.lat && item.lng) this.placeHighlightMarker(item);
     }
+  }
+
+  onMapMarkerClick(place_id: number) {
+    const item = this.flattenedTripItems.find(
+      (i) => i.place && i.place.id == place_id,
+    );
+    if (!item) {
+      this.utilsService.toast(
+        "info",
+        "Place not used",
+        "The place is not used in the table",
+      );
+      return;
+    }
+
+    this.resetPlaceHighlightMarker();
+    this.selectedItem = item;
+    this.placeHighlightMarker(item);
   }
 
   itemToNavigation() {
@@ -674,6 +773,32 @@ export class SharedTripComponent implements AfterViewInit {
     // TODO: More services
     // const url = `http://maps.apple.com/?daddr=${this.selectedItem.lat},${this.selectedItem.lng}`;
     const url = `https://www.google.com/maps/dir/?api=1&destination=${this.selectedItem.lat},${this.selectedItem.lng}`;
+    window.open(url, "_blank");
+  }
+
+  downloadItemGPX() {
+    if (!this.selectedItem?.gpx) return;
+    const dataBlob = new Blob([this.selectedItem.gpx]);
+    const downloadURL = URL.createObjectURL(dataBlob);
+    const link = document.createElement("a");
+    link.href = downloadURL;
+    link.download = `TRIP_${this.trip?.name}_${this.selectedItem.text}.gpx`;
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(downloadURL);
+  }
+
+  tripDayToNavigation(day_id: number) {
+    const idx = this.trip?.days.findIndex((d) => d.id === day_id);
+    if (!this.trip || idx === undefined || idx == -1) return;
+    const data = this.trip.days[idx].items.sort((a, b) =>
+      a.time < b.time ? -1 : a.time > b.time ? 1 : 0,
+    );
+    const items = data.filter((item) => item.lat && item.lng);
+    if (!items.length) return;
+
+    const waypoints = items.map((item) => `${item.lat},${item.lng}`).join("/");
+    const url = `https://www.google.com/maps/dir/${waypoints}`;
     window.open(url, "_blank");
   }
 

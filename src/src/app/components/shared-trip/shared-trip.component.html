@@ -1,11 +1,18 @@
 @defer {
 @if (trip) {
-<section class="mt-4">
+<section class="mt-4" [class.prettyprint]="isPrinting">
   <div class="p-4 print:p-0 flex items-center justify-between">
     <div class="flex items-center gap-2">
-      <div class="pl-2 flex flex-col max-w-[55vw] md:max-w-full min-w-0">
-        <h1 class="font-medium tracking-tight text-xl md:text-2xl truncate">{{ trip.name }}</h1>
-        <span class="text-xs text-gray-500">{{ trip.days.length }} {{ trip.days!.length > 1 ? 'days' : 'day'}}</span>
+      <div class="pl-2 flex flex-col max-w-[55vw] md:max-w-full">
+        <h1 class="font-medium tracking-tight text-2xl truncate">{{ trip.name }}</h1>
+        <div class="mt-1 flex items-center">
+          <span
+            class="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded min-w-fit dark:bg-gray-400">{{
+            trip.days.length }} {{ trip.days!.length > 1 ? 'days' : 'day'}}</span>
+          <span
+            class="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded min-w-fit dark:bg-gray-400">{{
+            (totalPrice | number:'1.0-2') || '-' }} {{ trip.currency }}</span>
+        </div>
       </div>
     </div>
 
@@ -14,19 +21,16 @@
       <div class="flex gap-2 items-center text-xs text-gray-500"><i class="pi pi-github"></i>itskovacs/trip</div>
     </div>
     <div class="flex items-center gap-2 print:hidden">
-      <p-button pTooltip="Checklist" text (click)="openChecklist()" icon="pi pi-check-square" severity="help" />
-      <p-button pTooltip="Packing list" tooltipPosition="left" text (click)="openPackingList()" icon="pi pi-briefcase"
-        severity="help" />
-      <span
-        class="bg-gray-100 text-gray-800 text-xs md:text-sm font-medium me-2 px-2.5 py-0.5 rounded min-w-fit dark:bg-gray-400">{{
-        (totalPrice | number:'1.0-2') || '-' }} {{ trip.currency }}</span>
+      <div class="flex">
+        <p-button (click)="menuTripActions.toggle($event)" severity="secondary" text icon="pi pi-ellipsis-h" />
+        <p-menu #menuTripActions [model]="menuTripActionsItems" [popup]="true" />
+      </div>
     </div>
   </div>
 </section>
 
-<section class="p-4 print:px-1 grid lg:grid-cols-3 gap-4 print:block">
-  <div [ngClass]="{ 'lg:col-span-2': !isExpanded, 'lg:col-span-3': isExpanded }"
-    class="p-4 shadow self-start rounded-md max-w-screen print:col-span-full">
+<section class="p-4 print:px-1 grid lg:grid-cols-3 gap-4 print:block" [class.prettyprint]="isPrinting">
+  <div [ngClass]="isExpanded ? 'lg:col-span-3' : 'lg:col-span-2'" class="p-4 shadow self-start rounded-md max-w-screen">
     <div [class.sticky]="!isMapFullscreen"
       class="top-0 z-10 bg-white p-2 mb-2 flex justify-between items-center dark:bg-surface-900">
       <div>
@@ -36,17 +40,18 @@
 
       <div class="flex items-center gap-2 print:hidden">
         <div class="hidden md:flex items-center gap-2">
-          <p-button pTooltip="Expand table" class="hidden lg:flex" icon="pi pi-arrows-h"
+          <p-button label="Filters" icon="pi pi-filter" (click)="toggleFiltering()" text />
+          <p-button label="Expand" pTooltip="Expand table to full width" class="hidden lg:flex" icon="pi pi-arrows-h"
             (click)="isExpanded = !isExpanded" text />
-          <p-button pTooltip="Show filters" icon="pi pi-filter" (click)="toggleFiltering()" text />
-          <p-button [pTooltip]="tableExpandableMode ? 'f' : 'Switch table mode, allow column resizing'"
+          <p-button [label]="tableExpandableMode ? 'Ungroup' : 'Group'"
+            [pTooltip]="tableExpandableMode ? 'Switch table mode' : 'Switch table mode, allow column resizing'"
             [icon]="tableExpandableMode ? 'pi pi-arrow-up-right-and-arrow-down-left-from-center' : 'pi pi-arrow-down-left-and-arrow-up-right-to-center'"
             (click)="tableExpandableMode = !tableExpandableMode" text />
-          <div class="border-l border-solid border-gray-700 h-4"></div>
-          <p-button pTooltip="Open Google Maps directions" icon="pi pi-car" (click)="tripToNavigation()" text />
-          <p-button pTooltip="Show itinerary on map" icon="pi pi-directions"
+          <p-button label="GMaps" pTooltip="Open Google Maps directions" icon="pi pi-car" (click)="tripToNavigation()"
+            text />
+          <p-button label="Highlight" pTooltip="Show itinerary on map" icon="pi pi-directions"
             [severity]="tripMapAntLayerDayID == -1 ? 'help' : 'primary'" (click)="toggleTripDaysHighlight()" text />
-          <p-button pTooltip="Print Trip" icon="pi pi-print" (click)="printTable()" text />
+          <p-button pTooltip="Pretty Print" icon="pi pi-print" (click)="togglePrint()" text />
         </div>
 
         <div class="flex md:hidden items-center">
@@ -59,7 +64,7 @@
     @if (isFilteringMode) {
     <div class="grid md:grid-cols-2 gap-2 mb-2">
       <p-multiselect display="chip" [options]="tripTableColumns" [(ngModel)]="tripTableSelectedColumns"
-        styleClass="capitalize" selectedItemsLabel="{0} columns selected" placeholder="Choose Columns" />
+        class="capitalize" selectedItemsLabel="{0} columns selected" placeholder="Choose Columns" />
 
       <input [formControl]="tripTableSearchInput" pInputText placeholder="Search..." />
     </div>
@@ -67,9 +72,9 @@
 
     @defer {
     @if (flattenedTripItems.length) {
-    <p-table [value]="flattenedTripItems" class="print-striped-rows" styleClass="max-w-[85vw] md:max-w-full"
-      [rowGroupMode]="tableExpandableMode ? 'subheader': 'rowspan'" groupRowsBy="td_label"
-      [resizableColumns]="tableExpandableMode">
+    <p-table [value]="flattenedTripItems" class="max-w-[85vw] md:max-w-full print-striped-rows"
+      [class.table-colored-resizer]="tableExpandableMode" [rowGroupMode]="tableExpandableMode ? 'subheader': 'rowspan'"
+      groupRowsBy="td_label" [resizableColumns]="tableExpandableMode">
       <ng-template #header>
         <tr>
           @if (!tableExpandableMode && tripTableSelectedColumns.includes('day')) {<th class="w-24" pResizableColumn>Day
@@ -81,19 +86,25 @@
           @if (tripTableSelectedColumns.includes('LatLng')) {<th class="w-12" pResizableColumn>LatLng</th>}
           @if (tripTableSelectedColumns.includes('price')) {<th class="w-12" pResizableColumn>Price</th>}
           @if (tripTableSelectedColumns.includes('status')) {<th class="w-12" pResizableColumn>Status</th>}
+          @if (tripTableSelectedColumns.includes('distance')) {<th pResizableColumn>Distance (km)</th>}
         </tr>
       </ng-template>
       @if (tableExpandableMode) {
       <ng-template #groupheader let-tripitem let-rowIndex="rowIndex" let-expanded="expanded">
         <tr>
           <td colspan="8">
-            <button type="button" pButton pRipple [pRowToggler]="tripitem" text rounded plain class="mr-2"
-              [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'">
-            </button>
-            <span class="font-bold ml-2">{{ tripitem.td_label }}</span>
-            <p-button class="ml-2" text icon="pi pi-directions"
-              [severity]="tripMapAntLayerDayID == tripitem.day_id ? 'help' : 'primary'"
-              (click)="toggleTripDayHighlightPathDay(tripitem.day_id)" />
+            <div class="flex items-center gap-2 w-full">
+              <button type="button" pButton pRipple [pRowToggler]="tripitem" text rounded plain
+                [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'">
+              </button>
+              <span class="font-bold w-xs max-w-xs min-w-0 inline-block truncate">{{ tripitem.td_label }}</span>
+
+              <p-button class="ml-2" label="Highlight" pTooltip="Show itinerary on map" text icon="pi pi-directions"
+                [severity]="tripMapAntLayerDayID == tripitem.day_id ? 'help' : 'primary'"
+                (click)="toggleTripDayHighlight(tripitem.day_id)" />
+              <p-button label="GMaps" pTooltip="Open Google Maps directions" text icon="pi pi-car"
+                (click)="tripDayToNavigation(tripitem.day_id)" />
+            </div>
           </td>
         </tr>
       </ng-template>
@@ -118,10 +129,19 @@
             </div>
             } @else {-}
           </td>}
-          @if (tripTableSelectedColumns.includes('comment')) {<td>
+          @if (tripTableSelectedColumns.includes('comment')) {<td class="relative">
+            @if (tripitem.image) {
+            <div
+              class="ml-7 print:ml-0 truncate print:whitespace-normal line-clamp-1 whitespace-pre-line print:line-clamp-none">
+              <img [src]="tripitem.image"
+                class="absolute left-0 top-1/2 -translate-y-1/2 size-9 rounded-full object-cover" /> {{
+              tripitem.comment }}
+            </div>
+            } @else {
             <div class="line-clamp-1 whitespace-pre-line print:line-clamp-none">
               {{ tripitem.comment || '-' }}
             </div>
+            }
           </td>}
           @if (tripTableSelectedColumns.includes('LatLng')) {<td class="font-mono text-sm">
             <div class="print:max-w-full truncate">
@@ -136,6 +156,9 @@
               [style.background]="tripitem.status.color+'1A'" [style.color]="tripitem.status.color"
               class="text-xs font-medium me-2 px-2.5 py-0.5 rounded">{{
               tripitem.status.label }}</span>}</td>}
+          @if (tripTableSelectedColumns.includes('distance')) {<td class="text-sm">
+            <div class="print:max-w-full truncate">{{ tripitem.distance || '-' }}</div>
+          </td>}
         </tr>
       </ng-template>
       }
@@ -146,7 +169,7 @@
           @if (tripTableSelectedColumns.includes('day') && rowgroup) {
           <td [attr.rowspan]="rowspan" class="font-normal! max-w-20 truncate cursor-pointer"
             [class.text-blue-500]="tripMapAntLayerDayID == tripitem.day_id"
-            (click)="toggleTripDayHighlightPathDay(tripitem.day_id); $event.stopPropagation()">
+            (click)="toggleTripDayHighlight(tripitem.day_id); $event.stopPropagation()">
             <div class="truncate">{{tripitem.td_label }}</div>
           </td>
           }
@@ -158,19 +181,30 @@
               {{ tripitem.text }}
             </div>
           </td>}
-          @if (tripTableSelectedColumns.includes('place')) {<td class="relative">
+          @if (tripTableSelectedColumns.includes('place')) {<td>
             @if (tripitem.place) {
-            <div class="ml-7 print:ml-0 max-w-24 truncate print:whitespace-normal">
-              <img [src]="tripitem.place.image || tripitem.place.category.image"
-                class="absolute left-0 top-1/2 -translate-y-1/2 w-9 rounded-full object-cover print:hidden" /> {{
-              tripitem.place.name }}
+            <div [style.background]="tripitem.place.category.color + '1A'"
+              class="inline-flex items-center gap-2 text-gray-800 font-medium px-1 py-1 pr-3 rounded-full">
+              <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden flex-shrink-0">
+                <img [src]="tripitem.place.image" class="size-full object-cover" />
+              </div>
+              <span class="text-sm truncate min-w-0">{{ tripitem.place.name }}</span>
             </div>
             } @else {-}
           </td>}
-          @if (tripTableSelectedColumns.includes('comment')) {<td>
+          @if (tripTableSelectedColumns.includes('comment')) {<td class="relative">
+            @if (tripitem.image) {
+            <div
+              class="ml-7 print:ml-0 truncate print:whitespace-normal line-clamp-1 whitespace-pre-line print:line-clamp-none">
+              <img [src]="tripitem.image"
+                class="absolute left-0 top-1/2 -translate-y-1/2 size-9 rounded-full object-cover print:hidden" /> {{
+              tripitem.comment }}
+            </div>
+            } @else {
             <div class="line-clamp-1 whitespace-pre-line print:line-clamp-none">
               {{ tripitem.comment || '-' }}
             </div>
+            }
           </td>}
           @if (tripTableSelectedColumns.includes('LatLng')) {<td class="font-mono text-sm">
             <div class="max-w-20 print:max-w-full truncate">
@@ -185,6 +219,9 @@
               [style.background]="tripitem.status.color+'1A'" [style.color]="tripitem.status.color"
               class="text-xs font-medium me-2 px-2.5 py-0.5 rounded">{{
               tripitem.status.label }}</span>}</td>}
+          @if (tripTableSelectedColumns.includes('distance')) {<td class="text-sm">
+            <div class="print:max-w-full truncate">{{ tripitem.distance || '-' }}</div>
+          </td>}
         </tr>
       </ng-template>
       }
@@ -208,10 +245,10 @@
     }
   </div>
 
-  <div [ngClass]="{ 'grid col-span-full grid-cols-4': isExpanded, 'flex flex-col sticky': !isExpanded }"
+  <div [ngClass]="isExpanded ? 'grid col-span-full grid-cols-4' : 'flex flex-col sticky'"
     class="gap-4 top-4 self-start max-w-screen print:hidden min-w-0">
     @if (selectedItem) {
-    <div class="p-4 w-full max-w-full min-h-20 md:max-h-[600px] rounded-md shadow text-center">
+    <div class="p-4 w-full max-w-full min-h-20 rounded-md shadow text-center">
       <div class="flex justify-between items-center mb-3">
         <div class="p-2 flex items-center gap-4 w-full max-w-full">
           @if (selectedItem.place) {
@@ -224,9 +261,13 @@
             </h1>
 
             <div class="flex items-center gap-2 flex-none">
+              @if (selectedItem.gpx) {
+              <p-button icon="pi pi-download" (click)="downloadItemGPX()" text />
+              }
               @if (selectedItem.lat && selectedItem.lng) {
               <p-button icon="pi pi-car" (click)="itemToNavigation()" text />
               }
+              <p-button icon="pi pi-times" (click)="selectedItem = undefined; resetPlaceHighlightMarker()" text />
             </div>
           </div>
         </div>
@@ -260,14 +301,18 @@
         @if (selectedItem.lat) {
         <div class="rounded-md shadow p-4">
           <p class="font-bold mb-1 truncate">Latitude, Longitude</p>
-          <p class="text-sm text-gray-500 truncate">{{ selectedItem.lat }}, {{ selectedItem.lng }}</p>
+          <p class="text-sm text-gray-500 truncate cursor-copy"
+            [cdkCopyToClipboard]="selectedItem.lat + ',' + selectedItem.lng">{{
+            selectedItem.lat }}, {{ selectedItem.lng }}</p>
         </div>
         }
 
         @if (selectedItem.price) {
         <div class="rounded-md shadow p-4">
           <p class="font-bold mb-1">Price</p>
-          <p class="text-sm text-gray-500">{{ selectedItem.price }} @if (selectedItem.price) { {{ trip.currency }} }</p>
+          <p class="text-sm text-gray-500">{{ selectedItem.price }} @if (selectedItem.price) { {{ trip.currency }} }
+            @if (selectedItem.paid_by) {<span class="text-xs text-gray-500">(by {{ selectedItem.paid_by }})</span>}
+          </p>
         </div>
         }
 
@@ -279,10 +324,16 @@
             selectedItem.status.label }}</span>
         </div>
         }
+
+        @if (selectedItem.image) {
+        <div class="p-4 px-2 gap-4 overflow-auto w-full min-h-0 max-h-64">
+          <img [src]="selectedItem.image" class="w-full object-cover rounded-md" />
+        </div>
+        }
       </div>
     </div>
-
     }
+
     <div class="z-10 p-4 shadow rounded-md w-full min-h-20 max-h-full overflow-y-auto">
       <div class="p-2 mb-2 flex justify-between items-center">
         <div>
@@ -291,9 +342,10 @@
         </div>
 
         <div class="flex gap-2">
-          <p-button pTooltip="Fullscreen" icon="pi pi-window-maximize" (click)="toggleMapFullscreen()" text />
-          <p-button pTooltip="Reset bounds" icon="pi pi-refresh" [disabled]="!places.length" (click)="resetMapBounds()"
-            text />
+          <p-button pTooltip="Fullscreen" tooltipPosition="left" icon="pi pi-window-maximize"
+            (click)="toggleMapFullscreen()" text />
+          <p-button pTooltip="Reset bounds" tooltipPosition="left" icon="pi pi-refresh" [disabled]="!places.length"
+            (click)="resetMapBounds()" text />
         </div>
       </div>
 
@@ -330,7 +382,7 @@
         @defer {
         @for (p of places; track p.id) {
         <div class="flex items-center gap-4 py-2 px-4 hover:bg-gray-50 rounded-md overflow-auto dark:hover:bg-gray-800"
-          (mouseenter)="placeHighlightMarker(p.lat, p.lng)" (mouseleave)="resetPlaceHighlightMarker()">
+          (mouseenter)="placeHighlightMarker(p)" (mouseleave)="resetPlaceHighlightMarker()">
           <img [src]="p.image || p.category.image" class="w-12 rounded-full object-fit">
 
           <div class="flex flex-col gap-1 truncate">
@@ -422,7 +474,8 @@
     <div class="p-4 shadow rounded-md w-full min-h-20">
       <div class="p-2 mb-2 flex justify-between items-center">
         <h1 class="font-semibold tracking-tight text-xl">About</h1>
-        <div class="flex items-center gap-1 text-gray-500"><i class="pi pi-github"></i> itskovacs/trip</div>
+        <div class="flex items-center gap-1 text-gray-500"><p-button text label="itskovacs/trip" icon="pi pi-github"
+            (click)="toGithub()" /></div>
       </div>
 
       <div class="max-w-[85%] text-center mx-auto flex flex-col items-center gap-4">
@@ -438,13 +491,42 @@
 </section>
 
 @if (isMapFullscreen) {
-<div class="fixed top-2 right-2 p-2 bg-white shadow rounded dark:bg-surface-900">
+<div class="fixed top-2 right-2 p-2 bg-white shadow rounded dark:bg-surface-900" [class.prettyprint]="isPrinting">
   <p-button (click)="toggleMapFullscreen()" severity="secondary" text icon="pi pi-window-minimize" />
 </div>
 
-<div class="fixed top-20 right-2 p-2 bg-white shadow rounded dark:bg-surface-900">
+<div class="fixed top-20 right-2 p-2 bg-white shadow rounded dark:bg-surface-900" [class.prettyprint]="isPrinting">
   <p-button (click)="toggleTripDaysHighlight()" text icon="pi pi-directions"
     [severity]="tripMapAntLayerDayID == -1 ? 'help' : 'secondary'" />
+</div>
+
+<div
+  class="fixed bottom-6 left-6 z-40 w-40 md:w-60 max-h-[50vh] bg-white/90 dark:bg-surface-900/90 backdrop-blur-lg shadow-xl rounded-md overflow-hidden"
+  [class.prettyprint]="isPrinting">
+  @if (isMapFullscreenDays) {
+  <div animate.enter="expand" animate.leave="collapse" class="overflow-y-auto max-h-[calc(30vh-5rem)] p-2 space-y-1">
+    @for(day of trip.days; track day.id) {
+    <button (click)="toggleTripDayHighlight(day.id)"
+      [ngClass]="tripMapAntLayerDayID === day.id ? 'shadow-md bg-blue-500' : 'hover:bg-blue-50 dark:hover:bg-blue-950/20'"
+      class="w-full flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all">
+      <span class="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg font-semibold text-sm"
+        [ngClass]="tripMapAntLayerDayID === day.id ? 'bg-white text-blue-600' : 'bg-blue-100 text-blue-800 dark:bg-blue-900'">
+        {{ day.items.length }}
+      </span>
+      <span class="flex-1 text-left text-sm font-medium truncate"
+        [ngClass]="tripMapAntLayerDayID === day.id ? 'text-white' : 'text-gray-900 dark:text-gray-50'">
+        {{ day.label }}
+      </span>
+    </button>
+    }
+  </div>
+  }
+
+  <div [ngClass]="isMapFullscreenDays ? 'border-t border-gray-200 dark:border-surface-700' : ''"
+    class="px-4 py-3 cursor-pointer select-none flex justify-between items-center" (click)="toggleMapFullscreenDays()">
+    <h2 class="font-semibold text-sm">Days</h2>
+    <i [ngClass]="isMapFullscreenDays ? 'pi pi-chevron-down' : 'pi pi-chevron-up'" class="text-gray-500"></i>
+  </div>
 </div>
 }
 } @else {
@@ -524,3 +606,109 @@
     </div>
   </section>
 </p-dialog>
+
+@if (isPrinting) {
+<section class="hidden print:block">
+  <div class="flex items-center justify-center">
+    <div class="flex flex-col items-center max-w-[55vw] md:max-w-full">
+      <div class="flex flex-col items-center">
+        <img src="favicon.png" class="size-20">
+        <div class="flex gap-2 items-center text-xs text-gray-500"><i class="pi pi-github"></i>itskovacs/trip</div>
+      </div>
+
+      <h1 class="mt-4 tracking-tight text-3xl font-semibold truncate p-2">{{ trip?.name }}</h1>
+      <div class="flex items-center">
+        <span
+          class="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-1 rounded min-w-fit flex items-center gap-2"><i
+            class="pi pi-calendar text-xs"></i> {{
+          trip?.days?.length }} {{ trip?.days!.length > 1 ? 'days' :
+          'day'}}</span>
+        <span
+          class="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-1 rounded min-w-fit flex items-center gap-2"><i
+            class="pi pi-wallet text-xs"></i> {{
+          (totalPrice | number:'1.0-2') || '-' }} {{ trip?.currency }}</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="mt-4">
+    <div class="text-2xl font-semibold">Notes</div>
+
+    <div class="mt-4 border-l-3 border-gray-900 pl-6 py-2">
+      <p class="text-sm leading-relaxed text-gray-800 whitespace-pre-line">{{ trip?.notes || 'Nothing there.'
+        }}</p>
+    </div>
+  </div>
+
+  <div class="mt-8">
+    <div class="text-2xl font-semibold">Itinerary</div>
+
+    <div class="mt-4">
+      @for (day of trip?.days; track day.id) {
+      <div class="mb-12">
+        <div class="flex items-center gap-4 mb-6">
+          <h2 class="text-xl font-semibold text-gray-900 whitespace-nowrap">{{ day.label }}</h2>
+          <div class="flex-1 h-px bg-gray-300"></div>
+        </div>
+
+        @for (item of day.items | orderBy: 'time'; track item.id) {
+        <div class="flex gap-4 items-center rounded-lg p-3 -mx-3">
+          <span class="bg-gray-900 text-white text-xs font-mono px-3 py-1 rounded-full">{{ item.time }}</span>
+
+          <div class="flex-1 min-w-0">
+            @if (item.place) {
+            <div
+              class="inline-flex items-center gap-2 bg-gray-100 text-gray-800 font-medium px-1 py-1 pr-3 rounded-full">
+              <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden flex-shrink-0">
+                <img [src]="item.place.image" class="size-full object-cover" />
+              </div>
+              <span class="text-sm">{{ item.place.name }}</span>
+            </div>
+            } @else {
+            <h4 class="font-semibold text-gray-900">{{ item.text }}</h4>
+            }
+
+            @if (item.comment) {
+            <p class="text-sm text-gray-500 italic">{{ item.comment }}</p>
+            }
+          </div>
+
+          <div class="flex items-center">
+            @if (item.price) {
+            <span class="text-sm font-semibold text-gray-900 me-2">{{ item.price }} {{ trip?.currency }}</span>
+            }
+            @if (item.status) {
+            <span class="text-xs font-medium px-2.5 py-1 rounded min-w-fit"
+              [style.background]="statusToTripStatus(item.status)?.color + '1A'"
+              [style.color]="statusToTripStatus(item.status)?.color">{{
+              statusToTripStatus(item.status)?.label
+              }}</span>
+            }
+          </div>
+        </div>
+        } @empty {
+        <div class="mt-4 border-l-3 border-gray-900 pl-6 py-2">
+          <p class="text-gray-800 text-lg leading-loose whitespace-pre-line font-light">Nothing there.</p>
+        </div>
+        }
+      </div>
+      }
+    </div>
+  </div>
+
+  <div class="mt-8 break-inside-avoid">
+    <div class="text-2xl font-semibold">📍 Places</div>
+
+    <div class="mt-4">
+      @for(place of trip?.places; track place.id) {
+      <div class="inline-flex items-center gap-2 bg-gray-100 text-gray-800 font-medium px-1 py-1 pr-3 rounded-full m-1">
+        <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden flex-shrink-0">
+          <img [src]="place.image" class="size-full object-cover" />
+        </div>
+        <span class="text-sm">{{ place.name }}</span>
+      </div>
+      }
+    </div>
+  </div>
+</section>
+}

@@ -1,4 +1,9 @@
 @media print {
+  .prettyprint {
+    display: none;
+    visibility: hidden;
+  }
+
   .print-striped-rows tr:nth-child(even) {
     background-color: #f9f9f9 !important;
   }
