@@ -1,7 +1,7 @@
 <div pFocusTrap class="grid items-center gap-4" [formGroup]="packingForm">
 
   <p-floatlabel variant="in">
-    <p-inputnumber id="qt" formControlName="qt" mode="decimal" [maxFractionDigits]="0" min="0" fluid />
+    <p-inputnumber id="qt" formControlName="qt" mode="decimal" [maxFractionDigits]="0" [min]="0" fluid />
     <label for="qt">Qt.</label>
   </p-floatlabel>
 
