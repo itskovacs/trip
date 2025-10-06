@@ -13,7 +13,7 @@
       </p-floatlabel>
       } @else {
       <p-multiselect [options]="days" optionValue="id" optionLabel="label" formControlName="day_id" placeholder="Days"
-        [filter]="false" [showToggleAll]="false" display="chip" styleClass="flex items-center" scrollHeight="320px"
+        [filter]="false" [showToggleAll]="false" display="chip" class="flex items-center" scrollHeight="320px"
         appendTo="body" selectedItemsLabel="{0} days selected" [filter]="true" fluid>
         <ng-template let-day #item>
           <div class="whitespace-normal">{{ day.label }}</div>
@@ -22,7 +22,7 @@
       }
 
       <p-floatlabel variant="in" class="w-full">
-        <p-inputmask id="time" formControlName="time" mask="99?:99" fluid styleClass="w-full" />
+        <p-inputmask id="time" formControlName="time" mask="99?:99" fluid class="w-full" />
         <label for="time">Time (HH, HH:MM)</label>
       </p-floatlabel>
 
