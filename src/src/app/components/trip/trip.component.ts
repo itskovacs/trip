@@ -889,7 +889,7 @@ export class TripComponent implements AfterViewInit {
         "640px": "90vw",
       },
       data: `Delete ${this.trip?.name} ? This will delete everything.`,
-    });
+    })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (bool) => {
@@ -921,7 +921,7 @@ export class TripComponent implements AfterViewInit {
         },
         data: { trip: this.trip },
       },
-    );
+    )!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (new_trip: Trip | null) => {
@@ -948,7 +948,7 @@ export class TripComponent implements AfterViewInit {
         "640px": "90vw",
       },
       data: `${currentArchiveStatus ? "Restore" : "Archive"} ${this.trip?.name} ?${currentArchiveStatus ? "" : " This will make everything read-only."}`,
-    });
+    })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (bool) => {
@@ -982,7 +982,7 @@ export class TripComponent implements AfterViewInit {
           "640px": "80vw",
         },
       },
-    );
+    )!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (day: TripDay | null) => {
@@ -1064,7 +1064,7 @@ export class TripComponent implements AfterViewInit {
           "640px": "80vw",
         },
       },
-    );
+    )!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (day: TripDay | null) => {
@@ -1098,7 +1098,7 @@ export class TripComponent implements AfterViewInit {
         "640px": "90vw",
       },
       data: `Delete ${day.label} ? This will delete everything for this day.`,
-    });
+    })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (bool) => {
@@ -1137,7 +1137,7 @@ export class TripComponent implements AfterViewInit {
           "640px": "90vw",
         },
       },
-    );
+    )!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (places: Place[] | null) => {
@@ -1179,7 +1179,7 @@ export class TripComponent implements AfterViewInit {
           members: this.tripMembers,
         },
       },
-    );
+    )!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (item: (TripItem & { day_id: number[] }) | null) => {
@@ -1247,7 +1247,7 @@ export class TripComponent implements AfterViewInit {
           members: this.tripMembers,
         },
       },
-    );
+    )!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (updated: TripItem | null) => {
@@ -1274,7 +1274,7 @@ export class TripComponent implements AfterViewInit {
         "640px": "90vw",
       },
       data: `Delete ${item.text.substring(0, 50)} ? This will delete everything for this day.`,
-    });
+    })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (bool) => {
@@ -1308,7 +1308,7 @@ export class TripComponent implements AfterViewInit {
         },
         data: { days: this.trip.days },
       },
-    );
+    )!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (items: TripItem[] | null) => {
@@ -1349,7 +1349,7 @@ export class TripComponent implements AfterViewInit {
           "1260px": "90vw",
         },
       },
-    );
+    )!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (place: Place | null) => {
@@ -1395,7 +1395,7 @@ export class TripComponent implements AfterViewInit {
           place: { ...pEdit, category: pEdit.category.id },
         },
       },
-    );
+    )!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (p: Place | null) => {
@@ -1510,7 +1510,7 @@ export class TripComponent implements AfterViewInit {
         "640px": "90vw",
       },
       data: `Stop sharing ${this.trip.name} ?`,
-    });
+    })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (bool) => {
@@ -1561,7 +1561,7 @@ export class TripComponent implements AfterViewInit {
           "600px": "90vw",
         },
       },
-    );
+    )!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (item: PackingItem | null) => {
@@ -1604,7 +1604,7 @@ export class TripComponent implements AfterViewInit {
         "640px": "90vw",
       },
       data: `Delete ${item.text.substring(0, 50)} ?`,
-    });
+    })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (bool) => {
@@ -1677,7 +1677,7 @@ export class TripComponent implements AfterViewInit {
           "600px": "90vw",
         },
       },
-    );
+    )!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (item: ChecklistItem | null) => {
@@ -1718,7 +1718,7 @@ export class TripComponent implements AfterViewInit {
         "640px": "90vw",
       },
       data: `Delete ${item.text.substring(0, 50)} ?`,
-    });
+    })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (bool) => {
@@ -1782,7 +1782,7 @@ export class TripComponent implements AfterViewInit {
           "600px": "90vw",
         },
       },
-    );
+    )!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (user: string | null) => {
@@ -1810,7 +1810,7 @@ export class TripComponent implements AfterViewInit {
         "640px": "90vw",
       },
       data: `Delete ${username.substring(0, 50)} from Trip ?`,
-    });
+    })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (bool) => {
@@ -1842,7 +1842,7 @@ export class TripComponent implements AfterViewInit {
         "640px": "90vw",
       },
       data: this.trip?.notes,
-    });
+    })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (notes: string | null) => {
