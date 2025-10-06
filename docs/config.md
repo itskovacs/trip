@@ -1,11 +1,12 @@
 
 You can modify the configuration by setting values in the `storage/config.yml` file.
 
-> [!NOTE]
-> After a `config.yml` edit, you must restart the container for the changes to take effect.
+> [!WARNING]
+> The `config.yml` file is not created automatically because the server uses default values.
+> After editing `config.yml`, restart the container for the changes to take effect.
 
 > [!TIP]
-> Setting environment variable also work.
+> Setting environment variable in `docker-compose.yml` also work.
 
 
 ### Change Token duration
@@ -57,7 +58,7 @@ TRIP_IMAGE_SIZE=600
 
 You can configure the default values for new users with the following settings: `DEFAULT_TILE`, `DEFAULT_CURRENCY`, `DEFAULT_MAP_LAT`, `DEFAULT_MAP_LNG`.
 
-> [!INFO]
+> [!IMPORTANT]
 > Changing these values does not update settings for existing users, it only affects new users.
 
 
