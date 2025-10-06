@@ -43,8 +43,7 @@
 }
 
 <section class="p-4 print:px-1 grid lg:grid-cols-3 gap-4 print:block" [class.prettyprint]="isPrinting">
-  <div [ngClass]="{ 'lg:col-span-2': !isExpanded, 'lg:col-span-3': isExpanded }"
-    class="p-4 shadow self-start rounded-md max-w-screen">
+  <div [ngClass]="isExpanded ? 'lg:col-span-3' : 'lg:col-span-2'" class="p-4 shadow self-start rounded-md max-w-screen">
     <div [class.sticky]="!isMapFullscreen"
       class="top-0 z-10 bg-white p-2 mb-2 flex justify-between items-center dark:bg-surface-900">
       <div>
@@ -79,7 +78,7 @@
     @if (isFilteringMode) {
     <div class="grid md:grid-cols-2 gap-2 mb-2">
       <p-multiselect display="chip" [options]="tripTableColumns" [(ngModel)]="tripTableSelectedColumns"
-        styleClass="capitalize" selectedItemsLabel="{0} columns selected" placeholder="Choose Columns" />
+        class="capitalize" selectedItemsLabel="{0} columns selected" placeholder="Choose Columns" />
 
       <input [formControl]="tripTableSearchInput" pInputText placeholder="Search..." />
     </div>
@@ -87,8 +86,8 @@
 
     @defer {
     @if (flattenedTripItems.length) {
-    <p-table [value]="flattenedTripItems" class="print-striped-rows" [class.table-colored-resizer]="tableExpandableMode"
-      styleClass="max-w-[85vw] md:max-w-full" [rowGroupMode]="tableExpandableMode ? 'subheader': 'rowspan'"
+    <p-table [value]="flattenedTripItems" class="max-w-[85vw] md:max-w-full print-striped-rows"
+      [class.table-colored-resizer]="tableExpandableMode" [rowGroupMode]="tableExpandableMode ? 'subheader': 'rowspan'"
       groupRowsBy="td_label" [resizableColumns]="tableExpandableMode">
       <ng-template #header>
         <tr>
@@ -135,14 +134,12 @@
               {{ tripitem.text }}
             </div>
           </td>}
-          @if (tripTableSelectedColumns.includes('place')) {<td>
+          @if (tripTableSelectedColumns.includes('place')) {<td class="relative">
             @if (tripitem.place) {
-            <div [style.background]="tripitem.place.category.color + '1A'"
-              class="inline-flex items-center gap-2 text-gray-800 font-medium px-1 py-1 pr-3 rounded-full">
-              <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden flex-shrink-0">
-                <img [src]="tripitem.place.image" class="size-full object-cover" />
-              </div>
-              <span class="text-sm truncate min-w-0">{{ tripitem.place.name }}</span>
+            <div class="ml-7 print:ml-0 truncate print:whitespace-normal">
+              <img [src]="tripitem.place.image || tripitem.place.category.image"
+                class="absolute left-0 top-1/2 -translate-y-1/2 w-9 rounded-full object-cover print:hidden" /> {{
+              tripitem.place.name }}
             </div>
             } @else {-}
           </td>}
@@ -254,7 +251,7 @@
           Add <i>Day</i> to your <i>Trip</i> to start organizing !
         </p>
 
-        <p-button styleClass="mt-4" label="Add" icon="pi pi-plus" [disabled]="trip?.archived" (click)="addDay()" text />
+        <p-button class="mt-4" label="Add" icon="pi pi-plus" [disabled]="trip?.archived" (click)="addDay()" text />
       </div>
     </div>
     <div class="hidden print:block text-center text-sm text-gray-500 mt-4">
@@ -268,7 +265,7 @@
     }
   </div>
 
-  <div [ngClass]="{ 'grid col-span-full grid-cols-4': isExpanded, 'flex flex-col sticky': !isExpanded }"
+  <div [ngClass]="isExpanded ? 'grid col-span-full grid-cols-4' : 'flex flex-col sticky'"
     class="gap-4 top-4 self-start max-w-screen print:hidden min-w-0">
     @if (selectedItem) {
     <div class="p-4 w-full max-w-full min-h-20 rounded-md shadow text-center">
@@ -285,7 +282,7 @@
 
             <div class="flex items-center gap-2 flex-none">
               @if (selectedItem.gpx) {
-              <p-button icon="pi pi-compass" (click)="downloadItemGPX()" text />
+              <p-button icon="pi pi-download" (click)="downloadItemGPX()" text />
               }
               @if (selectedItem.lat && selectedItem.lng) {
               <p-button icon="pi pi-car" (click)="itemToNavigation()" text />
@@ -571,7 +568,7 @@
     } @else {
     <div class="flex items-center flex-col gap-2">
       <span>{{ trip?.name }} is not currently shared.</span>
-      <p-button (click)="shareTrip()" styleClass="mt-4" text label="Share" icon="pi pi-share-alt" />
+      <p-button (click)="shareTrip()" class="mt-4" text label="Share" icon="pi pi-share-alt" />
     </div>
     }
   </ng-container>
