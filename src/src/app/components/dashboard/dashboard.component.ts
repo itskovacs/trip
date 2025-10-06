@@ -42,6 +42,7 @@ import { CategoryCreateModalComponent } from "../../modals/category-create-modal
 import { AuthService } from "../../services/auth.service";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 import { PlaceGPXComponent } from "../../shared/place-gpx/place-gpx.component";
+import { CommonModule } from "@angular/common";
 
 export interface ContextMenuItem {
   text: string;
@@ -75,6 +76,7 @@ export interface MarkerOptions extends L.MarkerOptions {
     SelectModule,
     TabsModule,
     ButtonModule,
+    CommonModule,
   ],
   templateUrl: "./dashboard.component.html",
   styleUrls: ["./dashboard.component.scss"],
@@ -227,7 +229,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
     const searchValue = this.searchInput.value?.toLowerCase() ?? "";
     if (searchValue)
-      this.visiblePlaces.filter(
+      this.visiblePlaces = this.visiblePlaces.filter(
         (p) =>
           p.name.toLowerCase().includes(searchValue) ||
           p.description?.toLowerCase().includes(searchValue),
@@ -316,7 +318,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         },
         ...opts,
       },
-    );
+    )!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (place: Place | null) => {
@@ -354,7 +356,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           "1260px": "90vw",
         },
       },
-    );
+    )!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (places: string | null) => {
@@ -386,7 +388,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   resetHoverPlace() {
     if (!this.hoveredElement) return;
-    this.hoveredElement.classList.remove("listHover");
+    this.hoveredElement.classList.remove("list-hover");
     this.hoveredElement = undefined;
   }
 
@@ -403,7 +405,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
     if (markerElement) {
       // marker, not clustered
-      markerElement.classList.add("listHover");
+      markerElement.classList.add("list-hover");
       this.hoveredElement = markerElement;
     } else {
       // marker is clustered
@@ -413,7 +415,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       if (parentCluster) {
         const clusterEl = parentCluster.getElement();
         if (clusterEl) {
-          clusterEl.classList.add("listHover");
+          clusterEl.classList.add("list-hover");
           this.hoveredElement = clusterEl;
         }
       }
@@ -472,7 +474,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         "640px": "90vw",
       },
       data: `Delete ${this.selectedPlace.name} ?`,
-    });
+    })!;
 
     modal.onClose.subscribe({
       next: (bool) => {
@@ -494,8 +496,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     });
   }
 
-  editPlace() {
-    if (!this.selectedPlace) return;
+  editPlace(p?: Place) {
+    if (!this.selectedPlace && !p) return;
+    const _placeToEdit: Place = { ...(this.selectedPlace ?? p)! };
+
     const modal: DynamicDialogRef = this.dialogService.open(
       PlaceCreateModalComponent,
       {
@@ -511,12 +515,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         },
         data: {
           place: {
-            ...this.selectedPlace,
-            category: this.selectedPlace.category.id,
+            ..._placeToEdit,
+            category: _placeToEdit.category.id,
           },
         },
       },
-    );
+    )!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (place: Place | null) => {
@@ -534,7 +538,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
                 a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
               );
               this.places = places;
-              this.selectedPlace = { ...place };
+              if (this.selectedPlace) this.selectedPlace = { ...place };
               setTimeout(() => {
                 this.updateMarkersAndClusters();
               }, 10);
@@ -710,7 +714,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           "640px": "90vw",
         },
       },
-    );
+    )!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (category: Category | null) => {
@@ -758,7 +762,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           "640px": "90vw",
         },
       },
-    );
+    )!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (category: Category | null) => {
@@ -790,7 +794,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         "640px": "90vw",
       },
       data: "Delete this category ?",
-    });
+    })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (bool) => {
@@ -811,8 +815,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     });
   }
 
-  gotoPlace(p: Place) {
-    this.map?.flyTo([p.lat, p.lng]);
+  togglePlaceSelection(p: Place) {
+    if (this.selectedPlace && this.selectedPlace.id === p.id) {
+      this.selectedPlace = undefined;
+      return;
+    }
+    this.selectedPlace = { ...p };
   }
 
   sortCategories() {
@@ -821,7 +829,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     );
   }
 
-  gotoTrips() {
+  navigateToTrips() {
     this.router.navigateByUrl("/trips");
   }
 
