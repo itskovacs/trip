@@ -74,7 +74,7 @@ export class TripsComponent implements OnInit {
           "960px": "80vw",
         },
       },
-    );
+    )!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (trip: TripBaseWithDates | null) => {
