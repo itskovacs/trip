@@ -243,6 +243,19 @@ html {
   }
 }
 
+@keyframes toggle {
+  0% {
+    max-height: 0;
+    opacity: 0;
+    transition: all 300ms ease-in;
+  }
+  100% {
+    max-height: auto;
+    opacity: 1;
+    transition: all 300ms ease-out;
+  }
+}
+
 .slide-x {
   animation: slide-x 0.3s both normal;
 }
@@ -260,17 +273,10 @@ html {
 }
 
 .expand {
-  height: auto;
-  opacity: 1;
-  transition:
-    height 300ms ease-out,
-    opacity 300ms ease-out;
+  animation: toggle 0.3s both normal;
 }
 
 .collapse {
-  height: 0;
-  opacity: 0;
-  transition:
-    height 300ms ease-in,
-    opacity 300ms ease-in;
+  animation: toggle 0.3s both reverse;
+  overflow: hidden;
 }
