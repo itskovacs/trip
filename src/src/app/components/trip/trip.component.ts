@@ -101,6 +101,7 @@ export class TripComponent implements AfterViewInit {
   isPrinting = false;
 
   isMapFullscreen = false;
+  isMapFullscreenDays = false;
   totalPrice = 0;
   collapsedTripDays = false;
   collapsedTripPlaces = false;
@@ -549,6 +550,10 @@ export class TripComponent implements AfterViewInit {
     }, 10);
   }
 
+  toggleMapFullscreenDays() {
+    this.isMapFullscreenDays = !this.isMapFullscreenDays;
+  }
+
   updateTotalPrice(n?: number) {
     if (n) {
       this.totalPrice += n;
@@ -562,7 +567,7 @@ export class TripComponent implements AfterViewInit {
 
   resetPlaceHighlightMarker() {
     if (this.tripMapHoveredElement) {
-      this.tripMapHoveredElement.classList.remove("listHover");
+      this.tripMapHoveredElement.classList.remove("list-hover");
       this.tripMapHoveredElement = undefined;
     }
 
@@ -610,7 +615,7 @@ export class TripComponent implements AfterViewInit {
     const markerElement = marker.getElement() as HTMLElement; // search for Marker. If 'null', is inside Cluster
     if (markerElement) {
       // marker, not clustered
-      markerElement.classList.add("listHover");
+      markerElement.classList.add("list-hover");
       this.tripMapHoveredElement = markerElement;
       targetLatLng = marker.getLatLng();
     } else {
@@ -621,7 +626,7 @@ export class TripComponent implements AfterViewInit {
       if (parentCluster) {
         const clusterEl = parentCluster.getElement();
         if (clusterEl) {
-          clusterEl.classList.add("listHover");
+          clusterEl.classList.add("list-hover");
           this.tripMapHoveredElement = clusterEl;
         }
         targetLatLng = parentCluster.getLatLng();

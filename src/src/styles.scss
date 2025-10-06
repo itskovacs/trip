@@ -258,3 +258,19 @@ html {
 .a-slide-y {
   animation: slide-y 0.3s both reverse;
 }
+
+.expand {
+  height: auto;
+  opacity: 1;
+  transition:
+    height 300ms ease-out,
+    opacity 300ms ease-out;
+}
+
+.collapse {
+  height: 0;
+  opacity: 0;
+  transition:
+    height 300ms ease-in,
+    opacity 300ms ease-in;
+}
