@@ -2,8 +2,6 @@
 @plugin 'tailwindcss-primeui';
 @variant dark (&:where(.dark, .dark *));
 
-@layer tailwind, primeng;
-
 @layer tailwind {
   @import "tailwindcss";
 }
@@ -117,7 +115,7 @@ html {
   width: 24px;
 }
 
-.listHover {
+.list-hover {
   .custom-cluster {
     background-color: red;
   }
@@ -130,13 +128,14 @@ html {
   width: 2px;
   background-color: #999;
 }
+
 @media print {
   .table-colored-resizer .p-datatable-column-resizer {
     background-color: transparent;
   }
 }
 
-@keyframes slideYcenteredX {
+@keyframes slide-y-centered-x {
   0% {
     opacity: 0;
     transform: translateX(-50%) translateY(100px);
@@ -147,15 +146,29 @@ html {
   }
 }
 
-@keyframes slide-x {
-  0% {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-}
+.place-box-dialog {
+  animation: slide-y-centered-x 0.3s both;
+  z-index: 999;
+  min-height: 100px;
+  max-height: 800px;
+  width: 95%;
+  max-width: 1200px;
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  transition: none;
+  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  display: flex;
+  align-items: flex-end;
 
-.slide-x {
-  animation: slide-x 0.3s both;
+  &-content {
+    position: relative;
+    padding: 2rem;
+    border-radius: 8px 8px 0 0;
+    width: 100%;
+  }
 }
 
 .custom-button {
@@ -208,27 +221,40 @@ html {
   }
 }
 
-.place-box-dialog {
-  animation: slideYcenteredX 0.3s both;
-  z-index: 999;
-  min-height: 100px;
-  max-height: 800px;
-  width: 95%;
-  max-width: 1200px;
-  position: fixed;
-  bottom: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  transition: none;
-  box-shadow: 0px 10px 20px rgba(0, 0, 0, 0.1);
-  border-radius: 12px;
-  display: flex;
-  align-items: flex-end;
-
-  &-content {
-    position: relative;
-    padding: 2rem;
-    border-radius: 8px 8px 0 0;
-    width: 100%;
+@keyframes slide-x {
+  0% {
+    opacity: 0;
+    transform: translateX(-20px);
   }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slide-y {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-x {
+  animation: slide-x 0.3s both normal;
+}
+
+.a-slide-x {
+  animation: slide-x 0.3s both reverse;
+}
+
+.slide-y {
+  animation: slide-y 0.3s both normal;
+}
+
+.a-slide-y {
+  animation: slide-y 0.3s both reverse;
 }
