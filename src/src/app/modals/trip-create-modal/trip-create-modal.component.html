@@ -1,6 +1,6 @@
 <div pFocusTrap class="grid md:grid-cols-4 items-center gap-4" [formGroup]="tripForm">
   <p-floatlabel class="md:col-span-3" variant="in">
-    <input id="name" formControlName="name" pInputText fluid (keyup.enter)="closeDialog()" />
+    <input id="name" formControlName="name" autofocus pInputText fluid (keyup.enter)="closeDialog()" />
     <label for="name">Name</label>
   </p-floatlabel>
 
