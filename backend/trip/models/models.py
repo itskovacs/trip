@@ -252,6 +252,7 @@ class TripBase(SQLModel):
     archived: bool | None = None
     currency: str | None = settings.DEFAULT_CURRENCY
     notes: str | None = None
+    archival_review: str | None = None
 
 
 class Trip(TripBase, table=True):
@@ -327,6 +328,7 @@ class TripRead(TripBase):
             shared=bool(obj.shares),
             currency=obj.currency if obj.currency else settings.DEFAULT_CURRENCY,
             notes=obj.notes,
+            archival_review=obj.archival_review
         )
 
 
