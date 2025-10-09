@@ -1,12 +1,30 @@
 <section>
   <div>
+    @if (isEditing) {
     <p-floatlabel variant="in">
       <textarea pTextarea id="notes" [formControl]="notes" rows="4" autoResize fluid></textarea>
       <label for="notes">Notes</label>
     </p-floatlabel>
+    } @else {
+    @if (notes.value) {
+    <div class="mt-4 border-l-3 border-gray-900 pl-6 py-2">
+      <p class="leading-relaxed text-gray-800 whitespace-pre-line">{{ notes.value }}</p>
+    </div>
+    } @else {
+    <div class="text-center">
+      <p class="mt-2 text-gray-500 dark:text-gray-400">Nothing yet.</p>
+    </div>
+    }
+    }
   </div>
 
-  <div class="mt-4 text-right">
-    <p-button (click)="closeDialog()" label="Confirm" />
+  <div class="mt-4 flex justify-between">
+    @if (isEditing) {
+    <p-button text label="Cancel" icon="pi pi-times" severity="danger" (click)="cancelEditing()" />
+    <p-button (click)="closeDialog()" [disabled]="notes.pristine" label="Confirm" />
+    } @else {
+    <div></div>
+    <p-button text label="Edit" icon="pi pi-pencil" (click)="toggleEditing()" />
+    }
   </div>
 </section>

@@ -1850,7 +1850,8 @@ export class TripComponent implements AfterViewInit {
     })!;
 
     modal.onClose.pipe(take(1)).subscribe({
-      next: (notes: string | null) => {
+      next: (notes: string) => {
+        if (notes === undefined) return;
         this.apiService
           .putTrip({ notes: notes ?? "" }, this.trip!.id)
           .pipe(take(1))
