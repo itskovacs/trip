@@ -63,6 +63,7 @@ import { TripInviteMemberModalComponent } from "../../modals/trip-invite-member-
 import { calculateDistanceBetween } from "../../shared/haversine";
 import { orderByPipe } from "../../shared/order-by.pipe";
 import { TripNotesModalComponent } from "../../modals/trip-notes-modal/trip-notes-modal.component";
+import { TripArchiveModalComponent } from "../../modals/trip-archive-modal/trip-archive-modal.component";
 
 @Component({
   selector: "app-trip",
@@ -99,6 +100,7 @@ export class TripComponent implements AfterViewInit {
   selectedItem?: TripItem & { status?: TripStatus };
   tableExpandableMode = false;
   isPrinting = false;
+  isArchivalReviewDisplayed = false;
 
   isMapFullscreen = false;
   isMapFullscreenDays = false;
@@ -185,7 +187,7 @@ export class TripComponent implements AfterViewInit {
           label: "Archive",
           icon: "pi pi-box",
           command: () => {
-            this.toggleArchiveTrip();
+            this.openArchiveTripModal();
           },
         },
         {
@@ -942,30 +944,59 @@ export class TripComponent implements AfterViewInit {
     });
   }
 
-  toggleArchiveTrip() {
-    const currentArchiveStatus = this.trip?.archived;
+  openUnarchiveTripModal() {
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: "Confirm Action",
+      header: "Restore Trip",
       modal: true,
       closable: true,
       dismissableMask: true,
       breakpoints: {
         "640px": "90vw",
       },
-      data: `${currentArchiveStatus ? "Restore" : "Archive"} ${this.trip?.name} ?${currentArchiveStatus ? "" : " This will make everything read-only."}`,
+      data: `Restore ${this.trip?.name} ?`,
     })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (bool) => {
-        if (bool)
-          this.apiService
-            .putTrip({ archived: !currentArchiveStatus }, this.trip?.id!)
-            .pipe(take(1))
-            .subscribe({
-              next: () => {
-                this.trip!.archived = !currentArchiveStatus;
-              },
-            });
+        if (!bool) return;
+        this.apiService
+          .putTrip({ archived: false }, this.trip?.id!)
+          .pipe(take(1))
+          .subscribe({
+            next: (trip) => (this.trip = trip),
+          });
+      },
+    });
+  }
+
+  openArchiveTripModal() {
+    if (!this.trip) return;
+    const currentArchiveStatus = this.trip?.archived;
+    const modal = this.dialogService.open(TripArchiveModalComponent, {
+      header: `Archive ${this.trip.name}`,
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      width: "30vw",
+      breakpoints: {
+        "1024px": "60vw",
+        "640px": "90vw",
+      },
+      data: this.trip,
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (review: string) => {
+        if (review === undefined) return;
+        this.apiService
+          .putTrip(
+            { archived: !currentArchiveStatus, archival_review: review },
+            this.trip?.id!,
+          )
+          .pipe(take(1))
+          .subscribe({
+            next: (trip) => (this.trip = trip),
+          });
       },
     });
   }
@@ -1853,7 +1884,7 @@ export class TripComponent implements AfterViewInit {
       next: (notes: string) => {
         if (notes === undefined) return;
         this.apiService
-          .putTrip({ notes: notes ?? "" }, this.trip!.id)
+          .putTrip({ notes: notes }, this.trip!.id)
           .pipe(take(1))
           .subscribe({
             next: (trip) => (this.trip = trip),

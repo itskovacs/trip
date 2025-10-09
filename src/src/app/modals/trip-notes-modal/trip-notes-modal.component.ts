@@ -18,7 +18,7 @@ import { TextareaModule } from "primeng/textarea";
   styleUrl: "./trip-notes-modal.component.scss",
 })
 export class TripNotesModalComponent {
-  notes = new FormControl('');
+  notes = new FormControl("");
   isEditing: boolean = false;
 
   constructor(

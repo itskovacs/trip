@@ -21,6 +21,7 @@ export interface Trip {
   collaborators: TripMember[];
   currency: string;
   notes?: string;
+  archival_review?: string;
 
   // POST / PUT
   places: Place[];

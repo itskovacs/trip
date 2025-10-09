@@ -1,5 +1,5 @@
 <section class="mt-4" [class.prettyprint]="isPrinting">
-  <div class="p-4 print:p-0 flex items-center justify-between">
+  <div class="p-4 print:p-0 flex flex-wrap items-center justify-between">
     <div class="flex items-center gap-2">
       <p-button text icon="pi pi-chevron-left" class="print:hidden" (click)="back()" severity="secondary" />
       <div class="flex flex-col max-w-[55vw] md:max-w-full">
@@ -16,6 +16,20 @@
       </div>
     </div>
 
+    @if (trip?.archived) {
+    <div class="mx-auto p-4 mt-4 md:mt-0 w-full md:w-fit text-orange-800 rounded-md bg-orange-50"
+      [class.prettyprint]="isPrinting">
+      <div class="text-center font-semibold">This Trip is archived, you cannot modify it.</div>
+      <div class="mt-2 flex items-center justify-between">
+        @if (trip?.archival_review) {
+        <p-button text icon="pi pi-comment" [label]="isArchivalReviewDisplayed ? 'Hide review' : 'View review'"
+          (click)="isArchivalReviewDisplayed = !isArchivalReviewDisplayed" />
+        }
+        <p-button text icon="pi pi-box" label="Restore" severity="success" (click)="openUnarchiveTripModal()" />
+      </div>
+    </div>
+    }
+
     <div class="hidden print:flex flex-col items-center">
       <img src="favicon.png" class="size-20">
       <div class="flex gap-2 items-center text-xs text-gray-500"><i class="pi pi-github"></i>itskovacs/trip</div>
@@ -29,18 +43,13 @@
       }
     </div>
   </div>
-</section>
 
-@if (trip?.archived) {
-<div class="mx-auto p-4 my-4 w-fit max-w-[400px] text-center text-orange-800 rounded-lg bg-orange-50"
-  [class.prettyprint]="isPrinting">
-  <div class="flex items-center justify-between">
-    <div class="font-semibold">Archived</div>
-    <p-button text icon="pi pi-box" label="Restore" (click)="toggleArchiveTrip()" [size]="'small'" />
-  </div>
-  This Trip is archived, you cannot modify it.
-</div>
-}
+  @if (isArchivalReviewDisplayed) {
+  <div
+    class="m-4 whitespace-pre-line text-gray-800 dark:text-gray-200 max-h-[600px] overflow-y-auto p-4 rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800">
+    {{ trip?.archival_review }}</div>
+  }
+</section>
 
 <section class="p-4 print:px-1 grid lg:grid-cols-3 gap-4 print:block" [class.prettyprint]="isPrinting">
   <div [ngClass]="isExpanded ? 'lg:col-span-3' : 'lg:col-span-2'" class="p-4 shadow self-start rounded-md max-w-screen">
