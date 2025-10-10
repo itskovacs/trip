@@ -59,6 +59,7 @@ export class SharedTripComponent implements AfterViewInit {
   selectedItem?: TripItem & { status?: TripStatus };
   tableExpandableMode = false;
   isPrinting = false;
+  isArchivalReviewDisplayed = false;
 
   isMapFullscreen = false;
   isMapFullscreenDays = false;

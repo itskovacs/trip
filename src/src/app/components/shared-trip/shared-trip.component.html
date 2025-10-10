@@ -16,6 +16,19 @@
       </div>
     </div>
 
+    @if (trip.archived) {
+    <div class="mx-auto p-4 mt-4 md:mt-0 w-full md:w-fit text-orange-800 rounded-md bg-orange-50"
+      [class.prettyprint]="isPrinting">
+      <div class="text-center font-semibold">This shared Trip is archived.</div>
+      <div class="mt-2 flex items-center justify-center">
+        @if (trip.archival_review) {
+        <p-button text icon="pi pi-comment" [label]="isArchivalReviewDisplayed ? 'Hide review' : 'View review'"
+          (click)="isArchivalReviewDisplayed = !isArchivalReviewDisplayed" />
+        }
+      </div>
+    </div>
+    }
+
     <div class="hidden print:flex flex-col items-center">
       <img src="favicon.png" class="size-20" />
       <div class="flex gap-2 items-center text-xs text-gray-500"><i class="pi pi-github"></i>itskovacs/trip</div>
@@ -27,6 +40,12 @@
       </div>
     </div>
   </div>
+
+  @if (isArchivalReviewDisplayed) {
+  <div
+    class="m-4 whitespace-pre-line text-gray-800 dark:text-gray-200 max-h-[600px] overflow-y-auto p-4 rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800">
+    {{ trip.archival_review }}</div>
+  }
 </section>
 
 <section class="p-4 print:px-1 grid lg:grid-cols-3 gap-4 print:block" [class.prettyprint]="isPrinting">
