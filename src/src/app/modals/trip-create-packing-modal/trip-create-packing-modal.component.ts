@@ -1,20 +1,15 @@
-import { Component } from "@angular/core";
-import {
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from "@angular/forms";
-import { ButtonModule } from "primeng/button";
-import { DynamicDialogConfig, DynamicDialogRef } from "primeng/dynamicdialog";
-import { FloatLabelModule } from "primeng/floatlabel";
-import { InputTextModule } from "primeng/inputtext";
-import { FocusTrapModule } from "primeng/focustrap";
-import { SelectModule } from "primeng/select";
-import { InputNumberModule } from "primeng/inputnumber";
+import { Component } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { FloatLabelModule } from 'primeng/floatlabel';
+import { InputTextModule } from 'primeng/inputtext';
+import { FocusTrapModule } from 'primeng/focustrap';
+import { SelectModule } from 'primeng/select';
+import { InputNumberModule } from 'primeng/inputnumber';
 
 @Component({
-  selector: "app-trip-create-packing-modal",
+  selector: 'app-trip-create-packing-modal',
   imports: [
     FloatLabelModule,
     InputTextModule,
@@ -25,17 +20,17 @@ import { InputNumberModule } from "primeng/inputnumber";
     InputNumberModule,
   ],
   standalone: true,
-  templateUrl: "./trip-create-packing-modal.component.html",
-  styleUrl: "./trip-create-packing-modal.component.scss",
+  templateUrl: './trip-create-packing-modal.component.html',
+  styleUrl: './trip-create-packing-modal.component.scss',
 })
 export class TripCreatePackingModalComponent {
   packingForm: FormGroup;
   readonly packingCategories = [
-    { value: "clothes", dispValue: "Clothes" },
-    { value: "toiletries", dispValue: "Toiletries" },
-    { value: "tech", dispValue: "Tech" },
-    { value: "documents", dispValue: "Documents" },
-    { value: "other", dispValue: "Other" },
+    { value: 'clothes', dispValue: 'Clothes' },
+    { value: 'toiletries', dispValue: 'Toiletries' },
+    { value: 'tech', dispValue: 'Tech' },
+    { value: 'documents', dispValue: 'Documents' },
+    { value: 'other', dispValue: 'Other' },
   ];
 
   constructor(
@@ -46,8 +41,8 @@ export class TripCreatePackingModalComponent {
     this.packingForm = this.fb.group({
       id: -1,
       qt: null,
-      text: ["", { validators: Validators.required }],
-      category: ["", { validators: Validators.required }],
+      text: ['', { validators: Validators.required }],
+      category: ['', { validators: Validators.required }],
     });
 
     const patchValue = this.config.data?.packing;

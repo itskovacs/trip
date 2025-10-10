@@ -1,19 +1,13 @@
-import OpenLocationCode from "open-location-code-typescript";
+import OpenLocationCode from 'open-location-code-typescript';
 
 const patternDEC = /^\s*(-?\d{1,3}(?:\.\d+)?)\s*,\s*(-?\d{1,3}(?:\.\d+)?)\s*$/;
-const patternDD =
-  /^\s*(\d{1,3}(?:\.\d+)?)°?\s*([NS])\s*,\s*(\d{1,3}(?:\.\d+)?)°?\s*([EW])\s*$/i;
+const patternDD = /^\s*(\d{1,3}(?:\.\d+)?)°?\s*([NS])\s*,\s*(\d{1,3}(?:\.\d+)?)°?\s*([EW])\s*$/i;
 const patternDMS =
   /^\s*(\d{1,3})°\s*(\d{1,2})['′]\s*(\d{1,2}(?:\.\d+)?)["″]?\s*([NS])\s*,\s*(\d{1,3})°\s*(\d{1,2})['′]\s*(\d{1,2}(?:\.\d+)?)["″]?\s*([EW])\s*$/i;
 const patternDMM =
   /^\s*(\d{1,3})°\s*(\d{1,2}(?:\.\d+)?)['′]?\s*([NS])\s*,\s*(\d{1,3})°\s*(\d{1,2}(?:\.\d+)?)['′]?\s*([EW])\s*$/i;
 
-function _dmsToDecimal(
-  deg: number,
-  min: number,
-  sec: number,
-  dir: string,
-): number {
+function _dmsToDecimal(deg: number, min: number, sec: number, dir: string): number {
   const dec = deg + min / 60 + sec / 3600;
   return /[SW]/i.test(dir) ? -dec : dec;
 }
@@ -24,14 +18,12 @@ function _dmmToDecimal(deg: number, min: number, dir: string): number {
 }
 
 export function formatLatLng(num: number): string {
-  const decimals = num.toString().split(".")[1]?.length || 0;
+  const decimals = num.toString().split('.')[1]?.length || 0;
   return num.toFixed(Math.min(decimals, 5));
 }
 
-export function checkAndParseLatLng(
-  value: string | number,
-): [number, number] | undefined {
-  if (typeof value !== "string") return undefined;
+export function checkAndParseLatLng(value: string | number): [number, number] | undefined {
+  if (typeof value !== 'string') return undefined;
 
   // Parse PlusCode
   if (OpenLocationCode.isValid(value)) {

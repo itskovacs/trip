@@ -1,47 +1,33 @@
-import { AfterViewInit, Component } from "@angular/core";
-import { ApiService } from "../../services/api.service";
-import { ButtonModule } from "primeng/button";
-import { SkeletonModule } from "primeng/skeleton";
-import * as L from "leaflet";
-import { antPath } from "leaflet-ant-path";
-import { TableModule } from "primeng/table";
-import {
-  Trip,
-  FlattenedTripItem,
-  TripDay,
-  TripItem,
-  TripStatus,
-  PackingItem,
-  ChecklistItem,
-} from "../../types/trip";
-import { Place } from "../../types/poi";
-import {
-  createMap,
-  placeToMarker,
-  createClusterGroup,
-  tripDayMarker,
-  gpxToPolyline,
-} from "../../shared/map";
-import { ActivatedRoute } from "@angular/router";
-import { debounceTime, take, tap } from "rxjs";
-import { UtilsService } from "../../services/utils.service";
-import { CommonModule, DecimalPipe } from "@angular/common";
-import { MenuItem } from "primeng/api";
-import { MenuModule } from "primeng/menu";
-import { LinkifyPipe } from "../../shared/linkify.pipe";
-import { TooltipModule } from "primeng/tooltip";
-import { FormControl, FormsModule, ReactiveFormsModule } from "@angular/forms";
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { MultiSelectModule } from "primeng/multiselect";
-import { DialogModule } from "primeng/dialog";
-import { CheckboxModule } from "primeng/checkbox";
-import { InputTextModule } from "primeng/inputtext";
-import { ClipboardModule } from "@angular/cdk/clipboard";
-import { calculateDistanceBetween } from "../../shared/haversine";
-import { orderByPipe } from "../../shared/order-by.pipe";
+import { AfterViewInit, Component } from '@angular/core';
+import { ApiService } from '../../services/api.service';
+import { ButtonModule } from 'primeng/button';
+import { SkeletonModule } from 'primeng/skeleton';
+import * as L from 'leaflet';
+import { antPath } from 'leaflet-ant-path';
+import { TableModule } from 'primeng/table';
+import { Trip, FlattenedTripItem, TripDay, TripItem, TripStatus, PackingItem, ChecklistItem } from '../../types/trip';
+import { Place } from '../../types/poi';
+import { createMap, placeToMarker, createClusterGroup, tripDayMarker, gpxToPolyline } from '../../shared/map';
+import { ActivatedRoute } from '@angular/router';
+import { debounceTime, take, tap } from 'rxjs';
+import { UtilsService } from '../../services/utils.service';
+import { CommonModule, DecimalPipe } from '@angular/common';
+import { MenuItem } from 'primeng/api';
+import { MenuModule } from 'primeng/menu';
+import { LinkifyPipe } from '../../shared/linkify.pipe';
+import { TooltipModule } from 'primeng/tooltip';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { DialogModule } from 'primeng/dialog';
+import { CheckboxModule } from 'primeng/checkbox';
+import { InputTextModule } from 'primeng/inputtext';
+import { ClipboardModule } from '@angular/cdk/clipboard';
+import { calculateDistanceBetween } from '../../shared/haversine';
+import { orderByPipe } from '../../shared/order-by.pipe';
 
 @Component({
-  selector: "app-shared-trip",
+  selector: 'app-shared-trip',
   standalone: true,
   imports: [
     CommonModule,
@@ -61,8 +47,8 @@ import { orderByPipe } from "../../shared/order-by.pipe";
     ClipboardModule,
     orderByPipe,
   ],
-  templateUrl: "./shared-trip.component.html",
-  styleUrls: ["./shared-trip.component.scss"],
+  templateUrl: './shared-trip.component.html',
+  styleUrls: ['./shared-trip.component.scss'],
 })
 export class SharedTripComponent implements AfterViewInit {
   token?: string;
@@ -98,18 +84,18 @@ export class SharedTripComponent implements AfterViewInit {
 
   readonly menuTripActionsItems: MenuItem[] = [
     {
-      label: "Lists",
+      label: 'Lists',
       items: [
         {
-          label: "Checklist",
-          icon: "pi pi-check-square",
+          label: 'Checklist',
+          icon: 'pi pi-check-square',
           command: () => {
             this.openChecklist();
           },
         },
         {
-          label: "Packing",
-          icon: "pi pi-briefcase",
+          label: 'Packing',
+          icon: 'pi pi-briefcase',
           command: () => {
             this.openPackingList();
           },
@@ -117,11 +103,11 @@ export class SharedTripComponent implements AfterViewInit {
       ],
     },
     {
-      label: "Trip",
+      label: 'Trip',
       items: [
         {
-          label: "Pretty Print",
-          icon: "pi pi-print",
+          label: 'Pretty Print',
+          icon: 'pi pi-print',
           command: () => {
             this.togglePrint();
           },
@@ -131,11 +117,11 @@ export class SharedTripComponent implements AfterViewInit {
   ];
   readonly menuTripTableActionsItems: MenuItem[] = [
     {
-      label: "Actions",
+      label: 'Actions',
       items: [
         {
-          label: "Pretty Print",
-          icon: "pi pi-print",
+          label: 'Pretty Print',
+          icon: 'pi pi-print',
           command: () => {
             this.togglePrint();
           },
@@ -143,18 +129,18 @@ export class SharedTripComponent implements AfterViewInit {
       ],
     },
     {
-      label: "Table",
+      label: 'Table',
       items: [
         {
-          label: "Filter",
-          icon: "pi pi-filter",
+          label: 'Filter',
+          icon: 'pi pi-filter',
           command: () => {
             this.toggleFiltering();
           },
         },
         {
-          label: "Group",
-          icon: "pi pi-arrow-down-left-and-arrow-up-right-to-center",
+          label: 'Group',
+          icon: 'pi pi-arrow-down-left-and-arrow-up-right-to-center',
           command: () => {
             this.tableExpandableMode = !this.tableExpandableMode;
           },
@@ -162,18 +148,18 @@ export class SharedTripComponent implements AfterViewInit {
       ],
     },
     {
-      label: "Directions",
+      label: 'Directions',
       items: [
         {
-          label: "Highlight",
-          icon: "pi pi-directions",
+          label: 'Highlight',
+          icon: 'pi pi-directions',
           command: () => {
             this.toggleTripDaysHighlight();
           },
         },
         {
-          label: "GMaps itinerary",
-          icon: "pi pi-car",
+          label: 'GMaps itinerary',
+          icon: 'pi pi-car',
           command: () => {
             this.tripToNavigation();
           },
@@ -182,24 +168,18 @@ export class SharedTripComponent implements AfterViewInit {
     },
   ];
   readonly tripTableColumns: string[] = [
-    "day",
-    "time",
-    "text",
-    "place",
-    "comment",
-    "LatLng",
-    "price",
-    "status",
-    "distance",
+    'day',
+    'time',
+    'text',
+    'place',
+    'comment',
+    'LatLng',
+    'price',
+    'status',
+    'distance',
   ];
-  tripTableSelectedColumns: string[] = [
-    "day",
-    "time",
-    "text",
-    "place",
-    "comment",
-  ];
-  tripTableSearchInput = new FormControl("");
+  tripTableSelectedColumns: string[] = ['day', 'time', 'text', 'place', 'comment'];
+  tripTableSearchInput = new FormControl('');
 
   dayStatsCache = new Map<number, { price: number; places: number }>();
   placesUsedInTable = new Set<number>();
@@ -210,14 +190,12 @@ export class SharedTripComponent implements AfterViewInit {
     private route: ActivatedRoute,
   ) {
     this.statuses = this.utilsService.statuses;
-    this.tripTableSearchInput.valueChanges
-      .pipe(debounceTime(300), takeUntilDestroyed())
-      .subscribe({
-        next: (value) => {
-          if (value) this.flattenTripDayItems(value.toLowerCase());
-          else this.flattenTripDayItems();
-        },
-      });
+    this.tripTableSearchInput.valueChanges.pipe(debounceTime(300), takeUntilDestroyed()).subscribe({
+      next: (value) => {
+        if (value) this.flattenTripDayItems(value.toLowerCase());
+        else this.flattenTripDayItems();
+      },
+    });
   }
 
   ngAfterViewInit(): void {
@@ -225,7 +203,7 @@ export class SharedTripComponent implements AfterViewInit {
       .pipe(
         take(1),
         tap((params) => {
-          const token = params.get("token");
+          const token = params.get('token');
           if (token) {
             this.token = token;
             this.loadTripData(token);
@@ -252,12 +230,10 @@ export class SharedTripComponent implements AfterViewInit {
   initMap(): void {
     const contentMenuItems = [
       {
-        text: "Copy coordinates",
+        text: 'Copy coordinates',
         callback: (e: any) => {
           const latlng = e.latlng;
-          navigator.clipboard.writeText(
-            `${parseFloat(latlng.lat).toFixed(5)}, ${parseFloat(latlng.lng).toFixed(5)}`,
-          );
+          navigator.clipboard.writeText(`${parseFloat(latlng.lat).toFixed(5)}, ${parseFloat(latlng.lng).toFixed(5)}`);
         },
       },
     ];
@@ -305,11 +281,7 @@ export class SharedTripComponent implements AfterViewInit {
     if (!this.trip?.days) return [];
 
     return this.trip.days
-      .flatMap((day) =>
-        day.items.filter((item) =>
-          ["constraint", "pending"].includes(item.status as string),
-        ),
-      )
+      .flatMap((day) => day.items.filter((item) => ['constraint', 'pending'].includes(item.status as string)))
       .map((item) => ({
         ...item,
         status: this.statusToTripStatus(item.status as string),
@@ -383,9 +355,7 @@ export class SharedTripComponent implements AfterViewInit {
 
   setPlacesAndMarkers() {
     this.computePlacesUsedInTable();
-    this.places = [...(this.trip?.places ?? [])].sort((a, b) =>
-      a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
-    );
+    this.places = [...(this.trip?.places ?? [])].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
     this.markerClusterGroup?.clearLayers();
     this.places.forEach((p) => {
       const marker = this._placeToMarker(p);
@@ -394,12 +364,8 @@ export class SharedTripComponent implements AfterViewInit {
   }
 
   _placeToMarker(place: Place): L.Marker {
-    const marker = placeToMarker(
-      place,
-      false,
-      !this.placesUsedInTable.has(place.id),
-    );
-    marker.on("click", () => {
+    const marker = placeToMarker(place, false, !this.placesUsedInTable.has(place.id));
+    marker.on('click', () => {
       this.onMapMarkerClick(place.id);
       marker.closeTooltip();
     });
@@ -409,9 +375,7 @@ export class SharedTripComponent implements AfterViewInit {
   resetMapBounds() {
     if (!this.places.length) {
       this.map?.fitBounds(
-        this.flattenedTripItems
-          .filter((i) => i.lat != null && i.lng != null)
-          .map((i) => [i.lat!, i.lng!]),
+        this.flattenedTripItems.filter((i) => i.lat != null && i.lng != null).map((i) => [i.lat!, i.lng!]),
         { padding: [30, 30] },
       );
       return;
@@ -425,7 +389,7 @@ export class SharedTripComponent implements AfterViewInit {
 
   toggleMapFullscreen() {
     this.isMapFullscreen = !this.isMapFullscreen;
-    document.body.classList.toggle("overflow-hidden");
+    document.body.classList.toggle('overflow-hidden');
 
     setTimeout(() => {
       this.map?.invalidateSize();
@@ -444,14 +408,12 @@ export class SharedTripComponent implements AfterViewInit {
       return;
     }
     this.totalPrice =
-      this.trip?.days
-        .flatMap((d) => d.items)
-        .reduce((price, item) => price + (item.price ?? 0), 0) ?? 0;
+      this.trip?.days.flatMap((d) => d.items).reduce((price, item) => price + (item.price ?? 0), 0) ?? 0;
   }
 
   resetPlaceHighlightMarker() {
     if (this.tripMapHoveredElement) {
-      this.tripMapHoveredElement.classList.remove("list-hover");
+      this.tripMapHoveredElement.classList.remove('list-hover');
       this.tripMapHoveredElement = undefined;
     }
 
@@ -468,8 +430,7 @@ export class SharedTripComponent implements AfterViewInit {
   }
 
   placeHighlightMarker(item: any) {
-    if (this.tripMapHoveredElement || this.tripMapTemporaryMarker)
-      this.resetPlaceHighlightMarker();
+    if (this.tripMapHoveredElement || this.tripMapTemporaryMarker) this.resetPlaceHighlightMarker();
 
     let marker: L.Marker | undefined;
     this.markerClusterGroup?.eachLayer((layer: any) => {
@@ -487,10 +448,7 @@ export class SharedTripComponent implements AfterViewInit {
       // TripItem without place, but latlng
       this.tripMapTemporaryMarker = tripDayMarker(item).addTo(this.map!);
       if (this.tripMapGpxLayer) {
-        this.map?.fitBounds(
-          [[item.lat, item.lng], (this.tripMapGpxLayer as any).getBounds()],
-          { padding: [30, 30] },
-        );
+        this.map?.fitBounds([[item.lat, item.lng], (this.tripMapGpxLayer as any).getBounds()], { padding: [30, 30] });
       } else this.map?.fitBounds([[item.lat, item.lng]], { padding: [60, 60] });
       return;
     }
@@ -499,18 +457,16 @@ export class SharedTripComponent implements AfterViewInit {
     const markerElement = marker.getElement() as HTMLElement; // search for Marker. If 'null', is inside Cluster
     if (markerElement) {
       // marker, not clustered
-      markerElement.classList.add("list-hover");
+      markerElement.classList.add('list-hover');
       this.tripMapHoveredElement = markerElement;
       targetLatLng = marker.getLatLng();
     } else {
       // marker is clustered
-      const parentCluster = (this.markerClusterGroup as any).getVisibleParent(
-        marker,
-      );
+      const parentCluster = (this.markerClusterGroup as any).getVisibleParent(marker);
       if (parentCluster) {
         const clusterEl = parentCluster.getElement();
         if (clusterEl) {
-          clusterEl.classList.add("list-hover");
+          clusterEl.classList.add('list-hover');
           this.tripMapHoveredElement = clusterEl;
         }
         targetLatLng = parentCluster.getLatLng();
@@ -574,11 +530,7 @@ export class SharedTripComponent implements AfterViewInit {
       .filter((n) => n !== undefined);
 
     if (items.length < 2) {
-      this.utilsService.toast(
-        "info",
-        "Info",
-        "Not enough values to map an itinerary",
-      );
+      this.utilsService.toast('info', 'Info', 'Not enough values to map an itinerary');
       return;
     }
 
@@ -590,20 +542,20 @@ export class SharedTripComponent implements AfterViewInit {
 
     const layGroup = L.featureGroup();
     const COLORS: string[] = [
-      "#e6194b",
-      "#3cb44b",
-      "#ffe119",
-      "#4363d8",
-      "#9a6324",
-      "#f58231",
-      "#911eb4",
-      "#46f0f0",
-      "#f032e6",
-      "#bcf60c",
-      "#fabebe",
-      "#008080",
-      "#e6beff",
-      "#808000",
+      '#e6194b',
+      '#3cb44b',
+      '#ffe119',
+      '#4363d8',
+      '#9a6324',
+      '#f58231',
+      '#911eb4',
+      '#46f0f0',
+      '#f032e6',
+      '#bcf60c',
+      '#fabebe',
+      '#008080',
+      '#e6beff',
+      '#808000',
     ];
     let prevPoint: [number, number] | null = null;
 
@@ -614,7 +566,7 @@ export class SharedTripComponent implements AfterViewInit {
         dashArray: [10, 20],
         weight: 5,
         color: COLORS[idx % COLORS.length],
-        pulseColor: "#FFFFFF",
+        pulseColor: '#FFFFFF',
         paused: false,
         reverse: false,
         hardwareAccelerated: true,
@@ -665,9 +617,7 @@ export class SharedTripComponent implements AfterViewInit {
 
     const idx = this.trip?.days.findIndex((d) => d.id === day_id);
     if (!this.trip || idx === undefined || idx == -1) return;
-    const data = this.trip.days[idx].items.sort((a, b) =>
-      a.time < b.time ? -1 : a.time > b.time ? 1 : 0,
-    );
+    const data = this.trip.days[idx].items.sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
     const items = data
       .map((item) => {
         if (item.lat && item.lng)
@@ -693,11 +643,7 @@ export class SharedTripComponent implements AfterViewInit {
       .filter((n) => n !== undefined);
 
     if (items.length < 2) {
-      this.utilsService.toast(
-        "info",
-        "Info",
-        "Not enough values to map an itinerary",
-      );
+      this.utilsService.toast('info', 'Info', 'Not enough values to map an itinerary');
       return;
     }
 
@@ -712,8 +658,8 @@ export class SharedTripComponent implements AfterViewInit {
         delay: 400,
         dashArray: [10, 20],
         weight: 5,
-        color: "#0000FF",
-        pulseColor: "#FFFFFF",
+        color: '#0000FF',
+        pulseColor: '#FFFFFF',
         paused: false,
         reverse: false,
         hardwareAccelerated: true,
@@ -751,15 +697,9 @@ export class SharedTripComponent implements AfterViewInit {
   }
 
   onMapMarkerClick(place_id: number) {
-    const item = this.flattenedTripItems.find(
-      (i) => i.place && i.place.id == place_id,
-    );
+    const item = this.flattenedTripItems.find((i) => i.place && i.place.id == place_id);
     if (!item) {
-      this.utilsService.toast(
-        "info",
-        "Place not used",
-        "The place is not used in the table",
-      );
+      this.utilsService.toast('info', 'Place not used', 'The place is not used in the table');
       return;
     }
 
@@ -773,14 +713,14 @@ export class SharedTripComponent implements AfterViewInit {
     // TODO: More services
     // const url = `http://maps.apple.com/?daddr=${this.selectedItem.lat},${this.selectedItem.lng}`;
     const url = `https://www.google.com/maps/dir/?api=1&destination=${this.selectedItem.lat},${this.selectedItem.lng}`;
-    window.open(url, "_blank");
+    window.open(url, '_blank');
   }
 
   downloadItemGPX() {
     if (!this.selectedItem?.gpx) return;
     const dataBlob = new Blob([this.selectedItem.gpx]);
     const downloadURL = URL.createObjectURL(dataBlob);
-    const link = document.createElement("a");
+    const link = document.createElement('a');
     link.href = downloadURL;
     link.download = `TRIP_${this.trip?.name}_${this.selectedItem.text}.gpx`;
     link.click();
@@ -791,27 +731,23 @@ export class SharedTripComponent implements AfterViewInit {
   tripDayToNavigation(day_id: number) {
     const idx = this.trip?.days.findIndex((d) => d.id === day_id);
     if (!this.trip || idx === undefined || idx == -1) return;
-    const data = this.trip.days[idx].items.sort((a, b) =>
-      a.time < b.time ? -1 : a.time > b.time ? 1 : 0,
-    );
+    const data = this.trip.days[idx].items.sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
     const items = data.filter((item) => item.lat && item.lng);
     if (!items.length) return;
 
-    const waypoints = items.map((item) => `${item.lat},${item.lng}`).join("/");
+    const waypoints = items.map((item) => `${item.lat},${item.lng}`).join('/');
     const url = `https://www.google.com/maps/dir/${waypoints}`;
-    window.open(url, "_blank");
+    window.open(url, '_blank');
   }
 
   tripToNavigation() {
     // TODO: More services
-    const items = this.flattenedTripItems.filter(
-      (item) => item.lat && item.lng,
-    );
+    const items = this.flattenedTripItems.filter((item) => item.lat && item.lng);
     if (!items.length) return;
 
-    const waypoints = items.map((item) => `${item.lat},${item.lng}`).join("/");
+    const waypoints = items.map((item) => `${item.lat},${item.lng}`).join('/');
     const url = `https://www.google.com/maps/dir/${waypoints}`;
-    window.open(url, "_blank");
+    window.open(url, '_blank');
   }
 
   openPackingList() {
@@ -832,24 +768,13 @@ export class SharedTripComponent implements AfterViewInit {
 
   computeDispPackingList() {
     const sorted: PackingItem[] = [...this.packingList].sort((a, b) =>
-      a.packed !== b.packed
-        ? a.packed
-          ? 1
-          : -1
-        : a.text < b.text
-          ? -1
-          : a.text > b.text
-            ? 1
-            : 0,
+      a.packed !== b.packed ? (a.packed ? 1 : -1) : a.text < b.text ? -1 : a.text > b.text ? 1 : 0,
     );
 
-    this.dispPackingList = sorted.reduce<Record<string, PackingItem[]>>(
-      (acc, item) => {
-        (acc[item.category] ??= []).push(item);
-        return acc;
-      },
-      {},
-    );
+    this.dispPackingList = sorted.reduce<Record<string, PackingItem[]>>((acc, item) => {
+      (acc[item.category] ??= []).push(item);
+      return acc;
+    }, {});
   }
 
   openChecklist() {

@@ -1,4 +1,4 @@
-import { Category, Place } from "./poi";
+import { Category, Place } from './poi';
 
 export interface Settings {
   username: string;

@@ -1,8 +1,8 @@
-import { inject } from "@angular/core";
-import { CanActivateFn, Router } from "@angular/router";
-import { UtilsService } from "./utils.service";
-import { AuthService } from "./auth.service";
-import { of, switchMap, take } from "rxjs";
+import { inject } from '@angular/core';
+import { CanActivateFn, Router } from '@angular/router';
+import { UtilsService } from './utils.service';
+import { AuthService } from './auth.service';
+import { of, switchMap, take } from 'rxjs';
 
 export const AuthGuard: CanActivateFn = (_, state) => {
   const router: Router = inject(Router);
@@ -14,14 +14,9 @@ export const AuthGuard: CanActivateFn = (_, state) => {
       take(1),
       switchMap((authenticated) => {
         if (!authenticated) {
-          const redirectURL =
-            state.url === "/auth" ? "" : `redirectURL=${state.url}`;
+          const redirectURL = state.url === '/auth' ? '' : `redirectURL=${state.url}`;
           const urlTree = router.parseUrl(`auth?${redirectURL}`);
-          utilsService.toast(
-            "warn",
-            "Authentication required",
-            "You must be authenticated",
-          );
+          utilsService.toast('warn', 'Authentication required', 'You must be authenticated');
           return of(urlTree);
         }
 

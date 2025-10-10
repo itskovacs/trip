@@ -1,47 +1,42 @@
-import { inject, Injectable } from "@angular/core";
-import { MessageService } from "primeng/api";
-import { TripStatus } from "../types/trip";
-import { ApiService } from "./api.service";
-import { map } from "rxjs";
+import { inject, Injectable } from '@angular/core';
+import { MessageService } from 'primeng/api';
+import { TripStatus } from '../types/trip';
+import { ApiService } from './api.service';
+import { map } from 'rxjs';
 
-type ToastSeverity = "info" | "warn" | "error" | "success";
+type ToastSeverity = 'info' | 'warn' | 'error' | 'success';
 
 @Injectable({
-  providedIn: "root",
+  providedIn: 'root',
 })
 export class UtilsService {
   private apiService = inject(ApiService);
-  currency$ = this.apiService.settings$.pipe(map((s) => s?.currency ?? "€"));
+  currency$ = this.apiService.settings$.pipe(map((s) => s?.currency ?? '€'));
 
   readonly statuses: TripStatus[] = [
-    { label: "pending", color: "#3258A8" },
-    { label: "booked", color: "#00A341" },
-    { label: "constraint", color: "#FFB900" },
-    { label: "optional", color: "#625A84" },
+    { label: 'pending', color: '#3258A8' },
+    { label: 'booked', color: '#00A341' },
+    { label: 'constraint', color: '#FFB900' },
+    { label: 'optional', color: '#625A84' },
   ];
 
   constructor(private ngMessageService: MessageService) {}
 
   toGithubTRIP() {
-    window.open("https://github.com/itskovacs/trip", "_blank");
+    window.open('https://github.com/itskovacs/trip', '_blank');
   }
 
   toggleDarkMode() {
-    const element = document.querySelector("html");
-    element?.classList.toggle("dark");
+    const element = document.querySelector('html');
+    element?.classList.toggle('dark');
   }
 
   enableDarkMode() {
-    const element = document.querySelector("html");
-    element?.classList.toggle("dark", true);
+    const element = document.querySelector('html');
+    element?.classList.toggle('dark', true);
   }
 
-  toast(
-    severity: ToastSeverity = "info",
-    summary = "Info",
-    detail = "",
-    life = 3000,
-  ): void {
+  toast(severity: ToastSeverity = 'info', summary = 'Info', detail = '', life = 3000): void {
     this.ngMessageService.add({
       severity,
       summary,
@@ -57,12 +52,12 @@ export class UtilsService {
     const lngMatch = url.match(/!4d([\d\-.]+)/);
 
     if (!placeMatch || !latMatch || !lngMatch) {
-      this.toast("error", "Error", "Unrecognized Google Maps URL format");
-      console.error("Unrecognized Google Maps URL format");
-      return ["", ""];
+      this.toast('error', 'Error', 'Unrecognized Google Maps URL format');
+      console.error('Unrecognized Google Maps URL format');
+      return ['', ''];
     }
 
-    const place = decodeURIComponent(placeMatch[1].replace(/\+/g, " ").trim());
+    const place = decodeURIComponent(placeMatch[1].replace(/\+/g, ' ').trim());
     const latlng = `${latMatch[1]},${lngMatch[1]}`;
     return [place, latlng];
   }

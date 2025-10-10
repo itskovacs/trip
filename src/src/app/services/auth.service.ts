@@ -1,10 +1,10 @@
-import { HttpClient } from "@angular/common/http";
-import { Injectable } from "@angular/core";
-import { Router } from "@angular/router";
-import { Observable, of, ReplaySubject } from "rxjs";
-import { tap } from "rxjs/operators";
-import { ApiService } from "./api.service";
-import { UtilsService } from "./utils.service";
+import { HttpClient } from '@angular/common/http';
+import { Injectable } from '@angular/core';
+import { Router } from '@angular/router';
+import { Observable, of, ReplaySubject } from 'rxjs';
+import { tap } from 'rxjs/operators';
+import { ApiService } from './api.service';
+import { UtilsService } from './utils.service';
 
 export interface Token {
   refresh_token: string;
@@ -16,11 +16,11 @@ export interface AuthParams {
   oidc?: string;
 }
 
-const JWT_TOKEN = "TRIP_AT";
-const REFRESH_TOKEN = "TRIP_RT";
-const JWT_USER = "TRIP_USER";
+const JWT_TOKEN = 'TRIP_AT';
+const REFRESH_TOKEN = 'TRIP_RT';
+const JWT_USER = 'TRIP_USER';
 
-@Injectable({ providedIn: "root" })
+@Injectable({ providedIn: 'root' })
 export class AuthService {
   public readonly apiBaseUrl: string;
   private refreshInProgressLock$: ReplaySubject<Token> | null = null;
@@ -39,7 +39,7 @@ export class AuthService {
   }
 
   get loggedUser(): string {
-    return localStorage.getItem(JWT_USER) ?? "";
+    return localStorage.getItem(JWT_USER) ?? '';
   }
 
   set accessToken(token: string) {
@@ -47,7 +47,7 @@ export class AuthService {
   }
 
   get accessToken(): string {
-    return localStorage.getItem(JWT_TOKEN) ?? "";
+    return localStorage.getItem(JWT_TOKEN) ?? '';
   }
 
   set refreshToken(token: string) {
@@ -55,11 +55,11 @@ export class AuthService {
   }
 
   get refreshToken(): string {
-    return localStorage.getItem(REFRESH_TOKEN) ?? "";
+    return localStorage.getItem(REFRESH_TOKEN) ?? '';
   }
 
   authParams(): Observable<AuthParams> {
-    return this.httpClient.get<AuthParams>(this.apiBaseUrl + "/auth/params");
+    return this.httpClient.get<AuthParams>(this.apiBaseUrl + '/auth/params');
   }
 
   storeTokens(tokens: Token): void {
@@ -81,7 +81,7 @@ export class AuthService {
     this.refreshInProgressLock$ = new ReplaySubject(1);
 
     this.httpClient
-      .post<Token>(this.apiBaseUrl + "/auth/refresh", {
+      .post<Token>(this.apiBaseUrl + '/auth/refresh', {
         refresh_token: this.refreshToken,
       })
       .pipe(
@@ -103,60 +103,47 @@ export class AuthService {
   }
 
   login(authForm: { username: string; password: string }): Observable<Token> {
-    return this.httpClient
-      .post<Token>(this.apiBaseUrl + "/auth/login", authForm)
-      .pipe(
-        tap((tokens: Token) => {
-          this.loggedUser = authForm.username;
-          this.storeTokens(tokens);
-        }),
-      );
+    return this.httpClient.post<Token>(this.apiBaseUrl + '/auth/login', authForm).pipe(
+      tap((tokens: Token) => {
+        this.loggedUser = authForm.username;
+        this.storeTokens(tokens);
+      }),
+    );
   }
 
-  register(authForm: {
-    username: string;
-    password: string;
-  }): Observable<Token> {
-    return this.httpClient
-      .post<Token>(this.apiBaseUrl + "/auth/register", authForm)
-      .pipe(
-        tap((tokens: Token) => {
-          this.loggedUser = authForm.username;
-          this.storeTokens(tokens);
-        }),
-      );
+  register(authForm: { username: string; password: string }): Observable<Token> {
+    return this.httpClient.post<Token>(this.apiBaseUrl + '/auth/register', authForm).pipe(
+      tap((tokens: Token) => {
+        this.loggedUser = authForm.username;
+        this.storeTokens(tokens);
+      }),
+    );
   }
 
   oidcLogin(code: string, state: string): Observable<Token> {
-    return this.httpClient
-      .post<Token>(this.apiBaseUrl + "/auth/oidc/login", { code, state })
-      .pipe(
-        tap((data: any) => {
-          if (data.access_token && data.refresh_token) {
-            this.loggedUser = this._getTokenUsername(data.access_token);
-            this.storeTokens(data);
-          }
-        }),
-      );
+    return this.httpClient.post<Token>(this.apiBaseUrl + '/auth/oidc/login', { code, state }).pipe(
+      tap((data: any) => {
+        if (data.access_token && data.refresh_token) {
+          this.loggedUser = this._getTokenUsername(data.access_token);
+          this.storeTokens(data);
+        }
+      }),
+    );
   }
 
-  logout(custom_msg: string = "", is_error = false): void {
-    this.loggedUser = "";
+  logout(custom_msg: string = '', is_error = false): void {
+    this.loggedUser = '';
     this.removeTokens();
 
     if (custom_msg) {
       if (is_error) {
-        this.utilsService.toast(
-          "error",
-          "You must be authenticated",
-          custom_msg,
-        );
+        this.utilsService.toast('error', 'You must be authenticated', custom_msg);
       } else {
-        this.utilsService.toast("success", "Success", custom_msg);
+        this.utilsService.toast('success', 'Success', custom_msg);
       }
     }
 
-    this.router.navigate(["/auth"]);
+    this.router.navigate(['/auth']);
   }
 
   private removeTokens(): void {
@@ -167,7 +154,7 @@ export class AuthService {
 
   isTokenExpired(token: string, offsetSeconds?: number): boolean {
     // Return if there is no token
-    if (!token || token === "") {
+    if (!token || token === '') {
       return true;
     }
 
@@ -186,25 +173,19 @@ export class AuthService {
   private _b64DecodeUnicode(str: any): string {
     return decodeURIComponent(
       Array.prototype.map
-        .call(
-          this._b64decode(str),
-          (c: any) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2),
-        )
-        .join(""),
+        .call(this._b64decode(str), (c: any) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join(''),
     );
   }
 
   private _b64decode(str: string): string {
-    const chars =
-      "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=";
-    let output = "";
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=';
+    let output = '';
 
-    str = String(str).replace(/=+$/, "");
+    str = String(str).replace(/=+$/, '');
 
     if (str.length % 4 === 1) {
-      throw new Error(
-        "'atob' failed: The string to be decoded is not correctly encoded.",
-      );
+      throw new Error("'atob' failed: The string to be decoded is not correctly encoded.");
     }
 
     /* eslint-disable */
@@ -223,21 +204,21 @@ export class AuthService {
   }
 
   private _urlBase64Decode(str: string): string {
-    let output = str.replace(/-/g, "+").replace(/_/g, "/");
+    let output = str.replace(/-/g, '+').replace(/_/g, '/');
     switch (output.length % 4) {
       case 0: {
         break;
       }
       case 2: {
-        output += "==";
+        output += '==';
         break;
       }
       case 3: {
-        output += "=";
+        output += '=';
         break;
       }
       default: {
-        throw Error("Illegal base64url string!");
+        throw Error('Illegal base64url string!');
       }
     }
     return this._b64DecodeUnicode(output);
@@ -247,11 +228,11 @@ export class AuthService {
     const decodedToken = this._decodeToken(token);
 
     if (decodedToken === null) {
-      return "";
+      return '';
     }
 
-    if (!decodedToken.hasOwnProperty("sub")) {
-      return "";
+    if (!decodedToken.hasOwnProperty('sub')) {
+      return '';
     }
 
     return decodedToken.sub;
@@ -262,7 +243,7 @@ export class AuthService {
       return null;
     }
 
-    const parts = token.split(".");
+    const parts = token.split('.');
 
     if (parts.length !== 3) {
       return null;
@@ -284,7 +265,7 @@ export class AuthService {
       return null;
     }
 
-    if (!decodedToken.hasOwnProperty("exp")) {
+    if (!decodedToken.hasOwnProperty('exp')) {
       return null;
     }
 

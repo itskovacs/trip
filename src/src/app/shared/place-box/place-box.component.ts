@@ -1,26 +1,19 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  EventEmitter,
-  Input,
-  OnInit,
-  Output,
-} from "@angular/core";
-import { ButtonModule } from "primeng/button";
-import { MenuModule } from "primeng/menu";
-import { Place } from "../../types/poi";
-import { MenuItem } from "primeng/api";
-import { UtilsService } from "../../services/utils.service";
-import { Observable } from "rxjs";
-import { AsyncPipe } from "@angular/common";
-import { LinkifyPipe } from "../linkify.pipe";
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { ButtonModule } from 'primeng/button';
+import { MenuModule } from 'primeng/menu';
+import { Place } from '../../types/poi';
+import { MenuItem } from 'primeng/api';
+import { UtilsService } from '../../services/utils.service';
+import { Observable } from 'rxjs';
+import { AsyncPipe } from '@angular/common';
+import { LinkifyPipe } from '../linkify.pipe';
 
 @Component({
-  selector: "app-place-box",
+  selector: 'app-place-box',
   standalone: true,
   imports: [ButtonModule, MenuModule, AsyncPipe, LinkifyPipe],
-  templateUrl: "./place-box.component.html",
-  styleUrls: ["./place-box.component.scss"],
+  templateUrl: './place-box.component.html',
+  styleUrls: ['./place-box.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PlaceBoxComponent implements OnInit {
@@ -43,33 +36,33 @@ export class PlaceBoxComponent implements OnInit {
   ngOnInit() {
     const items = [
       {
-        label: "Edit",
-        icon: "pi pi-pencil",
-        iconClass: "text-blue-500!",
+        label: 'Edit',
+        icon: 'pi pi-pencil',
+        iconClass: 'text-blue-500!',
         command: () => {
           this.editPlace();
         },
       },
       {
-        label: "Favorite",
-        icon: "pi pi-star",
-        iconClass: "text-yellow-500!",
+        label: 'Favorite',
+        icon: 'pi pi-star',
+        iconClass: 'text-yellow-500!',
         command: () => {
           this.favoritePlace();
         },
       },
       {
-        label: "Mark",
-        icon: "pi pi-check",
-        iconClass: "text-green-500!",
+        label: 'Mark',
+        icon: 'pi pi-check',
+        iconClass: 'text-green-500!',
         command: () => {
           this.visitPlace();
         },
       },
       {
-        label: "Delete",
-        icon: "pi pi-trash",
-        iconClass: "text-red-500!",
+        label: 'Delete',
+        icon: 'pi pi-trash',
+        iconClass: 'text-red-500!',
         command: () => {
           this.deletePlace();
         },
@@ -78,9 +71,9 @@ export class PlaceBoxComponent implements OnInit {
 
     if (this.selectedPlace?.gpx) {
       items.unshift({
-        label: "Display GPX",
-        icon: "pi pi-compass",
-        iconClass: "text-gray-500!",
+        label: 'Display GPX',
+        icon: 'pi pi-compass',
+        iconClass: 'text-gray-500!',
         command: () => {
           this.displayGPX();
         },
@@ -89,7 +82,7 @@ export class PlaceBoxComponent implements OnInit {
 
     this.menuItems = [
       {
-        label: "Place",
+        label: 'Place',
         items: items,
       },
     ];

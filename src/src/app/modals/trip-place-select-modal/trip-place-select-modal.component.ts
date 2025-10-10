@@ -1,28 +1,22 @@
-import { Component } from "@angular/core";
-import { FormControl, ReactiveFormsModule } from "@angular/forms";
-import { ButtonModule } from "primeng/button";
-import { DynamicDialogConfig, DynamicDialogRef } from "primeng/dynamicdialog";
-import { FloatLabelModule } from "primeng/floatlabel";
-import { InputTextModule } from "primeng/inputtext";
-import { Place } from "../../types/poi";
-import { ApiService } from "../../services/api.service";
-import { SkeletonModule } from "primeng/skeleton";
+import { Component } from '@angular/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { FloatLabelModule } from 'primeng/floatlabel';
+import { InputTextModule } from 'primeng/inputtext';
+import { Place } from '../../types/poi';
+import { ApiService } from '../../services/api.service';
+import { SkeletonModule } from 'primeng/skeleton';
 
 @Component({
-  selector: "app-trip-place-select-modal",
-  imports: [
-    FloatLabelModule,
-    InputTextModule,
-    ButtonModule,
-    ReactiveFormsModule,
-    SkeletonModule,
-  ],
+  selector: 'app-trip-place-select-modal',
+  imports: [FloatLabelModule, InputTextModule, ButtonModule, ReactiveFormsModule, SkeletonModule],
   standalone: true,
-  templateUrl: "./trip-place-select-modal.component.html",
-  styleUrl: "./trip-place-select-modal.component.scss",
+  templateUrl: './trip-place-select-modal.component.html',
+  styleUrl: './trip-place-select-modal.component.scss',
 })
 export class TripPlaceSelectModalComponent {
-  searchInput = new FormControl("");
+  searchInput = new FormControl('');
 
   selectedPlaces: Place[] = [];
   showSelectedPlaces: boolean = false;
@@ -38,9 +32,7 @@ export class TripPlaceSelectModalComponent {
   ) {
     this.apiService.getPlaces().subscribe({
       next: (places) => {
-        this.places = places.sort((a, b) =>
-          a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
-        );
+        this.places = places.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
         this.displayedPlaces = places;
       },
     });
@@ -60,9 +52,7 @@ export class TripPlaceSelectModalComponent {
 
         const v = value.toLowerCase();
         this.displayedPlaces = this.places.filter(
-          (p) =>
-            p.name.toLowerCase().includes(v) ||
-            p.description?.toLowerCase().includes(v),
+          (p) => p.name.toLowerCase().includes(v) || p.description?.toLowerCase().includes(v),
         );
       },
     });
@@ -80,9 +70,7 @@ export class TripPlaceSelectModalComponent {
 
     this.selectedPlacesID.push(p.id);
     this.selectedPlaces.push(p);
-    this.selectedPlaces.sort((a, b) =>
-      a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
-    );
+    this.selectedPlaces.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
   }
 
   closeDialog() {

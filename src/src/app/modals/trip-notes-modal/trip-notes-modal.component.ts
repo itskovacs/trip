@@ -1,24 +1,19 @@
-import { Component } from "@angular/core";
-import { FormControl, ReactiveFormsModule } from "@angular/forms";
-import { ButtonModule } from "primeng/button";
-import { DynamicDialogConfig, DynamicDialogRef } from "primeng/dynamicdialog";
-import { FloatLabelModule } from "primeng/floatlabel";
-import { TextareaModule } from "primeng/textarea";
+import { Component } from '@angular/core';
+import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { FloatLabelModule } from 'primeng/floatlabel';
+import { TextareaModule } from 'primeng/textarea';
 
 @Component({
-  selector: "app-trip-notes-modal",
-  imports: [
-    FloatLabelModule,
-    TextareaModule,
-    ButtonModule,
-    ReactiveFormsModule,
-  ],
+  selector: 'app-trip-notes-modal',
+  imports: [FloatLabelModule, TextareaModule, ButtonModule, ReactiveFormsModule],
   standalone: true,
-  templateUrl: "./trip-notes-modal.component.html",
-  styleUrl: "./trip-notes-modal.component.scss",
+  templateUrl: './trip-notes-modal.component.html',
+  styleUrl: './trip-notes-modal.component.scss',
 })
 export class TripNotesModalComponent {
-  notes = new FormControl("");
+  notes = new FormControl('');
   isEditing: boolean = false;
 
   constructor(

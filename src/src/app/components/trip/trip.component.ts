@@ -1,13 +1,13 @@
-import { AfterViewInit, Component } from "@angular/core";
-import { ApiService } from "../../services/api.service";
-import { FormControl, FormsModule, ReactiveFormsModule } from "@angular/forms";
-import { ButtonModule } from "primeng/button";
-import { InputTextModule } from "primeng/inputtext";
-import { SkeletonModule } from "primeng/skeleton";
-import { FloatLabelModule } from "primeng/floatlabel";
-import * as L from "leaflet";
-import { antPath } from "leaflet-ant-path";
-import { TableModule } from "primeng/table";
+import { AfterViewInit, Component } from '@angular/core';
+import { ApiService } from '../../services/api.service';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
+import { SkeletonModule } from 'primeng/skeleton';
+import { FloatLabelModule } from 'primeng/floatlabel';
+import * as L from 'leaflet';
+import { antPath } from 'leaflet-ant-path';
+import { TableModule } from 'primeng/table';
 import {
   Trip,
   FlattenedTripItem,
@@ -17,56 +17,41 @@ import {
   PackingItem,
   ChecklistItem,
   TripMember,
-} from "../../types/trip";
-import { Place } from "../../types/poi";
-import {
-  createMap,
-  placeToMarker,
-  createClusterGroup,
-  tripDayMarker,
-  gpxToPolyline,
-} from "../../shared/map";
-import { ActivatedRoute, Router } from "@angular/router";
-import { DialogService, DynamicDialogRef } from "primeng/dynamicdialog";
-import { TripPlaceSelectModalComponent } from "../../modals/trip-place-select-modal/trip-place-select-modal.component";
-import { TripCreateDayModalComponent } from "../../modals/trip-create-day-modal/trip-create-day-modal.component";
-import { TripCreateDayItemModalComponent } from "../../modals/trip-create-day-item-modal/trip-create-day-item-modal.component";
-import { TripCreateItemsModalComponent } from "../../modals/trip-create-items-modal/trip-create-items-modal.component";
-import {
-  combineLatest,
-  debounceTime,
-  forkJoin,
-  Observable,
-  of,
-  switchMap,
-  take,
-  tap,
-} from "rxjs";
-import { YesNoModalComponent } from "../../modals/yes-no-modal/yes-no-modal.component";
-import { UtilsService } from "../../services/utils.service";
-import { TripCreateModalComponent } from "../../modals/trip-create-modal/trip-create-modal.component";
-import { AsyncPipe, CommonModule, DecimalPipe } from "@angular/common";
-import { MenuItem } from "primeng/api";
-import { MenuModule } from "primeng/menu";
-import { LinkifyPipe } from "../../shared/linkify.pipe";
-import { PlaceCreateModalComponent } from "../../modals/place-create-modal/place-create-modal.component";
-import { Settings } from "../../types/settings";
-import { DialogModule } from "primeng/dialog";
-import { ClipboardModule } from "@angular/cdk/clipboard";
-import { TooltipModule } from "primeng/tooltip";
-import { MultiSelectModule } from "primeng/multiselect";
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { CheckboxChangeEvent, CheckboxModule } from "primeng/checkbox";
-import { TripCreatePackingModalComponent } from "../../modals/trip-create-packing-modal/trip-create-packing-modal.component";
-import { TripCreateChecklistModalComponent } from "../../modals/trip-create-checklist-modal/trip-create-checklist-modal.component";
-import { TripInviteMemberModalComponent } from "../../modals/trip-invite-member-modal/trip-invite-member-modal.component";
-import { calculateDistanceBetween } from "../../shared/haversine";
-import { orderByPipe } from "../../shared/order-by.pipe";
-import { TripNotesModalComponent } from "../../modals/trip-notes-modal/trip-notes-modal.component";
-import { TripArchiveModalComponent } from "../../modals/trip-archive-modal/trip-archive-modal.component";
+} from '../../types/trip';
+import { Place } from '../../types/poi';
+import { createMap, placeToMarker, createClusterGroup, tripDayMarker, gpxToPolyline } from '../../shared/map';
+import { ActivatedRoute, Router } from '@angular/router';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { TripPlaceSelectModalComponent } from '../../modals/trip-place-select-modal/trip-place-select-modal.component';
+import { TripCreateDayModalComponent } from '../../modals/trip-create-day-modal/trip-create-day-modal.component';
+import { TripCreateDayItemModalComponent } from '../../modals/trip-create-day-item-modal/trip-create-day-item-modal.component';
+import { TripCreateItemsModalComponent } from '../../modals/trip-create-items-modal/trip-create-items-modal.component';
+import { combineLatest, debounceTime, forkJoin, Observable, of, switchMap, take, tap } from 'rxjs';
+import { YesNoModalComponent } from '../../modals/yes-no-modal/yes-no-modal.component';
+import { UtilsService } from '../../services/utils.service';
+import { TripCreateModalComponent } from '../../modals/trip-create-modal/trip-create-modal.component';
+import { AsyncPipe, CommonModule, DecimalPipe } from '@angular/common';
+import { MenuItem } from 'primeng/api';
+import { MenuModule } from 'primeng/menu';
+import { LinkifyPipe } from '../../shared/linkify.pipe';
+import { PlaceCreateModalComponent } from '../../modals/place-create-modal/place-create-modal.component';
+import { Settings } from '../../types/settings';
+import { DialogModule } from 'primeng/dialog';
+import { ClipboardModule } from '@angular/cdk/clipboard';
+import { TooltipModule } from 'primeng/tooltip';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { CheckboxChangeEvent, CheckboxModule } from 'primeng/checkbox';
+import { TripCreatePackingModalComponent } from '../../modals/trip-create-packing-modal/trip-create-packing-modal.component';
+import { TripCreateChecklistModalComponent } from '../../modals/trip-create-checklist-modal/trip-create-checklist-modal.component';
+import { TripInviteMemberModalComponent } from '../../modals/trip-invite-member-modal/trip-invite-member-modal.component';
+import { calculateDistanceBetween } from '../../shared/haversine';
+import { orderByPipe } from '../../shared/order-by.pipe';
+import { TripNotesModalComponent } from '../../modals/trip-notes-modal/trip-notes-modal.component';
+import { TripArchiveModalComponent } from '../../modals/trip-archive-modal/trip-archive-modal.component';
 
 @Component({
-  selector: "app-trip",
+  selector: 'app-trip',
   standalone: true,
   imports: [
     CommonModule,
@@ -88,8 +73,8 @@ import { TripArchiveModalComponent } from "../../modals/trip-archive-modal/trip-
     CheckboxModule,
     orderByPipe,
   ],
-  templateUrl: "./trip.component.html",
-  styleUrls: ["./trip.component.scss"],
+  templateUrl: './trip.component.html',
+  styleUrls: ['./trip.component.scss'],
 })
 export class TripComponent implements AfterViewInit {
   tripSharedURL$?: Observable<string>;
@@ -129,18 +114,18 @@ export class TripComponent implements AfterViewInit {
 
   readonly menuTripActionsItems: MenuItem[] = [
     {
-      label: "Lists",
+      label: 'Lists',
       items: [
         {
-          label: "Checklist",
-          icon: "pi pi-check-square",
+          label: 'Checklist',
+          icon: 'pi pi-check-square',
           command: () => {
             this.openChecklist();
           },
         },
         {
-          label: "Packing",
-          icon: "pi pi-briefcase",
+          label: 'Packing',
+          icon: 'pi pi-briefcase',
           command: () => {
             this.openPackingList();
           },
@@ -148,18 +133,18 @@ export class TripComponent implements AfterViewInit {
       ],
     },
     {
-      label: "Collaboration",
+      label: 'Collaboration',
       items: [
         {
-          label: "Members",
-          icon: "pi pi-users",
+          label: 'Members',
+          icon: 'pi pi-users',
           command: () => {
             this.openMembersDialog();
           },
         },
         {
-          label: "Share",
-          icon: "pi pi-share-alt",
+          label: 'Share',
+          icon: 'pi pi-share-alt',
           command: () => {
             this.shareDialogVisible = true;
           },
@@ -167,39 +152,39 @@ export class TripComponent implements AfterViewInit {
       ],
     },
     {
-      label: "Trip",
+      label: 'Trip',
       items: [
         {
-          label: "Pretty Print",
-          icon: "pi pi-print",
+          label: 'Pretty Print',
+          icon: 'pi pi-print',
           command: () => {
             this.togglePrint();
           },
         },
         {
-          label: "Notes",
-          icon: "pi pi-info-circle",
+          label: 'Notes',
+          icon: 'pi pi-info-circle',
           command: () => {
             this.openTripNotesModal();
           },
         },
         {
-          label: "Archive",
-          icon: "pi pi-box",
+          label: 'Archive',
+          icon: 'pi pi-box',
           command: () => {
             this.openArchiveTripModal();
           },
         },
         {
-          label: "Edit",
-          icon: "pi pi-pencil",
+          label: 'Edit',
+          icon: 'pi pi-pencil',
           command: () => {
             this.editTrip();
           },
         },
         {
-          label: "Delete",
-          icon: "pi pi-trash",
+          label: 'Delete',
+          icon: 'pi pi-trash',
           command: () => {
             this.deleteTrip();
           },
@@ -209,11 +194,11 @@ export class TripComponent implements AfterViewInit {
   ];
   readonly menuTripTableActionsItems: MenuItem[] = [
     {
-      label: "Actions",
+      label: 'Actions',
       items: [
         {
-          label: "Pretty Print",
-          icon: "pi pi-print",
+          label: 'Pretty Print',
+          icon: 'pi pi-print',
           command: () => {
             this.togglePrint();
           },
@@ -221,18 +206,18 @@ export class TripComponent implements AfterViewInit {
       ],
     },
     {
-      label: "Table",
+      label: 'Table',
       items: [
         {
-          label: "Filter",
-          icon: "pi pi-filter",
+          label: 'Filter',
+          icon: 'pi pi-filter',
           command: () => {
             this.toggleFiltering();
           },
         },
         {
-          label: "Group",
-          icon: "pi pi-arrow-down-left-and-arrow-up-right-to-center",
+          label: 'Group',
+          icon: 'pi pi-arrow-down-left-and-arrow-up-right-to-center',
           command: () => {
             this.tableExpandableMode = !this.tableExpandableMode;
           },
@@ -240,18 +225,18 @@ export class TripComponent implements AfterViewInit {
       ],
     },
     {
-      label: "Directions",
+      label: 'Directions',
       items: [
         {
-          label: "Highlight",
-          icon: "pi pi-directions",
+          label: 'Highlight',
+          icon: 'pi pi-directions',
           command: () => {
             this.toggleTripDaysHighlight();
           },
         },
         {
-          label: "GMaps itinerary",
-          icon: "pi pi-car",
+          label: 'GMaps itinerary',
+          icon: 'pi pi-car',
           command: () => {
             this.tripToNavigation();
           },
@@ -261,28 +246,28 @@ export class TripComponent implements AfterViewInit {
   ];
   readonly menuTripDayActionsItems: MenuItem[] = [
     {
-      label: "Actions",
+      label: 'Actions',
       items: [
         {
-          label: "Item",
-          icon: "pi pi-plus",
-          iconClass: "text-blue-500!",
+          label: 'Item',
+          icon: 'pi pi-plus',
+          iconClass: 'text-blue-500!',
           command: () => {
             this.addItem();
           },
         },
         {
-          label: "Edit",
-          icon: "pi pi-pencil",
+          label: 'Edit',
+          icon: 'pi pi-pencil',
           command: () => {
             if (!this.selectedTripDayForMenu) return;
             this.editDay(this.selectedTripDayForMenu);
           },
         },
         {
-          label: "Delete",
-          icon: "pi pi-trash",
-          iconClass: "text-red-500!",
+          label: 'Delete',
+          icon: 'pi pi-trash',
+          iconClass: 'text-red-500!',
           command: () => {
             if (!this.selectedTripDayForMenu) return;
             this.deleteDay(this.selectedTripDayForMenu);
@@ -292,24 +277,18 @@ export class TripComponent implements AfterViewInit {
     },
   ];
   readonly tripTableColumns: string[] = [
-    "day",
-    "time",
-    "text",
-    "place",
-    "comment",
-    "LatLng",
-    "price",
-    "status",
-    "distance",
+    'day',
+    'time',
+    'text',
+    'place',
+    'comment',
+    'LatLng',
+    'price',
+    'status',
+    'distance',
   ];
-  tripTableSelectedColumns: string[] = [
-    "day",
-    "time",
-    "text",
-    "place",
-    "comment",
-  ];
-  tripTableSearchInput = new FormControl("");
+  tripTableSelectedColumns: string[] = ['day', 'time', 'text', 'place', 'comment'];
+  tripTableSearchInput = new FormControl('');
   selectedTripDayForMenu?: TripDay;
 
   dayStatsCache = new Map<number, { price: number; places: number }>();
@@ -323,14 +302,12 @@ export class TripComponent implements AfterViewInit {
     private route: ActivatedRoute,
   ) {
     this.statuses = this.utilsService.statuses;
-    this.tripTableSearchInput.valueChanges
-      .pipe(debounceTime(300), takeUntilDestroyed())
-      .subscribe({
-        next: (value) => {
-          if (value) this.flattenTripDayItems(value.toLowerCase());
-          else this.flattenTripDayItems();
-        },
-      });
+    this.tripTableSearchInput.valueChanges.pipe(debounceTime(300), takeUntilDestroyed()).subscribe({
+      next: (value) => {
+        if (value) this.flattenTripDayItems(value.toLowerCase());
+        else this.flattenTripDayItems();
+      },
+    });
   }
 
   ngAfterViewInit(): void {
@@ -338,7 +315,7 @@ export class TripComponent implements AfterViewInit {
       .pipe(
         take(1),
         tap((params) => {
-          const id = params.get("id");
+          const id = params.get('id');
           if (id) {
             this.loadTripData(+id);
             this.tripSharedURL$ = this.apiService.getSharedTripURL(+id);
@@ -370,12 +347,10 @@ export class TripComponent implements AfterViewInit {
   initMap(settings: Settings): void {
     const contentMenuItems = [
       {
-        text: "Copy coordinates",
+        text: 'Copy coordinates',
         callback: (e: any) => {
           const latlng = e.latlng;
-          navigator.clipboard.writeText(
-            `${parseFloat(latlng.lat).toFixed(5)}, ${parseFloat(latlng.lng).toFixed(5)}`,
-          );
+          navigator.clipboard.writeText(`${parseFloat(latlng.lat).toFixed(5)}, ${parseFloat(latlng.lng).toFixed(5)}`);
         },
       },
     ];
@@ -388,7 +363,7 @@ export class TripComponent implements AfterViewInit {
   }
 
   back() {
-    this.router.navigateByUrl("/trips");
+    this.router.navigateByUrl('/trips');
   }
 
   togglePrint() {
@@ -423,11 +398,7 @@ export class TripComponent implements AfterViewInit {
     if (!this.trip?.days) return [];
 
     return this.trip.days
-      .flatMap((day) =>
-        day.items.filter((item) =>
-          ["constraint", "pending"].includes(item.status as string),
-        ),
-      )
+      .flatMap((day) => day.items.filter((item) => ['constraint', 'pending'].includes(item.status as string)))
       .map((item) => ({
         ...item,
         status: this.statusToTripStatus(item.status as string),
@@ -501,9 +472,7 @@ export class TripComponent implements AfterViewInit {
 
   setPlacesAndMarkers() {
     this.computePlacesUsedInTable();
-    this.places = [...(this.trip?.places ?? [])].sort((a, b) =>
-      a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
-    );
+    this.places = [...(this.trip?.places ?? [])].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
     this.markerClusterGroup?.clearLayers();
     this.places.forEach((p) => {
       const marker = this._placeToMarker(p);
@@ -512,12 +481,8 @@ export class TripComponent implements AfterViewInit {
   }
 
   _placeToMarker(place: Place): L.Marker {
-    const marker = placeToMarker(
-      place,
-      false,
-      !this.placesUsedInTable.has(place.id),
-    );
-    marker.on("click", () => {
+    const marker = placeToMarker(place, false, !this.placesUsedInTable.has(place.id));
+    marker.on('click', () => {
       this.onMapMarkerClick(place.id);
       marker.closeTooltip();
     });
@@ -527,9 +492,7 @@ export class TripComponent implements AfterViewInit {
   resetMapBounds() {
     if (!this.places.length) {
       this.map?.fitBounds(
-        this.flattenedTripItems
-          .filter((i) => i.lat != null && i.lng != null)
-          .map((i) => [i.lat!, i.lng!]),
+        this.flattenedTripItems.filter((i) => i.lat != null && i.lng != null).map((i) => [i.lat!, i.lng!]),
         { padding: [30, 30] },
       );
       return;
@@ -543,7 +506,7 @@ export class TripComponent implements AfterViewInit {
 
   toggleMapFullscreen() {
     this.isMapFullscreen = !this.isMapFullscreen;
-    document.body.classList.toggle("overflow-hidden");
+    document.body.classList.toggle('overflow-hidden');
 
     setTimeout(() => {
       this.map?.invalidateSize();
@@ -562,14 +525,12 @@ export class TripComponent implements AfterViewInit {
       return;
     }
     this.totalPrice =
-      this.trip?.days
-        .flatMap((d) => d.items)
-        .reduce((price, item) => price + (item.price ?? 0), 0) ?? 0;
+      this.trip?.days.flatMap((d) => d.items).reduce((price, item) => price + (item.price ?? 0), 0) ?? 0;
   }
 
   resetPlaceHighlightMarker() {
     if (this.tripMapHoveredElement) {
-      this.tripMapHoveredElement.classList.remove("list-hover");
+      this.tripMapHoveredElement.classList.remove('list-hover');
       this.tripMapHoveredElement = undefined;
     }
 
@@ -586,8 +547,7 @@ export class TripComponent implements AfterViewInit {
   }
 
   placeHighlightMarker(item: any) {
-    if (this.tripMapHoveredElement || this.tripMapTemporaryMarker)
-      this.resetPlaceHighlightMarker();
+    if (this.tripMapHoveredElement || this.tripMapTemporaryMarker) this.resetPlaceHighlightMarker();
 
     let marker: L.Marker | undefined;
     this.markerClusterGroup?.eachLayer((layer: any) => {
@@ -605,10 +565,7 @@ export class TripComponent implements AfterViewInit {
       // TripItem without place, but latlng
       this.tripMapTemporaryMarker = tripDayMarker(item).addTo(this.map!);
       if (this.tripMapGpxLayer) {
-        this.map?.fitBounds(
-          [[item.lat, item.lng], (this.tripMapGpxLayer as any).getBounds()],
-          { padding: [30, 30] },
-        );
+        this.map?.fitBounds([[item.lat, item.lng], (this.tripMapGpxLayer as any).getBounds()], { padding: [30, 30] });
       } else this.map?.fitBounds([[item.lat, item.lng]], { padding: [60, 60] });
       return;
     }
@@ -617,18 +574,16 @@ export class TripComponent implements AfterViewInit {
     const markerElement = marker.getElement() as HTMLElement; // search for Marker. If 'null', is inside Cluster
     if (markerElement) {
       // marker, not clustered
-      markerElement.classList.add("list-hover");
+      markerElement.classList.add('list-hover');
       this.tripMapHoveredElement = markerElement;
       targetLatLng = marker.getLatLng();
     } else {
       // marker is clustered
-      const parentCluster = (this.markerClusterGroup as any).getVisibleParent(
-        marker,
-      );
+      const parentCluster = (this.markerClusterGroup as any).getVisibleParent(marker);
       if (parentCluster) {
         const clusterEl = parentCluster.getElement();
         if (clusterEl) {
-          clusterEl.classList.add("list-hover");
+          clusterEl.classList.add('list-hover');
           this.tripMapHoveredElement = clusterEl;
         }
         targetLatLng = parentCluster.getLatLng();
@@ -692,11 +647,7 @@ export class TripComponent implements AfterViewInit {
       .filter((n) => n !== undefined);
 
     if (items.length < 2) {
-      this.utilsService.toast(
-        "info",
-        "Info",
-        "Not enough values to map an itinerary",
-      );
+      this.utilsService.toast('info', 'Info', 'Not enough values to map an itinerary');
       return;
     }
 
@@ -708,20 +659,20 @@ export class TripComponent implements AfterViewInit {
 
     const layGroup = L.featureGroup();
     const COLORS: string[] = [
-      "#e6194b",
-      "#3cb44b",
-      "#ffe119",
-      "#4363d8",
-      "#9a6324",
-      "#f58231",
-      "#911eb4",
-      "#46f0f0",
-      "#f032e6",
-      "#bcf60c",
-      "#fabebe",
-      "#008080",
-      "#e6beff",
-      "#808000",
+      '#e6194b',
+      '#3cb44b',
+      '#ffe119',
+      '#4363d8',
+      '#9a6324',
+      '#f58231',
+      '#911eb4',
+      '#46f0f0',
+      '#f032e6',
+      '#bcf60c',
+      '#fabebe',
+      '#008080',
+      '#e6beff',
+      '#808000',
     ];
     let prevPoint: [number, number] | null = null;
 
@@ -732,7 +683,7 @@ export class TripComponent implements AfterViewInit {
         dashArray: [10, 20],
         weight: 5,
         color: COLORS[idx % COLORS.length],
-        pulseColor: "#FFFFFF",
+        pulseColor: '#FFFFFF',
         paused: false,
         reverse: false,
         hardwareAccelerated: true,
@@ -783,9 +734,7 @@ export class TripComponent implements AfterViewInit {
 
     const idx = this.trip?.days.findIndex((d) => d.id === day_id);
     if (!this.trip || idx === undefined || idx == -1) return;
-    const data = this.trip.days[idx].items.sort((a, b) =>
-      a.time < b.time ? -1 : a.time > b.time ? 1 : 0,
-    );
+    const data = this.trip.days[idx].items.sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
     const items = data
       .map((item) => {
         if (item.lat && item.lng)
@@ -811,11 +760,7 @@ export class TripComponent implements AfterViewInit {
       .filter((n) => n !== undefined);
 
     if (items.length < 2) {
-      this.utilsService.toast(
-        "info",
-        "Info",
-        "Not enough values to map an itinerary",
-      );
+      this.utilsService.toast('info', 'Info', 'Not enough values to map an itinerary');
       return;
     }
 
@@ -830,8 +775,8 @@ export class TripComponent implements AfterViewInit {
         delay: 400,
         dashArray: [10, 20],
         weight: 5,
-        color: "#0000FF",
-        pulseColor: "#FFFFFF",
+        color: '#0000FF',
+        pulseColor: '#FFFFFF',
         paused: false,
         reverse: false,
         hardwareAccelerated: true,
@@ -869,15 +814,9 @@ export class TripComponent implements AfterViewInit {
   }
 
   onMapMarkerClick(place_id: number) {
-    const item = this.flattenedTripItems.find(
-      (i) => i.place && i.place.id == place_id,
-    );
+    const item = this.flattenedTripItems.find((i) => i.place && i.place.id == place_id);
     if (!item) {
-      this.utilsService.toast(
-        "info",
-        "Place not used",
-        "The place is not used in the table",
-      );
+      this.utilsService.toast('info', 'Place not used', 'The place is not used in the table');
       return;
     }
 
@@ -888,12 +827,12 @@ export class TripComponent implements AfterViewInit {
 
   deleteTrip() {
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: "Confirm deletion",
+      header: 'Confirm deletion',
       modal: true,
       closable: true,
       dismissableMask: true,
       breakpoints: {
-        "640px": "90vw",
+        '640px': '90vw',
       },
       data: `Delete ${this.trip?.name} ? This will delete everything.`,
     })!;
@@ -906,7 +845,7 @@ export class TripComponent implements AfterViewInit {
             .pipe(take(1))
             .subscribe({
               next: () => {
-                this.router.navigateByUrl("/trips");
+                this.router.navigateByUrl('/trips');
               },
             });
       },
@@ -914,21 +853,18 @@ export class TripComponent implements AfterViewInit {
   }
 
   editTrip() {
-    const modal: DynamicDialogRef = this.dialogService.open(
-      TripCreateModalComponent,
-      {
-        header: "Update Trip",
-        modal: true,
-        appendTo: "body",
-        closable: true,
-        dismissableMask: true,
-        width: "50vw",
-        breakpoints: {
-          "640px": "80vw",
-        },
-        data: { trip: this.trip },
+    const modal: DynamicDialogRef = this.dialogService.open(TripCreateModalComponent, {
+      header: 'Update Trip',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      width: '50vw',
+      breakpoints: {
+        '640px': '80vw',
       },
-    )!;
+      data: { trip: this.trip },
+    })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (new_trip: Trip | null) => {
@@ -946,12 +882,12 @@ export class TripComponent implements AfterViewInit {
 
   openUnarchiveTripModal() {
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: "Restore Trip",
+      header: 'Restore Trip',
       modal: true,
       closable: true,
       dismissableMask: true,
       breakpoints: {
-        "640px": "90vw",
+        '640px': '90vw',
       },
       data: `Restore ${this.trip?.name} ?`,
     })!;
@@ -977,10 +913,10 @@ export class TripComponent implements AfterViewInit {
       modal: true,
       closable: true,
       dismissableMask: true,
-      width: "30vw",
+      width: '30vw',
       breakpoints: {
-        "1024px": "60vw",
-        "640px": "90vw",
+        '1024px': '60vw',
+        '640px': '90vw',
       },
       data: this.trip,
     })!;
@@ -989,10 +925,7 @@ export class TripComponent implements AfterViewInit {
       next: (review: string) => {
         if (review === undefined) return;
         this.apiService
-          .putTrip(
-            { archived: !currentArchiveStatus, archival_review: review },
-            this.trip?.id!,
-          )
+          .putTrip({ archived: !currentArchiveStatus, archival_review: review }, this.trip?.id!)
           .pipe(take(1))
           .subscribe({
             next: (trip) => (this.trip = trip),
@@ -1004,21 +937,18 @@ export class TripComponent implements AfterViewInit {
   addDay() {
     if (!this.trip) return;
 
-    const modal: DynamicDialogRef = this.dialogService.open(
-      TripCreateDayModalComponent,
-      {
-        header: "Create Day",
-        modal: true,
-        appendTo: "body",
-        closable: true,
-        dismissableMask: true,
-        width: "50vw",
-        data: { days: this.trip.days },
-        breakpoints: {
-          "640px": "80vw",
-        },
+    const modal: DynamicDialogRef = this.dialogService.open(TripCreateDayModalComponent, {
+      header: 'Create Day',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      width: '50vw',
+      data: { days: this.trip.days },
+      breakpoints: {
+        '640px': '80vw',
       },
-    )!;
+    })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (day: TripDay | null) => {
@@ -1042,14 +972,14 @@ export class TripComponent implements AfterViewInit {
     // TODO: More services
     // const url = `http://maps.apple.com/?daddr=${this.selectedItem.lat},${this.selectedItem.lng}`;
     const url = `https://www.google.com/maps/dir/?api=1&destination=${this.selectedItem.lat},${this.selectedItem.lng}`;
-    window.open(url, "_blank");
+    window.open(url, '_blank');
   }
 
   downloadItemGPX() {
     if (!this.selectedItem?.gpx) return;
     const dataBlob = new Blob([this.selectedItem.gpx]);
     const downloadURL = URL.createObjectURL(dataBlob);
-    const link = document.createElement("a");
+    const link = document.createElement('a');
     link.href = downloadURL;
     link.download = `TRIP_${this.trip?.name}_${this.selectedItem.text}.gpx`;
     link.click();
@@ -1060,47 +990,40 @@ export class TripComponent implements AfterViewInit {
   tripDayToNavigation(day_id: number) {
     const idx = this.trip?.days.findIndex((d) => d.id === day_id);
     if (!this.trip || idx === undefined || idx == -1) return;
-    const data = this.trip.days[idx].items.sort((a, b) =>
-      a.time < b.time ? -1 : a.time > b.time ? 1 : 0,
-    );
+    const data = this.trip.days[idx].items.sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
     const items = data.filter((item) => item.lat && item.lng);
     if (!items.length) return;
 
-    const waypoints = items.map((item) => `${item.lat},${item.lng}`).join("/");
+    const waypoints = items.map((item) => `${item.lat},${item.lng}`).join('/');
     const url = `https://www.google.com/maps/dir/${waypoints}`;
-    window.open(url, "_blank");
+    window.open(url, '_blank');
   }
 
   tripToNavigation() {
     // TODO: More services
-    const items = this.flattenedTripItems.filter(
-      (item) => item.lat && item.lng,
-    );
+    const items = this.flattenedTripItems.filter((item) => item.lat && item.lng);
     if (!items.length) return;
 
-    const waypoints = items.map((item) => `${item.lat},${item.lng}`).join("/");
+    const waypoints = items.map((item) => `${item.lat},${item.lng}`).join('/');
     const url = `https://www.google.com/maps/dir/${waypoints}`;
-    window.open(url, "_blank");
+    window.open(url, '_blank');
   }
 
   editDay(day: TripDay) {
     if (!this.trip) return;
 
-    const modal: DynamicDialogRef = this.dialogService.open(
-      TripCreateDayModalComponent,
-      {
-        header: "Create Day",
-        modal: true,
-        appendTo: "body",
-        closable: true,
-        dismissableMask: true,
-        width: "50vw",
-        data: { day: day, days: this.trip.days },
-        breakpoints: {
-          "640px": "80vw",
-        },
+    const modal: DynamicDialogRef = this.dialogService.open(TripCreateDayModalComponent, {
+      header: 'Create Day',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      width: '50vw',
+      data: { day: day, days: this.trip.days },
+      breakpoints: {
+        '640px': '80vw',
       },
-    )!;
+    })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (day: TripDay | null) => {
@@ -1126,12 +1049,12 @@ export class TripComponent implements AfterViewInit {
     if (!this.trip) return;
 
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: "Confirm deletion",
+      header: 'Confirm deletion',
       modal: true,
       closable: true,
       dismissableMask: true,
       breakpoints: {
-        "640px": "90vw",
+        '640px': '90vw',
       },
       data: `Delete ${day.label} ? This will delete everything for this day.`,
     })!;
@@ -1159,21 +1082,18 @@ export class TripComponent implements AfterViewInit {
   manageTripPlaces() {
     if (!this.trip) return;
 
-    const modal: DynamicDialogRef = this.dialogService.open(
-      TripPlaceSelectModalComponent,
-      {
-        header: "Select Place(s)",
-        modal: true,
-        appendTo: "body",
-        closable: true,
-        width: "50vw",
-        data: { places: this.places },
-        breakpoints: {
-          "960px": "80vw",
-          "640px": "90vw",
-        },
+    const modal: DynamicDialogRef = this.dialogService.open(TripPlaceSelectModalComponent, {
+      header: 'Select Place(s)',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      width: '50vw',
+      data: { places: this.places },
+      breakpoints: {
+        '960px': '80vw',
+        '640px': '90vw',
       },
-    )!;
+    })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (places: Place[] | null) => {
@@ -1196,37 +1116,30 @@ export class TripComponent implements AfterViewInit {
   addItem(day_id?: number) {
     if (!this.trip) return;
 
-    const modal: DynamicDialogRef = this.dialogService.open(
-      TripCreateDayItemModalComponent,
-      {
-        header: "Create Item",
-        modal: true,
-        appendTo: "body",
-        closable: true,
-        dismissableMask: true,
-        width: "75vw",
-        breakpoints: {
-          "1260px": "90vw",
-        },
-        data: {
-          places: this.places,
-          days: this.trip.days,
-          selectedDay: day_id,
-          members: this.tripMembers,
-        },
+    const modal: DynamicDialogRef = this.dialogService.open(TripCreateDayItemModalComponent, {
+      header: 'Create Item',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      width: '75vw',
+      breakpoints: {
+        '1260px': '90vw',
       },
-    )!;
+      data: {
+        places: this.places,
+        days: this.trip.days,
+        selectedDay: day_id,
+        members: this.tripMembers,
+      },
+    })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (item: (TripItem & { day_id: number[] }) | null) => {
         if (!item) return;
 
         const obs$ = item.day_id.map((day_id) =>
-          this.apiService.postTripDayItem(
-            { ...item, day_id },
-            this.trip!.id!,
-            day_id,
-          ),
+          this.apiService.postTripDayItem({ ...item, day_id }, this.trip!.id!, day_id),
         );
 
         forkJoin(obs$)
@@ -1234,9 +1147,7 @@ export class TripComponent implements AfterViewInit {
           .subscribe({
             next: (items: TripItem[]) => {
               items.forEach((item) => {
-                const idx = this.trip!.days.findIndex(
-                  (d) => d.id == item.day_id,
-                );
+                const idx = this.trip!.days.findIndex((d) => d.id == item.day_id);
                 if (idx === -1) return;
 
                 const td: TripDay = this.trip!.days[idx];
@@ -1261,29 +1172,26 @@ export class TripComponent implements AfterViewInit {
   editItem(item: TripItem) {
     if (!this.trip) return;
 
-    const modal: DynamicDialogRef = this.dialogService.open(
-      TripCreateDayItemModalComponent,
-      {
-        header: "Update Item",
-        modal: true,
-        appendTo: "body",
-        closable: true,
-        dismissableMask: true,
-        width: "75vw",
-        breakpoints: {
-          "1260px": "90vw",
-        },
-        data: {
-          places: this.places,
-          days: this.trip?.days,
-          item: {
-            ...item,
-            status: item.status ? (item.status as TripStatus).label : null,
-          },
-          members: this.tripMembers,
-        },
+    const modal: DynamicDialogRef = this.dialogService.open(TripCreateDayItemModalComponent, {
+      header: 'Update Item',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      width: '75vw',
+      breakpoints: {
+        '1260px': '90vw',
       },
-    )!;
+      data: {
+        places: this.places,
+        days: this.trip?.days,
+        item: {
+          ...item,
+          status: item.status ? (item.status as TripStatus).label : null,
+        },
+        members: this.tripMembers,
+      },
+    })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (updated: TripItem | null) => {
@@ -1302,12 +1210,12 @@ export class TripComponent implements AfterViewInit {
 
   deleteItem(item: TripItem) {
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: "Confirm deletion",
+      header: 'Confirm deletion',
       modal: true,
       closable: true,
       dismissableMask: true,
       breakpoints: {
-        "640px": "90vw",
+        '640px': '90vw',
       },
       data: `Delete ${item.text.substring(0, 50)} ? This will delete everything for this day.`,
     })!;
@@ -1330,29 +1238,24 @@ export class TripComponent implements AfterViewInit {
   addItems() {
     if (!this.trip) return;
 
-    const modal: DynamicDialogRef = this.dialogService.open(
-      TripCreateItemsModalComponent,
-      {
-        header: "Create Items",
-        modal: true,
-        appendTo: "body",
-        closable: true,
-        dismissableMask: true,
-        width: "75vw",
-        breakpoints: {
-          "1260px": "90vw",
-        },
-        data: { days: this.trip.days },
+    const modal: DynamicDialogRef = this.dialogService.open(TripCreateItemsModalComponent, {
+      header: 'Create Items',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      width: '75vw',
+      breakpoints: {
+        '1260px': '90vw',
       },
-    )!;
+      data: { days: this.trip.days },
+    })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (items: TripItem[] | null) => {
         if (!items?.length) return;
         const day_id = items[0].day_id;
-        const obs$ = items.map((item) =>
-          this.apiService.postTripDayItem(item, this.trip!.id!, item.day_id),
-        );
+        const obs$ = items.map((item) => this.apiService.postTripDayItem(item, this.trip!.id!, item.day_id));
 
         forkJoin(obs$)
           .pipe(take(1))
@@ -1371,21 +1274,18 @@ export class TripComponent implements AfterViewInit {
   }
 
   addPlace() {
-    const modal: DynamicDialogRef = this.dialogService.open(
-      PlaceCreateModalComponent,
-      {
-        header: "Create Place",
-        modal: true,
-        appendTo: "body",
-        closable: true,
-        dismissableMask: true,
-        width: "55vw",
-        breakpoints: {
-          "1920px": "70vw",
-          "1260px": "90vw",
-        },
+    const modal: DynamicDialogRef = this.dialogService.open(PlaceCreateModalComponent, {
+      header: 'Create Place',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      width: '55vw',
+      breakpoints: {
+        '1920px': '70vw',
+        '1260px': '90vw',
       },
-    )!;
+    })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (place: Place | null) => {
@@ -1395,10 +1295,7 @@ export class TripComponent implements AfterViewInit {
           .postPlace(place)
           .pipe(
             switchMap((createdPlace: Place) =>
-              this.apiService.putTrip(
-                { place_ids: [createdPlace, ...this.places].map((p) => p.id) },
-                this.trip?.id!,
-              ),
+              this.apiService.putTrip({ place_ids: [createdPlace, ...this.places].map((p) => p.id) }, this.trip?.id!),
             ),
             take(1),
           )
@@ -1414,24 +1311,21 @@ export class TripComponent implements AfterViewInit {
   }
 
   editPlace(pEdit: Place) {
-    const modal: DynamicDialogRef = this.dialogService.open(
-      PlaceCreateModalComponent,
-      {
-        header: "Edit Place",
-        modal: true,
-        appendTo: "body",
-        closable: true,
-        dismissableMask: true,
-        width: "55vw",
-        breakpoints: {
-          "1920px": "70vw",
-          "1260px": "90vw",
-        },
-        data: {
-          place: { ...pEdit, category: pEdit.category.id },
-        },
+    const modal: DynamicDialogRef = this.dialogService.open(PlaceCreateModalComponent, {
+      header: 'Edit Place',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      width: '55vw',
+      breakpoints: {
+        '1920px': '70vw',
+        '1260px': '90vw',
       },
-    )!;
+      data: {
+        place: { ...pEdit, category: pEdit.category.id },
+      },
+    })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (p: Place | null) => {
@@ -1446,9 +1340,7 @@ export class TripComponent implements AfterViewInit {
               const idx = places.findIndex((p) => p.id == place.id);
               if (idx > -1) places.splice(idx, 1, place);
               places.push(place);
-              places.sort((a, b) =>
-                a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
-              );
+              places.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
               if (this.selectedItem?.place) this.selectedItem.place = place;
             },
           });
@@ -1487,9 +1379,7 @@ export class TripComponent implements AfterViewInit {
     if (this.selectedItem && this.selectedItem.id === old.id) {
       this.selectedItem = {
         ...updated,
-        status: updated.status
-          ? this.statusToTripStatus(updated.status as string)
-          : undefined,
+        status: updated.status ? this.statusToTripStatus(updated.status as string) : undefined,
       };
     }
   }
@@ -1538,12 +1428,12 @@ export class TripComponent implements AfterViewInit {
     if (!this.trip) return;
 
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: "Confirm deletion",
+      header: 'Confirm deletion',
       modal: true,
       closable: true,
       dismissableMask: true,
       breakpoints: {
-        "640px": "90vw",
+        '640px': '90vw',
       },
       data: `Stop sharing ${this.trip.name} ?`,
     })!;
@@ -1583,21 +1473,18 @@ export class TripComponent implements AfterViewInit {
   addPackingItem() {
     if (!this.trip) return;
 
-    const modal: DynamicDialogRef = this.dialogService.open(
-      TripCreatePackingModalComponent,
-      {
-        header: "Create Packing",
-        modal: true,
-        appendTo: "body",
-        closable: true,
-        dismissableMask: true,
-        width: "40vw",
-        breakpoints: {
-          "1260px": "70vw",
-          "600px": "90vw",
-        },
+    const modal: DynamicDialogRef = this.dialogService.open(TripCreatePackingModalComponent, {
+      header: 'Create Packing',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      width: '40vw',
+      breakpoints: {
+        '1260px': '70vw',
+        '600px': '90vw',
       },
-    )!;
+    })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (item: PackingItem | null) => {
@@ -1632,12 +1519,12 @@ export class TripComponent implements AfterViewInit {
 
   deletePackingItem(item: PackingItem) {
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: "Confirm deletion",
+      header: 'Confirm deletion',
       modal: true,
       closable: true,
       dismissableMask: true,
       breakpoints: {
-        "640px": "90vw",
+        '640px': '90vw',
       },
       data: `Delete ${item.text.substring(0, 50)} ?`,
     })!;
@@ -1661,24 +1548,13 @@ export class TripComponent implements AfterViewInit {
 
   computeDispPackingList() {
     const sorted: PackingItem[] = [...this.packingList].sort((a, b) =>
-      a.packed !== b.packed
-        ? a.packed
-          ? 1
-          : -1
-        : a.text < b.text
-          ? -1
-          : a.text > b.text
-            ? 1
-            : 0,
+      a.packed !== b.packed ? (a.packed ? 1 : -1) : a.text < b.text ? -1 : a.text > b.text ? 1 : 0,
     );
 
-    this.dispPackingList = sorted.reduce<Record<string, PackingItem[]>>(
-      (acc, item) => {
-        (acc[item.category] ??= []).push(item);
-        return acc;
-      },
-      {},
-    );
+    this.dispPackingList = sorted.reduce<Record<string, PackingItem[]>>((acc, item) => {
+      (acc[item.category] ??= []).push(item);
+      return acc;
+    }, {});
   }
 
   openChecklist() {
@@ -1699,21 +1575,18 @@ export class TripComponent implements AfterViewInit {
   addChecklistItem() {
     if (!this.trip) return;
 
-    const modal: DynamicDialogRef = this.dialogService.open(
-      TripCreateChecklistModalComponent,
-      {
-        header: "Create item",
-        modal: true,
-        appendTo: "body",
-        closable: true,
-        dismissableMask: true,
-        width: "40vw",
-        breakpoints: {
-          "1260px": "70vw",
-          "600px": "90vw",
-        },
+    const modal: DynamicDialogRef = this.dialogService.open(TripCreateChecklistModalComponent, {
+      header: 'Create item',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      width: '40vw',
+      breakpoints: {
+        '1260px': '70vw',
+        '600px': '90vw',
       },
-    )!;
+    })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (item: ChecklistItem | null) => {
@@ -1746,12 +1619,12 @@ export class TripComponent implements AfterViewInit {
 
   deleteChecklistItem(item: ChecklistItem) {
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: "Confirm deletion",
+      header: 'Confirm deletion',
       modal: true,
       closable: true,
       dismissableMask: true,
       breakpoints: {
-        "640px": "90vw",
+        '640px': '90vw',
       },
       data: `Delete ${item.text.substring(0, 50)} ?`,
     })!;
@@ -1764,9 +1637,7 @@ export class TripComponent implements AfterViewInit {
           .pipe(take(1))
           .subscribe({
             next: () => {
-              const index = this.checklistItems.findIndex(
-                (p) => p.id == item.id,
-              );
+              const index = this.checklistItems.findIndex((p) => p.id == item.id);
               if (index > -1) this.checklistItems.splice(index, 1);
             },
           });
@@ -1804,21 +1675,18 @@ export class TripComponent implements AfterViewInit {
   addMember() {
     if (!this.trip) return;
 
-    const modal: DynamicDialogRef = this.dialogService.open(
-      TripInviteMemberModalComponent,
-      {
-        header: "Invite member",
-        modal: true,
-        appendTo: "body",
-        closable: true,
-        dismissableMask: true,
-        width: "40vw",
-        breakpoints: {
-          "1260px": "70vw",
-          "600px": "90vw",
-        },
+    const modal: DynamicDialogRef = this.dialogService.open(TripInviteMemberModalComponent, {
+      header: 'Invite member',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      width: '40vw',
+      breakpoints: {
+        '1260px': '70vw',
+        '600px': '90vw',
       },
-    )!;
+    })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (user: string | null) => {
@@ -1838,12 +1706,12 @@ export class TripComponent implements AfterViewInit {
 
   deleteMember(username: string) {
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: "Confirm deletion",
+      header: 'Confirm deletion',
       modal: true,
       closable: true,
       dismissableMask: true,
       breakpoints: {
-        "640px": "90vw",
+        '640px': '90vw',
       },
       data: `Delete ${username.substring(0, 50)} from Trip ?`,
     })!;
@@ -1856,9 +1724,7 @@ export class TripComponent implements AfterViewInit {
           .pipe(take(1))
           .subscribe({
             next: () => {
-              const index = this.tripMembers.findIndex(
-                (p) => p.user == username,
-              );
+              const index = this.tripMembers.findIndex((p) => p.user == username);
               if (index > -1) this.tripMembers.splice(index, 1);
             },
           });
@@ -1868,14 +1734,14 @@ export class TripComponent implements AfterViewInit {
 
   openTripNotesModal() {
     const modal = this.dialogService.open(TripNotesModalComponent, {
-      header: "Notes",
+      header: 'Notes',
       modal: true,
       closable: true,
       dismissableMask: true,
-      width: "40vw",
+      width: '40vw',
       breakpoints: {
-        "1024px": "70vw",
-        "640px": "90vw",
+        '1024px': '70vw',
+        '640px': '90vw',
       },
       data: this.trip?.notes,
     })!;

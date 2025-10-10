@@ -1,9 +1,9 @@
-@use "primeicons/primeicons.css";
+@use 'primeicons/primeicons.css';
 @plugin 'tailwindcss-primeui';
 @variant dark (&:where(.dark, .dark *));
 
 @layer tailwind {
-  @import "tailwindcss";
+  @import 'tailwindcss';
 }
 
 * {
@@ -30,17 +30,17 @@
 html {
   font-size: 15px;
   font-family:
-    "Inter",
+    'Inter',
     -apple-system,
     BlinkMacSystemFont,
-    "Segoe UI",
+    'Segoe UI',
     Roboto,
     Helvetica,
     Arial,
     sans-serif,
-    "Apple Color Emoji",
-    "Segoe UI Emoji",
-    "Segoe UI Symbol";
+    'Apple Color Emoji',
+    'Segoe UI Emoji',
+    'Segoe UI Symbol';
   line-height: normal;
 }
 
@@ -82,7 +82,7 @@ html {
   -webkit-user-select: none;
   -moz-user-select: none;
   user-select: none;
-  font-family: "Inter", sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 15px;
 }
 

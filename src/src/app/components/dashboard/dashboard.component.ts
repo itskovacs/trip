@@ -1,48 +1,36 @@
-import { AfterViewInit, Component, OnInit } from "@angular/core";
-import { combineLatest, debounceTime, take, tap } from "rxjs";
-import { Place, Category } from "../../types/poi";
-import { ApiService } from "../../services/api.service";
-import { PlaceBoxComponent } from "../../shared/place-box/place-box.component";
-import * as L from "leaflet";
-import "leaflet.markercluster";
-import "leaflet-contextmenu";
-import {
-  FormBuilder,
-  FormControl,
-  FormGroup,
-  FormsModule,
-  ReactiveFormsModule,
-  Validators,
-} from "@angular/forms";
-import { ButtonModule } from "primeng/button";
-import { DialogService, DynamicDialogRef } from "primeng/dynamicdialog";
-import { PlaceCreateModalComponent } from "../../modals/place-create-modal/place-create-modal.component";
-import { InputTextModule } from "primeng/inputtext";
-import { SkeletonModule } from "primeng/skeleton";
-import { TabsModule } from "primeng/tabs";
-import { ToggleSwitchModule } from "primeng/toggleswitch";
-import { FloatLabelModule } from "primeng/floatlabel";
-import { BatchCreateModalComponent } from "../../modals/batch-create-modal/batch-create-modal.component";
-import { UtilsService } from "../../services/utils.service";
-import { Info } from "../../types/info";
-import {
-  createMap,
-  placeToMarker,
-  createClusterGroup,
-  gpxToPolyline,
-} from "../../shared/map";
-import { Router } from "@angular/router";
-import { SelectModule } from "primeng/select";
-import { MultiSelectModule } from "primeng/multiselect";
-import { TooltipModule } from "primeng/tooltip";
-import { Settings } from "../../types/settings";
-import { SelectItemGroup } from "primeng/api";
-import { YesNoModalComponent } from "../../modals/yes-no-modal/yes-no-modal.component";
-import { CategoryCreateModalComponent } from "../../modals/category-create-modal/category-create-modal.component";
-import { AuthService } from "../../services/auth.service";
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { PlaceGPXComponent } from "../../shared/place-gpx/place-gpx.component";
-import { CommonModule } from "@angular/common";
+import { AfterViewInit, Component, OnInit } from '@angular/core';
+import { combineLatest, debounceTime, take, tap } from 'rxjs';
+import { Place, Category } from '../../types/poi';
+import { ApiService } from '../../services/api.service';
+import { PlaceBoxComponent } from '../../shared/place-box/place-box.component';
+import * as L from 'leaflet';
+import 'leaflet.markercluster';
+import 'leaflet-contextmenu';
+import { FormBuilder, FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { PlaceCreateModalComponent } from '../../modals/place-create-modal/place-create-modal.component';
+import { InputTextModule } from 'primeng/inputtext';
+import { SkeletonModule } from 'primeng/skeleton';
+import { TabsModule } from 'primeng/tabs';
+import { ToggleSwitchModule } from 'primeng/toggleswitch';
+import { FloatLabelModule } from 'primeng/floatlabel';
+import { BatchCreateModalComponent } from '../../modals/batch-create-modal/batch-create-modal.component';
+import { UtilsService } from '../../services/utils.service';
+import { Info } from '../../types/info';
+import { createMap, placeToMarker, createClusterGroup, gpxToPolyline } from '../../shared/map';
+import { Router } from '@angular/router';
+import { SelectModule } from 'primeng/select';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { TooltipModule } from 'primeng/tooltip';
+import { Settings } from '../../types/settings';
+import { SelectItemGroup } from 'primeng/api';
+import { YesNoModalComponent } from '../../modals/yes-no-modal/yes-no-modal.component';
+import { CategoryCreateModalComponent } from '../../modals/category-create-modal/category-create-modal.component';
+import { AuthService } from '../../services/auth.service';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { PlaceGPXComponent } from '../../shared/place-gpx/place-gpx.component';
+import { CommonModule } from '@angular/common';
 
 export interface ContextMenuItem {
   text: string;
@@ -60,7 +48,7 @@ export interface MarkerOptions extends L.MarkerOptions {
 }
 
 @Component({
-  selector: "app-dashboard",
+  selector: 'app-dashboard',
   standalone: true,
   imports: [
     PlaceBoxComponent,
@@ -78,11 +66,11 @@ export interface MarkerOptions extends L.MarkerOptions {
     ButtonModule,
     CommonModule,
   ],
-  templateUrl: "./dashboard.component.html",
-  styleUrls: ["./dashboard.component.scss"],
+  templateUrl: './dashboard.component.html',
+  styleUrls: ['./dashboard.component.scss'],
 })
 export class DashboardComponent implements OnInit, AfterViewInit {
-  searchInput = new FormControl("");
+  searchInput = new FormControl('');
   info?: Info;
   isLowNet = false;
   isDarkMode = false;
@@ -123,36 +111,29 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   ) {
     this.settingsForm = this.fb.group({
       map_lat: [
-        "",
+        '',
         {
-          validators: [
-            Validators.required,
-            Validators.pattern("-?(90(\\.0+)?|[1-8]?\\d(\\.\\d+)?)"),
-          ],
+          validators: [Validators.required, Validators.pattern('-?(90(\\.0+)?|[1-8]?\\d(\\.\\d+)?)')],
         },
       ],
       map_lng: [
-        "",
+        '',
         {
           validators: [
             Validators.required,
-            Validators.pattern(
-              "-?(180(\\.0+)?|1[0-7]\\d(\\.\\d+)?|[1-9]?\\d(\\.\\d+)?)",
-            ),
+            Validators.pattern('-?(180(\\.0+)?|1[0-7]\\d(\\.\\d+)?|[1-9]?\\d(\\.\\d+)?)'),
           ],
         },
       ],
-      currency: ["", Validators.required],
+      currency: ['', Validators.required],
       do_not_display: [],
-      tile_layer: ["", Validators.required],
+      tile_layer: ['', Validators.required],
     });
 
     // HACK: Subscribe in constructor for takeUntilDestroyed
-    this.searchInput.valueChanges
-      .pipe(debounceTime(200), takeUntilDestroyed())
-      .subscribe({
-        next: () => this.setVisibleMarkers(),
-      });
+    this.searchInput.valueChanges.pipe(debounceTime(200), takeUntilDestroyed()).subscribe({
+      next: () => this.setVisibleMarkers(),
+    });
   }
 
   ngOnInit(): void {
@@ -195,27 +176,24 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   initMap(): void {
     if (!this.settings) return;
-    const isTouch = "ontouchstart" in window;
+    const isTouch = 'ontouchstart' in window;
     const contentMenuItems = [
       {
-        text: "Add Point of Interest",
-        icon: "add-location.png",
+        text: 'Add Point of Interest',
+        icon: 'add-location.png',
         callback: (e: any) => {
           this.addPlaceModal(e);
         },
       },
     ];
-    this.map = createMap(
-      isTouch ? [] : contentMenuItems,
-      this.settings?.tile_layer,
-    );
+    this.map = createMap(isTouch ? [] : contentMenuItems, this.settings?.tile_layer);
     if (isTouch) {
-      this.map.on("contextmenu", (e: any) => {
+      this.map.on('contextmenu', (e: any) => {
         this.addPlaceModal(e);
       });
     }
     this.map.setView(L.latLng(this.settings.map_lat, this.settings.map_lng));
-    this.map.on("moveend zoomend", () => this.setVisibleMarkers());
+    this.map.on('moveend zoomend', () => this.setVisibleMarkers());
     this.markerClusterGroup = createClusterGroup().addTo(this.map);
   }
 
@@ -223,30 +201,22 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     if (!this.viewMarkersList || !this.map) return;
     const bounds = this.map.getBounds();
 
-    this.visiblePlaces = this.filteredPlaces.filter((p) =>
-      bounds.contains([p.lat, p.lng]),
-    );
+    this.visiblePlaces = this.filteredPlaces.filter((p) => bounds.contains([p.lat, p.lng]));
 
-    const searchValue = this.searchInput.value?.toLowerCase() ?? "";
+    const searchValue = this.searchInput.value?.toLowerCase() ?? '';
     if (searchValue)
       this.visiblePlaces = this.visiblePlaces.filter(
-        (p) =>
-          p.name.toLowerCase().includes(searchValue) ||
-          p.description?.toLowerCase().includes(searchValue),
+        (p) => p.name.toLowerCase().includes(searchValue) || p.description?.toLowerCase().includes(searchValue),
       );
 
-    this.visiblePlaces.sort((a, b) =>
-      a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
-    );
+    this.visiblePlaces.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
   }
 
   resetFilters() {
     this.filter_display_visited = false;
     this.filter_display_favorite_only = false;
     this.activeCategories = new Set(this.categories.map((c) => c.name));
-    this.settings?.do_not_display.forEach((c) =>
-      this.activeCategories.delete(c),
-    );
+    this.settings?.do_not_display.forEach((c) => this.activeCategories.delete(c));
     this.updateMarkersAndClusters();
     if (this.viewMarkersList) this.setVisibleMarkers();
   }
@@ -278,47 +248,38 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   _placeToMarker(place: Place): L.Marker {
-    const marker = placeToMarker(
-      place,
-      this.isLowNet,
-      place.visited,
-      this.isGpxInPlaceMode,
-    );
+    const marker = placeToMarker(place, this.isLowNet, place.visited, this.isGpxInPlaceMode);
     marker
-      .on("click", (e) => {
+      .on('click', (e) => {
         this.selectedPlace = { ...place };
 
         let toView = { ...e.latlng };
-        if ("ontouchstart" in window) toView.lat = toView.lat - 0.0175;
+        if ('ontouchstart' in window) toView.lat = toView.lat - 0.0175;
 
         marker.closeTooltip();
         this.map?.setView(toView);
       })
-      .on("contextmenu", () => {
-        if (this.map && (this.map as any).contextmenu)
-          (this.map as any).contextmenu.hide();
+      .on('contextmenu', () => {
+        if (this.map && (this.map as any).contextmenu) (this.map as any).contextmenu.hide();
       });
     return marker;
   }
 
   addPlaceModal(e?: any): void {
     const opts = e ? { data: { place: e.latlng } } : {};
-    const modal: DynamicDialogRef = this.dialogService.open(
-      PlaceCreateModalComponent,
-      {
-        header: "Create Place",
-        modal: true,
-        appendTo: "body",
-        closable: true,
-        dismissableMask: true,
-        width: "55vw",
-        breakpoints: {
-          "1920px": "70vw",
-          "1260px": "90vw",
-        },
-        ...opts,
+    const modal: DynamicDialogRef = this.dialogService.open(PlaceCreateModalComponent, {
+      header: 'Create Place',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      width: '55vw',
+      breakpoints: {
+        '1920px': '70vw',
+        '1260px': '90vw',
       },
-    )!;
+      ...opts,
+    })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (place: Place | null) => {
@@ -329,9 +290,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           .pipe(take(1))
           .subscribe({
             next: (place: Place) => {
-              this.places = [...this.places, place].sort((a, b) =>
-                a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
-              );
+              this.places = [...this.places, place].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
               setTimeout(() => {
                 this.updateMarkersAndClusters();
               }, 10);
@@ -342,21 +301,18 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   batchAddModal() {
-    const modal: DynamicDialogRef = this.dialogService.open(
-      BatchCreateModalComponent,
-      {
-        header: "Create Places",
-        modal: true,
-        appendTo: "body",
-        closable: true,
-        dismissableMask: true,
-        width: "55vw",
-        breakpoints: {
-          "1920px": "70vw",
-          "1260px": "90vw",
-        },
+    const modal: DynamicDialogRef = this.dialogService.open(BatchCreateModalComponent, {
+      header: 'Create Places',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      width: '55vw',
+      breakpoints: {
+        '1920px': '70vw',
+        '1260px': '90vw',
       },
-    )!;
+    })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (places: string | null) => {
@@ -367,7 +323,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           parsedPlaces = JSON.parse(places);
           if (!Array.isArray(parsedPlaces)) throw new Error();
         } catch (err) {
-          this.utilsService.toast("error", "Error", "Content looks invalid");
+          this.utilsService.toast('error', 'Error', 'Content looks invalid');
           return;
         }
 
@@ -375,9 +331,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           .postPlaces(parsedPlaces)
           .pipe(take(1))
           .subscribe((places) => {
-            this.places = [...this.places, ...places].sort((a, b) =>
-              a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
-            );
+            this.places = [...this.places, ...places].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
             setTimeout(() => {
               this.updateMarkersAndClusters();
             }, 10);
@@ -388,7 +342,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   resetHoverPlace() {
     if (!this.hoveredElement) return;
-    this.hoveredElement.classList.remove("list-hover");
+    this.hoveredElement.classList.remove('list-hover');
     this.hoveredElement = undefined;
   }
 
@@ -405,17 +359,15 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
     if (markerElement) {
       // marker, not clustered
-      markerElement.classList.add("list-hover");
+      markerElement.classList.add('list-hover');
       this.hoveredElement = markerElement;
     } else {
       // marker is clustered
-      const parentCluster = (this.markerClusterGroup as any).getVisibleParent(
-        marker,
-      );
+      const parentCluster = (this.markerClusterGroup as any).getVisibleParent(marker);
       if (parentCluster) {
         const clusterEl = parentCluster.getElement();
         if (clusterEl) {
-          clusterEl.classList.add("list-hover");
+          clusterEl.classList.add('list-hover');
           this.hoveredElement = clusterEl;
         }
       }
@@ -431,11 +383,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .pipe(take(1))
       .subscribe({
         next: () => {
-          const idx = this.places.findIndex(
-            (p) => p.id === this.selectedPlace!.id,
-          );
-          if (idx !== -1)
-            this.places[idx] = { ...this.places[idx], favorite: favoriteBool };
+          const idx = this.places.findIndex((p) => p.id === this.selectedPlace!.id);
+          if (idx !== -1) this.places[idx] = { ...this.places[idx], favorite: favoriteBool };
           this.selectedPlace = { ...this.places[idx] };
           this.updateMarkersAndClusters();
         },
@@ -451,11 +400,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .pipe(take(1))
       .subscribe({
         next: () => {
-          const idx = this.places.findIndex(
-            (p) => p.id === this.selectedPlace!.id,
-          );
-          if (idx !== -1)
-            this.places[idx] = { ...this.places[idx], visited: visitedBool };
+          const idx = this.places.findIndex((p) => p.id === this.selectedPlace!.id);
+          if (idx !== -1) this.places[idx] = { ...this.places[idx], visited: visitedBool };
           this.selectedPlace = { ...this.places[idx] };
           this.updateMarkersAndClusters();
         },
@@ -466,12 +412,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     if (!this.selectedPlace) return;
 
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: "Confirm deletion",
+      header: 'Confirm deletion',
       modal: true,
       closable: true,
       dismissableMask: true,
       breakpoints: {
-        "640px": "90vw",
+        '640px': '90vw',
       },
       data: `Delete ${this.selectedPlace.name} ?`,
     })!;
@@ -484,9 +430,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           .pipe(take(1))
           .subscribe({
             next: () => {
-              this.places = this.places.filter(
-                (p) => p.id !== this.selectedPlace!.id,
-              );
+              this.places = this.places.filter((p) => p.id !== this.selectedPlace!.id);
               this.closePlaceBox();
               this.updateMarkersAndClusters();
               if (this.viewMarkersList) this.setVisibleMarkers();
@@ -500,27 +444,24 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     if (!this.selectedPlace && !p) return;
     const _placeToEdit: Place = { ...(this.selectedPlace ?? p)! };
 
-    const modal: DynamicDialogRef = this.dialogService.open(
-      PlaceCreateModalComponent,
-      {
-        header: "Edit Place",
-        modal: true,
-        appendTo: "body",
-        closable: true,
-        dismissableMask: true,
-        width: "55vw",
-        breakpoints: {
-          "1920px": "70vw",
-          "1260px": "90vw",
-        },
-        data: {
-          place: {
-            ..._placeToEdit,
-            category: _placeToEdit.category.id,
-          },
+    const modal: DynamicDialogRef = this.dialogService.open(PlaceCreateModalComponent, {
+      header: 'Edit Place',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      width: '55vw',
+      breakpoints: {
+        '1920px': '70vw',
+        '1260px': '90vw',
+      },
+      data: {
+        place: {
+          ..._placeToEdit,
+          category: _placeToEdit.category.id,
         },
       },
-    )!;
+    })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (place: Place | null) => {
@@ -534,9 +475,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
               const places = [...this.places];
               const idx = places.findIndex((p) => p.id == place.id);
               if (idx > -1) places.splice(idx, 1, place);
-              places.sort((a, b) =>
-                a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
-              );
+              places.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
               this.places = places;
               if (this.selectedPlace) this.selectedPlace = { ...place };
               setTimeout(() => {
@@ -551,21 +490,20 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   displayGPXOnMap(gpx: string) {
     if (!this.map || !this.selectedPlace) return;
-    if (!this.gpxLayerGroup)
-      this.gpxLayerGroup = L.layerGroup().addTo(this.map);
+    if (!this.gpxLayerGroup) this.gpxLayerGroup = L.layerGroup().addTo(this.map);
     this.gpxLayerGroup.clearLayers();
 
     try {
       const gpxPolyline = gpxToPolyline(gpx);
       const selectedPlaceWithGPX = { ...this.selectedPlace, gpx };
 
-      gpxPolyline.on("click", () => {
+      gpxPolyline.on('click', () => {
         this.selectedGPX = selectedPlaceWithGPX;
       });
       this.gpxLayerGroup?.addLayer(gpxPolyline);
       this.map.fitBounds(gpxPolyline.getBounds(), { padding: [20, 20] });
     } catch {
-      this.utilsService.toast("error", "Error", "Couldn't parse GPX data");
+      this.utilsService.toast('error', 'Error', "Couldn't parse GPX data");
     }
     this.closePlaceBox();
   }
@@ -578,11 +516,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .subscribe({
         next: (p) => {
           if (!p.gpx) {
-            this.utilsService.toast(
-              "error",
-              "Error",
-              "Couldn't retrieve GPX data",
-            );
+            this.utilsService.toast('error', 'Error', "Couldn't retrieve GPX data");
             return;
           }
           this.displayGPXOnMap(p.gpx);
@@ -597,7 +531,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.settingsForm.reset(this.settings);
     this.doNotDisplayOptions = [
       {
-        label: "Categories",
+        label: 'Categories',
         items: this.categories.map((c) => ({ label: c.name, value: c.name })),
       },
     ];
@@ -610,13 +544,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   toggleMarkersList() {
     this.viewMarkersList = !this.viewMarkersList;
     this.viewMarkersListSearch = false;
-    this.searchInput.setValue("");
+    this.searchInput.setValue('');
     if (this.viewMarkersList) this.setVisibleMarkers();
   }
 
   toggleMarkersListSearch() {
     this.viewMarkersListSearch = !this.viewMarkersListSearch;
-    if (this.viewMarkersListSearch) this.searchInput.setValue("");
+    if (this.viewMarkersListSearch) this.searchInput.setValue('');
   }
 
   setMapCenterToCurrent() {
@@ -631,7 +565,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     if (!input.files?.length) return;
 
     const formdata = new FormData();
-    formdata.append("file", input.files[0]);
+    formdata.append('file', input.files[0]);
 
     this.apiService
       .settingsUserImport(formdata)
@@ -667,12 +601,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .pipe(take(1))
       .subscribe((resp: Object) => {
         const dataBlob = new Blob([JSON.stringify(resp, null, 2)], {
-          type: "application/json",
+          type: 'application/json',
         });
         const downloadURL = URL.createObjectURL(dataBlob);
-        const link = document.createElement("a");
+        const link = document.createElement('a');
         link.href = downloadURL;
-        link.download = `TRIP_backup_${new Date().toISOString().split("T")[0]}.json`;
+        link.download = `TRIP_backup_${new Date().toISOString().split('T')[0]}.json`;
         link.click();
         link.remove();
         URL.revokeObjectURL(downloadURL);
@@ -699,22 +633,19 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   editCategory(c: Category) {
-    const modal: DynamicDialogRef = this.dialogService.open(
-      CategoryCreateModalComponent,
-      {
-        header: "Update Category",
-        modal: true,
-        appendTo: "body",
-        closable: true,
-        dismissableMask: true,
-        data: { category: c },
-        width: "40vw",
-        breakpoints: {
-          "960px": "70vw",
-          "640px": "90vw",
-        },
+    const modal: DynamicDialogRef = this.dialogService.open(CategoryCreateModalComponent, {
+      header: 'Update Category',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      data: { category: c },
+      width: '40vw',
+      breakpoints: {
+        '960px': '70vw',
+        '640px': '90vw',
       },
-    )!;
+    })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (category: Category | null) => {
@@ -725,17 +656,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           .pipe(take(1))
           .subscribe({
             next: (updated) => {
-              this.categories = this.categories.map((cat) =>
-                cat.id === updated.id ? updated : cat,
-              );
+              this.categories = this.categories.map((cat) => (cat.id === updated.id ? updated : cat));
               this.sortCategories();
 
-              this.activeCategories = new Set(
-                this.categories.map((c) => c.name),
-              );
+              this.activeCategories = new Set(this.categories.map((c) => c.name));
               this.places = this.places.map((p) => {
-                if (p.category.id == updated.id)
-                  return { ...p, category: updated };
+                if (p.category.id == updated.id) return { ...p, category: updated };
                 return p;
               });
               setTimeout(() => {
@@ -748,21 +674,18 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   addCategory() {
-    const modal: DynamicDialogRef = this.dialogService.open(
-      CategoryCreateModalComponent,
-      {
-        header: "Create Category",
-        modal: true,
-        appendTo: "body",
-        closable: true,
-        dismissableMask: true,
-        width: "40vw",
-        breakpoints: {
-          "960px": "70vw",
-          "640px": "90vw",
-        },
+    const modal: DynamicDialogRef = this.dialogService.open(CategoryCreateModalComponent, {
+      header: 'Create Category',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      width: '40vw',
+      breakpoints: {
+        '960px': '70vw',
+        '640px': '90vw',
       },
-    )!;
+    })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (category: Category | null) => {
@@ -774,9 +697,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           .subscribe({
             next: (category: Category) => {
               this.categories.push(category);
-              this.categories.sort((a, b) =>
-                a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
-              );
+              this.categories.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
               this.activeCategories.add(category.name);
             },
           });
@@ -786,14 +707,14 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   deleteCategory(c_id: number) {
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: "Confirm deletion",
+      header: 'Confirm deletion',
       modal: true,
       closable: true,
       dismissableMask: true,
       breakpoints: {
-        "640px": "90vw",
+        '640px': '90vw',
       },
-      data: "Delete this category ?",
+      data: 'Delete this category ?',
     })!;
 
     modal.onClose.pipe(take(1)).subscribe({
@@ -806,9 +727,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
               next: () => {
                 this.categories = this.categories.filter((c) => c.id !== c_id);
 
-                this.activeCategories = new Set(
-                  this.categories.map((c) => c.name),
-                );
+                this.activeCategories = new Set(this.categories.map((c) => c.name));
               },
             });
       },
@@ -824,13 +743,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   sortCategories() {
-    this.categories = [...this.categories].sort((a, b) =>
-      a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
-    );
+    this.categories = [...this.categories].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
   }
 
   navigateToTrips() {
-    this.router.navigateByUrl("/trips");
+    this.router.navigateByUrl('/trips');
   }
 
   logout() {
@@ -849,7 +766,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     if (!this.selectedGPX?.gpx) return;
     const dataBlob = new Blob([this.selectedGPX.gpx]);
     const downloadURL = URL.createObjectURL(dataBlob);
-    const link = document.createElement("a");
+    const link = document.createElement('a');
     link.href = downloadURL;
     link.download = `TRIP_${this.selectedGPX.name}.gpx`;
     link.click();
@@ -874,13 +791,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .subscribe({
         next: (remote_version) => {
           if (!remote_version)
-            this.utilsService.toast(
-              "success",
-              "Latest version",
-              "You're running the latest version of TRIP",
-            );
-          if (this.info && remote_version != this.info?.version)
-            this.info.update = remote_version;
+            this.utilsService.toast('success', 'Latest version', "You're running the latest version of TRIP");
+          if (this.info && remote_version != this.info?.version) this.info.update = remote_version;
         },
       });
   }

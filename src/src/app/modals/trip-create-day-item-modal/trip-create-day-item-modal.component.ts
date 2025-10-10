@@ -1,30 +1,25 @@
-import { Component, ViewChild } from "@angular/core";
-import {
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from "@angular/forms";
-import { ButtonModule } from "primeng/button";
-import { DynamicDialogConfig, DynamicDialogRef } from "primeng/dynamicdialog";
-import { FloatLabelModule } from "primeng/floatlabel";
-import { InputTextModule } from "primeng/inputtext";
-import { TripDay, TripMember, TripStatus } from "../../types/trip";
-import { Place } from "../../types/poi";
-import { SelectModule } from "primeng/select";
-import { TextareaModule } from "primeng/textarea";
-import { InputMaskModule } from "primeng/inputmask";
-import { UtilsService } from "../../services/utils.service";
-import { checkAndParseLatLng, formatLatLng } from "../../shared/latlng-parser";
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { InputNumberModule } from "primeng/inputnumber";
-import { MultiSelectModule } from "primeng/multiselect";
-import { InputGroupModule } from "primeng/inputgroup";
-import { InputGroupAddonModule } from "primeng/inputgroupaddon";
-import { Popover, PopoverModule } from "primeng/popover";
+import { Component, ViewChild } from '@angular/core';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ButtonModule } from 'primeng/button';
+import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { FloatLabelModule } from 'primeng/floatlabel';
+import { InputTextModule } from 'primeng/inputtext';
+import { TripDay, TripMember, TripStatus } from '../../types/trip';
+import { Place } from '../../types/poi';
+import { SelectModule } from 'primeng/select';
+import { TextareaModule } from 'primeng/textarea';
+import { InputMaskModule } from 'primeng/inputmask';
+import { UtilsService } from '../../services/utils.service';
+import { checkAndParseLatLng, formatLatLng } from '../../shared/latlng-parser';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { MultiSelectModule } from 'primeng/multiselect';
+import { InputGroupModule } from 'primeng/inputgroup';
+import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
+import { Popover, PopoverModule } from 'primeng/popover';
 
 @Component({
-  selector: "app-trip-create-day-item-modal",
+  selector: 'app-trip-create-day-item-modal',
   imports: [
     FloatLabelModule,
     InputTextModule,
@@ -44,11 +39,11 @@ import { Popover, PopoverModule } from "primeng/popover";
     PopoverModule,
   ],
   standalone: true,
-  templateUrl: "./trip-create-day-item-modal.component.html",
-  styleUrl: "./trip-create-day-item-modal.component.scss",
+  templateUrl: './trip-create-day-item-modal.component.html',
+  styleUrl: './trip-create-day-item-modal.component.scss',
 })
 export class TripCreateDayItemModalComponent {
-  @ViewChild("op") op!: Popover;
+  @ViewChild('op') op!: Popover;
   members: TripMember[] = [];
   itemForm: FormGroup;
   days: TripDay[] = [];
@@ -68,16 +63,13 @@ export class TripCreateDayItemModalComponent {
     this.itemForm = this.fb.group({
       id: -1,
       time: [
-        "",
+        '',
         {
-          validators: [
-            Validators.required,
-            Validators.pattern(/^([01]\d|2[0-3])(:[0-5]\d)?$/),
-          ],
+          validators: [Validators.required, Validators.pattern(/^([01]\d|2[0-3])(:[0-5]\d)?$/)],
         },
       ],
-      text: ["", Validators.required],
-      comment: "",
+      text: ['', Validators.required],
+      comment: '',
       day_id: [null, Validators.required],
       place: null,
       status: null,
@@ -86,18 +78,16 @@ export class TripCreateDayItemModalComponent {
       image_id: null,
       gpx: null,
       lat: [
-        "",
+        '',
         {
-          validators: Validators.pattern("-?(90(\\.0+)?|[1-8]?\\d(\\.\\d+)?)"),
-          updateOn: "blur",
+          validators: Validators.pattern('-?(90(\\.0+)?|[1-8]?\\d(\\.\\d+)?)'),
+          updateOn: 'blur',
         },
       ],
       lng: [
-        "",
+        '',
         {
-          validators: Validators.pattern(
-            "-?(180(\\.0+)?|1[0-7]\\d(\\.\\d+)?|[1-9]?\\d(\\.\\d+)?)",
-          ),
+          validators: Validators.pattern('-?(180(\\.0+)?|1[0-7]\\d(\\.\\d+)?|[1-9]?\\d(\\.\\d+)?)'),
         },
       ],
       paid_by: null,
@@ -115,36 +105,34 @@ export class TripCreateDayItemModalComponent {
           place: data.item.place?.id ?? null,
         });
 
-      if (data.selectedDay)
-        this.itemForm.get("day_id")?.setValue([data.selectedDay]);
+      if (data.selectedDay) this.itemForm.get('day_id')?.setValue([data.selectedDay]);
     }
 
     this.itemForm
-      .get("place")
+      .get('place')
       ?.valueChanges.pipe(takeUntilDestroyed())
       .subscribe({
         next: (value?: number) => {
           if (!value) {
-            this.itemForm.get("lat")?.setValue("");
-            this.itemForm.get("lng")?.setValue("");
+            this.itemForm.get('lat')?.setValue('');
+            this.itemForm.get('lng')?.setValue('');
             return;
           }
 
           const p: Place = this.places.find((p) => p.id === value) as Place;
           if (p) {
-            this.itemForm.get("lat")?.setValue(p.lat);
-            this.itemForm.get("lng")?.setValue(p.lng);
-            this.itemForm.get("price")?.setValue(p.price || 0);
-            if (!this.itemForm.get("text")?.value)
-              this.itemForm.get("text")?.setValue(p.name);
-            if (p.description && !this.itemForm.get("comment")?.value)
-              this.itemForm.get("comment")?.setValue(p.description);
+            this.itemForm.get('lat')?.setValue(p.lat);
+            this.itemForm.get('lng')?.setValue(p.lng);
+            this.itemForm.get('price')?.setValue(p.price || 0);
+            if (!this.itemForm.get('text')?.value) this.itemForm.get('text')?.setValue(p.name);
+            if (p.description && !this.itemForm.get('comment')?.value)
+              this.itemForm.get('comment')?.setValue(p.description);
           }
         },
       });
 
     this.itemForm
-      .get("lat")
+      .get('lat')
       ?.valueChanges.pipe(takeUntilDestroyed())
       .subscribe({
         next: (value: string) => {
@@ -152,8 +140,8 @@ export class TripCreateDayItemModalComponent {
           if (!result) return;
 
           const [lat, lng] = result;
-          const latControl = this.itemForm.get("lat");
-          const lngControl = this.itemForm.get("lng");
+          const latControl = this.itemForm.get('lat');
+          const lngControl = this.itemForm.get('lng');
 
           latControl?.setValue(formatLatLng(lat).trim(), { emitEvent: false });
           lngControl?.setValue(formatLatLng(lng).trim(), { emitEvent: false });
@@ -167,16 +155,16 @@ export class TripCreateDayItemModalComponent {
   closeDialog() {
     // Normalize data for API POST
     let ret = this.itemForm.value;
-    if (!ret["lat"]) {
-      ret["lat"] = null;
-      ret["lng"] = null;
+    if (!ret['lat']) {
+      ret['lat'] = null;
+      ret['lng'] = null;
     }
-    if (ret["image_id"]) {
-      delete ret["image"];
-      delete ret["image_id"];
+    if (ret['image_id']) {
+      delete ret['image'];
+      delete ret['image_id'];
     }
-    if (ret["gpx"] == "1") delete ret["gpx"];
-    if (!ret["place"]) delete ret["place"];
+    if (ret['gpx'] == '1') delete ret['gpx'];
+    if (!ret['place']) delete ret['place'];
     this.ref.close(ret);
   }
 
@@ -185,7 +173,7 @@ export class TripCreateDayItemModalComponent {
   }
 
   get paidByControl(): any {
-    return this.itemForm.get("paid_by");
+    return this.itemForm.get('paid_by');
   }
 
   selectPriceMember(member: any) {
@@ -206,14 +194,14 @@ export class TripCreateDayItemModalComponent {
       const reader = new FileReader();
 
       reader.onload = (e) => {
-        if (this.itemForm.get("image_id")?.value) {
-          this.previous_image_id = this.itemForm.get("image_id")?.value;
-          this.previous_image = this.itemForm.get("image")?.value;
-          this.itemForm.get("image_id")?.setValue(null);
+        if (this.itemForm.get('image_id')?.value) {
+          this.previous_image_id = this.itemForm.get('image_id')?.value;
+          this.previous_image = this.itemForm.get('image')?.value;
+          this.itemForm.get('image_id')?.setValue(null);
         }
 
-        this.itemForm.get("image")?.setValue(e.target?.result as string);
-        this.itemForm.get("image")?.markAsDirty();
+        this.itemForm.get('image')?.setValue(e.target?.result as string);
+        this.itemForm.get('image')?.markAsDirty();
       };
 
       reader.readAsDataURL(file);
@@ -221,13 +209,13 @@ export class TripCreateDayItemModalComponent {
   }
 
   clearImage() {
-    this.itemForm.get("image")?.setValue(null);
-    this.itemForm.get("image_id")?.setValue(null);
+    this.itemForm.get('image')?.setValue(null);
+    this.itemForm.get('image_id')?.setValue(null);
     this.itemForm.markAsDirty();
 
     if (this.previous_image && this.previous_image_id) {
-      this.itemForm.get("image_id")?.setValue(this.previous_image_id);
-      this.itemForm.get("image")?.setValue(this.previous_image);
+      this.itemForm.get('image_id')?.setValue(this.previous_image_id);
+      this.itemForm.get('image')?.setValue(this.previous_image);
     }
   }
 
@@ -238,8 +226,8 @@ export class TripCreateDayItemModalComponent {
       const reader = new FileReader();
 
       reader.onload = (e) => {
-        this.itemForm.get("gpx")?.setValue(e.target?.result as string);
-        this.itemForm.get("gpx")?.markAsDirty();
+        this.itemForm.get('gpx')?.setValue(e.target?.result as string);
+        this.itemForm.get('gpx')?.markAsDirty();
       };
 
       reader.readAsText(file);
@@ -247,7 +235,7 @@ export class TripCreateDayItemModalComponent {
   }
 
   clearGPX() {
-    this.itemForm.get("gpx")?.setValue(null);
-    this.itemForm.get("gpx")?.markAsDirty();
+    this.itemForm.get('gpx')?.setValue(null);
+    this.itemForm.get('gpx')?.markAsDirty();
   }
 }

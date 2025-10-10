@@ -1,19 +1,13 @@
-import {
-  ChangeDetectionStrategy,
-  Component,
-  EventEmitter,
-  Input,
-  Output,
-} from "@angular/core";
-import { ButtonModule } from "primeng/button";
-import { Place } from "../../types/poi";
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
+import { ButtonModule } from 'primeng/button';
+import { Place } from '../../types/poi';
 
 @Component({
-  selector: "app-place-gpx",
+  selector: 'app-place-gpx',
   standalone: true,
   imports: [ButtonModule],
-  templateUrl: "./place-gpx.component.html",
-  styleUrls: ["./place-gpx.component.scss"],
+  templateUrl: './place-gpx.component.html',
+  styleUrls: ['./place-gpx.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PlaceGPXComponent {
@@ -33,6 +27,6 @@ export class PlaceGPXComponent {
   }
 
   downloadTrace() {
-    this.downloadEmitter.emit()
+    this.downloadEmitter.emit();
   }
 }

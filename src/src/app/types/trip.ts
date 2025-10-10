@@ -1,4 +1,4 @@
-import { Place } from "./poi";
+import { Place } from './poi';
 
 export interface TripBase {
   id: number;

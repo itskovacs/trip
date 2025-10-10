@@ -1,24 +1,19 @@
-import { Component, OnInit } from "@angular/core";
+import { Component, OnInit } from '@angular/core';
 
-import { FloatLabelModule } from "primeng/floatlabel";
-import {
-  FormBuilder,
-  FormGroup,
-  ReactiveFormsModule,
-  Validators,
-} from "@angular/forms";
-import { ActivatedRoute, Router } from "@angular/router";
-import { InputTextModule } from "primeng/inputtext";
-import { ButtonModule } from "primeng/button";
-import { FocusTrapModule } from "primeng/focustrap";
-import { AuthParams, AuthService } from "../../services/auth.service";
-import { MessageModule } from "primeng/message";
-import { HttpErrorResponse } from "@angular/common/http";
-import { SkeletonModule } from "primeng/skeleton";
-import { take } from "rxjs";
+import { FloatLabelModule } from 'primeng/floatlabel';
+import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { ActivatedRoute, Router } from '@angular/router';
+import { InputTextModule } from 'primeng/inputtext';
+import { ButtonModule } from 'primeng/button';
+import { FocusTrapModule } from 'primeng/focustrap';
+import { AuthParams, AuthService } from '../../services/auth.service';
+import { MessageModule } from 'primeng/message';
+import { HttpErrorResponse } from '@angular/common/http';
+import { SkeletonModule } from 'primeng/skeleton';
+import { take } from 'rxjs';
 
 @Component({
-  selector: "app-auth",
+  selector: 'app-auth',
   standalone: true,
   imports: [
     FloatLabelModule,
@@ -29,8 +24,8 @@ import { take } from "rxjs";
     FocusTrapModule,
     MessageModule,
   ],
-  templateUrl: "./auth.component.html",
-  styleUrl: "./auth.component.scss",
+  templateUrl: './auth.component.html',
+  styleUrl: './auth.component.scss',
 })
 export class AuthComponent implements OnInit {
   readonly redirectURL: string;
@@ -45,31 +40,29 @@ export class AuthComponent implements OnInit {
     private route: ActivatedRoute,
     private fb: FormBuilder,
   ) {
-    this.redirectURL =
-      this.route.snapshot.queryParams["redirectURL"] || "/home";
+    this.redirectURL = this.route.snapshot.queryParams['redirectURL'] || '/home';
 
     this.authForm = this.fb.group({
-      username: ["", { validators: Validators.required }],
-      password: ["", { validators: Validators.required }],
+      username: ['', { validators: Validators.required }],
+      password: ['', { validators: Validators.required }],
     });
   }
 
   ngOnInit(): void {
     this.route.queryParams.pipe(take(1)).subscribe((params) => {
-      const code = params["code"];
-      const state = params["state"];
+      const code = params['code'];
+      const state = params['state'];
       if (code && state) {
         this.authService.oidcLogin(code, state).subscribe({
           next: (data) => {
             if (!data.access_token) {
-              this.error = "Authentication failed";
+              this.error = 'Authentication failed';
               return;
             }
             this.router.navigateByUrl(this.redirectURL);
           },
           error: (err: HttpErrorResponse) => {
-            this.error =
-              err.error.detail || "Login failed, check console for details";
+            this.error = err.error.detail || 'Login failed, check console for details';
           },
         });
       } else {
@@ -92,9 +85,7 @@ export class AuthComponent implements OnInit {
         },
         error: (err: HttpErrorResponse) => {
           this.authForm.reset();
-          this.error =
-            err.error.detail ||
-            "Registration failed, check console for details";
+          this.error = err.error.detail || 'Registration failed, check console for details';
         },
       });
     }
@@ -109,7 +100,7 @@ export class AuthComponent implements OnInit {
     this.authService.login(this.authForm.value).subscribe({
       next: (data) => {
         if (!data.access_token) {
-          this.error = "Authentication failed";
+          this.error = 'Authentication failed';
           return;
         }
         this.router.navigateByUrl(this.redirectURL);
