@@ -1,5 +1,5 @@
 name: Bug Report
-about: Report something that is not working as expected.
+description: Report something that is not working as expected.
 title: "[Bug]: "
 labels: ["bug"]
 assignees:
@@ -17,6 +17,7 @@ body:
       label: "Describe the bug"
       description: "A clear and concise description of what the bug is."
       placeholder: "Describe the bug you encountered"
+    validations:
       required: true
 
   - type: textarea
@@ -30,6 +31,7 @@ body:
         3. Scroll down to '....'
         4. See error
       placeholder: "List the steps to reproduce the bug"
+    validations:
       required: true
 
   - type: textarea
@@ -38,7 +40,6 @@ body:
       label: "Expected behavior"
       description: "A clear and concise description of what you expected to happen."
       placeholder: "Describe the expected behavior"
-      required: false
 
   - type: input
     id: trip_version
@@ -46,7 +47,6 @@ body:
       label: "TRIP Version"
       description: "Specify the version of the TRIP application you are using (if applicable)."
       placeholder: "e.g., 1.19.1"
-      required: true
 
   - type: textarea
     id: screenshots
@@ -54,7 +54,6 @@ body:
       label: "Screenshots (if applicable)"
       description: "Add screenshots to help explain your problem."
       placeholder: "Paste image URLs or describe screenshots"
-      required: false
 
   - type: dropdown
     id: browser
@@ -74,4 +73,3 @@ body:
       label: "Additional context"
       description: "Add any other context about the problem here."
       placeholder: "Additional information"
-      required: false

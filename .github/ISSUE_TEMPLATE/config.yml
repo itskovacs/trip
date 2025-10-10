@@ -1,7 +1,7 @@
 blank_issues_enabled: false
 contact_links:
   - name: Feature Request and Ideas
-    url: https://github.com/itskovacs/trip/discussions/ideas
+    url: https://github.com/itskovacs/trip/discussions/categories/ideas
     about: Have a feature request or specific need? Join the conversation about how it could enhance the project
   - name: Question or Problem
     url: https://github.com/itskovacs/trip/discussions/categories/general
