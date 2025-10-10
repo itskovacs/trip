@@ -1,14 +1,15 @@
-blank_issues_enabled: true
+blank_issues_enabled: false
 issue_templates:
   - name: "Bug Report"
     description: "Report something that is not working as expected."
     title: "BUG: "
     labels: ["bug"]
-  - name: "Feature Request"
-    description: "Suggest a new feature or an enhancement."
-    title: "FR: "
-    labels: ["enhancement"]
-  - name: "General Question"
-    description: "Ask a question."
-    title: "Q: "
-    labels: ["question"]
+
+contact_links:
+  - name: Feature Request and Ideas
+    url: https://github.com/itskovacs/trip/discussions/ideas
+    about: Have a feature request or specific need? Join the conversation about how it could enhance the project
+
+  - name: Question or Problem
+    url: https://github.com/itskovacs/trip/discussions/categories/general
+    about: Whether it's about setup, configuration, or general usage, feel free to ask.
