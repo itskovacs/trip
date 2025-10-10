@@ -1,15 +1,8 @@
 blank_issues_enabled: false
-issue_templates:
-  - name: "Bug Report"
-    description: "Report something that is not working as expected."
-    title: "BUG: "
-    labels: ["bug"]
-
 contact_links:
   - name: Feature Request and Ideas
     url: https://github.com/itskovacs/trip/discussions/ideas
     about: Have a feature request or specific need? Join the conversation about how it could enhance the project
-
   - name: Question or Problem
     url: https://github.com/itskovacs/trip/discussions/categories/general
     about: Whether it's about setup, configuration, or general usage, feel free to ask.
