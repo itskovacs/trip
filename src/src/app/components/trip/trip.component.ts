@@ -341,7 +341,9 @@ export class TripComponent implements AfterViewInit {
           this.tripMembers = members;
         }),
       )
-      .subscribe();
+      .subscribe({
+        error: () => this.router.navigateByUrl('/trips'),
+      });
   }
 
   initMap(settings: Settings): void {
@@ -491,6 +493,8 @@ export class TripComponent implements AfterViewInit {
 
   resetMapBounds() {
     if (!this.places.length) {
+      if (!this.trip?.days.length) return;
+
       this.map?.fitBounds(
         this.flattenedTripItems.filter((i) => i.lat != null && i.lng != null).map((i) => [i.lat!, i.lng!]),
         { padding: [30, 30] },
