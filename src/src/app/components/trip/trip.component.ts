@@ -1726,6 +1726,21 @@ export class TripComponent implements AfterViewInit {
             next: () => {
               const index = this.tripMembers.findIndex((p) => p.user == username);
               if (index > -1) this.tripMembers.splice(index, 1);
+
+              let updated_paidby = false;
+              this.trip?.days.forEach((d) =>
+                d.items.forEach((item) => {
+                  if (item.paid_by === username) {
+                    item.paid_by = undefined;
+                    updated_paidby = true;
+                  }
+                }),
+              );
+
+              if (updated_paidby) {
+                this.flattenTripDayItems();
+                if (this.selectedItem && this.selectedItem.paid_by === username) this.selectedItem.paid_by = undefined;
+              }
             },
           });
       },
