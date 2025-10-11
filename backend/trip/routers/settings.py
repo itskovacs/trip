@@ -130,6 +130,7 @@ async def import_data(
             if category.get("color"):
                 category_exists.color = category.get("color")
 
+            # Handle image update
             if category.get("image_id"):
                 b64_image = data.get("images", {}).get(str(category.get("image_id")))
                 if b64_image:
@@ -314,7 +315,7 @@ async def import_data(
                             image = Image(filename=filename, user=current_user)
                             session.add(image)
                             session.flush()
-                            trip_data["image_id"] = image.id
+                            item_data["image_id"] = image.id
 
                 trip_item = TripItem(**item_data)
                 items_to_add.append(trip_item)
