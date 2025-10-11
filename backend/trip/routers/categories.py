@@ -1,12 +1,13 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
-from sqlmodel import select
+from sqlalchemy.orm import selectinload
+from sqlmodel import func, select
 
 from ..config import settings
 from ..deps import SessionDep, get_current_username
 from ..models.models import (Category, CategoryCreate, CategoryRead,
-                             CategoryUpdate, Image)
+                             CategoryUpdate, Image, Place)
 from ..security import verify_exists_and_owns
 from ..utils.utils import b64img_decode, remove_image, save_image_to_file
 
@@ -17,8 +18,10 @@ router = APIRouter(prefix="/api/categories", tags=["categories"])
 def read_categories(
     session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]
 ) -> list[Category]:
-    categories = session.exec(select(Category).filter(Category.user == current_user))
-    return [CategoryRead.serialize(category) for category in categories]
+    db_categories = session.exec(
+        select(Category).options(selectinload(Category.image)).where(Category.user == current_user)
+    ).all()
+    return [CategoryRead.serialize(category) for category in db_categories]
 
 
 @router.post("", response_model=CategoryRead)
@@ -48,7 +51,7 @@ def post_category(
 
 
 @router.put("/{category_id}", response_model=CategoryRead)
-def put_category(
+def update_category(
     session: SessionDep,
     category_id: int,
     category: CategoryUpdate,
@@ -104,7 +107,11 @@ def delete_category(
     db_category = session.get(Category, category_id)
     verify_exists_and_owns(current_user, db_category)
 
-    if get_category_placess_cnt(session, category_id, current_user) > 0:
+    places_count = session.exec(
+        select(func.count(Place.id)).where(Place.category_id == category_id, Place.user == current_user)
+    ).one()
+
+    if places_count > 0:
         raise HTTPException(status_code=409, detail="The resource is not orphan")
 
     if db_category.image:
@@ -120,14 +127,3 @@ def delete_category(
     session.delete(db_category)
     session.commit()
     return {}
-
-
-@router.get("/{category_id}/count")
-def get_category_placess_cnt(
-    session: SessionDep,
-    category_id: int,
-    current_user: Annotated[str, Depends(get_current_username)],
-) -> int:
-    db_category = session.get(Category, category_id)
-    verify_exists_and_owns(current_user, db_category)
-    return len(db_category.places)

@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
 from ..config import settings
@@ -18,8 +19,12 @@ router = APIRouter(prefix="/api/places", tags=["places"])
 def read_places(
     session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]
 ) -> list[PlaceRead]:
-    places = session.exec(select(Place).filter(Place.user == current_user))
-    return [PlaceRead.serialize(p) for p in places]
+    db_places = session.exec(
+        select(Place)
+        .options(selectinload(Place.image), selectinload(Place.category))
+        .where(Place.user == current_user)
+    ).all()
+    return [PlaceRead.serialize(p) for p in db_places]
 
 
 @router.post("", response_model=PlaceRead)
@@ -70,7 +75,7 @@ async def create_places(
     for place in places:
         category_name = place.category
         category = session.exec(
-            select(Category).filter(Category.user == current_user, Category.name == category_name)
+            select(Category).where(Category.user == current_user, Category.name == category_name)
         ).first()
         if not category:
             continue
@@ -132,15 +137,17 @@ def update_place(
         session.commit()
         session.refresh(image)
 
-        place_data["image_id"] = image.id
-
         if db_place.image_id:
             old_image = session.get(Image, db_place.image_id)
             try:
                 remove_image(old_image.filename)
                 session.delete(old_image)
+                db_place.image_id = None
+                session.refresh(db_place)
             except Exception:
                 raise HTTPException(status_code=400, detail="Bad request")
+
+        db_place.image_id = image.id
 
     for key, value in place_data.items():
         setattr(db_place, key, value)
@@ -179,7 +186,11 @@ def get_place(
     place_id: int,
     current_user: Annotated[str, Depends(get_current_username)],
 ) -> PlaceRead:
-    db_place = session.get(Place, place_id)
+    db_place = session.exec(
+        select(Place)
+        .options(selectinload(Place.image), selectinload(Place.category))
+        .where(Place.id == place_id)
+    ).first()
     verify_exists_and_owns(current_user, db_place)
 
     return PlaceRead.serialize(db_place, exclude_gpx=False)

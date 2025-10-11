@@ -17,17 +17,16 @@ router = APIRouter(prefix="/api/auth", tags=["auth"])
 async def auth_params() -> AuthParams:
     data = {"oidc": None, "register_enabled": settings.REGISTER_ENABLE}
 
-    response = JSONResponse(content=data)
-    if settings.OIDC_CLIENT_ID and settings.OIDC_CLIENT_SECRET:
-        oidc_config = await get_oidc_config()
-        auth_endpoint = oidc_config.get("authorization_endpoint")
-        uri, state = get_oidc_client().create_authorization_url(auth_endpoint)
-        data["oidc"] = uri
+    if not (settings.OIDC_CLIENT_ID and settings.OIDC_CLIENT_SECRET):
+        return {"oidc": None, "register_enabled": settings.REGISTER_ENABLE}
 
-        response = JSONResponse(content=data)
-        response.set_cookie(
-            "oidc_state", value=state, httponly=True, secure=True, samesite="Lax", max_age=60
-        )
+    oidc_config = await get_oidc_config()
+    auth_endpoint = oidc_config.get("authorization_endpoint")
+    uri, state = get_oidc_client().create_authorization_url(auth_endpoint)
+    data["oidc"] = uri
+
+    response = JSONResponse(content=data)
+    response.set_cookie("oidc_state", value=state, httponly=True, secure=True, samesite="Lax", max_age=60)
 
     return response
 
@@ -147,7 +146,7 @@ def refresh_token(refresh_token: str = Body(..., embed=True)):
         payload = jwt.decode(refresh_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
         username = payload.get("sub", None)
 
-        if username is None:
+        if not username:
             raise HTTPException(status_code=401, detail="Invalid Token")
 
         new_access_token = create_access_token(data={"sub": username})

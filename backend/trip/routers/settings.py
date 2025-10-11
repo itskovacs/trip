@@ -117,7 +117,7 @@ async def import_data(
 
     existing_categories = {
         category.name: category
-        for category in session.exec(select(Category).filter(Category.user == current_user)).all()
+        for category in session.exec(select(Category).where(Category.user == current_user)).all()
     }
 
     categories_to_add = []
@@ -142,6 +142,7 @@ async def import_data(
                     image = Image(filename=filename, user=current_user)
                     session.add(image)
                     session.flush()
+                    session.refresh(image)
 
                     if category_exists.image_id:
                         old_image = session.get(Image, category_exists.image_id)
@@ -177,6 +178,7 @@ async def import_data(
                 image = Image(filename=filename, user=current_user)
                 session.add(image)
                 session.flush()
+                session.refresh(image)
                 category_data["image_id"] = image.id
 
         new_category = Category(**category_data)
@@ -213,6 +215,7 @@ async def import_data(
                     image = Image(filename=filename, user=current_user)
                     session.add(image)
                     session.flush()
+                    session.refresh(image)
                     place_data["image_id"] = image.id
 
         new_place = Place(**place_data)
@@ -267,6 +270,7 @@ async def import_data(
                     image = Image(filename=filename, user=current_user)
                     session.add(image)
                     session.flush()
+                    session.refresh(image)
                     trip_data["image_id"] = image.id
 
         new_trip = Trip(**trip_data)
@@ -315,6 +319,7 @@ async def import_data(
                             image = Image(filename=filename, user=current_user)
                             session.add(image)
                             session.flush()
+                            session.refresh(image)
                             item_data["image_id"] = image.id
 
                 trip_item = TripItem(**item_data)
@@ -330,7 +335,7 @@ async def import_data(
         "categories": [
             CategoryRead.serialize(c)
             for c in session.exec(
-                select(Category).options(selectinload(Category.image)).filter(Category.user == current_user)
+                select(Category).options(selectinload(Category.image)).where(Category.user == current_user)
             ).all()
         ],
         "settings": UserRead.serialize(session.get(User, current_user)),
