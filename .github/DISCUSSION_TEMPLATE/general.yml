@@ -12,6 +12,7 @@ body:
       label: "Your Question"
       description: "Provide a clear and concise description of your question."
       placeholder: "Describe your question here"
+    validations:
       required: true
   - type: textarea
     id: additional_context
@@ -19,4 +20,3 @@ body:
       label: "Additional Context"
       description: "Add any other context or relevant details that might help me understand your question better."
       placeholder: "Optional: Add context or additional info"
-      required: false
