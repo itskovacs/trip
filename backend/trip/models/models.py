@@ -4,7 +4,7 @@ from enum import Enum
 from typing import Annotated
 
 from pydantic import BaseModel, StringConstraints, field_validator
-from sqlalchemy import MetaData
+from sqlalchemy import Index, MetaData
 from sqlmodel import Field, Relationship, SQLModel
 
 from ..config import settings
@@ -70,7 +70,7 @@ class ImageBase(SQLModel):
 
 class Image(ImageBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    user: str = Field(foreign_key="user.username", ondelete="CASCADE")
+    user: str = Field(foreign_key="user.username", ondelete="CASCADE", index=True)
 
     categories: list["Category"] = Relationship(back_populates="image")
     places: list["Place"] = Relationship(back_populates="image")
@@ -130,7 +130,7 @@ class Category(CategoryBase, table=True):
     image_id: int | None = Field(default=None, foreign_key="image.id", ondelete="CASCADE")
     image: Image | None = Relationship(back_populates="categories")
     places: list["Place"] = Relationship(back_populates="category")
-    user: str = Field(foreign_key="user.username", ondelete="CASCADE")
+    user: str = Field(foreign_key="user.username", ondelete="CASCADE", index=True)
 
 
 class CategoryCreate(CategoryBase):
@@ -164,7 +164,7 @@ class CategoryRead(CategoryBase):
 
 class TripPlaceLink(SQLModel, table=True):
     trip_id: int = Field(foreign_key="trip.id", primary_key=True)
-    place_id: int = Field(foreign_key="place.id", primary_key=True)
+    place_id: int = Field(foreign_key="place.id", primary_key=True, index=True)
 
 
 class PlaceBase(SQLModel):
@@ -184,17 +184,19 @@ class PlaceBase(SQLModel):
 class Place(PlaceBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     cdate: date = Field(default_factory=lambda: datetime.now(UTC))
-    user: str = Field(foreign_key="user.username", ondelete="CASCADE")
+    user: str = Field(foreign_key="user.username", ondelete="CASCADE", index=True)
 
     image_id: int | None = Field(default=None, foreign_key="image.id", ondelete="CASCADE")
     image: Image | None = Relationship(back_populates="places")
 
-    category_id: int = Field(foreign_key="category.id")
+    category_id: int = Field(foreign_key="category.id", index=True)
     category: Category | None = Relationship(back_populates="places")
 
     trip_items: list["TripItem"] = Relationship(back_populates="place")
 
     trips: list["Trip"] = Relationship(back_populates="places", link_model=TripPlaceLink)
+
+    __table_args__ = (Index("idx_place_user_category", "user", "category_id"),)
 
 
 class PlaceCreate(PlaceBase):
@@ -259,7 +261,7 @@ class Trip(TripBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     image_id: int | None = Field(default=None, foreign_key="image.id", ondelete="CASCADE")
     image: Image | None = Relationship(back_populates="trips")
-    user: str = Field(foreign_key="user.username", ondelete="CASCADE")
+    user: str = Field(foreign_key="user.username", ondelete="CASCADE", index=True)
 
     places: list["Place"] = Relationship(
         back_populates="trips", sa_relationship_kwargs={"order_by": "Place.name"}, link_model=TripPlaceLink
@@ -328,7 +330,7 @@ class TripRead(TripBase):
             shared=bool(obj.shares),
             currency=obj.currency if obj.currency else settings.DEFAULT_CURRENCY,
             notes=obj.notes,
-            archival_review=obj.archival_review
+            archival_review=obj.archival_review,
         )
 
 
@@ -339,8 +341,10 @@ class TripMember(SQLModel, table=True):
     invited_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     joined_at: datetime | None = None
 
-    trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE")
+    trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE", index=True)
     trip: Trip | None = Relationship(back_populates="memberships")
+
+    __table_args__ = (Index("idx_tripmember_trip_user_joined", "trip_id", "user", "joined_at"),)
 
 
 class TripMemberCreate(BaseModel):
@@ -371,7 +375,7 @@ class TripDayBase(SQLModel):
 
 class TripDay(TripDayBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE")
+    trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE", index=True)
     trip: Trip | None = Relationship(back_populates="days")
 
     items: list["TripItem"] = Relationship(back_populates="day", cascade_delete=True)
@@ -419,7 +423,7 @@ class TripItem(TripItemBase, table=True):
     image_id: int | None = Field(default=None, foreign_key="image.id", ondelete="CASCADE")
     image: Image | None = Relationship(back_populates="tripitems")
 
-    day_id: int = Field(foreign_key="tripday.id", ondelete="CASCADE")
+    day_id: int = Field(foreign_key="tripday.id", ondelete="CASCADE", index=True)
     day: TripDay | None = Relationship(back_populates="items")
 
     paid_by: int | None = Field(default=None, foreign_key="user.username", ondelete="SET NULL")
@@ -489,7 +493,7 @@ class TripPackingListItemBase(SQLModel):
 class TripPackingListItem(TripPackingListItemBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
-    trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE")
+    trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE", index=True)
     trip: Trip | None = Relationship(back_populates="packing_items")
 
 
@@ -522,7 +526,7 @@ class TripChecklistItemBase(SQLModel):
 class TripChecklistItem(TripChecklistItemBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
-    trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE")
+    trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE", index=True)
     trip: Trip | None = Relationship(back_populates="checklist_items")
 
 
