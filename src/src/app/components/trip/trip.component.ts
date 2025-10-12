@@ -37,7 +37,7 @@ import { LinkifyPipe } from '../../shared/linkify.pipe';
 import { PlaceCreateModalComponent } from '../../modals/place-create-modal/place-create-modal.component';
 import { Settings } from '../../types/settings';
 import { DialogModule } from 'primeng/dialog';
-import { ClipboardModule } from '@angular/cdk/clipboard';
+import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
 import { TooltipModule } from 'primeng/tooltip';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -118,13 +118,13 @@ export class TripComponent implements AfterViewInit {
       items: [
         {
           label: 'Checklist',
-          icon: 'pi pi-check-square',
+          icon: 'pi pi-list-check',
           command: () => {
             this.openChecklist();
           },
         },
         {
-          label: 'Packing',
+          label: 'Packing list',
           icon: 'pi pi-briefcase',
           command: () => {
             this.openPackingList();
@@ -287,6 +287,7 @@ export class TripComponent implements AfterViewInit {
     'status',
     'distance',
   ];
+  menuTripPackingItems: MenuItem[] = [];
   tripTableSelectedColumns: string[] = ['day', 'time', 'text', 'place', 'comment'];
   tripTableSearchInput = new FormControl('');
   selectedTripDayForMenu?: TripDay;
@@ -300,6 +301,7 @@ export class TripComponent implements AfterViewInit {
     private dialogService: DialogService,
     private utilsService: UtilsService,
     private route: ActivatedRoute,
+    private clipboard: Clipboard,
   ) {
     this.statuses = this.utilsService.statuses;
     this.tripTableSearchInput.valueChanges.pipe(debounceTime(300), takeUntilDestroyed()).subscribe({
@@ -1458,9 +1460,35 @@ export class TripComponent implements AfterViewInit {
     });
   }
 
+  computeMenuTripPackingItems() {
+    this.menuTripPackingItems = [
+      {
+        label: 'Actions',
+        items: [
+          {
+            label: 'Copy to clipboard (text)',
+            icon: 'pi pi-clipboard',
+            command: () => this.copyPackingListToClipboard(),
+          },
+          {
+            label: 'Quick Copy',
+            icon: 'pi pi-copy',
+            command: () => this.copyPackingListToService(),
+          },
+          {
+            label: `Quick Paste (${this.utilsService.packingListToCopy.length})`,
+            icon: 'pi pi-copy',
+            command: () => this.pastePackingList(),
+            disabled: !this.utilsService.packingListToCopy.length,
+          },
+        ],
+      },
+    ];
+  }
+
   openPackingList() {
     if (!this.trip) return;
-
+    this.computeMenuTripPackingItems();
     if (!this.packingList.length)
       this.apiService
         .getPackingList(this.trip.id)
@@ -1478,7 +1506,7 @@ export class TripComponent implements AfterViewInit {
     if (!this.trip) return;
 
     const modal: DynamicDialogRef = this.dialogService.open(TripCreatePackingModalComponent, {
-      header: 'Create Packing',
+      header: 'Create packing item',
       modal: true,
       appendTo: 'body',
       closable: true,
@@ -1561,6 +1589,79 @@ export class TripComponent implements AfterViewInit {
     }, {});
   }
 
+  copyPackingListToClipboard() {
+    const content = this.packingList
+      .sort((a, b) =>
+        a.category !== b.category
+          ? a.category.localeCompare(b.category)
+          : a.text < b.text
+            ? -1
+            : a.text > b.text
+              ? 1
+              : 0,
+      )
+      .map((item) => `[${item.category}] ${item.qt ? item.qt + ' ' : ''}${item.text}`)
+      .join('\n');
+    const success = this.clipboard.copy(content);
+    if (success) this.utilsService.toast('success', 'Success', `Content copied to clipboard`);
+    else this.utilsService.toast('error', 'Error', 'Content could not be copied to clipboard');
+  }
+
+  copyPackingListToService() {
+    const content: Partial<PackingItem>[] = this.packingList.map((item) => ({
+      qt: item.qt,
+      text: item.text,
+      category: item.category,
+    }));
+    this.utilsService.packingListToCopy = content;
+    this.utilsService.toast(
+      'success',
+      'Ready to Paste',
+      `${content.length} item${content.length > 1 ? 's' : ''}  copied. Go to another Trip and use Quick Paste`,
+    );
+    this.computeMenuTripPackingItems();
+  }
+
+  pastePackingList() {
+    const content: Partial<PackingItem>[] = this.utilsService.packingListToCopy;
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: 'Confirm Paste',
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      breakpoints: {
+        '640px': '90vw',
+      },
+      data: `Paste ${content.length} packing item${content.length > 1 ? 's' : ''} in ${this.trip?.name} ?`,
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (bool) => {
+        if (!bool) return;
+
+        const obs$ = content.map((packingItem) =>
+          this.apiService.postPackingItem(this.trip!.id, packingItem as PackingItem),
+        );
+
+        forkJoin(obs$)
+          .pipe(take(1))
+          .subscribe({
+            next: (items: PackingItem[]) => {
+              this.packingList = [...this.packingList, ...items];
+              this.computeDispPackingList();
+              this.utilsService.toast(
+                'success',
+                'Success',
+                `Added ${content.length} item${content.length > 1 ? 's' : ''}`,
+              );
+              this.utilsService.packingListToCopy = [];
+              this.computeMenuTripPackingItems();
+            },
+          });
+      },
+    });
+  }
+
   openChecklist() {
     if (!this.trip) return;
 
@@ -1571,6 +1672,7 @@ export class TripComponent implements AfterViewInit {
         .subscribe({
           next: (items) => {
             this.checklistItems = [...items];
+            this.computeDispChecklistList();
           },
         });
     this.checklistDialogVisible = true;
@@ -1580,7 +1682,7 @@ export class TripComponent implements AfterViewInit {
     if (!this.trip) return;
 
     const modal: DynamicDialogRef = this.dialogService.open(TripCreateChecklistModalComponent, {
-      header: 'Create item',
+      header: 'Create checklist item',
       modal: true,
       appendTo: 'body',
       closable: true,
@@ -1602,10 +1704,17 @@ export class TripComponent implements AfterViewInit {
           .subscribe({
             next: (item) => {
               this.checklistItems = [...this.checklistItems, item];
+              this.computeDispChecklistList();
             },
           });
       },
     });
+  }
+
+  computeDispChecklistList() {
+    this.checklistItems = [...this.checklistItems].sort((a, b) =>
+      a.checked !== b.checked ? (a.checked ? 1 : -1) : b.id - a.id,
+    );
   }
 
   onCheckChecklistItem(e: CheckboxChangeEvent, id: number) {
@@ -1617,6 +1726,7 @@ export class TripComponent implements AfterViewInit {
         next: (item) => {
           const i = this.checklistItems.find((p) => p.id == item.id);
           if (i) i.checked = item.checked;
+          this.computeDispChecklistList();
         },
       });
   }

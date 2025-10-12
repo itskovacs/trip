@@ -594,12 +594,13 @@
   }
 </p-dialog>
 
+<p-menu #menuTripPacking [model]="menuTripPackingItems" attachTo="body" [popup]="true" />
 <p-dialog header="Packing list" [draggable]="false" [dismissableMask]="true" [modal]="true"
   [(visible)]="packingDialogVisible" styleClass="w-[95%] md:w-[70%] lg:w-[50%]">
   <section class="md:max-w-3/4 md:mx-auto max-h-[80%] md:max-h-[600px]">
     <div class="flex items-center justify-center gap-4">
       <p-button (click)="addPackingItem()" icon="pi pi-plus" label="Add item" text />
-      <p-button icon="pi pi-ellipsis-h" text />
+      <p-button (click)="menuTripPacking.toggle($event)" icon="pi pi-ellipsis-h" text />
     </div>
 
     <div class="grid gap-2 mt-4 pb-4">
@@ -633,7 +634,7 @@
 <p-dialog header="Checklist" [draggable]="false" [dismissableMask]="true" [modal]="true"
   [(visible)]="checklistDialogVisible" styleClass="w-[95%] md:w-[50%] lg:w-[30%]">
   <section class="p-4 max-w-full max-h-[80%] md:max-h-[600px]">
-    <div class="flex justify-center">
+    <div class="flex items-center justify-center gap-4">
       <p-button (click)="addChecklistItem()" icon="pi pi-plus" label="Add item" text />
     </div>
 
@@ -656,16 +657,28 @@
       }
     </div>
 
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mt-4 pb-4">
+    <div class="flex items-center justify-center flex-wrap xl:justify-between gap-1 mt-4">
+      <div class="font-semibold tracking-tight text-md">Items with status</div>
+      <div class="flex justify-center md:justify-end gap-1">
+        @for (status of statuses; track status.label) {
+        <div class="relative">
+          <div class="z-50 block absolute top-0.5 left-1 size-2.5 rounded-full" [style.background]="status.color"></div>
+          <span [style.background]="status.color+'1A'" [style.color]="status.color"
+            class="text-xs md:text-sm font-medium me-2 px-2.5 py-1 rounded">{{ status.label }}</span>
+        </div>
+        }
+      </div>
+    </div>
+    <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-2 mt-2 pb-4">
       @for (item of getWatchlistData; track item.id) {
-      <div class="flex items-center gap-3 rounded-md p-2 hover:bg-gray-100 dark:hover:bg-white/5">
+      <div class="rounded-md py-1 min-w-0 hover:bg-gray-100 dark:hover:bg-white/5">
         <label [for]="item.id" [pTooltip]="item.text" class="flex items-center gap-2 w-full">
           <div class="relative">
             @if (item.status) {<div class="z-50 block absolute top-0 left-3 size-2.5 rounded-full"
               [style.background]="item.status.color"></div>}
             <p-checkbox disabled />
           </div>
-          <div class="pr-6 md:pr-0 truncate select-none flex-1">
+          <div class="truncate select-none">
             <span>{{ item.text }}</span>
           </div>
         </label>

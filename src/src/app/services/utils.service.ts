@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { MessageService } from 'primeng/api';
-import { TripStatus } from '../types/trip';
+import { PackingItem, TripStatus } from '../types/trip';
 import { ApiService } from './api.service';
 import { map } from 'rxjs';
 
@@ -12,6 +12,7 @@ type ToastSeverity = 'info' | 'warn' | 'error' | 'success';
 export class UtilsService {
   private apiService = inject(ApiService);
   currency$ = this.apiService.settings$.pipe(map((s) => s?.currency ?? '€'));
+  packingListToCopy: Partial<PackingItem>[] = [];
 
   readonly statuses: TripStatus[] = [
     { label: 'pending', color: '#3258A8' },
