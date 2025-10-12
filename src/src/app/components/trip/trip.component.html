@@ -638,7 +638,7 @@
       <p-button (click)="addChecklistItem()" icon="pi pi-plus" label="Add item" text />
     </div>
 
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-2 mt-4 pb-4">
+    <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-2 mt-2 pb-4">
       @for (item of checklistItems; track item.id) {
       <div class="relative group flex items-center gap-3 rounded-md p-2 hover:bg-gray-100 dark:hover:bg-white/5">
         <label [for]="item.id" [pTooltip]="item.text" [class.line-through]="item.checked"
@@ -674,8 +674,10 @@
       <div class="rounded-md py-1 min-w-0 hover:bg-gray-100 dark:hover:bg-white/5">
         <label [for]="item.id" [pTooltip]="item.text" class="flex items-center gap-2 w-full">
           <div class="relative">
-            @if (item.status) {<div class="z-50 block absolute top-0 left-3 size-2.5 rounded-full"
-              [style.background]="item.status.color"></div>}
+            @if (item.status) {
+            <div class="z-50 block absolute top-0 left-3 size-2.5 rounded-full" [style.background]="item.status.color">
+            </div>
+            }
             <p-checkbox disabled />
           </div>
           <div class="truncate select-none">
