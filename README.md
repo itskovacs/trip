@@ -9,7 +9,7 @@
 
 </div>
 
-<p align="center">🗺️ Tourism and Recreational Interest Points </p>
+<p align="center">🗺️ Tourism and Recreational Interest Points</p>
 <br>
 
 <div align="center">
@@ -22,19 +22,23 @@
 
 - 📦 [About](#about)
 - 🌱 [Getting Started](#getting_started)
-- 📸 [Demo](#Demo)
-- 🚧 [Roadmap](#Roadmap)
-- 📜 [License](#License)
-- 🤝 [Contributing](#Contributing)
+- 📸 [Demo](#demo)
+- 🤝 [Contributing](#contributing)
+- 📜 [License](#license)
 - 🛠️ [Tech Stack](#techstack)
 
 ## 📦 About <a name = "about"></a>
 
-TRIP is a minimalist Map tracker and Trip planner to visualize your points of interest (POI) and organize your next adventure details.
+TRIP is a self-hostable **minimalist Map tracker** and **Trip planner** to visualize your points of interest (POI) and organize your next adventure details.
 
-Demo is worth a thousand words, head to 📸 [Demo](#Demo).  
+**Core Features:**
+- Map and manage POIs on interactive maps
+- Plan multi-day trips with detailed itineraries
+- Collaborate and share with travel companions
 
-🔒 Privacy-First – No telemetry, no tracking, fully self-hostable. You own your data. Inspect, modify, and contribute freely.
+No telemetry. No tracking. No ads. Free, forever.
+
+See the [📸 demo](#demo) to explore TRIP in action.
 
 <br>
 
@@ -88,29 +92,22 @@ A demo is available at [itskovacs-trip.netlify.app](https://itskovacs-trip.netli
 
 <br>
 
-## 🚧 Roadmap <a name = "roadmap"></a>
+## 🤝 Contributing <a name = "contributing"></a>
 
-New features coming soon<sup>TM</sup>, check out the development plan in the [Roadmap Wiki](https://github.com/itskovacs/trip/wiki/Roadmap).  
-If you have ideas 💡, feel free to open an issue.
+Contributions are welcome! Open an issue to report bugs, start a discussion to share ideas or submit a pull request for new features.
 
-If you want to develop new feature, feel free to open a pull request (see [🤝 Contributing](#contributing)).
+1. Fork the repository
+2. Create a new branch (`my-new-trip-feature`)
+3. Commit and push your changes
+4. Open a pull request
+
+TRIP is and will always remain completely free, no paywalled features, no telemetry, no tracking, no ads. Development is supported through optional donations. If TRIP helps plan your adventures, consider [leaving a small tip](https://ko-fi.com/itskovacs) ☕.
 
 <br>
 
 ## 📜 License <a name = "license"></a>
 
-I decided to license trip under the **CC BY-NC-SA 4.0**. You may use, modify, and share freely with attribution, but **commercial use is strictly prohibited**.
-
-<br>
-
-## 🤝 Contributing <a name = "contributing"></a>
-
-Contributions are welcome! Feel free to open issues if you find bugs and pull requests for your new features!
-
-1. Fork the repo
-2. Create a new branch (`my-new-trip-feature`)
-3. Commit changes
-4. Open a pull request
+TRIP is licensed under the **CC BY-NC-SA 4.0**. You may use, modify, and share freely with attribution, but **commercial use is strictly prohibited**.
 
 <br>
 
@@ -118,8 +115,8 @@ Contributions are welcome! Feel free to open issues if you find bugs and pull re
 
 ### **Frontend**
 
-- 🅰️ Angular 19
-- 🏗️ PrimeNG 19
+- 🅰️ Angular 20
+- 🏗️ PrimeNG 20
 - 🎨 Tailwind CSS 4
 - 🗺️ Leaflet 1.9 (plugins: [Leaflet.markercluster](https://github.com/Leaflet/Leaflet.markercluster), [Leaflet.contextmenu](https://github.com/aratcliffe/Leaflet.contextmenu))
 
