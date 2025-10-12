@@ -12,12 +12,10 @@
 
   <p-floatlabel variant="in">
     <p-select [options]="packingCategories" id="category" appendTo="body" formControlName="category"
-      optionLabel="dispValue" optionValue="value" placeholder="Select Category" fluid />
+      optionLabel="dispValue" optionValue="value" fluid />
     <label for="category">Category</label>
   </p-floatlabel>
 
   <div class="mt-4 text-right">
-    <p-button (click)="closeDialog()" [disabled]="!packingForm.dirty || !packingForm.valid">{{
-      packingForm.get("id")?.value
-      !== -1 ? "Update" : "Create" }}</p-button>
+    <p-button (click)="closeDialog()" label="Create" [disabled]="!packingForm.dirty || !packingForm.valid" />
   </div>

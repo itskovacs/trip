@@ -1,7 +1,7 @@
 import { Component } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
-import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { DynamicDialogRef } from 'primeng/dynamicdialog';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { InputTextModule } from 'primeng/inputtext';
 import { FocusTrapModule } from 'primeng/focustrap';
@@ -36,24 +36,16 @@ export class TripCreatePackingModalComponent {
   constructor(
     private ref: DynamicDialogRef,
     private fb: FormBuilder,
-    private config: DynamicDialogConfig,
   ) {
     this.packingForm = this.fb.group({
-      id: -1,
       qt: null,
       text: ['', { validators: Validators.required }],
       category: ['', { validators: Validators.required }],
     });
-
-    const patchValue = this.config.data?.packing;
-    if (patchValue) {
-      this.packingForm.patchValue(patchValue);
-    }
   }
 
   closeDialog() {
     if (!this.packingForm.valid) return;
-
     // Normalize data for API POST
     let ret = this.packingForm.value;
     this.ref.close(ret);
