@@ -496,9 +496,11 @@ export class TripComponent implements AfterViewInit {
   resetMapBounds() {
     if (!this.places.length) {
       if (!this.trip?.days.length) return;
+      const itemsWithCoordinates = this.flattenedTripItems.filter((i) => i.lat != null && i.lng != null);
+      if (!itemsWithCoordinates.length) return;
 
       this.map?.fitBounds(
-        this.flattenedTripItems.filter((i) => i.lat != null && i.lng != null).map((i) => [i.lat!, i.lng!]),
+        itemsWithCoordinates.map((i) => [i.lat!, i.lng!]),
         { padding: [30, 30] },
       );
       return;
