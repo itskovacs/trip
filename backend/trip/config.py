@@ -6,11 +6,13 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     FRONTEND_FOLDER: str = "frontend"
     SQLITE_FILE: str = "storage/trip.sqlite"
-
     ASSETS_FOLDER: str = "storage/assets"
     ASSETS_URL: str = "/api/assets"
     PLACE_IMAGE_SIZE: int = 500
     TRIP_IMAGE_SIZE: int = 600
+    ATTACHMENTS_FOLDER: str = "storage/attachments"
+    ATTACHMENT_MAX_SIZE: int = 10 * 1024 * 1024  # 10MB
+    BACKUPS_FOLDER: str = "storage/backups"
 
     SECRET_KEY: str = secrets.token_hex(32)
     ALGORITHM: str = "HS256"
