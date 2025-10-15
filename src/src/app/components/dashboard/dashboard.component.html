@@ -161,23 +161,26 @@
 <section class="absolute inset-0 flex items-center justify-center z-40 bg-black/30">
   <div
     class="w-10/12 max-w-screen md:max-w-3xl h-fit max-h-screen bg-white rounded-xl shadow-2xl p-4 md:p-8 z-50 dark:bg-surface-900">
-    <p-tabs value="0" scrollable>
+    <p-tabs [(value)]="tabsIndex" scrollable>
       <p-tablist>
-        <p-tab value="0" class="flex items-center gap-2">
+        <p-tab [value]="0" class="flex items-center gap-2">
           <i class="pi pi-info-circle"></i><span class="font-bold whitespace-nowrap">About</span>
         </p-tab>
-        <p-tab value="1" class="flex items-center gap-2">
+        <p-tab [value]="1" class="flex items-center gap-2">
           <i class="pi pi-sliders-v"></i><span class="font-bold whitespace-nowrap">Tweaks</span>
         </p-tab>
-        <p-tab value="2" class="flex items-center gap-2">
+        <p-tab [value]="2" class="flex items-center gap-2">
           <i class="pi pi-map"></i><span class="font-bold whitespace-nowrap">Map</span>
         </p-tab>
-        <p-tab value="3" class="flex items-center gap-2">
+        <p-tab [value]="3" class="flex items-center gap-2">
           <i class="pi pi-th-large"></i><span class="font-bold whitespace-nowrap">Categories</span>
+        </p-tab>
+        <p-tab [value]="4" class="flex items-center gap-2">
+          <i class="pi pi-database"></i><span class="font-bold whitespace-nowrap">Data</span>
         </p-tab>
       </p-tablist>
       <p-tabpanels>
-        <p-tabpanel value="0">
+        <p-tabpanel [value]="0">
           <div class="mt-2 flex justify-between align-items">
             <h1 class="font-semibold tracking-tight text-xl">About</h1>
 
@@ -211,14 +214,14 @@
           </div>
 
           <div class="flex justify-around mt-8 gap-4">
-            <p-button (click)="exportData()" text icon="pi pi-download" label="Export" />
+            <p-button (click)="tabsIndex = 4" text icon="pi pi-download" label="Export" />
             <p-button (click)="fileUpload.click()" text icon="pi pi-upload" label="Import" />
-            <input type="file" class="file-input" style="display: none;" (change)="importData($event)" #fileUpload>
+            <input type="file" style="display: none;" (change)="importData($event)" #fileUpload>
           </div>
 
           <div class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">Made with ❤️ in BZH</div>
         </p-tabpanel>
-        <p-tabpanel value="1">
+        <p-tabpanel [value]="1">
           <div class="mt-4">
             <h1 class="font-semibold tracking-tight text-xl">Low Network Mode</h1>
             <span class="text-xs text-gray-500 dark:text-gray-400">You can disable Low Network Mode. Default is true.
@@ -279,7 +282,7 @@
             </div>
           </section>
         </p-tabpanel>
-        <p-tabpanel value="2">
+        <p-tabpanel [value]="2">
           <section [formGroup]="settingsForm">
             <div class="mt-4 flex justify-between items-center">
               <div>
@@ -315,7 +318,7 @@
             </div>
           </section>
         </p-tabpanel>
-        <p-tabpanel value="3">
+        <p-tabpanel [value]="3">
           <div class="mt-1 p-2 mb-2 flex justify-between items-center">
             <div>
               <h1 class="font-semibold tracking-tight text-xl">Categories</h1>
@@ -342,6 +345,73 @@
             </div>
             }
           </div>
+        </p-tabpanel>
+        <p-tabpanel [value]="4">
+          <section class="grid gap-4">
+            <div class="mt-4 flex justify-between items-center">
+              <div>
+                <h1 class="font-semibold tracking-tight text-xl">Export data</h1>
+                <span class="text-xs text-gray-500 dark:text-gray-400">Start an export and download it</span>
+              </div>
+
+              <div class="flex items-center justify-center gap-1">
+                <span class="relative flex size-3">
+                  <span [class.animate-ping]="refreshBackups"
+                    class="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
+                  <span [ngClass]="refreshBackups ? 'bg-green-500' : 'bg-gray-400'"
+                    class="relative inline-flex size-3 rounded-full"></span>
+                </span>
+                <p-button icon="pi pi-sync" pTooltip="Refresh" (click)="getBackups()" text />
+              </div>
+            </div>
+
+            <div class="mt-4 flex justify-center">
+              <p-button icon="pi pi-cloud-download" label="Create backup" severity="help" (click)="createBackup()"
+                text />
+            </div>
+
+            @for (backup of backups; track backup.id) {
+            <div class="mt-4 flex items-center justify-between">
+              <div class="flex flex-col">
+                <div class="truncate font-mono text-md text-gray-900 dark:text-gray-100">{{ backup.filename }}</div>
+                <div class="flex items-center gap-2 mt-1 text-xs font-mono text-gray-500 dark:text-gray-400">
+                  @if (backup.file_size) {<span>{{ backup.file_size | fileSize }}</span>}
+                  @if (backup.status == 'pending') {
+                  <span
+                    class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded min-w-fit dark:bg-gray-400">{{
+                    backup.status }}</span>
+                  } @else if (backup.status == 'processing') {
+                  <span
+                    class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded min-w-fit dark:bg-blue-400">{{
+                    backup.status }}</span>
+                  } @else if (backup.status == 'completed') {
+                  <span
+                    class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded min-w-fit dark:bg-green-400">{{
+                    backup.status }}</span>
+                  } @else if (backup.status == 'failed') {
+                  <span
+                    class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded min-w-fit dark:bg-red-400">{{
+                    backup.status }}</span>
+                  <pre>{{ backup.error_message }}</pre>
+                  }
+                </div>
+              </div>
+
+              <div class="flex gap-1">
+                @if (backup.status == 'completed') {
+                <p-button icon="pi pi-download" pTooltip="Download export" (click)="downloadBackup(backup)" text />
+                }
+                <p-button icon="pi pi-trash" pTooltip="Trash export" severity="danger" (click)="deleteBackup(backup)"
+                  text />
+              </div>
+            </div>
+            } @empty {
+            <div class="col-span-full flex flex-col items-center justify-center mt-4 text-center select-none">
+              <i style="font-size: 3rem" class="pi pi-inbox mb-2 text-gray-300 dark:text-gray-700"></i>
+              <p class="text-sm text-gray-500 dark:text-gray-400">No backup</p>
+            </div>
+            }
+          </section>
         </p-tabpanel>
       </p-tabpanels>
     </p-tabs>

@@ -1,5 +1,5 @@
 import { AfterViewInit, Component, OnInit } from '@angular/core';
-import { combineLatest, debounceTime, take, tap } from 'rxjs';
+import { combineLatest, debounceTime, interval, take, takeWhile, tap } from 'rxjs';
 import { Place, Category } from '../../types/poi';
 import { ApiService } from '../../services/api.service';
 import { PlaceBoxComponent } from '../../shared/place-box/place-box.component';
@@ -23,7 +23,7 @@ import { Router } from '@angular/router';
 import { SelectModule } from 'primeng/select';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { TooltipModule } from 'primeng/tooltip';
-import { Settings } from '../../types/settings';
+import { Backup, Settings } from '../../types/settings';
 import { SelectItemGroup } from 'primeng/api';
 import { YesNoModalComponent } from '../../modals/yes-no-modal/yes-no-modal.component';
 import { CategoryCreateModalComponent } from '../../modals/category-create-modal/category-create-modal.component';
@@ -31,6 +31,7 @@ import { AuthService } from '../../services/auth.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PlaceGPXComponent } from '../../shared/place-gpx/place-gpx.component';
 import { CommonModule } from '@angular/common';
+import { FileSizePipe } from '../../shared/filesize.pipe';
 
 export interface ContextMenuItem {
   text: string;
@@ -65,6 +66,7 @@ export interface MarkerOptions extends L.MarkerOptions {
     TabsModule,
     ButtonModule,
     CommonModule,
+    FileSizePipe,
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
@@ -80,6 +82,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   viewFilters = false;
   viewMarkersList = false;
   viewMarkersListSearch = false;
+  tabsIndex: number = 0;
+  backups: Backup[] = [];
+  refreshBackups = false;
 
   settingsForm: FormGroup;
   hoveredElement?: HTMLElement;
@@ -528,6 +533,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.viewSettings = !this.viewSettings;
     if (!this.viewSettings || !this.settings) return;
 
+    this.apiService
+      .getBackups()
+      .pipe(take(1))
+      .subscribe({
+        next: (backups) => (this.backups = backups),
+      });
+
     this.settingsForm.reset(this.settings);
     this.doNotDisplayOptions = [
       {
@@ -595,21 +607,61 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       });
   }
 
-  exportData(): void {
+  getBackups() {
     this.apiService
-      .settingsUserExport()
+      .getBackups()
       .pipe(take(1))
-      .subscribe((resp: Object) => {
-        const dataBlob = new Blob([JSON.stringify(resp, null, 2)], {
-          type: 'application/json',
-        });
-        const downloadURL = URL.createObjectURL(dataBlob);
-        const link = document.createElement('a');
-        link.href = downloadURL;
-        link.download = `TRIP_backup_${new Date().toISOString().split('T')[0]}.json`;
-        link.click();
-        link.remove();
-        URL.revokeObjectURL(downloadURL);
+      .subscribe({
+        next: (backups) => {
+          this.backups = backups;
+          this.refreshBackups = backups.some((b) => b.status === 'pending' || b.status === 'processing');
+        },
+      });
+  }
+
+  createBackup() {
+    this.apiService
+      .createBackup()
+      .pipe(take(1))
+      .subscribe((backup) => {
+        this.backups = [...this.backups, backup];
+      });
+
+    this.refreshBackups = true;
+    interval(1000)
+      .pipe(takeWhile(() => this.refreshBackups))
+      .subscribe(() => {
+        this.getBackups();
+      });
+  }
+
+  downloadBackup(backup: Backup) {
+    this.apiService
+      .downloadBackup(backup.id)
+      .pipe(take(1))
+      .subscribe({
+        next: (data) => {
+          const blob = new Blob([data], { type: 'application/zip' });
+          const url = window.URL.createObjectURL(blob);
+          const anchor = document.createElement('a');
+          anchor.download = backup.filename!;
+          anchor.href = url;
+
+          document.body.appendChild(anchor);
+          anchor.click();
+
+          document.body.removeChild(anchor);
+          window.URL.revokeObjectURL(url);
+        },
+      });
+  }
+
+  deleteBackup(backup: Backup) {
+    this.apiService
+      .deleteBackup(backup.id)
+      .pipe(take(1))
+      .subscribe({
+        next: () => (this.backups = this.backups.filter((b) => b.id != backup.id)),
       });
   }
 
