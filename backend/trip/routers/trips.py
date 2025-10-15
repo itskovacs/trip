@@ -1,13 +1,15 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi.responses import FileResponse
 from sqlalchemy import update
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
 from ..config import settings
 from ..deps import SessionDep, get_current_username
-from ..models.models import (Image, Place, Trip, TripChecklistItem,
+from ..models.models import (Image, Place, Trip, TripAttachment,
+                             TripAttachmentRead, TripChecklistItem,
                              TripChecklistItemCreate, TripChecklistItemRead,
                              TripChecklistItemUpdate, TripCreate, TripDay,
                              TripDayBase, TripDayRead, TripInvitationRead,
@@ -18,7 +20,8 @@ from ..models.models import (Image, Place, Trip, TripChecklistItem,
                              TripPackingListItemRead,
                              TripPackingListItemUpdate, TripRead, TripReadBase,
                              TripShare, TripShareURL, TripUpdate, User)
-from ..utils.utils import (b64img_decode, generate_urlsafe, remove_image,
+from ..utils.utils import (attachments_trip_folder_path, b64img_decode,
+                           generate_urlsafe, save_attachment,
                            save_image_to_file, utc_now)
 
 router = APIRouter(prefix="/api/trips", tags=["trips"])
@@ -190,7 +193,6 @@ def update_trip(
         if db_trip.image_id:
             old_image = session.get(Image, db_trip.image_id)
             try:
-                remove_image(old_image.filename)
                 session.delete(old_image)
                 db_trip.image_id = None
                 session.refresh(db_trip)
@@ -239,7 +241,6 @@ def delete_trip(
 
     if db_trip.image:
         try:
-            remove_image(db_trip.image.filename)
             session.delete(db_trip.image)
         except Exception:
             raise HTTPException(
@@ -329,9 +330,9 @@ def update_tripday(
 
 @router.delete("/{trip_id}/days/{day_id}")
 def delete_tripday(
-    session: SessionDep,
     trip_id: int,
     day_id: int,
+    session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
     db_trip = _get_verified_trip(session, trip_id, current_user)
@@ -452,7 +453,6 @@ def update_tripitem(
             if db_item.image_id:
                 old_image = session.get(Image, db_item.image_id)
                 try:
-                    remove_image(old_image.filename)
                     session.delete(old_image)
                     db_item.image_id = None
                     session.refresh(db_item)
@@ -465,7 +465,6 @@ def update_tripitem(
             if getattr(db_item, "image_id", None):
                 old_image = session.get(Image, db_item.image_id)
                 try:
-                    remove_image(old_image.filename)
                     session.delete(old_image)
                     db_item.image_id = None
                     session.refresh(db_item)
@@ -501,10 +500,10 @@ def update_tripitem(
 
 @router.delete("/{trip_id}/days/{day_id}/items/{item_id}")
 def delete_tripitem(
-    session: SessionDep,
     trip_id: int,
     day_id: int,
     item_id: int,
+    session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
     db_trip = _get_verified_trip(session, trip_id, current_user)
@@ -617,7 +616,11 @@ def create_packing_item(
     data: TripPackingListItemCreate,
     current_user: Annotated[str, Depends(get_current_username)],
 ) -> TripPackingListItemRead:
-    _get_verified_trip(session, trip_id, current_user)
+    db_trip = _get_verified_trip(session, trip_id, current_user)
+
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
+
     item = TripPackingListItem(**data.model_dump(), trip_id=trip_id)
     session.add(item)
     session.commit()
@@ -633,7 +636,11 @@ def update_packing_item(
     p_id: int,
     current_user: Annotated[str, Depends(get_current_username)],
 ) -> TripPackingListItemRead:
-    _get_verified_trip(session, trip_id, current_user)
+    db_trip = _get_verified_trip(session, trip_id, current_user)
+
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
+
     db_item = session.exec(
         select(TripPackingListItem).where(
             TripPackingListItem.id == p_id, TripPackingListItem.trip_id == trip_id
@@ -660,7 +667,11 @@ def delete_packing_item(
     p_id: int,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _get_verified_trip(session, trip_id, current_user)
+    db_trip = _get_verified_trip(session, trip_id, current_user)
+
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
+
     item = session.exec(
         select(TripPackingListItem).where(
             TripPackingListItem.id == p_id, TripPackingListItem.trip_id == trip_id
@@ -706,7 +717,11 @@ def create_checklist_item(
     data: TripChecklistItemCreate,
     current_user: Annotated[str, Depends(get_current_username)],
 ) -> TripChecklistItemRead:
-    _get_verified_trip(session, trip_id, current_user)
+    db_trip = _get_verified_trip(session, trip_id, current_user)
+
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
+
     item = TripChecklistItem(**data.model_dump(), trip_id=trip_id)
     session.add(item)
     session.commit()
@@ -722,7 +737,11 @@ def update_checklist_item(
     id: int,
     current_user: Annotated[str, Depends(get_current_username)],
 ) -> TripChecklistItemRead:
-    _get_verified_trip(session, trip_id, current_user)
+    db_trip = _get_verified_trip(session, trip_id, current_user)
+
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
+
     db_item = session.exec(
         select(TripChecklistItem).where(TripChecklistItem.id == id, TripChecklistItem.trip_id == trip_id)
     ).one_or_none()
@@ -747,7 +766,11 @@ def delete_checklist_item(
     id: int,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _get_verified_trip(session, trip_id, current_user)
+    db_trip = _get_verified_trip(session, trip_id, current_user)
+
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
+
     item = session.exec(
         select(TripChecklistItem).where(
             TripChecklistItem.id == id,
@@ -787,6 +810,9 @@ def invite_trip_member(
 ) -> TripMemberRead:
     db_trip = _get_verified_trip(session, trip_id, current_user)
 
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
+
     if db_trip.user == data.user:
         raise HTTPException(status_code=409, detail="The resource already exists")
 
@@ -820,6 +846,9 @@ def delete_trip_member(
     current_user: Annotated[str, Depends(get_current_username)],
 ):
     db_trip = _get_verified_trip(session, trip_id, current_user)
+
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
 
     if current_user == db_trip.user and current_user == username:
         raise HTTPException(status_code=400, detail="Bad request")
@@ -882,5 +911,73 @@ def decline_invite(
     if db_member.joined_at:
         raise HTTPException(status_code=409, detail="Already a member")
     session.delete(db_member)
+    session.commit()
+    return {}
+
+
+@router.post("/{trip_id}/attachments", response_model=TripAttachmentRead)
+async def create_trip_attachment(
+    trip_id: int,
+    session: SessionDep,
+    current_user: Annotated[str, Depends(get_current_username)],
+    file: UploadFile = File(...),
+):
+    db_trip = _get_verified_trip(session, trip_id, current_user)
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
+
+    db_attachment = TripAttachment(
+        filename=file.filename,
+        content_type=file.content_type,
+        file_size=file.size,
+        uploaded_by=current_user,
+        trip_id=trip_id,
+    )
+    stored_filename = await save_attachment(trip_id, file)
+    if not stored_filename:
+        raise HTTPException(status_code=400, detail="Bad request")
+
+    db_attachment.stored_filename = stored_filename
+    session.add(db_attachment)
+    session.commit()
+    session.refresh(db_attachment)
+    return TripAttachmentRead.serialize(db_attachment)
+
+
+@router.get("/{trip_id}/attachments/{attachment_id}/download")
+async def download_trip_attachment(
+    session: SessionDep,
+    trip_id: int,
+    attachment_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+):
+    _get_verified_trip(session, trip_id, current_user)
+    attachment = session.get(TripAttachment, attachment_id)
+    if not attachment or attachment.trip_id != trip_id:
+        raise HTTPException(status_code=404, detail="Attachment not found")
+
+    file_path = attachments_trip_folder_path(trip_id) / attachment.stored_filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Attachment not found")
+
+    return FileResponse(path=file_path, filename=attachment.filename, media_type="application/pdf")
+
+
+@router.delete("/{trip_id}/attachments/{attachment_id}")
+async def delete_trip_attachment(
+    session: SessionDep,
+    trip_id: int,
+    attachment_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+):
+    db_trip = _get_verified_trip(session, trip_id, current_user)
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
+
+    attachment = session.get(TripAttachment, attachment_id)
+    if not attachment or attachment.trip_id != trip_id:
+        raise HTTPException(status_code=404, detail="Attachment not found")
+
+    session.delete(attachment)
     session.commit()
     return {}
