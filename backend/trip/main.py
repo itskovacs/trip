@@ -18,6 +18,7 @@ if not Path(settings.FRONTEND_FOLDER).is_dir():
     raise ValueError()
 
 Path(settings.ASSETS_FOLDER).mkdir(parents=True, exist_ok=True)
+Path(settings.ATTACHMENTS_FOLDER).mkdir(parents=True, exist_ok=True)
 
 
 @asynccontextmanager
