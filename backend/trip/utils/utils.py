@@ -6,7 +6,7 @@ from secrets import token_urlsafe
 from uuid import uuid4
 
 import httpx
-from fastapi import HTTPException
+from fastapi import HTTPException, UploadFile
 from PIL import Image
 
 from .. import __version__
@@ -27,8 +27,12 @@ def assets_folder_path() -> Path:
     return Path(settings.ASSETS_FOLDER)
 
 
-def b64e(data: bytes) -> bytes:
-    return base64.b64encode(data)
+def attachments_folder_path() -> Path:
+    return Path(settings.ATTACHMENTS_FOLDER)
+
+
+def attachments_trip_folder_path(trip_id: int | str) -> Path:
+    return attachments_folder_path() / str(trip_id)
 
 
 def b64img_decode(data: str) -> bytes:
@@ -37,15 +41,34 @@ def b64img_decode(data: str) -> bytes:
     )
 
 
-def remove_image(path: str):
+def remove_attachment(trip_id: int, filename: str):
     try:
-        fpath = Path(assets_folder_path() / path)
-        if not fpath.exists():
-            # Skips missing file
+        att_fp = attachments_trip_folder_path(trip_id) / filename
+        if not att_fp.exists():
             return
-        fpath.unlink()
-    except OSError as exc:
-        raise Exception("Error deleting image:", exc, path)
+        att_fp.unlink()
+    except OSError:
+        pass
+
+
+def remove_backup(filename: str):
+    try:
+        backup_fp = Path(settings.BACKUPS_FOLDER) / filename
+        if not backup_fp.exists():
+            return
+        backup_fp.unlink()
+    except OSError:
+        pass
+
+
+def remove_image(filename: str):
+    try:
+        image_fp = assets_folder_path() / filename
+        if not image_fp.exists():
+            return
+        image_fp.unlink()
+    except OSError:
+        pass
 
 
 def utc_now():
@@ -185,5 +208,26 @@ def save_image_to_file(content: bytes, size: int = 600) -> str:
             return filename
 
     except Exception:
-        ...
+        if filepath.exists():
+            filepath.unlink()
+    return ""
+
+
+async def save_attachment(trip_id: int, file: UploadFile) -> str:
+    if file.content_type != "application/pdf":
+        raise ValueError("Unsupported attachment format")
+
+    if file.size > settings.ATTACHMENT_MAX_SIZE:
+        raise ValueError("File size is above ATTACHMENT_MAX_SIZE")
+
+    filename = generate_filename("pdf")
+    filepath = attachments_trip_folder_path(trip_id) / filename
+    try:
+        with open(filepath, "wb") as buf:
+            while chunk := await file.read(8192):
+                buf.write(chunk)
+        return filename
+    except Exception:
+        if filepath.exists():
+            filepath.unlink()
     return ""
