@@ -14,6 +14,7 @@ import { TextareaModule } from 'primeng/textarea';
 })
 export class TripNotesModalComponent {
   notes = new FormControl('');
+  isArchived = false;
   isEditing: boolean = false;
 
   constructor(
@@ -21,7 +22,8 @@ export class TripNotesModalComponent {
     private config: DynamicDialogConfig,
   ) {
     if (this.config.data) {
-      this.notes.setValue(this.config.data);
+      if (this.config.data.notes) this.notes.setValue(this.config.data.notes);
+      this.isArchived = this.config.data.archived;
     }
   }
 

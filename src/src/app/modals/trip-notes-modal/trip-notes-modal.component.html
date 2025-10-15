@@ -24,7 +24,7 @@
     <p-button (click)="closeDialog()" [disabled]="notes.pristine" label="Confirm" />
     } @else {
     <div></div>
-    <p-button text label="Edit" icon="pi pi-pencil" (click)="toggleEditing()" />
+    <p-button text label="Edit" [disabled]="isArchived" icon="pi pi-pencil" (click)="toggleEditing()" />
     }
   </div>
 </section>
