@@ -10,7 +10,7 @@ from ..models.models import (Category, Image, Place, PlaceCreate, PlaceRead,
                              PlacesCreate, PlaceUpdate)
 from ..security import verify_exists_and_owns
 from ..utils.utils import (b64img_decode, download_file, patch_image,
-                           remove_image, save_image_to_file)
+                           save_image_to_file)
 
 router = APIRouter(prefix="/api/places", tags=["places"])
 
@@ -140,7 +140,6 @@ def update_place(
         if db_place.image_id:
             old_image = session.get(Image, db_place.image_id)
             try:
-                remove_image(old_image.filename)
                 session.delete(old_image)
                 db_place.image_id = None
                 session.refresh(db_place)
@@ -167,7 +166,6 @@ def delete_place(
 
     if db_place.image:
         try:
-            remove_image(db_place.image.filename)
             session.delete(db_place.image)
         except Exception:
             raise HTTPException(
