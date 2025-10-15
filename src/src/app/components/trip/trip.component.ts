@@ -1,4 +1,4 @@
-import { AfterViewInit, Component } from '@angular/core';
+import { AfterViewInit, Component, ViewChild } from '@angular/core';
 import { ApiService } from '../../services/api.service';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -17,6 +17,7 @@ import {
   PackingItem,
   ChecklistItem,
   TripMember,
+  TripAttachment,
 } from '../../types/trip';
 import { Place } from '../../types/poi';
 import { createMap, placeToMarker, createClusterGroup, tripDayMarker, gpxToPolyline } from '../../shared/map';
@@ -32,7 +33,7 @@ import { UtilsService } from '../../services/utils.service';
 import { TripCreateModalComponent } from '../../modals/trip-create-modal/trip-create-modal.component';
 import { AsyncPipe, CommonModule, DecimalPipe } from '@angular/common';
 import { MenuItem } from 'primeng/api';
-import { MenuModule } from 'primeng/menu';
+import { Menu, MenuModule } from 'primeng/menu';
 import { LinkifyPipe } from '../../shared/linkify.pipe';
 import { PlaceCreateModalComponent } from '../../modals/place-create-modal/place-create-modal.component';
 import { Settings } from '../../types/settings';
@@ -49,6 +50,7 @@ import { calculateDistanceBetween } from '../../shared/haversine';
 import { orderByPipe } from '../../shared/order-by.pipe';
 import { TripNotesModalComponent } from '../../modals/trip-notes-modal/trip-notes-modal.component';
 import { TripArchiveModalComponent } from '../../modals/trip-archive-modal/trip-archive-modal.component';
+import { FileSizePipe } from '../../shared/filesize.pipe';
 
 @Component({
   selector: 'app-trip',
@@ -72,11 +74,13 @@ import { TripArchiveModalComponent } from '../../modals/trip-archive-modal/trip-
     MultiSelectModule,
     CheckboxModule,
     orderByPipe,
+    FileSizePipe,
   ],
   templateUrl: './trip.component.html',
   styleUrls: ['./trip.component.scss'],
 })
 export class TripComponent implements AfterViewInit {
+  @ViewChild('menuTripActions') menuTripActions!: Menu;
   tripSharedURL$?: Observable<string>;
   statuses: TripStatus[] = [];
   trip?: Trip;
@@ -87,21 +91,22 @@ export class TripComponent implements AfterViewInit {
   isPrinting = false;
   isArchivalReviewDisplayed = false;
 
+  totalPrice = 0;
   isMapFullscreen = false;
   isMapFullscreenDays = false;
-  totalPrice = 0;
-  collapsedTripDays = false;
-  collapsedTripPlaces = false;
-  shareDialogVisible = false;
-  packingDialogVisible = false;
+  isCollapsedTripDays = false;
+  isCollapsedTripPlaces = false;
+  isShareDialogVisible = false;
+  isPackingDialogVisible = false;
+  isMembersDialogVisible = false;
+  isAttachmentsDialogVisible = false;
+  isChecklistDialogVisible = false;
   isExpanded = false;
   isFilteringMode = false;
   packingList: PackingItem[] = [];
   dispPackingList: Record<string, PackingItem[]> = {};
-  checklistDialogVisible = false;
   checklistItems: ChecklistItem[] = [];
   dispchecklist: ChecklistItem[] = [];
-  membersDialogVisible = false;
   tripMembers: TripMember[] = [];
 
   map?: L.Map;
@@ -112,86 +117,7 @@ export class TripComponent implements AfterViewInit {
   tripMapAntLayer?: L.FeatureGroup;
   tripMapAntLayerDayID?: number;
 
-  readonly menuTripActionsItems: MenuItem[] = [
-    {
-      label: 'Lists',
-      items: [
-        {
-          label: 'Checklist',
-          icon: 'pi pi-list-check',
-          command: () => {
-            this.openChecklist();
-          },
-        },
-        {
-          label: 'Packing list',
-          icon: 'pi pi-briefcase',
-          command: () => {
-            this.openPackingList();
-          },
-        },
-      ],
-    },
-    {
-      label: 'Collaboration',
-      items: [
-        {
-          label: 'Members',
-          icon: 'pi pi-users',
-          command: () => {
-            this.openMembersDialog();
-          },
-        },
-        {
-          label: 'Share',
-          icon: 'pi pi-share-alt',
-          command: () => {
-            this.shareDialogVisible = true;
-          },
-        },
-      ],
-    },
-    {
-      label: 'Trip',
-      items: [
-        {
-          label: 'Pretty Print',
-          icon: 'pi pi-print',
-          command: () => {
-            this.togglePrint();
-          },
-        },
-        {
-          label: 'Notes',
-          icon: 'pi pi-info-circle',
-          command: () => {
-            this.openTripNotesModal();
-          },
-        },
-        {
-          label: 'Archive',
-          icon: 'pi pi-box',
-          command: () => {
-            this.openArchiveTripModal();
-          },
-        },
-        {
-          label: 'Edit',
-          icon: 'pi pi-pencil',
-          command: () => {
-            this.editTrip();
-          },
-        },
-        {
-          label: 'Delete',
-          icon: 'pi pi-trash',
-          command: () => {
-            this.deleteTrip();
-          },
-        },
-      ],
-    },
-  ];
+  menuTripActionsItems: MenuItem[] = [];
   readonly menuTripTableActionsItems: MenuItem[] = [
     {
       label: 'Actions',
@@ -913,6 +839,12 @@ export class TripComponent implements AfterViewInit {
     });
   }
 
+  toggleArchiveTrip() {
+    if (!this.trip) return;
+    if (this.trip.archived) this.openUnarchiveTripModal();
+    else this.openArchiveTripModal();
+  }
+
   openArchiveTripModal() {
     if (!this.trip) return;
     const currentArchiveStatus = this.trip?.archived;
@@ -1455,7 +1387,7 @@ export class TripComponent implements AfterViewInit {
           .subscribe({
             next: () => {
               this.trip!.shared = false;
-              this.shareDialogVisible = false;
+              this.isShareDialogVisible = false;
             },
           });
       },
@@ -1481,7 +1413,7 @@ export class TripComponent implements AfterViewInit {
             label: `Quick Paste (${this.utilsService.packingListToCopy.length})`,
             icon: 'pi pi-copy',
             command: () => this.pastePackingList(),
-            disabled: !this.utilsService.packingListToCopy.length,
+            disabled: this.trip?.archived || !this.utilsService.packingListToCopy.length,
           },
         ],
       },
@@ -1501,7 +1433,7 @@ export class TripComponent implements AfterViewInit {
             this.computeDispPackingList();
           },
         });
-    this.packingDialogVisible = true;
+    this.isPackingDialogVisible = true;
   }
 
   addPackingItem() {
@@ -1677,7 +1609,7 @@ export class TripComponent implements AfterViewInit {
             this.computeDispChecklistList();
           },
         });
-    this.checklistDialogVisible = true;
+    this.isChecklistDialogVisible = true;
   }
 
   addChecklistItem() {
@@ -1784,7 +1716,7 @@ export class TripComponent implements AfterViewInit {
         },
       });
     setTimeout(() => {
-      this.membersDialogVisible = true;
+      this.isMembersDialogVisible = true;
     }, 100);
   }
 
@@ -1874,7 +1806,7 @@ export class TripComponent implements AfterViewInit {
         '1024px': '70vw',
         '640px': '90vw',
       },
-      data: this.trip?.notes,
+      data: this.trip,
     })!;
 
     modal.onClose.pipe(take(1)).subscribe({
@@ -1888,5 +1820,153 @@ export class TripComponent implements AfterViewInit {
           });
       },
     });
+  }
+
+  openMenuTripActionsItems(event: any) {
+    const lists = {
+      label: 'Lists',
+      items: [
+        {
+          label: 'Attachments',
+          icon: 'pi pi-paperclip',
+          command: () => {
+            this.openAttachmentsModal();
+          },
+        },
+        {
+          label: 'Checklist',
+          icon: 'pi pi-list-check',
+          command: () => {
+            this.openChecklist();
+          },
+        },
+        {
+          label: 'Packing list',
+          icon: 'pi pi-briefcase',
+          command: () => {
+            this.openPackingList();
+          },
+        },
+      ],
+    };
+    const collaboration = {
+      label: 'Collaboration',
+      items: [
+        {
+          label: 'Members',
+          icon: 'pi pi-users',
+          command: () => {
+            this.openMembersDialog();
+          },
+        },
+        {
+          label: 'Share',
+          icon: 'pi pi-share-alt',
+          command: () => {
+            this.isShareDialogVisible = true;
+          },
+        },
+      ],
+    };
+    const actions = {
+      label: 'Trip',
+      items: [
+        {
+          label: 'Pretty Print',
+          icon: 'pi pi-print',
+          command: () => {
+            this.togglePrint();
+          },
+        },
+        {
+          label: 'Notes',
+          icon: 'pi pi-info-circle',
+          command: () => {
+            this.openTripNotesModal();
+          },
+        },
+        {
+          label: this.trip?.archived ? 'Unarchive' : 'Archive',
+          icon: 'pi pi-box',
+          command: () => {
+            this.toggleArchiveTrip();
+          },
+        },
+        {
+          label: 'Edit',
+          icon: 'pi pi-pencil',
+          disabled: this.trip?.archived,
+          command: () => {
+            this.editTrip();
+          },
+        },
+        {
+          label: 'Delete',
+          icon: 'pi pi-trash',
+          disabled: this.trip?.archived,
+          command: () => {
+            this.deleteTrip();
+          },
+        },
+      ],
+    };
+
+    this.menuTripActionsItems = [lists, collaboration, actions];
+    this.menuTripActions.toggle(event);
+  }
+
+  openAttachmentsModal() {
+    if (!this.trip) return;
+    this.isAttachmentsDialogVisible = true;
+  }
+
+  onFileUploadInputChange(event: Event) {
+    if (!this.trip) return;
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+
+    const formdata = new FormData();
+    formdata.append('file', input.files[0]);
+
+    this.apiService
+      .postTripAttachment(this.trip?.id, formdata)
+      .pipe(take(1))
+      .subscribe({
+        next: (attachment) => (this.trip!.attachments = [...this.trip!.attachments!, attachment]),
+      });
+  }
+
+  downloadAttachment(attachment: TripAttachment) {
+    if (!this.trip) return;
+    this.apiService
+      .downloadTripAttachment(this.trip.id, attachment.id)
+      .pipe(take(1))
+      .subscribe({
+        next: (data) => {
+          const blob = new Blob([data], { type: 'application/pdf' });
+          const url = window.URL.createObjectURL(blob);
+          const anchor = document.createElement('a');
+          anchor.download = attachment.filename;
+          anchor.href = url;
+
+          document.body.appendChild(anchor);
+          anchor.click();
+
+          document.body.removeChild(anchor);
+          window.URL.revokeObjectURL(url);
+        },
+      });
+  }
+
+  deleteAttachment(attachmentId: number) {
+    if (!this.trip) return;
+    this.apiService
+      .deleteTripAttachment(this.trip.id, attachmentId)
+      .pipe(take(1))
+      .subscribe({
+        next: () => {
+          this.trip!.attachments = this.trip?.attachments?.filter((att) => att.id != attachmentId);
+        },
+      });
   }
 }
