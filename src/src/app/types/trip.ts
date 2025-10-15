@@ -22,11 +22,19 @@ export interface Trip {
   currency: string;
   notes?: string;
   archival_review?: string;
+  attachments?: TripAttachment[];
 
   // POST / PUT
   places: Place[];
   place_ids: number[];
   shared?: boolean;
+}
+
+export interface TripAttachment {
+  id: number;
+  filename: string;
+  file_size: number;
+  uploaded_by: string;
 }
 
 export interface TripDay {

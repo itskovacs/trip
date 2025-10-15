@@ -17,3 +17,14 @@ export interface ImportResponse {
   categories: Category[];
   settings: Settings;
 }
+
+export interface Backup {
+  id: number;
+  status: string;
+  user: string;
+  filename?: string;
+  file_size?: number;
+  completed_at?: string;
+  created_at?: string;
+  error_message?: string;
+}
