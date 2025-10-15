@@ -6,6 +6,8 @@ import { FloatLabelModule } from 'primeng/floatlabel';
 import { InputTextModule } from 'primeng/inputtext';
 import { FocusTrapModule } from 'primeng/focustrap';
 import { DatePickerModule } from 'primeng/datepicker';
+import { ApiService } from '../../services/api.service';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-trip-create-modal',
@@ -23,6 +25,7 @@ export class TripCreateModalComponent {
     private ref: DynamicDialogRef,
     private fb: FormBuilder,
     private config: DynamicDialogConfig,
+    private apiService: ApiService,
   ) {
     this.tripForm = this.fb.group({
       id: -1,
@@ -38,6 +41,13 @@ export class TripCreateModalComponent {
     if (patchValue) {
       if (!patchValue.image_id) delete patchValue['image'];
       this.tripForm.patchValue(patchValue);
+    } else {
+      this.apiService
+        .getSettings()
+        .pipe(take(1))
+        .subscribe({
+          next: (settings) => this.tripForm.get('currency')?.setValue(settings.currency),
+        });
     }
   }
 
