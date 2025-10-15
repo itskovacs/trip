@@ -37,13 +37,8 @@ export const Interceptor = (req: HttpRequest<unknown>, next: HttpHandlerFn): Obs
     return next(req);
   }
 
-  if (!req.headers.has('enctype') && !req.headers.has('Content-Type')) {
-    req = req.clone({
-      setHeaders: {
-        'Content-Type': 'application/json',
-        'Accept-Language': 'en-US;q=0.9,en-US,en;q=0.8',
-      },
-    });
+  if (!(req.body instanceof FormData) && !req.headers.has('Content-Type')) {
+    req = req.clone({ setHeaders: { 'Content-Type': 'application/json' } });
   }
 
   if (authService.accessToken && !authService.isTokenExpired(authService.accessToken)) {
