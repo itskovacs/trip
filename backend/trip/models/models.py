@@ -4,10 +4,12 @@ from enum import Enum
 from typing import Annotated
 
 from pydantic import BaseModel, StringConstraints, field_validator
-from sqlalchemy import Index, MetaData
+from sqlalchemy import Index, MetaData, event
+from sqlalchemy.orm import Session, object_session
 from sqlmodel import Field, Relationship, SQLModel
 
 from ..config import settings
+from ..utils.utils import remove_attachment, remove_backup, remove_image
 
 convention = {
     "ix": "ix_%(column_0_label)s",
@@ -18,6 +20,24 @@ convention = {
 }
 
 SQLModel.metadata = MetaData(naming_convention=convention)
+
+
+@event.listens_for(Session, "after_commit")
+def cleanup_after_commit(session):
+    if hasattr(session, "_images_to_delete"):
+        for filename in session._images_to_delete:
+            remove_image(filename)
+        delattr(session, "_images_to_delete")
+
+    if hasattr(session, "_attachments_to_delete"):
+        for attachment in session._attachments_to_delete:
+            remove_attachment(attachment.trip_id, attachment.stored_filename)
+        delattr(session, "_attachments_to_delete")
+
+    if hasattr(session, "_backups_to_delete"):
+        for filename in session._backups_to_delete:
+            remove_backup(filename)
+        delattr(session, "_backups_to_delete")
 
 
 def _prefix_assets_url(filename: str) -> str:
@@ -45,6 +65,13 @@ class PackingListCategoryEnum(str, Enum):
     TECH = "tech"
     DOCUMENTS = "documents"
     OTHER = "other"
+
+
+class BackupStatus(str, Enum):
+    PENDING = "pending"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
 
 
 class TripShareURL(BaseModel):
@@ -76,6 +103,60 @@ class Image(ImageBase, table=True):
     places: list["Place"] = Relationship(back_populates="image")
     trips: list["Trip"] = Relationship(back_populates="image")
     tripitems: list["TripItem"] = Relationship(back_populates="image")
+
+
+@event.listens_for(Image, "after_delete")
+def mark_image_for_deletion(mapper, connection, target: Image):
+    session = object_session(target)
+    if not session:
+        return
+    if not hasattr(session, "_images_to_delete"):
+        session._images_to_delete = []
+    session._images_to_delete.append(target.filename)
+
+
+class BackupBase(SQLModel):
+    completed_at: datetime | None = None
+    filename: str | None = None
+    error_message: str | None = None
+    file_size: int | None = None
+
+
+class Backup(BackupBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    user: str = Field(foreign_key="user.username", ondelete="CASCADE")
+    status: BackupStatus = Field(default=BackupStatus.PENDING)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+
+
+@event.listens_for(Backup, "after_delete")
+def mark_backup_for_deletion(mapper, connection, target: Backup):
+    session = object_session(target)
+    if not session:
+        return
+    if not hasattr(session, "_backups_to_delete"):
+        session._backups_to_delete = []
+    session._backups_to_delete.append(target.filename)
+
+
+class BackupRead(BackupBase):
+    id: int
+    created_at: datetime
+    status: str
+    user: str
+
+    @classmethod
+    def serialize(cls, obj: Backup) -> "BackupRead":
+        return cls(
+            id=obj.id,
+            completed_at=obj.completed_at,
+            created_at=obj.created_at,
+            error_message=obj.error_message,
+            filename=obj.filename,
+            file_size=obj.file_size,
+            status=obj.status,
+            user=obj.user,
+        )
 
 
 class UserBase(SQLModel):
@@ -259,10 +340,10 @@ class TripBase(SQLModel):
 
 class Trip(TripBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    image_id: int | None = Field(default=None, foreign_key="image.id", ondelete="CASCADE")
-    image: Image | None = Relationship(back_populates="trips")
     user: str = Field(foreign_key="user.username", ondelete="CASCADE", index=True)
+    image_id: int | None = Field(default=None, foreign_key="image.id", ondelete="CASCADE")
 
+    image: Image | None = Relationship(back_populates="trips")
     places: list["Place"] = Relationship(
         back_populates="trips", sa_relationship_kwargs={"order_by": "Place.name"}, link_model=TripPlaceLink
     )
@@ -273,6 +354,7 @@ class Trip(TripBase, table=True):
     packing_items: list["TripPackingListItem"] = Relationship(back_populates="trip", cascade_delete=True)
     checklist_items: list["TripChecklistItem"] = Relationship(back_populates="trip", cascade_delete=True)
     memberships: list["TripMember"] = Relationship(back_populates="trip", cascade_delete=True)
+    attachments: list["TripAttachment"] = Relationship(back_populates="trip", cascade_delete=True)
 
 
 class TripCreate(TripBase):
@@ -315,6 +397,7 @@ class TripRead(TripBase):
     places: list["PlaceRead"]
     collaborators: list["TripMemberRead"]
     shared: bool
+    attachments: list["TripAttachmentRead"]
 
     @classmethod
     def serialize(cls, obj: Trip) -> "TripRead":
@@ -331,6 +414,7 @@ class TripRead(TripBase):
             currency=obj.currency if obj.currency else settings.DEFAULT_CURRENCY,
             notes=obj.notes,
             archival_review=obj.archival_review,
+            attachments=[TripAttachmentRead.serialize(att) for att in obj.attachments],
         )
 
 
@@ -547,3 +631,40 @@ class TripChecklistItemRead(TripChecklistItemBase):
             text=obj.text,
             checked=obj.checked,
         )
+
+
+class TripAttachmentBase(SQLModel):
+    filename: str
+    file_size: int
+
+
+class TripAttachment(TripAttachmentBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    uploaded_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    uploaded_by: str = Field(foreign_key="user.username", ondelete="CASCADE")
+    stored_filename: str
+
+    trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE", index=True)
+    trip: Trip | None = Relationship(back_populates="attachments")
+
+
+@event.listens_for(TripAttachment, "after_delete")
+def mark_attachment_for_deletion(mapper, connection, target: TripAttachment):
+    session = object_session(target)
+    if not session:
+        return
+    if not hasattr(session, "_attachments_to_delete"):
+        session._attachments_to_delete = []
+    session._attachments_to_delete.append(target)
+
+
+class TripAttachmentCreate(TripAttachmentBase): ...
+
+
+class TripAttachmentRead(TripAttachmentBase):
+    id: int
+    uploaded_by: str
+
+    @classmethod
+    def serialize(cls, obj: TripAttachment) -> "TripAttachmentRead":
+        return cls(id=obj.id, filename=obj.filename, file_size=obj.file_size, uploaded_by=obj.uploaded_by)
