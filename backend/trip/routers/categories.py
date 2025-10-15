@@ -9,7 +9,7 @@ from ..deps import SessionDep, get_current_username
 from ..models.models import (Category, CategoryCreate, CategoryRead,
                              CategoryUpdate, Image, Place)
 from ..security import verify_exists_and_owns
-from ..utils.utils import b64img_decode, remove_image, save_image_to_file
+from ..utils.utils import b64img_decode, save_image_to_file
 
 router = APIRouter(prefix="/api/categories", tags=["categories"])
 
@@ -80,7 +80,6 @@ def update_category(
         if db_category.image_id:
             old_image = session.get(Image, db_category.image_id)
             try:
-                remove_image(old_image.filename)
                 session.delete(old_image)
                 db_category.image_id = None
                 session.refresh(db_category)
@@ -116,7 +115,6 @@ def delete_category(
 
     if db_category.image:
         try:
-            remove_image(db_category.image.filename)
             session.delete(db_category.image)
         except Exception:
             raise HTTPException(
