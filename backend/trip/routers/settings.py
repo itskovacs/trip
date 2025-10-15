@@ -1,19 +1,24 @@
 import json
-from datetime import datetime
 from pathlib import Path
 from typing import Annotated
+from zipfile import ZIP_DEFLATED, ZipFile
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import (APIRouter, BackgroundTasks, Depends, File, HTTPException,
+                     UploadFile)
+from fastapi.responses import FileResponse
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
+from .. import __version__ as trip_version
 from ..config import settings
 from ..deps import SessionDep, get_current_username
-from ..models.models import (Category, CategoryRead, Image, Place, PlaceRead,
-                             Trip, TripDay, TripItem, TripRead, User, UserRead,
+from ..models.models import (Backup, BackupRead, BackupStatus, Category,
+                             CategoryRead, Image, Place, PlaceRead, Trip,
+                             TripDay, TripItem, TripRead, User, UserRead,
                              UserUpdate)
-from ..utils.utils import (b64e, b64img_decode, check_update, remove_image,
-                           save_image_to_file)
+from ..utils.utils import (assets_folder_path, attachments_trip_folder_path,
+                           b64img_decode, check_update, save_image_to_file,
+                           utc_now)
 
 router = APIRouter(prefix="/api/settings", tags=["settings"])
 
@@ -52,52 +57,156 @@ async def check_version(session: SessionDep, current_user: Annotated[str, Depend
     return await check_update()
 
 
-@router.get("/export")
-def export_data(session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]):
-    trips_query = (
-        select(Trip)
-        .where(Trip.user == current_user)
-        .options(
-            selectinload(Trip.days)
-            .selectinload(TripDay.items)
-            .options(
-                selectinload(TripItem.place).selectinload(Place.category).selectinload(Category.image),
-                selectinload(TripItem.place).selectinload(Place.image),
-                selectinload(TripItem.image),
-            ),
-            selectinload(Trip.places).options(
-                selectinload(Place.category).selectinload(Category.image),
-                selectinload(Place.image),
-            ),
-            selectinload(Trip.image),
-            selectinload(Trip.memberships),
-            selectinload(Trip.shares),
+@router.post("/backups", response_model=BackupRead)
+def create_backup_export(
+    background_tasks: BackgroundTasks,
+    session: SessionDep,
+    current_user: Annotated[str, Depends(get_current_username)],
+) -> BackupRead:
+    db_backup = Backup(user=current_user)
+    session.add(db_backup)
+    session.commit()
+    session.refresh(db_backup)
+    background_tasks.add_task(_process_backup_task, session, db_backup.id)
+    return BackupRead.serialize(db_backup)
+
+
+@router.get("/backups", response_model=list[BackupRead])
+def read_backups(
+    session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]
+) -> list[BackupRead]:
+    db_backups = session.exec(select(Backup).where(Backup.user == current_user)).all()
+    return [BackupRead.serialize(backup) for backup in db_backups]
+
+
+@router.get("/backups/{backup_id}/download")
+def download_backup(
+    backup_id: int, session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]
+):
+    db_backup = session.exec(
+        select(Backup).where(
+            Backup.id == backup_id, Backup.user == current_user, Backup.status == BackupStatus.COMPLETED
         )
-    )
+    ).first()
+    if not db_backup or not db_backup.filename:
+        raise HTTPException(status_code=404, detail="Not found")
 
-    user_settings = UserRead.serialize(session.get(User, current_user))
-    categories = session.exec(select(Category).where(Category.user == current_user)).all()
-    places = session.exec(select(Place).where(Place.user == current_user)).all()
-    trips = session.exec(trips_query).all()
-    images = session.exec(select(Image).where(Image.user == current_user)).all()
+    file_path = Path(settings.BACKUPS_FOLDER) / db_backup.filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Not found")
 
-    data = {
-        "_": {"at": datetime.timestamp(datetime.now())},
-        "settings": user_settings,
-        "categories": [CategoryRead.serialize(c) for c in categories],
-        "places": [PlaceRead.serialize(place, exclude_gpx=False) for place in places],
-        "trips": [TripRead.serialize(t) for t in trips],
-        "images": {},
-    }
+    iso_date = db_backup.created_at.strftime("%Y-%m-%d")
+    filename = f"TRIP_{iso_date}_{current_user}_backup.zip"
+    return FileResponse(path=file_path, filename=filename, media_type="application/zip")
 
-    for im in images:
+
+def _process_backup_task(session: SessionDep, backup_id: int):
+    db_backup = session.get(Backup, backup_id)
+    if not db_backup:
+        return
+
+    try:
+        db_backup.status = BackupStatus.PROCESSING
+        session.commit()
+
+        trips_query = (
+            select(Trip)
+            .where(Trip.user == db_backup.user)
+            .options(
+                selectinload(Trip.days)
+                .selectinload(TripDay.items)
+                .options(
+                    selectinload(TripItem.place).selectinload(Place.category).selectinload(Category.image),
+                    selectinload(TripItem.place).selectinload(Place.image),
+                    selectinload(TripItem.image),
+                ),
+                selectinload(Trip.places).options(
+                    selectinload(Place.category).selectinload(Category.image),
+                    selectinload(Place.image),
+                ),
+                selectinload(Trip.image),
+                selectinload(Trip.memberships),
+                selectinload(Trip.shares),
+                selectinload(Trip.packing_items),
+                selectinload(Trip.checklist_items),
+                selectinload(Trip.attachments),
+            )
+        )
+
+        user_settings = UserRead.serialize(session.get(User, db_backup.user))
+        categories = session.exec(select(Category).where(Category.user == db_backup.user)).all()
+        places = session.exec(select(Place).where(Place.user == db_backup.user)).all()
+        trips = session.exec(trips_query).all()
+        images = session.exec(select(Image).where(Image.user == db_backup.user)).all()
+
+        backup_datetime = utc_now()
+        iso_date = backup_datetime.strftime("%Y-%m-%d")
+        filename = f"TRIP_{iso_date}_{db_backup.user}_backup.zip"
+        zip_fp = Path(settings.BACKUPS_FOLDER) / filename
+        Path(settings.BACKUPS_FOLDER).mkdir(parents=True, exist_ok=True)
+
+        with ZipFile(zip_fp, "w", ZIP_DEFLATED) as zipf:
+            data = {
+                "_": {
+                    "version": trip_version,
+                    "at": backup_datetime.isoformat(),
+                    "user": db_backup.user,
+                },
+                "settings": user_settings,
+                "categories": [CategoryRead.serialize(c) for c in categories],
+                "places": [PlaceRead.serialize(place, exclude_gpx=False) for place in places],
+                "trips": [TripRead.serialize(t) for t in trips],
+            }
+            zipf.writestr("data.json", json.dumps(data, ensure_ascii=False, indent=2, default=str))
+
+            for db_image in images:
+                try:
+                    filepath = assets_folder_path() / db_image.filename
+                    if filepath.exists() and filepath.is_file():
+                        zipf.write(filepath, f"images/{db_image.filename}")
+                except Exception:
+                    continue
+
+            for trip in trips:
+                if not trip.attachments:
+                    continue
+
+                for attachment in trip.attachments:
+                    try:
+                        filepath = attachments_trip_folder_path(trip.id) / attachment.stored_filename
+                        if filepath.exists() and filepath.is_file():
+                            zipf.write(filepath, f"attachments/{trip.id}/{attachment.stored_filename}")
+                    except Exception:
+                        continue
+
+        db_backup.file_size = zip_fp.stat().st_size
+        db_backup.status = BackupStatus.COMPLETED
+        db_backup.completed_at = utc_now()
+        db_backup.filename = filename
+        session.commit()
+    except Exception as exc:
+        db_backup.status = BackupStatus.FAILED
+        db_backup.error_message = str(exc)[:200]
+        session.commit()
+
         try:
-            with open(Path(settings.ASSETS_FOLDER) / im.filename, "rb") as f:
-                data["images"][im.id] = b64e(f.read())
-        except FileNotFoundError:
-            continue
+            if filepath.exists():
+                filepath.unlink()
+        except Exception:
+            pass
 
-    return data
+
+@router.delete("/backups/{backup_id}")
+async def delete_backup(
+    backup_id: int, session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]
+):
+    db_backup = session.get(Backup, backup_id)
+    if not db_backup.user == current_user:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    session.delete(db_backup)
+    session.commit()
+    return {}
 
 
 @router.post("/import")
@@ -147,7 +256,6 @@ async def import_data(
                     if category_exists.image_id:
                         old_image = session.get(Image, category_exists.image_id)
                         try:
-                            remove_image(old_image.filename)
                             session.delete(old_image)
                             category_exists.image_id = None
                             session.flush()
