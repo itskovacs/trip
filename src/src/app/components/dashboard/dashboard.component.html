@@ -176,7 +176,7 @@
           <i class="pi pi-th-large"></i><span class="font-bold whitespace-nowrap">Categories</span>
         </p-tab>
         <p-tab [value]="4" class="flex items-center gap-2">
-          <i class="pi pi-database"></i><span class="font-bold whitespace-nowrap">Data</span>
+          <i class="pi pi-database"></i><span class="font-bold whitespace-nowrap">Backups</span>
         </p-tab>
       </p-tablist>
       <p-tabpanels>
@@ -191,10 +191,9 @@
           </div>
 
           <div class="flex flex-col md:flex-row justify-center md:justify-start items-center gap-4 mt-8 md:mt-4">
-            <a href="https://ko-fi.com/itskovacs" target="_blank" class="custom-button flex items-center">Buy me
-              a
-              coffee</a>
-            <span class="text-center text-gray-400">Coffee and contributions are greatly appreciated!</span>
+            <a href="https://ko-fi.com/itskovacs" target="_blank" class="custom-button flex items-center">Support
+              TRIP ☕</a>
+            <span class="text-center text-gray-400">Support development through optional donations. Thank you!</span>
           </div>
 
           <div class="flex flex-col md:flex-row justify-center md:justify-start items-center gap-4 mt-8 md:mt-4">
@@ -401,8 +400,10 @@
                 @if (backup.status == 'completed') {
                 <p-button icon="pi pi-download" pTooltip="Download export" (click)="downloadBackup(backup)" text />
                 }
+                @if (['completed', 'failed'].includes(backup.status)) {
                 <p-button icon="pi pi-trash" pTooltip="Trash export" severity="danger" (click)="deleteBackup(backup)"
                   text />
+                }
               </div>
             </div>
             } @empty {
