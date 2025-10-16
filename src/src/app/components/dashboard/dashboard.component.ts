@@ -540,6 +540,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         next: (backups) => (this.backups = backups),
       });
 
+    this.tabsIndex = 0;
     this.settingsForm.reset(this.settings);
     this.doNotDisplayOptions = [
       {
