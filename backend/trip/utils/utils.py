@@ -32,7 +32,9 @@ def attachments_folder_path() -> Path:
 
 
 def attachments_trip_folder_path(trip_id: int | str) -> Path:
-    return attachments_folder_path() / str(trip_id)
+    path = attachments_folder_path() / str(trip_id)
+    path.mkdir(parents=True, exist_ok=True)
+    return path
 
 
 def b64img_decode(data: str) -> bytes:
@@ -52,6 +54,8 @@ def remove_attachment(trip_id: int, filename: str):
 
 
 def remove_backup(filename: str):
+    if not filename:
+        return
     try:
         backup_fp = Path(settings.BACKUPS_FOLDER) / filename
         if not backup_fp.exists():

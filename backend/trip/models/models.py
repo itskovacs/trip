@@ -636,13 +636,13 @@ class TripChecklistItemRead(TripChecklistItemBase):
 class TripAttachmentBase(SQLModel):
     filename: str
     file_size: int
+    stored_filename: str
 
 
 class TripAttachment(TripAttachmentBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     uploaded_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
     uploaded_by: str = Field(foreign_key="user.username", ondelete="CASCADE")
-    stored_filename: str
 
     trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE", index=True)
     trip: Trip | None = Relationship(back_populates="attachments")
@@ -667,4 +667,10 @@ class TripAttachmentRead(TripAttachmentBase):
 
     @classmethod
     def serialize(cls, obj: TripAttachment) -> "TripAttachmentRead":
-        return cls(id=obj.id, filename=obj.filename, file_size=obj.file_size, uploaded_by=obj.uploaded_by)
+        return cls(
+            id=obj.id,
+            filename=obj.filename,
+            file_size=obj.file_size,
+            uploaded_by=obj.uploaded_by,
+            stored_filename=obj.stored_filename,
+        )
