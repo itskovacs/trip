@@ -206,7 +206,7 @@
             <div [style.background]="tripitem.place.category.color + '1A'"
               class="inline-flex items-center gap-2 text-gray-800 font-medium px-1 py-1 pr-3 rounded-full">
               <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden flex-shrink-0">
-                <img [src]="tripitem.place.image" class="size-full object-cover" />
+                <img [src]="tripitem.place.image || tripitem.place.category.image" class="size-full object-cover" />
               </div>
               <span class="text-sm truncate min-w-0">{{ tripitem.place.name }}</span>
             </div>
@@ -671,11 +671,13 @@
       <div class="font-semibold tracking-tight text-md">Items with status</div>
       <div class="flex justify-center md:justify-end gap-1">
         @for (status of statuses; track status.label) {
+        @if (['pending', 'constraint'].includes(status.label)) {
         <div class="relative">
           <div class="z-50 block absolute top-0.5 left-1 size-2.5 rounded-full" [style.background]="status.color"></div>
           <span [style.background]="status.color+'1A'" [style.color]="status.color"
             class="text-xs md:text-sm font-medium me-2 px-2.5 py-1 rounded">{{ status.label }}</span>
         </div>
+        }
         }
       </div>
     </div>
@@ -862,7 +864,7 @@
             <div
               class="inline-flex items-center gap-2 bg-gray-100 text-gray-800 font-medium px-1 py-1 pr-3 rounded-full">
               <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden flex-shrink-0">
-                <img [src]="item.place.image" class="size-full object-cover" />
+                <img [src]="item.place.image || item.place.category.image" class="size-full object-cover" />
               </div>
               <span class="text-sm">{{ item.place.name }}</span>
             </div>
