@@ -266,7 +266,7 @@ export class ApiService {
   }
 
   settingsUserImport(formdata: FormData): Observable<ImportResponse> {
-    return this.httpClient.post<ImportResponse>(`${this.apiBaseUrl}/settings/import`, formdata).pipe(
+    return this.httpClient.post<ImportResponse>(`${this.apiBaseUrl}/settings/backups/import`, formdata).pipe(
       tap((resp) => {
         if (resp.categories) {
           this._categoriesSubjectNext(resp.categories);
@@ -300,8 +300,8 @@ export class ApiService {
     return this.httpClient.post<Backup>(`${this.apiBaseUrl}/settings/backups`, {});
   }
 
-  deleteBackup(backupId: number): Observable<Backup> {
-    return this.httpClient.delete<Backup>(`${this.apiBaseUrl}/settings/backups/${backupId}`);
+  deleteBackup(backupId: number): Observable<null> {
+    return this.httpClient.delete<null>(`${this.apiBaseUrl}/settings/backups/${backupId}`);
   }
 
   downloadBackup(backupId: number): Observable<Blob> {
