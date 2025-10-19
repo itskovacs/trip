@@ -12,13 +12,8 @@
   @if (tripForm.get("id")?.value === -1) {
   <div class="grid md:col-span-4 grid-cols-2 gap-2">
     <p-floatlabel variant="in">
-      <p-datepicker id="from" formControlName="from" [iconDisplay]="'input'" [showIcon]="true" appendTo="body" fluid />
-      <label for="from">From</label>
-    </p-floatlabel>
-
-    <p-floatlabel variant="in">
-      <p-datepicker id="to" formControlName="to" [iconDisplay]="'input'" [showIcon]="true" appendTo="body" fluid />
-      <label for="to">To</label>
+      <p-datepicker id="daterange" formControlName="daterange" [iconDisplay]="'input'" [showIcon]="true" selectionMode="range" appendTo="body" fluid />
+      <label for="daterange">Date Range</label>
     </p-floatlabel>
   </div>
   }
