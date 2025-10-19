@@ -12,8 +12,6 @@ import { DialogModule } from 'primeng/dialog';
 
 interface TripBaseWithDates extends TripBase {
   daterange?: Date[];
-  from?: Date;
-  to?: Date;
 }
 
 @Component({
@@ -83,9 +81,7 @@ export class TripsComponent implements OnInit {
             let dayCount = 0;
 
             if (trip.daterange && trip.daterange.length === 2) {
-              trip.to = new Date(trip.daterange[1]);
-              trip.from = new Date(trip.daterange[0]);
-              const obs$ = this.generateDaysLabel(trip.from!, trip.to!).map((label) =>
+              const obs$ = this.generateDaysLabel(trip.daterange).map((label) =>
                 this.apiService.postTripDay({ id: -1, label: label, items: [] }, new_trip.id),
               );
               dayCount = obs$.length;
@@ -110,7 +106,9 @@ export class TripsComponent implements OnInit {
     });
   }
 
-  generateDaysLabel(from: Date, to: Date): string[] {
+  generateDaysLabel(daterange: Date[]): string[] {
+    const from = daterange[0];
+    const to = daterange[1];
     const labels: string[] = [];
     const sameMonth = from.getFullYear() === to.getFullYear() && from.getMonth() === to.getMonth();
 
