@@ -10,7 +10,7 @@
   </p-floatlabel>
 
   @if (tripForm.get("id")?.value === -1) {
-  <div class="grid md:col-span-4 grid-cols-2 gap-2">
+  <div class="md:col-span-full">
     <p-floatlabel variant="in">
       <p-datepicker id="daterange" formControlName="daterange" [iconDisplay]="'input'" [showIcon]="true" selectionMode="range" appendTo="body" fluid />
       <label for="daterange">Date Range</label>
