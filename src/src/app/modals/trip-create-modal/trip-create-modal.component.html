@@ -1,24 +1,27 @@
-<div pFocusTrap class="grid md:grid-cols-4 items-center gap-4" [formGroup]="tripForm">
-  <p-floatlabel class="md:col-span-3" variant="in">
-    <input id="name" formControlName="name" autofocus pInputText fluid (keyup.enter)="closeDialog()" />
-    <label for="name">Name</label>
-  </p-floatlabel>
-
-  <p-floatlabel variant="in">
-    <input id="currency" formControlName="currency" pInputText fluid />
-    <label for="currency">Currency</label>
-  </p-floatlabel>
-
-  @if (tripForm.get("id")?.value === -1) {
-  <div class="md:col-span-full">
-    <p-floatlabel variant="in">
-      <p-datepicker id="daterange" formControlName="daterange" [iconDisplay]="'input'" [showIcon]="true" selectionMode="range" appendTo="body" fluid />
-      <label for="daterange">Date Range</label>
+<div pFocusTrap class="grid md:grid-cols-4 gap-4" [formGroup]="tripForm">
+  <div class="grid md:col-span-3 md:grid-cols-3 gap-4">
+    <p-floatlabel class="md:col-span-3" variant="in">
+      <input id="name" formControlName="name" autofocus pInputText fluid (keyup.enter)="closeDialog()" />
+      <label for="name">Name</label>
     </p-floatlabel>
-  </div>
-  }
 
-  <div class="md:col-span-4 grid place-items-center">
+    <p-floatlabel class="md:col-1" variant="in">
+      <input id="currency" formControlName="currency" pInputText fluid />
+      <label for="currency">Currency</label>
+    </p-floatlabel>
+
+    @if (tripForm.get("id")?.value === -1) {
+    <div class="md:col-span-2">
+      <p-floatlabel variant="in">
+        <p-datepicker id="daterange" formControlName="daterange" [iconDisplay]="'input'" [showIcon]="true"
+          selectionMode="range" appendTo="body" fluid />
+        <label for="daterange">Date Range</label>
+      </p-floatlabel>
+    </div>
+    }
+  </div>
+
+  <div class="grid place-items-center md:col-span-1">
     @if (tripForm.get("image_id")?.value) {
     <div class="max-w-80 max-h-80 relative group cursor-pointer" (click)="fileInput.click()">
       <img [src]="tripForm.get('image')?.value"
