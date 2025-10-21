@@ -33,8 +33,7 @@ export class TripCreateModalComponent {
       image: '',
       currency: null,
       image_id: null,
-      from: null,
-      to: null,
+      daterange: null,
     });
 
     const patchValue = this.config.data?.trip;
