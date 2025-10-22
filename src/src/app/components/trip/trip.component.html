@@ -635,7 +635,7 @@
 </p-dialog>
 
 <p-dialog header="Checklist" [draggable]="false" [dismissableMask]="true" [modal]="true"
-  [(visible)]="isChecklistDialogVisible" styleClass="w-[95%] md:w-[50%] lg:w-[30%]">
+  [(visible)]="isChecklistDialogVisible" styleClass="w-[95%] md:w-[80%]">
   <section class="p-4 max-w-full max-h-[80%] md:max-h-[600px]">
     <div class="flex items-center justify-center gap-4">
       <p-button (click)="addChecklistItem()" [disabled]="trip?.archived" icon="pi pi-plus" label="Add item" text />
