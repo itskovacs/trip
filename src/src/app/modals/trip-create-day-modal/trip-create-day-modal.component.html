@@ -1,8 +1,14 @@
 <section>
-  <div [formGroup]="dayForm">
-    <p-floatlabel variant="in">
-      <input id="label" formControlName="label" pInputText fluid (keyup.enter)="closeDialog()" />
+  <div [formGroup]="dayForm" class="grid md:grid-cols-3 gap-4">
+    <p-floatlabel variant="in" class="md:col-span-2">
+      <input id="label" formControlName="label" autofocus pInputText fluid (keyup.enter)="closeDialog()" />
       <label for="label">Label</label>
+    </p-floatlabel>
+
+    <p-floatlabel variant="in">
+      <p-datepicker id="date" formControlName="dt" [iconDisplay]="'input'" [showIcon]="true" appendTo="body" fluid
+        (keyup.enter)="closeDialog()" />
+      <label for="date">Date</label>
     </p-floatlabel>
   </div>
 

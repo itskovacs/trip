@@ -293,7 +293,7 @@ def create_tripday(
     if db_trip.archived:
         raise HTTPException(status_code=400, detail="Bad request")
 
-    new_day = TripDay(label=td.label, trip_id=trip_id)
+    new_day = TripDay(label=td.label, dt=td.dt, trip_id=trip_id)
 
     session.add(new_day)
     session.commit()

@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from '../../services/api.service';
 import { ButtonModule } from 'primeng/button';
 import { SkeletonModule } from 'primeng/skeleton';
-import { TripBase, TripInvitation } from '../../types/trip';
+import { TripBase, TripInvitation, TripDay } from '../../types/trip';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { TripCreateModalComponent } from '../../modals/trip-create-modal/trip-create-modal.component';
 import { Router } from '@angular/router';
@@ -81,8 +81,8 @@ export class TripsComponent implements OnInit {
             let dayCount = 0;
 
             if (trip.daterange && trip.daterange.length === 2) {
-              const obs$ = this.generateDaysLabel(trip.daterange).map((label) =>
-                this.apiService.postTripDay({ id: -1, label: label, items: [] }, new_trip.id),
+              const obs$ = this.generateTripDays(trip.daterange).map((td) =>
+                this.apiService.postTripDay({ id: -1, label: td.label!, dt: td.dt, items: [] }, new_trip.id),
               );
               dayCount = obs$.length;
               forkJoin(obs$).pipe(take(1)).subscribe();
@@ -106,26 +106,22 @@ export class TripsComponent implements OnInit {
     });
   }
 
-  generateDaysLabel(daterange: Date[]): string[] {
-    const from = daterange[0];
-    const to = daterange[1];
-    const labels: string[] = [];
+  generateTripDays(daterange: Date[]): Partial<TripDay>[] {
+    const [from, to] = daterange;
+    const tripDays: Partial<TripDay>[] = [];
     const sameMonth = from.getFullYear() === to.getFullYear() && from.getMonth() === to.getMonth();
 
     const months = ['Jan.', 'Feb.', 'Mar.', 'Apr.', 'May.', 'Jun.', 'Jul.', 'Aug.', 'Sep.', 'Oct.', 'Nov.', 'Dec.'];
 
     const current = new Date(from);
     while (current <= to) {
-      let label = '';
-      if (sameMonth) {
-        label = `${current.getDate().toString().padStart(2, '0')} ${months[current.getMonth()]}`;
-      } else {
-        label = `${(current.getMonth() + 1).toString().padStart(2, '0')}/${current.getDate().toString().padStart(2, '0')}`;
-      }
-      labels.push(label);
+      const day = current.getDate().toString().padStart(2, '0');
+      const month = current.getMonth();
+      const label = sameMonth ? `${day} ${months[month]}` : `${(month + 1).toString().padStart(2, '0')}/${day}`;
+      tripDays.push({ label, dt: current.toISOString().split('T')[0] });
       current.setDate(current.getDate() + 1);
     }
-    return labels;
+    return tripDays;
   }
 
   toggleInvitations() {

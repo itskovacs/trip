@@ -4,18 +4,17 @@ import { ButtonModule } from 'primeng/button';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { InputTextModule } from 'primeng/inputtext';
-import { TripDay } from '../../types/trip';
+import { DatePickerModule } from 'primeng/datepicker';
 
 @Component({
   selector: 'app-trip-create-day-modal',
-  imports: [FloatLabelModule, InputTextModule, ButtonModule, ReactiveFormsModule],
+  imports: [FloatLabelModule, InputTextModule, DatePickerModule, ButtonModule, ReactiveFormsModule],
   standalone: true,
   templateUrl: './trip-create-day-modal.component.html',
   styleUrl: './trip-create-day-modal.component.scss',
 })
 export class TripCreateDayModalComponent {
   dayForm: FormGroup;
-  days: TripDay[] = [];
 
   constructor(
     private ref: DynamicDialogRef,
@@ -24,12 +23,15 @@ export class TripCreateDayModalComponent {
   ) {
     this.dayForm = this.fb.group({
       id: -1,
+      dt: null,
       label: ['', Validators.required],
     });
 
     if (this.config.data) {
-      if (this.config.data.day) this.dayForm.patchValue(this.config.data.day);
-      this.days.push(...this.config.data.days);
+      this.dayForm.patchValue({
+        ...this.config.data,
+        dt: this.config.data.dt ? new Date(this.config.data.dt) : null,
+      });
     }
   }
 
@@ -37,6 +39,7 @@ export class TripCreateDayModalComponent {
     // Normalize data for API POST
     let ret = this.dayForm.value;
     if (!ret['label']) return;
+    if (ret['dt']) ret['dt'] = ret['dt'].toISOString().split('T')[0];
     this.ref.close(ret);
   }
 }
