@@ -70,7 +70,8 @@
             text />
           <p-button label="Highlight" pTooltip="Show itinerary on map" icon="pi pi-directions"
             [severity]="tripMapAntLayerDayID == -1 ? 'help' : 'primary'" (click)="toggleTripDaysHighlight()" text />
-          <p-button pTooltip="Pretty Print" icon="pi pi-print" (click)="togglePrint()" text />
+          <p-button icon="pi pi-ellipsis-v" label="Export" (click)="menuTripExport.toggle($event)" text />
+          <p-menu #menuTripExport [model]="menuTripExportItems" appendTo="body" [popup]="true" />
         </div>
 
         <div class="flex md:hidden">
@@ -92,7 +93,7 @@
 
     @defer {
     @if (flattenedTripItems.length) {
-    <p-table [value]="flattenedTripItems" class="max-w-[85vw] md:max-w-full print-striped-rows"
+    <p-table [value]="flattenedTripItems" class="max-w-[85vw] md:max-w-full print-striped-rows" [customSort]="true"
       [class.table-colored-resizer]="tableExpandableMode" [rowGroupMode]="tableExpandableMode ? 'subheader': 'rowspan'"
       groupRowsBy="td_label" [resizableColumns]="tableExpandableMode">
       <ng-template #header>
@@ -190,7 +191,8 @@
           <td [attr.rowspan]="rowspan" class="font-normal! max-w-20 truncate cursor-pointer"
             [class.text-blue-500]="tripMapAntLayerDayID == tripitem.day_id"
             (click)="toggleTripDayHighlight(tripitem.day_id); $event.stopPropagation()">
-            <div class="truncate">{{tripitem.td_label }}</div>
+            <div class="text-xs text-gray-500">{{ tripitem.td_date | date: 'd MMM, y' }}</div>
+            <div class="truncate">{{ tripitem.td_label }}</div>
           </td>
           }
           @if (tripTableSelectedColumns.includes('time')) {<td class="font-mono text-sm">{{ tripitem.time }}</td>}
@@ -250,14 +252,23 @@
     <div class="px-4 mx-auto max-w-screen-xl mt-8 col-span-full print:hidden">
       <div class="py-8 px-4 flex flex-col items-center gap-1">
         <h2 class="mb-0 text-4xl text-center tracking-tight font-extrabold text-gray-900 dark:text-gray-200">
-          No Trip.
+          Empty Trip.
         </h2>
 
+        @if (trip?.days?.length) {
+        <p class="mt-4 font-light text-gray-500 sm:text-xl">
+          Add <i>Item</i> to your <i>Trip</i> to start organizing !
+        </p>
+
+        <p-button class="mt-4" label="Add Item" icon="pi pi-plus" [disabled]="trip?.archived" (click)="addItem()"
+          text />
+        } @else {
         <p class="mt-4 font-light text-gray-500 sm:text-xl">
           Add <i>Day</i> to your <i>Trip</i> to start organizing !
         </p>
 
-        <p-button class="mt-4" label="Add" icon="pi pi-plus" [disabled]="trip?.archived" (click)="addDay()" text />
+        <p-button class="mt-4" label="Add Day" icon="pi pi-plus" [disabled]="trip?.archived" (click)="addDay()" text />
+        }
       </div>
     </div>
     <div class="hidden print:block text-center text-sm text-gray-500 mt-4">
@@ -490,6 +501,9 @@
             {{ d.label }}
           </div>
           <div class="flex items-center gap-2 flex-none">
+            <span
+              class="bg-gray-100 text-gray-800 text-sm px-2.5 py-0.5 rounded-md min-w-fit flex items-center group-hover:hidden dark:bg-gray-100/85"><i
+                class="pi pi-calendar"></i>&nbsp;{{ (d.dt | date: 'd MMM, y' ) || '-' }}</span>
             <span
               class="bg-gray-100 text-gray-800 text-sm px-2.5 py-0.5 rounded-md min-w-fit group-hover:hidden dark:bg-gray-100/85">{{
               getDayStats(d).price || '-' }} @if (getDayStats(d).price) { {{ trip?.currency }} }</span>
@@ -910,6 +924,10 @@
           <img [src]="place.image" class="size-full object-cover" />
         </div>
         <span class="text-sm">{{ place.name }}</span>
+      </div>
+      } @empty {
+      <div class="mt-4 border-l-3 border-gray-900 pl-6 py-2">
+        <p class="text-gray-800 text-lg leading-loose whitespace-pre-line font-light">Nothing there.</p>
       </div>
       }
     </div>
