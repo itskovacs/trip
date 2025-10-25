@@ -910,6 +910,18 @@ export class TripComponent implements AfterViewInit {
     });
   }
 
+  sortDays() {
+    this.trip?.days?.sort((a, b) => {
+      const hasDateA = !!a.dt;
+      const hasDateB = !!b.dt;
+
+      if (hasDateA && !hasDateB) return -1;
+      if (!hasDateA && hasDateB) return 1;
+
+      return (a.dt || '').localeCompare(b.dt || '') || (a.label || '').localeCompare(b.label || '');
+    });
+  }
+
   addDay() {
     if (!this.trip) return;
 
@@ -936,6 +948,7 @@ export class TripComponent implements AfterViewInit {
           .subscribe({
             next: (day) => {
               this.trip!.days.push(day);
+              this.sortDays();
               this.flattenTripDayItems();
             },
           });
@@ -1013,6 +1026,7 @@ export class TripComponent implements AfterViewInit {
               const idx = this.trip!.days.findIndex((d) => d.id == day.id);
               if (idx != -1) {
                 this.trip?.days.splice(idx, 1, day);
+                this.sortDays();
                 this.flattenTripDayItems();
               }
             },
