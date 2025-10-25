@@ -455,10 +455,12 @@ class TripInvitationRead(TripReadBase):
 
 class TripDayBase(SQLModel):
     label: str
+    dt: date | None = None
 
 
 class TripDay(TripDayBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
+
     trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE", index=True)
     trip: Trip | None = Relationship(back_populates="days")
 
@@ -473,6 +475,7 @@ class TripDayRead(TripDayBase):
     def serialize(cls, obj: TripDay) -> "TripDayRead":
         return cls(
             id=obj.id,
+            dt=obj.dt,
             label=obj.label,
             items=[TripItemRead.serialize(item) for item in obj.items],
         )
