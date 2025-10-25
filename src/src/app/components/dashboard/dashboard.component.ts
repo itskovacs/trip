@@ -864,12 +864,34 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   toggleDarkMode() {
+    if (!this.settings) return;
+
+    let data: Partial<Settings> = { mode_dark: this.isDarkMode };
+    // If user uses default tile, we also update tile_layer to dark/voyager
+    if (
+      !this.settings.mode_dark &&
+      this.settings.tile_layer == 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
+    )
+      data.tile_layer = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
+    else if (
+      this.settings.mode_dark &&
+      this.settings.tile_layer == 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+    )
+      data.tile_layer = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+
     this.apiService
-      .putSettings({ mode_dark: this.isDarkMode })
+      .putSettings(data)
       .pipe(take(1))
       .subscribe({
-        next: (_) => {
+        next: (settings) => {
           this.utilsService.toggleDarkMode();
+          const refreshMap = this.settings?.tile_layer != settings.tile_layer;
+          this.settings = settings;
+          if (refreshMap) {
+            this.map?.remove();
+            this.initMap();
+            this.updateMarkersAndClusters();
+          }
         },
       });
   }
