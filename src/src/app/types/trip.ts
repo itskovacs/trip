@@ -39,6 +39,7 @@ export interface TripAttachment {
 
 export interface TripDay {
   id: number;
+  dt?: string;
   label: string;
   items: TripItem[];
 }
@@ -68,6 +69,7 @@ export interface TripStatus {
 export interface FlattenedTripItem {
   td_id: number;
   td_label: string;
+  td_date?: string;
   id: number;
   time: string;
   text: string;
