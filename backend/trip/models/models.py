@@ -348,7 +348,9 @@ class Trip(TripBase, table=True):
         back_populates="trips", sa_relationship_kwargs={"order_by": "Place.name"}, link_model=TripPlaceLink
     )
     days: list["TripDay"] = Relationship(
-        back_populates="trip", sa_relationship_kwargs={"order_by": "TripDay.label"}, cascade_delete=True
+        back_populates="trip",
+        sa_relationship_kwargs={"order_by": lambda: [TripDay.dt.asc().nulls_last(), TripDay.label]},
+        cascade_delete=True,
     )
     shares: list["TripShare"] = Relationship(back_populates="trip", cascade_delete=True)
     packing_items: list["TripPackingListItem"] = Relationship(back_populates="trip", cascade_delete=True)
