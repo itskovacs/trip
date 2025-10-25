@@ -32,8 +32,6 @@ export function generateTripICSFile(
     const dtStart = `${year}${month}${day}T${hours.padStart(2, '0')}${minutes.padStart(2, '0')}00`;
 
     const startDateTime = new Date(`${eventDate}T${eventTime}`);
-
-    const nextItem = tripItems.slice(index + 1).find((i) => i.td_date);
     const nextItemSameDay = tripItems.slice(index + 1).find((i) => i.td_date === item.td_date && i.time);
 
     const endDateTime = nextItemSameDay?.time
@@ -41,11 +39,8 @@ export function generateTripICSFile(
       : new Date(startDateTime.getTime() + 60 * 60 * 1000);
     const dtEnd = endDateTime.toISOString().replace(/[-:]/g, '').split('.')[0];
 
-    // Build description
     const eventDescription: string[] = [];
-
     if (item.comment) eventDescription.push(`Comment: ${item.comment}`);
-
     if (item.place?.name) eventDescription.push(`Place: ${item.place.name}`);
 
     const lat = item.lat ?? item.place?.lat;
