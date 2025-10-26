@@ -280,3 +280,7 @@ html {
   animation: toggle 0.3s both reverse;
   overflow: hidden;
 }
+
+.p-datatable-table-container {
+  overscroll-behavior: auto;
+}
