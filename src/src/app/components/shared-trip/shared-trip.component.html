@@ -72,7 +72,8 @@
             text />
           <p-button label="Highlight" pTooltip="Show itinerary on map" icon="pi pi-directions"
             [severity]="tripMapAntLayerDayID == -1 ? 'help' : 'primary'" (click)="toggleTripDaysHighlight()" text />
-          <p-button pTooltip="Pretty Print" icon="pi pi-print" (click)="togglePrint()" text />
+          <p-button icon="pi pi-ellipsis-v" label="Export" (click)="menuTripExport.toggle($event)" text />
+          <p-menu #menuTripExport [model]="menuTripExportItems" appendTo="body" [popup]="true" />
         </div>
 
         <div class="flex md:hidden items-center">
@@ -239,6 +240,7 @@
           <td [attr.rowspan]="rowspan" class="font-normal! max-w-20 truncate cursor-pointer"
             [class.text-blue-500]="tripMapAntLayerDayID == tripitem.day_id"
             (click)="toggleTripDayHighlight(tripitem.day_id); $event.stopPropagation()">
+            <div class="text-xs text-gray-500">{{ tripitem.td_date | date: 'd MMM, y' }}</div>
             <div class="truncate">{{ tripitem.td_label }}</div>
           </td>
           }
@@ -262,7 +264,7 @@
             <div [style.background]="tripitem.place.category.color + '1A'"
               class="inline-flex items-center gap-2 text-gray-800 font-medium px-1 py-1 pr-3 rounded-full">
               <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden flex-shrink-0">
-                <img [src]="tripitem.place.image" class="size-full object-cover" />
+                <img [src]="tripitem.place.image || tripitem.place.category.image" class="size-full object-cover" />
               </div>
               <span class="text-sm truncate min-w-0">{{ tripitem.place.name }}</span>
             </div>
@@ -559,6 +561,9 @@
             {{ d.label }}
           </div>
           <div class="flex items-center gap-2 flex-none">
+            <span
+              class="bg-gray-100 text-gray-800 text-sm px-2.5 py-0.5 rounded-md min-w-fit flex items-center group-hover:hidden dark:bg-gray-100/85"><i
+                class="pi pi-calendar"></i>&nbsp;{{ (d.dt | date: 'd MMM, y' ) || '-' }}</span>
             <span class="bg-gray-100 text-gray-800 text-sm px-2.5 py-0.5 rounded-md min-w-fit dark:bg-gray-100/85">{{
               getDayStats(d).price || '-' }}
               @if (getDayStats(d).price) {
@@ -678,14 +683,17 @@
             class="flex items-center gap-2 w-full cursor-pointer">
             <p-checkbox disabled [binary]="true" [inputId]="item.id.toString()" [(ngModel)]="item.packed" />
             <div class="pr-6 md:pr-0 truncate select-none flex-1">
-              @if (item.qt) {
-              <span class="text-gray-400 mr-0.5">{{ item.qt }}</span>
-              }
+              @if (item.qt) {<span class="text-gray-400 mr-0.5">{{ item.qt }}</span>}
               <span>{{ item.text }}</span>
             </div>
           </label>
         </div>
         }
+      </div>
+      } @empty {
+      <div class="flex flex-col items-center justify-center mt-4 text-center select-none">
+        <i style="font-size: 3rem" class="pi pi-inbox mb-2 text-gray-300 dark:text-gray-700"></i>
+        <p class="text-sm text-gray-500 dark:text-gray-400">No item</p>
       </div>
       }
     </div>
@@ -693,7 +701,7 @@
 </p-dialog>
 
 <p-dialog header="Checklist" [draggable]="false" [dismissableMask]="true" [modal]="true"
-  [(visible)]="checklistDialogVisible" styleClass="w-[95%] md:w-[50%] lg:w-[30%]">
+  [(visible)]="checklistDialogVisible" styleClass="w-[95%] md:w-[80%]">
   <section class="p-4 max-w-full max-h-[80%] md:max-h-[600px]">
     <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-2 mt-2 pb-4">
       @for (item of checklistItems; track item.id) {
@@ -792,7 +800,7 @@
             <div
               class="inline-flex items-center gap-2 bg-gray-100 text-gray-800 font-medium px-1 py-1 pr-3 rounded-full">
               <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden flex-shrink-0">
-                <img [src]="item.place.image" class="size-full object-cover" />
+                <img [src]="item.place.image || item.place.category.image" class="size-full object-cover" />
               </div>
               <span class="text-sm">{{ item.place.name }}</span>
             </div>

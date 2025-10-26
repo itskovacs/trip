@@ -25,6 +25,8 @@ import { InputTextModule } from 'primeng/inputtext';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { calculateDistanceBetween } from '../../shared/haversine';
 import { orderByPipe } from '../../shared/order-by.pipe';
+import { generateTripICSFile } from '../trip/ics';
+import { generateTripCSVFile } from '../trip/csv';
 
 @Component({
   selector: 'app-shared-trip',
@@ -168,6 +170,30 @@ export class SharedTripComponent implements AfterViewInit {
       ],
     },
   ];
+  readonly menuTripExportItems: MenuItem[] = [
+    {
+      label: 'Actions',
+      items: [
+        {
+          label: 'Calendar (.ics)',
+          icon: 'pi pi-calendar',
+          command: () => generateTripICSFile(this.flattenedTripItems, this.trip?.name, this.utilsService),
+        },
+        {
+          label: 'CSV',
+          icon: 'pi pi-file',
+          command: () => generateTripCSVFile(this.flattenedTripItems, this.trip?.name),
+        },
+        {
+          label: 'Pretty Print',
+          icon: 'pi pi-print',
+          command: () => {
+            this.togglePrint();
+          },
+        },
+      ],
+    },
+  ];
   readonly tripTableColumns: string[] = [
     'day',
     'time',
@@ -299,52 +325,62 @@ export class SharedTripComponent implements AfterViewInit {
   }
 
   flattenTripDayItems(searchValue?: string) {
+    const searchLower = (searchValue || '').toLowerCase();
     let prevLat: number, prevLng: number;
-    this.flattenedTripItems = this.trip!.days.flatMap((day) =>
-      [...day.items]
-        .filter((item) =>
-          searchValue
-            ? item.text.toLowerCase().includes(searchValue) ||
-              item.place?.name.toLowerCase().includes(searchValue) ||
-              item.comment?.toLowerCase().includes(searchValue)
-            : true,
-        )
-        .sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0))
-        .map((item) => {
-          const lat = item.lat ?? (item.place ? item.place.lat : undefined);
-          const lng = item.lng ?? (item.place ? item.place.lng : undefined);
+    this.flattenedTripItems = this.trip!.days.flatMap((day) => day.items.map((item) => ({ item, day })))
+      .filter(
+        ({ item }) =>
+          !searchLower ||
+          item.text.toLowerCase().includes(searchLower) ||
+          item.place?.name.toLowerCase().includes(searchLower) ||
+          item.comment?.toLowerCase().includes(searchLower),
+      )
+      .sort((a, b) => {
+        const dateA = a.day.dt;
+        const dateB = b.day.dt;
+        if (dateA && dateB) return dateA.localeCompare(dateB) || (a.item.time || '').localeCompare(b.item.time || '');
+        if (!dateA && !dateB) {
+          return (
+            (a.day.label || '').localeCompare(b.day.label || '') || (a.item.time || '').localeCompare(b.item.time || '')
+          );
+        }
+        return dateA ? -1 : 1;
+      })
+      .map(({ item, day }) => {
+        const lat = item.lat ?? item.place?.lat;
+        const lng = item.lng ?? item.place?.lng;
 
-          let distance: number | undefined;
-          if (lat && lng) {
-            if (prevLat && prevLng) {
-              const d = calculateDistanceBetween(prevLat, prevLng, lat, lng);
-              distance = +(Math.round(d * 1000) / 1000).toFixed(2);
-            }
-            prevLat = lat;
-            prevLng = lng;
+        let distance: number | undefined;
+        if (lat && lng) {
+          if (prevLat && prevLng) {
+            const d = calculateDistanceBetween(prevLat, prevLng, lat, lng);
+            distance = +(Math.round(d * 1000) / 1000).toFixed(2);
           }
+          prevLat = lat;
+          prevLng = lng;
+        }
 
-          return {
-            td_id: day.id,
-            td_label: day.label,
-            id: item.id,
-            time: item.time,
-            text: item.text,
-            status: this.statusToTripStatus(item.status as string),
-            comment: item.comment,
-            price: item.price || undefined,
-            day_id: item.day_id,
-            place: item.place,
-            image: item.image,
-            image_id: item.image_id,
-            gpx: item.gpx,
-            lat,
-            lng,
-            distance,
-            paid_by: item.paid_by,
-          };
-        }),
-    );
+        return {
+          td_id: day.id,
+          td_label: day.label,
+          td_date: day.dt,
+          id: item.id,
+          time: item.time,
+          text: item.text,
+          status: this.statusToTripStatus(item.status as string),
+          comment: item.comment,
+          price: item.price || undefined,
+          day_id: item.day_id,
+          place: item.place,
+          image: item.image,
+          image_id: item.image_id,
+          gpx: item.gpx,
+          lat,
+          lng,
+          distance,
+          paid_by: item.paid_by,
+        };
+      });
   }
 
   computePlacesUsedInTable() {
@@ -779,11 +815,11 @@ export class SharedTripComponent implements AfterViewInit {
   }
 
   openChecklist() {
-    if (!this.trip) return;
+    if (!this.token) return;
 
     if (!this.checklistItems.length)
       this.apiService
-        .getChecklist(this.trip.id)
+        .getSharedTripChecklist(this.token)
         .pipe(take(1))
         .subscribe({
           next: (items) => {
