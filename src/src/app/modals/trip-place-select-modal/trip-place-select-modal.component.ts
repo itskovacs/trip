@@ -24,11 +24,13 @@ export class TripPlaceSelectModalComponent {
 
   places: Place[] = [];
   displayedPlaces: Place[] = [];
+  usedPlacesID: Set<number>;
 
   constructor(
     private apiService: ApiService,
     private ref: DynamicDialogRef,
     private config: DynamicDialogConfig,
+    private utilsService: UtilsService,
   ) {
     this.apiService.getPlaces().subscribe({
       next: (places) => {
@@ -38,6 +40,7 @@ export class TripPlaceSelectModalComponent {
     });
 
     const places: Place[] | undefined = this.config.data?.places;
+    this.usedPlacesID = this.config.data?.usedPlaces;
     if (places) {
       this.selectedPlaces = [...places];
       this.selectedPlacesID = places.map((p) => p.id);
@@ -60,6 +63,15 @@ export class TripPlaceSelectModalComponent {
 
   togglePlace(p: Place) {
     if (this.selectedPlacesID.includes(p.id)) {
+      if (this.usedPlacesID.has(p.id)) {
+        this.utilsService.toast(
+          'error',
+          'Place in use',
+          'Place is currently used in your plans, remove it before unselecting it',
+          4000,
+        );
+        return;
+      }
       this.selectedPlacesID.splice(this.selectedPlacesID.indexOf(p.id), 1);
       this.selectedPlaces.splice(
         this.selectedPlaces.findIndex((place) => place.id === p.id),

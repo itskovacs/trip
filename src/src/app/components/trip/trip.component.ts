@@ -1080,7 +1080,10 @@ export class TripComponent implements AfterViewInit {
       appendTo: 'body',
       closable: true,
       width: '50vw',
-      data: { places: this.places },
+      data: {
+        places: this.places,
+        usedPlaces: this.placesUsedInTable,
+      },
       breakpoints: {
         '960px': '80vw',
         '640px': '90vw',
