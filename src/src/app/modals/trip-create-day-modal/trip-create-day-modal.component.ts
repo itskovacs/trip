@@ -35,11 +35,18 @@ export class TripCreateDayModalComponent {
     }
   }
 
+  formatDateWithoutTimezone(date: Date) {
+    const year = date.getUTCFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   closeDialog() {
     // Normalize data for API POST
     let ret = this.dayForm.value;
     if (!ret['label']) return;
-    if (ret['dt']) ret['dt'] = ret['dt'].toISOString().split('T')[0];
+    if (ret['dt']) ret['dt'] = this.formatDateWithoutTimezone(ret['dt']);
     this.ref.close(ret);
   }
 }
