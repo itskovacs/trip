@@ -167,10 +167,10 @@
           <i class="pi pi-info-circle"></i><span class="font-bold whitespace-nowrap">About</span>
         </p-tab>
         <p-tab [value]="1" class="flex items-center gap-2">
-          <i class="pi pi-sliders-v"></i><span class="font-bold whitespace-nowrap">Tweaks</span>
+          <i class="pi pi-shield"></i><span class="font-bold whitespace-nowrap">Account</span>
         </p-tab>
         <p-tab [value]="2" class="flex items-center gap-2">
-          <i class="pi pi-map"></i><span class="font-bold whitespace-nowrap">Map</span>
+          <i class="pi pi-sliders-v"></i><span class="font-bold whitespace-nowrap">Preferences</span>
         </p-tab>
         <p-tab [value]="3" class="flex items-center gap-2">
           <i class="pi pi-th-large"></i><span class="font-bold whitespace-nowrap">Categories</span>
@@ -181,11 +181,12 @@
       </p-tablist>
       <p-tabpanels>
         <p-tabpanel [value]="0">
-          <div class="mt-2 flex justify-between align-items">
+          <div class="mt-2 flex justify-between items-center">
             <h1 class="font-semibold tracking-tight text-xl">About</h1>
 
             <div class="flex">
-              <p-button (click)="logout()" text severity="primary" icon="pi pi-sign-out" label="Log out" />
+              <p-button (click)="toggleDarkMode()" text [icon]="settings?.mode_dark ? 'pi pi-sun' : 'pi pi-moon'"
+                size="large" />
               <p-button (click)="toGithub()" text severity="primary" icon="pi pi-github" size="large" />
             </div>
           </div>
@@ -221,34 +222,79 @@
           <div class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">Made with ❤️ in BZH</div>
         </p-tabpanel>
         <p-tabpanel [value]="1">
-          <div class="mt-4">
-            <h1 class="font-semibold tracking-tight text-xl">Low Network Mode</h1>
-            <span class="text-xs text-gray-500 dark:text-gray-400">You can disable Low Network Mode. Default is true.
-              Display Category
-              image instead of Place image.</span>
-          </div>
-          <div class="mt-2 flex justify-between">
-            <div>Low Network Mode</div>
-            <p-toggleswitch [(ngModel)]="isLowNet" (onChange)="toggleLowNet()" />
+          <div class="mt-2 flex justify-between items-center">
+            <h1 class="font-semibold tracking-tight text-xl">Account</h1>
+
+            <div class="flex">
+              <p-button (click)="logout()" text severity="primary" icon="pi pi-sign-out" label="Log out" />
+            </div>
           </div>
 
-          <div class="mt-4">
-            <h1 class="font-semibold tracking-tight text-xl">Dark Mode</h1>
+          <div class="mt-6 flex justify-between items-center">
+            <div class="min-w-0 truncate">
+              <h1 class="font-semibold tracking-tight text-xl">TOTP</h1>
+              <span class="text-xs text-gray-500 dark:text-gray-400">Add a second layer of security to your
+                account</span>
+            </div>
+
+            <p-button [icon]="settings?.totp_enabled ? 'pi pi-lock' : 'pi pi-lock-open'" (click)="toggleTOTP()"
+              [severity]="settings?.totp_enabled ? 'success' : 'danger'"
+              [pTooltip]="settings?.totp_enabled ? 'Click to disable' : 'Click to enable'"
+              [label]="settings?.totp_enabled ? 'Enabled' : 'Disabled'" text />
           </div>
-          <div class="mt-2 flex justify-between">
-            <div>Enable Dark mode</div>
-            <p-toggleswitch [(ngModel)]="isDarkMode" (onChange)="toggleDarkMode()" />
+        </p-tabpanel>
+        <p-tabpanel [value]="2">
+          <section [formGroup]="settingsForm">
+            <div class="mt-4 flex justify-between items-center">
+              <div>
+                <h1 class="font-semibold tracking-tight text-xl">Map parameters</h1>
+                <span class="text-xs text-gray-500 dark:text-gray-400">You can customize the default view on map
+                  loading</span>
+              </div>
+
+              <p-button icon="pi pi-ethereum" pTooltip="Set current map center as default"
+                (click)="setMapCenterToCurrent()" text />
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mt-4">
+              <p-floatlabel variant="in">
+                <input id="map_lat" formControlName="map_lat" pInputText fluid />
+                <label for="map_lat">Default Lat.</label>
+              </p-floatlabel>
+
+              <p-floatlabel variant="in">
+                <input id="map_lng" formControlName="map_lng" pInputText fluid />
+                <label for="map_lng">Default Long.</label>
+              </p-floatlabel>
+
+              <p-floatlabel variant="in" class="col-span-full">
+                <input id="tile_layer" formControlName="tile_layer" pInputText fluid />
+                <label for="tile_layer">Tile Layer</label>
+              </p-floatlabel>
+            </div>
+          </section>
+
+          <div class="mt-4 flex items-center justify-between">
+            <div class="truncate min-w-0">
+              <div class="font-semibold tracking-tight text-xl">Low Network Mode</div>
+              <span class="text-xs text-gray-500 dark:text-gray-400">You can disable Low Network Mode.
+                Default is true. Display Category image instead of Place image.</span>
+            </div>
+
+            <div>
+              <p-toggleswitch [(ngModel)]="isLowNet" (onChange)="toggleLowNet()" />
+            </div>
           </div>
 
-          <div class="mt-4">
-            <h1 class="font-semibold tracking-tight text-xl">GPX Indication</h1>
-            <span class="text-xs text-gray-500 dark:text-gray-400">If enabled, display a compass in Place bubble when
-              a
-              GPX is present.</span>
-          </div>
-          <div class="mt-2 flex justify-between">
-            <div>Enable GPX indication</div>
-            <p-toggleswitch [(ngModel)]="isGpxInPlaceMode" (onChange)="toggleGpxInPlace()" />
+          <div class="mt-4 flex items-center justify-between">
+            <div class="truncate min-w-0">
+              <div class="font-semibold tracking-tight text-xl">GPX Indication</div>
+              <span class="text-xs text-gray-500 dark:text-gray-400 truncate">Display a compass in Place bubble when a
+                GPX is present.</span>
+            </div>
+            <div>
+              <p-toggleswitch [(ngModel)]="isGpxInPlaceMode" (onChange)="toggleGpxInPlace()" />
+            </div>
           </div>
 
           <section [formGroup]="settingsForm">
@@ -272,42 +318,6 @@
                 <p-multiselect [options]="doNotDisplayOptions" [group]="true" [filter]="false" [showToggleAll]="false"
                   class="capitalize" formControlName="do_not_display" [showClear]="true" fluid />
                 <label for="do_not_display">Hide</label>
-              </p-floatlabel>
-            </div>
-
-            <div class="mt-2 w-full text-right">
-              <p-button (click)="updateSettings()" label="Update" text
-                [disabled]="!settingsForm.valid || settingsForm.pristine" />
-            </div>
-          </section>
-        </p-tabpanel>
-        <p-tabpanel [value]="2">
-          <section [formGroup]="settingsForm">
-            <div class="mt-4 flex justify-between items-center">
-              <div>
-                <h1 class="font-semibold tracking-tight text-xl">Map parameters</h1>
-                <span class="text-xs text-gray-500 dark:text-gray-400">You can customize the default view on map
-                  loading</span>
-              </div>
-
-              <p-button icon="pi pi-ethereum" pTooltip="Set current map center as default"
-                (click)="setMapCenterToCurrent()" text />
-            </div>
-
-            <div class="grid grid-cols-2 gap-4 mt-4">
-              <p-floatlabel variant="in">
-                <input id="map_lat" formControlName="map_lat" pInputText fluid />
-                <label for="map_lat">Lat.</label>
-              </p-floatlabel>
-
-              <p-floatlabel variant="in">
-                <input id="map_lng" formControlName="map_lng" pInputText fluid />
-                <label for="map_lng">Long.</label>
-              </p-floatlabel>
-
-              <p-floatlabel variant="in" class="col-span-full">
-                <input id="tile_layer" formControlName="tile_layer" pInputText fluid />
-                <label for="tile_layer">Tile Layer</label>
               </p-floatlabel>
             </div>
 
@@ -346,32 +356,31 @@
           </div>
         </p-tabpanel>
         <p-tabpanel [value]="4">
-          <section class="grid gap-4">
-            <div class="mt-4 flex justify-between items-center">
-              <div>
-                <h1 class="font-semibold tracking-tight text-xl">Export data</h1>
-                <span class="text-xs text-gray-500 dark:text-gray-400">Start an export and download it</span>
-              </div>
-
-              <div class="flex items-center justify-center gap-1">
-                <span class="relative flex size-3">
-                  <span [class.animate-ping]="refreshBackups"
-                    class="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
-                  <span [ngClass]="refreshBackups ? 'bg-green-500' : 'bg-gray-400'"
-                    class="relative inline-flex size-3 rounded-full"></span>
-                </span>
-                <p-button icon="pi pi-sync" pTooltip="Refresh" (click)="getBackups()" text />
-              </div>
+          <div class="mt-1 py-2 mb-2 flex justify-between items-center">
+            <div>
+              <h1 class="font-semibold tracking-tight text-xl">Export data</h1>
+              <span class="text-xs text-gray-500 dark:text-gray-400">Start an export and download it</span>
             </div>
 
-            <div class="mt-4 flex justify-center">
-              <p-button icon="pi pi-cloud-download" label="Create backup" severity="help" (click)="createBackup()"
-                text />
+            <div class="flex items-center justify-center gap-1">
+              <span class="relative flex size-3">
+                <span [class.animate-ping]="refreshBackups"
+                  class="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
+                <span [ngClass]="refreshBackups ? 'bg-green-500' : 'bg-gray-400'"
+                  class="relative inline-flex size-3 rounded-full"></span>
+              </span>
+              <p-button icon="pi pi-sync" pTooltip="Refresh" (click)="getBackups()" text />
             </div>
+          </div>
 
+          <div class="mt-4 flex justify-center">
+            <p-button icon="pi pi-cloud-download" label="Create backup" severity="help" (click)="createBackup()" text />
+          </div>
+
+          <div class="mt-4 flex flex-col overflow-y-auto h-full max-h-[500px] gap-4">
             @for (backup of backups; track backup.id) {
-            <div class="mt-4 flex items-center justify-between">
-              <div class="flex flex-col">
+            <div class="flex items-center justify-between">
+              <div class="flex flex-col min-w-0">
                 <div class="truncate font-mono text-md text-gray-900 dark:text-gray-100">{{ backup.filename }}</div>
                 <div class="flex items-center gap-2 mt-1 text-xs font-mono text-gray-500 dark:text-gray-400">
                   @if (backup.file_size) {<span>{{ backup.file_size | fileSize }}</span>}
@@ -412,7 +421,7 @@
               <p class="text-sm text-gray-500 dark:text-gray-400">No backup</p>
             </div>
             }
-          </section>
+          </div>
         </p-tabpanel>
       </p-tabpanels>
     </p-tabs>

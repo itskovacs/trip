@@ -32,6 +32,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PlaceGPXComponent } from '../../shared/place-gpx/place-gpx.component';
 import { CommonModule } from '@angular/common';
 import { FileSizePipe } from '../../shared/filesize.pipe';
+import { TotpVerifyModalComponent } from '../../modals/totp-verify-modal/totp-verify-modal.component';
 
 export interface ContextMenuItem {
   text: string;
@@ -75,7 +76,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   searchInput = new FormControl('');
   info?: Info;
   isLowNet = false;
-  isDarkMode = false;
   isGpxInPlaceMode = false;
 
   viewSettings = false;
@@ -167,9 +167,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           this.activeCategories = new Set(categories.map((c) => c.name));
 
           this.isLowNet = !!settings.mode_low_network;
-          this.isDarkMode = !!settings.mode_dark;
           this.isGpxInPlaceMode = !!settings.mode_gpx_in_place;
-          if (this.isDarkMode) this.utilsService.enableDarkMode();
+          if (settings.mode_dark) this.utilsService.enableDarkMode();
           this.resetFilters();
 
           this.places = [...places];
@@ -595,9 +594,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
           this.settings = resp.settings;
           this.isLowNet = !!resp.settings.mode_low_network;
-          this.isDarkMode = !!resp.settings.mode_dark;
           this.isGpxInPlaceMode = !!resp.settings.mode_gpx_in_place;
-          if (this.isDarkMode) this.utilsService.enableDarkMode();
+          if (resp.settings.mode_dark) this.utilsService.enableDarkMode();
           this.resetFilters();
 
           this.map?.remove();
@@ -866,7 +864,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   toggleDarkMode() {
     if (!this.settings) return;
 
-    let data: Partial<Settings> = { mode_dark: this.isDarkMode };
+    let data: Partial<Settings> = { mode_dark: !this.settings.mode_dark };
     // If user uses default tile, we also update tile_layer to dark/voyager
     if (
       !this.settings.mode_dark &&
@@ -905,5 +903,81 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           this.updateMarkersAndClusters();
         },
       });
+  }
+
+  toggleTOTP() {
+    if (this.settings?.totp_enabled) this.disableTOTP();
+    else this.enableTOTP();
+  }
+
+  enableTOTP() {
+    this.apiService
+      .enableTOTP()
+      .pipe(take(1))
+      .subscribe({
+        next: (secret) => {
+          let modal = this.dialogService.open(TotpVerifyModalComponent, {
+            header: 'Verify TOTP',
+            modal: true,
+            closable: true,
+            breakpoints: {
+              '640px': '90vw',
+            },
+            data: {
+              message:
+                "Add this secret to your authentication app.\nEnter the generated code below to verify it's correct",
+              token: secret.secret,
+            },
+          })!;
+
+          modal.onClose.subscribe({
+            next: (code: string) => {
+              if (code)
+                this.apiService.verifyTOTP(code).subscribe({
+                  next: () => (this.settings!.totp_enabled = true),
+                });
+            },
+            error: () => this.utilsService.toast('error', 'Error', 'Error enabling TOTP'),
+          });
+        },
+      });
+  }
+
+  disableTOTP() {
+    const modal = this.dialogService.open(TotpVerifyModalComponent, {
+      header: 'Verify TOTP',
+      modal: true,
+      closable: true,
+      breakpoints: {
+        '640px': '90vw',
+      },
+    })!;
+
+    modal.onClose.subscribe({
+      next: (code: string) => {
+        if (!code) return;
+
+        const modal = this.dialogService.open(YesNoModalComponent, {
+          header: 'Confirm',
+          modal: true,
+          closable: true,
+          dismissableMask: true,
+          breakpoints: {
+            '640px': '90vw',
+          },
+          data: 'Are you sure you want to disable TOTP?',
+        })!;
+
+        modal.onClose.subscribe({
+          next: (bool: boolean) => {
+            if (!bool) return;
+            this.apiService.disableTOTP(code).subscribe({
+              next: () => (this.settings!.totp_enabled = false),
+              error: () => this.utilsService.toast('error', 'Error', 'Error disabling TOTP'),
+            });
+          },
+        });
+      },
+    });
   }
 }
