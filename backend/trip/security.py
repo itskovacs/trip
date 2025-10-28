@@ -62,7 +62,7 @@ def verify_exists_and_owns(username: str, obj) -> None:
         raise HTTPException(status_code=404, detail="The resource does not exist")
 
     if obj.user != username:
-        raise PermissionError
+        raise HTTPException(status_code=403, detail="Forbidden")
 
     return None
 
