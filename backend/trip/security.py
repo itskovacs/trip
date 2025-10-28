@@ -1,6 +1,7 @@
 from datetime import UTC, datetime, timedelta
 
 import jwt
+import pyotp
 from argon2 import PasswordHasher
 from argon2 import exceptions as argon_exceptions
 from authlib.integrations.httpx_client import OAuth2Client
@@ -12,6 +13,15 @@ from .utils.utils import httpx_get
 
 ph = PasswordHasher()
 OIDC_CONFIG = {}
+
+
+def generate_totp_secret() -> str:
+    return pyotp.random_base32()
+
+
+def verify_totp_code(secret: str, code: str) -> bool:
+    totp = pyotp.TOTP(secret)
+    return totp.verify(code)
 
 
 def hash_password(password: str) -> str:

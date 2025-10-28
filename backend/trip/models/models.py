@@ -91,6 +91,11 @@ class Token(BaseModel):
     refresh_token: str
 
 
+class PendingTOTP(BaseModel):
+    pending_code: str
+    username: str
+
+
 class ImageBase(SQLModel):
     filename: str
 

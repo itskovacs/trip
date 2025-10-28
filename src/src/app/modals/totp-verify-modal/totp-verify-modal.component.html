@@ -1,0 +1,18 @@
+@if (token) {
+<div class="p-4 text-center">
+  <p class="whitespace-pre">{{ message }}</p>
+
+  <div class="mt-4 flex gap-4 justify-center items-center">
+    <pre><p class="py-2 text-base font-light">{{ token }}</p></pre>
+    <p-button label="Copy" severity="secondary" icon="pi pi-copy" [cdkCopyToClipboard]="token" />
+  </div>
+</div>
+}
+
+<div class="mt-4 flex flex-col items-center gap-2">
+  <p class="text-center font-light text-gray-500">
+    Enter your TOTP code to continue
+  </p>
+  <p-inputotp [(ngModel)]="otp" [integerOnly]="true" size="large" [length]="6" />
+  <p-button text label="Verify" [disabled]="otp.length < 6" (click)="close()" />
+</div>

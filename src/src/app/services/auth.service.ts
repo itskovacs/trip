@@ -11,6 +11,11 @@ export interface Token {
   access_token: string;
 }
 
+export interface TOTPRequired {
+  pending_code: string;
+  username: string;
+}
+
 export interface AuthParams {
   register_enabled: boolean;
   oidc?: string;
@@ -102,13 +107,30 @@ export class AuthService {
     return this.refreshInProgressLock$.asObservable();
   }
 
-  login(authForm: { username: string; password: string }): Observable<Token> {
-    return this.httpClient.post<Token>(this.apiBaseUrl + '/auth/login', authForm).pipe(
-      tap((tokens: Token) => {
-        this.loggedUser = authForm.username;
-        this.storeTokens(tokens);
+  login(authForm: { username: string; password: string }): Observable<Token | TOTPRequired> {
+    return this.httpClient.post<Token | TOTPRequired>(this.apiBaseUrl + '/auth/login', authForm).pipe(
+      tap((data: any) => {
+        if (data.access_token && data.refresh_token) {
+          this.loggedUser = authForm.username;
+          this.storeTokens(data);
+        }
       }),
     );
+  }
+
+  verify_totp(username: string, pending_code: string, code: string): Observable<Token> {
+    return this.httpClient
+      .post<Token>(this.apiBaseUrl + '/auth/login_totp', {
+        username: username,
+        pending_code: pending_code,
+        code: code,
+      })
+      .pipe(
+        tap((Token) => {
+          this.loggedUser = username;
+          this.storeTokens(Token);
+        }),
+      );
   }
 
   register(authForm: { username: string; password: string }): Observable<Token> {

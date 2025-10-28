@@ -5,12 +5,16 @@ from fastapi.responses import JSONResponse
 from ..config import settings
 from ..db.core import init_user_data
 from ..deps import SessionDep
-from ..models.models import AuthParams, LoginRegisterModel, Token, User
-from ..security import (create_access_token, create_tokens, get_oidc_client,
-                        get_oidc_config, hash_password, verify_password)
+from ..models.models import (AuthParams, LoginRegisterModel, PendingTOTP,
+                             Token, User)
+from ..security import (create_access_token, create_tokens,
+                        generate_totp_secret, get_oidc_client, get_oidc_config,
+                        hash_password, verify_password, verify_totp_code)
+from ..utils.date import dt_utc, dt_utc_offset
 from ..utils.utils import generate_filename
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+pending_totp_usernames = {}
 
 
 @router.get("/params", response_model=AuthParams)
@@ -104,8 +108,8 @@ async def oidc_login(
     return create_tokens(data={"sub": username})
 
 
-@router.post("/login", response_model=Token)
-def login(req: LoginRegisterModel, session: SessionDep) -> Token:
+@router.post("/login", response_model=Token | PendingTOTP)
+def login(req: LoginRegisterModel, session: SessionDep) -> Token | PendingTOTP:
     if settings.OIDC_CLIENT_ID or settings.OIDC_CLIENT_SECRET:
         raise HTTPException(status_code=400, detail="OIDC is configured")
 
@@ -113,7 +117,37 @@ def login(req: LoginRegisterModel, session: SessionDep) -> Token:
     if not db_user or not verify_password(req.password, db_user.password):
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
+    if db_user.totp_enabled:
+        pending_totp_secret = generate_totp_secret()  # A random code to track for verify fn
+        pending_totp_usernames[db_user.username] = {
+            "pending_code": pending_totp_secret,
+            "exp": dt_utc_offset(5),
+        }
+        return {"pending_code": pending_totp_secret, "username": db_user.username}
+
     return create_tokens(data={"sub": db_user.username})
+
+
+@router.post("/login_totp", response_model=Token)
+async def login_verify_totp(
+    session: SessionDep,
+    username: str = Body(..., embed=True),
+    pending_code: str = Body(..., embed=True),
+    code: str = Body(..., embed=True),
+) -> Token:
+    user = session.get(User, username)
+    if not user or not user.totp_enabled:
+        raise HTTPException(status_code=401, detail="Invalid TOTP flow")
+
+    record = pending_totp_usernames.get(username)
+    if not record or record["exp"] < dt_utc() or record["pending_code"] != pending_code:
+        pending_totp_usernames.pop(username, None)
+        raise HTTPException(status_code=401, detail="Unauthorized")
+
+    if not verify_totp_code(user.totp_secret, code):
+        raise HTTPException(status_code=403, detail="Invalid TOTP code")
+
+    return create_tokens({"sub": user.username})
 
 
 @router.post("/register", response_model=Token)

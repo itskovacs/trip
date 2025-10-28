@@ -5,6 +5,7 @@ import { ApiService } from './api.service';
 import { map } from 'rxjs';
 
 type ToastSeverity = 'info' | 'warn' | 'error' | 'success';
+const JWT_USER = 'TRIP_USER';
 
 @Injectable({
   providedIn: 'root',

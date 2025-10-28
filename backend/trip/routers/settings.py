@@ -1,8 +1,8 @@
 from pathlib import Path
 from typing import Annotated
 
-from fastapi import (APIRouter, BackgroundTasks, Depends, File, HTTPException,
-                     UploadFile)
+from fastapi import (APIRouter, BackgroundTasks, Body, Depends, File,
+                     HTTPException, UploadFile)
 from fastapi.responses import FileResponse
 from sqlmodel import select
 
@@ -10,6 +10,7 @@ from ..config import settings
 from ..deps import SessionDep, get_current_username
 from ..models.models import (Backup, BackupRead, BackupStatus, User, UserRead,
                              UserUpdate)
+from ..security import generate_totp_secret, verify_totp_code
 from ..utils.utils import check_update
 from ..utils.zip import (process_backup_export, process_backup_import,
                          process_legacy_import)
@@ -44,6 +45,71 @@ def put_user_settings(
     session.commit()
     session.refresh(db_user)
     return UserRead.serialize(db_user)
+
+
+@router.post("/totp")
+async def enable_totp(session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]):
+    db_user = session.get(User, current_user)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="The resource does not exist")
+
+    if db_user.totp_enabled:
+        raise HTTPException(status_code=400, detail="Bad request")
+
+    totp_secret = generate_totp_secret()
+    db_user.totp_secret = totp_secret
+    session.add(db_user)
+    session.commit()
+
+    return {"secret": totp_secret}
+
+
+@router.post("/totp/verify")
+async def verify_totp(
+    session: SessionDep,
+    current_user: Annotated[str, Depends(get_current_username)],
+    code: str = Body(..., embed=True),
+):
+    db_user = session.get(User, current_user)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="The resource does not exist")
+
+    if not db_user.totp_secret or db_user.totp_enabled:
+        raise HTTPException(status_code=400, detail="Bad request")
+
+    success = verify_totp_code(db_user.totp_secret, code)
+    if not success:
+        db_user.totp_secret = None
+        session.add(db_user)
+        session.commit()
+        raise HTTPException(status_code=403, detail="Invalid code")
+
+    db_user.totp_enabled = True
+    session.add(db_user)
+    session.commit()
+
+    return {}
+
+
+@router.delete("/totp/{code}")
+async def delete_totp(
+    session: SessionDep, code: str, current_user: Annotated[str, Depends(get_current_username)]
+):
+    db_user = session.get(User, current_user)
+    if not db_user or not db_user.totp_enabled or not db_user.totp_secret:
+        raise HTTPException(status_code=400, detail="Bad request")
+
+    success = verify_totp_code(db_user.totp_secret, code)
+    if not success:
+        raise HTTPException(status_code=403, detail="Invalid code")
+
+    db_user.totp_secret = None
+    db_user.totp_enabled = False
+
+    session.add(db_user)
+    session.commit()
+
+    return {}
 
 
 @router.get("/checkversion")

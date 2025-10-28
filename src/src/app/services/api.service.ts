@@ -309,4 +309,16 @@ export class ApiService {
       responseType: 'blob',
     });
   }
+
+  enableTOTP(): Observable<{ secret: string }> {
+    return this.httpClient.post<{ secret: string }>(this.apiBaseUrl + '/settings/totp', {});
+  }
+
+  disableTOTP(code: string): Observable<{}> {
+    return this.httpClient.delete<{}>(this.apiBaseUrl + `/settings/totp/${code}`);
+  }
+
+  verifyTOTP(code: string): Observable<any> {
+    return this.httpClient.post<any>(this.apiBaseUrl + '/settings/totp/verify', { code });
+  }
 }
