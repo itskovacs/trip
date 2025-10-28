@@ -10,6 +10,7 @@ export interface Settings {
   mode_low_network?: boolean;
   mode_dark?: boolean;
   mode_gpx_in_place?: boolean;
+  totp_enabled?: boolean;
 }
 
 export interface ImportResponse {

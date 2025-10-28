@@ -7,6 +7,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { Place } from '../../types/poi';
 import { ApiService } from '../../services/api.service';
 import { SkeletonModule } from 'primeng/skeleton';
+import { UtilsService } from '../../services/utils.service';
 
 @Component({
   selector: 'app-trip-place-select-modal',
