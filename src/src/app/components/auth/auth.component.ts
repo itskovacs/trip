@@ -1,15 +1,16 @@
 import { Component, OnInit } from '@angular/core';
 
 import { FloatLabelModule } from 'primeng/floatlabel';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { InputTextModule } from 'primeng/inputtext';
 import { ButtonModule } from 'primeng/button';
 import { FocusTrapModule } from 'primeng/focustrap';
-import { AuthParams, AuthService } from '../../services/auth.service';
+import { AuthParams, AuthService, TOTPRequired, Token } from '../../services/auth.service';
 import { MessageModule } from 'primeng/message';
 import { HttpErrorResponse } from '@angular/common/http';
 import { SkeletonModule } from 'primeng/skeleton';
+import { InputOtpModule } from 'primeng/inputotp';
 import { take } from 'rxjs';
 
 @Component({
@@ -19,10 +20,12 @@ import { take } from 'rxjs';
     FloatLabelModule,
     ReactiveFormsModule,
     ButtonModule,
+    FormsModule,
     InputTextModule,
     SkeletonModule,
     FocusTrapModule,
     MessageModule,
+    InputOtpModule,
   ],
   templateUrl: './auth.component.html',
   styleUrl: './auth.component.scss',
@@ -33,6 +36,9 @@ export class AuthComponent implements OnInit {
   authForm: FormGroup;
   error: string | undefined;
   isRegistering: boolean = false;
+  pendingOTP: string = '';
+  otp: string = '';
+  username: string = '';
 
   constructor(
     private authService: AuthService,
@@ -99,15 +105,26 @@ export class AuthComponent implements OnInit {
 
     this.authService.login(this.authForm.value).subscribe({
       next: (data) => {
-        if (!data.access_token) {
-          this.error = 'Authentication failed';
-          return;
-        }
-        this.router.navigateByUrl(this.redirectURL);
+        if ((data as Token)?.access_token) this.router.navigateByUrl(this.redirectURL);
+
+        // If we're here, it means it's OTP time
+        this.username = (data as TOTPRequired).username;
+        this.pendingOTP = (data as TOTPRequired).pending_code;
+        this.authForm.reset();
       },
       error: () => {
         this.authForm.reset();
       },
+    });
+  }
+
+  verifyTOTP(): void {
+    this.error = '';
+    this.authService.verify_totp(this.username, this.pendingOTP, this.otp).subscribe({
+      next: (token) => {
+        if (token) this.router.navigateByUrl(this.redirectURL);
+      },
+      error: () => (this.otp = ''),
     });
   }
 
