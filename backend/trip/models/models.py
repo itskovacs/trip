@@ -173,6 +173,8 @@ class UserBase(SQLModel):
 class User(UserBase, table=True):
     username: str = Field(primary_key=True)
     password: str
+    totp_enabled: bool = False
+    totp_secret: str | None = None
 
 
 class UserUpdate(UserBase):
@@ -185,6 +187,7 @@ class UserUpdate(UserBase):
 class UserRead(UserBase):
     username: str
     do_not_display: list[str]
+    totp_enabled: bool
 
     @classmethod
     def serialize(cls, obj: User) -> "UserRead":
@@ -198,6 +201,7 @@ class UserRead(UserBase):
             mode_low_network=obj.mode_low_network,
             mode_dark=obj.mode_dark,
             mode_gpx_in_place=obj.mode_gpx_in_place,
+            totp_enabled=obj.totp_enabled,
         )
 
 
