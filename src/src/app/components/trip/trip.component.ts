@@ -83,6 +83,7 @@ import { generateTripCSVFile } from './csv';
 })
 export class TripComponent implements AfterViewInit {
   @ViewChild('menuTripActions') menuTripActions!: Menu;
+  username: string;
   tripSharedURL$?: Observable<string>;
   statuses: TripStatus[] = [];
   trip?: Trip;
@@ -255,6 +256,7 @@ export class TripComponent implements AfterViewInit {
     private route: ActivatedRoute,
     private clipboard: Clipboard,
   ) {
+    this.username = this.utilsService.loggedUser;
     this.statuses = this.utilsService.statuses;
     this.tripTableSearchInput.valueChanges.pipe(debounceTime(300), takeUntilDestroyed()).subscribe({
       next: (value) => {

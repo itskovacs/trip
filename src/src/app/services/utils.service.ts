@@ -23,6 +23,10 @@ export class UtilsService {
 
   constructor(private ngMessageService: MessageService) {}
 
+  get loggedUser(): string {
+    return localStorage.getItem(JWT_USER) ?? '';
+  }
+
   toGithubTRIP() {
     window.open('https://github.com/itskovacs/trip', '_blank');
   }

@@ -328,8 +328,10 @@
         <div class="relative rounded-md shadow p-4">
           <p class="font-bold mb-1">Place</p>
           <div class="text-sm text-gray-500 truncate">{{ selectedItem.place.name }}</div>
+          @if (selectedItem.place.user == username) {
           <div class="absolute top-2 right-2"><p-button severity="help" pTooltip="Edit place details" text
               icon="pi pi-pencil" (click)="editPlace(selectedItem.place)" /></div>
+          }
         </div>
         }
 
