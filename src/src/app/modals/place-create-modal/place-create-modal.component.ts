@@ -2,23 +2,24 @@ import { Component } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
-import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { DialogService, DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
-import { Observable } from 'rxjs';
+import { Observable, take } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { ApiService } from '../../services/api.service';
 import { UtilsService } from '../../services/utils.service';
 import { FocusTrapModule } from 'primeng/focustrap';
-import { Category, Place } from '../../types/poi';
+import { Category, GooglePlaceResult, Place } from '../../types/poi';
 import { CheckboxModule } from 'primeng/checkbox';
 import { TooltipModule } from 'primeng/tooltip';
 import { checkAndParseLatLng, formatLatLng } from '../../shared/latlng-parser';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { PlaceCreateGmapsModalComponent } from '../place-create-gmaps-modal/place-create-gmaps-modal.component';
 
 @Component({
   selector: 'app-place-create-modal',
@@ -54,6 +55,7 @@ export class PlaceCreateModalComponent {
     private ref: DynamicDialogRef,
     private apiService: ApiService,
     private utilsService: UtilsService,
+    private dialogService: DialogService,
     private fb: FormBuilder,
     private config: DynamicDialogConfig,
   ) {
@@ -215,6 +217,34 @@ export class PlaceCreateModalComponent {
           this.placeForm.get('category')?.markAsDirty();
           return;
         }
+
+        const modal: DynamicDialogRef = this.dialogService.open(PlaceCreateGmapsModalComponent, {
+          header: 'Select GMaps Place',
+          modal: true,
+          appendTo: 'body',
+          closable: true,
+          dismissableMask: true,
+          data: results,
+          width: '40vw',
+          breakpoints: {
+            '960px': '70vw',
+            '640px': '90vw',
+          },
+        })!;
+
+        modal.onClose.pipe(take(1)).subscribe({
+          next: (result: GooglePlaceResult | null) => {
+            if (!result) return;
+            const r = result;
+            this.placeForm.patchValue({
+              ...r,
+              lat: formatLatLng(r.lat),
+              lng: formatLatLng(r.lng),
+              place: r.name || '',
+            });
+            this.placeForm.get('category')?.markAsDirty();
+          },
+        });
       },
     });
   }

@@ -6,7 +6,8 @@
         <label for="name">Name</label>
       </p-floatlabel>
       <p-button icon="pi pi-sparkles" variant="text" [disabled]="!placeForm.get('name')!.value"
-        class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Query GMaps API" (click)="gmapsSearchText()" />
+        class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Complete using GMaps API"
+        (click)="gmapsSearchText()" />
     </div>
 
     <p-floatlabel variant="in">
