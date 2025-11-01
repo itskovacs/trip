@@ -96,6 +96,16 @@ class PendingTOTP(BaseModel):
     username: str
 
 
+class GooglePlaceResult(BaseModel):
+    id: str | None = None
+    name: str | None = None
+    lat: float | None = None
+    lng: float | None = None
+    price: float | None = None
+    types: list[str] = []
+    allows_dogs: bool | None = None
+
+
 class ImageBase(SQLModel):
     filename: str
 
@@ -180,6 +190,7 @@ class User(UserBase, table=True):
     password: str
     totp_enabled: bool = False
     totp_secret: str | None = None
+    google_apikey: str | None = None
 
 
 class UserUpdate(UserBase):
@@ -193,6 +204,7 @@ class UserRead(UserBase):
     username: str
     do_not_display: list[str]
     totp_enabled: bool
+    google_apikey: bool
 
     @classmethod
     def serialize(cls, obj: User) -> "UserRead":
@@ -207,6 +219,7 @@ class UserRead(UserBase):
             mode_dark=obj.mode_dark,
             mode_gpx_in_place=obj.mode_gpx_in_place,
             totp_enabled=obj.totp_enabled,
+            google_apikey=True if obj.google_apikey else False
         )
 
 
