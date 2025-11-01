@@ -135,11 +135,15 @@
           (click)="onRowClick(tripitem)">
           @if (tripTableSelectedColumns.includes('time')) {<td class="font-mono text-sm">{{ tripitem.time }}</td>}
           @if (tripTableSelectedColumns.includes('text')) {<td class="relative">
-            <div class="truncate">
+            <div class="truncate" [class.mr-2]="tripitem.attachments.length">
               @if (tripitem.status) {<div class="block absolute top-3 left-1 size-2.5 rounded-full"
                 [style.background]="tripitem.status.color"></div>}
               {{ tripitem.text }}
             </div>
+            @if (tripitem.attachments.length) {
+            <div class="absolute right-2 top-1/2 -translate-y-1/2"><i class="pi pi-file-pdf text-lg! text-red-500!"></i>
+            </div>
+            }
           </td>}
           @if (tripTableSelectedColumns.includes('place')) {<td class="relative">
             @if (tripitem.place) {
@@ -197,11 +201,15 @@
           }
           @if (tripTableSelectedColumns.includes('time')) {<td class="font-mono text-sm">{{ tripitem.time }}</td>}
           @if (tripTableSelectedColumns.includes('text')) {<td class="relative max-w-60">
-            <div class="truncate">
+            <div class="truncate" [class.mr-2]="tripitem.attachments.length">
               @if (tripitem.status) {<div class="block absolute top-3 left-1 size-2.5 rounded-full"
                 [style.background]="tripitem.status.color"></div>}
               {{ tripitem.text }}
             </div>
+            @if (tripitem.attachments.length) {
+            <div class="absolute right-2 top-1/2 -translate-y-1/2"><i class="pi pi-file-pdf text-lg! text-red-500!"></i>
+            </div>
+            }
           </td>}
           @if (tripTableSelectedColumns.includes('place')) {<td>
             @if (tripitem.place) {
@@ -366,6 +374,36 @@
           <span [style.background]="selectedItem.status.color+'1A'" [style.color]="selectedItem.status.color"
             class="text-xs font-medium me-2 px-2.5 py-0.5 rounded">{{
             selectedItem.status.label }}</span>
+        </div>
+        }
+
+        @if (selectedItem.attachments?.length) {
+        <div class="md:col-span-3 rounded-md shadow p-4">
+          <p class="font-bold mb-1">Attachments</p>
+          <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-2 mt-2 pb-4">
+            @for (attachment of selectedItem.attachments; track attachment.id) {
+            <div (click)="downloadAttachment(attachment)"
+              class="group relative cursor-pointer flex items-center gap-3 rounded-lg bg-white hover:bg-gray-100 dark:hover:bg-white/5 p-3 transition-all dark:bg-gray-950">
+              <div
+                class="group relative flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-md bg-red-100 transition-colors dark:bg-red-900">
+                <i class="pi pi-file text-red-600 transition-opacity group-hover:opacity-0 dark:text-red-400"></i>
+                <i
+                  class="pi pi-arrow-down absolute -translate-y-4 text-red-600 opacity-0 transition-none group-hover:translate-y-0 group-hover:opacity-100 group-hover:transition-all group-hover:duration-300 dark:text-red-400"></i>
+              </div>
+
+              <div class="min-w-0 flex-1">
+                <div class="truncate font-mono text-md text-left text-gray-900 dark:text-gray-100">{{
+                  attachment.filename }}</div>
+                <div class="flex items-center gap-2 mt-1 text-xs font-mono text-gray-500 dark:text-gray-400">
+                  <span>{{ attachment.file_size | fileSize }}</span>
+                  <span
+                    class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded min-w-fit dark:bg-gray-400">{{
+                    attachment.uploaded_by }}</span>
+                </div>
+              </div>
+            </div>
+            }
+          </div>
         </div>
         }
       </div>

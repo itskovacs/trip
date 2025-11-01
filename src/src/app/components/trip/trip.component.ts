@@ -207,7 +207,7 @@ export class TripComponent implements AfterViewInit {
   ];
   readonly menuTripExportItems: MenuItem[] = [
     {
-      label: 'Actions',
+      label: 'Export',
       items: [
         {
           label: 'Calendar (.ics)',
@@ -427,6 +427,7 @@ export class TripComponent implements AfterViewInit {
           lng,
           distance,
           paid_by: item.paid_by,
+          attachments: item.attachments,
         };
       });
   }
@@ -1126,6 +1127,7 @@ export class TripComponent implements AfterViewInit {
         days: this.trip.days,
         selectedDay: day_id,
         members: this.tripMembers,
+        trip: this.trip,
       },
     })!;
 
@@ -1185,6 +1187,7 @@ export class TripComponent implements AfterViewInit {
           status: item.status ? (item.status as TripStatus).label : null,
         },
         members: this.tripMembers,
+        trip: this.trip,
       },
     })!;
 
@@ -2021,6 +2024,10 @@ export class TripComponent implements AfterViewInit {
       .subscribe({
         next: () => {
           this.trip!.attachments = this.trip?.attachments?.filter((att) => att.id != attachmentId);
+          if (this.selectedItem?.attachments?.length) {
+            if (this.selectedItem.attachments.some((a) => a.id == attachmentId))
+              this.selectedItem.attachments = this.selectedItem.attachments.filter((a) => a.id != attachmentId);
+          }
         },
       });
   }
