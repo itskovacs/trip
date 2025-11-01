@@ -13,8 +13,8 @@
       </p-floatlabel>
       } @else {
       <p-multiselect [options]="days" optionValue="id" optionLabel="label" formControlName="day_id" placeholder="Days"
-        [filter]="false" [showToggleAll]="false" display="chip" class="flex items-center" scrollHeight="320px"
-        appendTo="body" selectedItemsLabel="{0} days selected" [filter]="true" fluid>
+        [showToggleAll]="false" display="chip" class="flex items-center" scrollHeight="320px" appendTo="body"
+        selectedItemsLabel="{0} days selected" fluid>
         <ng-template let-day #item>
           <div class="whitespace-normal">{{ day.label }}</div>
         </ng-template>
@@ -73,7 +73,7 @@
         }
       </p-inputgroup>
 
-      <p-floatlabel variant="in" class="md:col-span-2">
+      <p-floatlabel variant="in">
         <p-select [options]="statuses" optionValue="label" optionLabel="label" inputId="status" id="status"
           class="capitalize" formControlName="status" [checkmark]="true" [showClear]="true" fluid>
           <ng-template #selectedItem let-selectedOption>
@@ -89,6 +89,23 @@
           </ng-template>
         </p-select>
         <label for="status">Status</label>
+      </p-floatlabel>
+
+      <p-floatlabel variant="in">
+        <p-multiselect [options]="trip?.attachments ?? []" optionValue="id" optionLabel="filename"
+          formControlName="attachments" [showToggleAll]="false" class="flex items-center" scrollHeight="320px"
+          appendTo="body" selectedItemsLabel="{0} attachments selected" fluid>
+          <ng-template let-option #item>
+            <div class="whitespace-normal">{{ option.filename }}</div>
+          </ng-template>
+          <ng-template #footer>
+            <div class="p-3 flex justify-center">
+              <p-button (click)="fileUpload.click()" icon="pi pi-upload" label="Upload attachment" text />
+              <input type="file" style="display: none;" (change)="onFileUploadInputChange($event)" #fileUpload>
+            </div>
+          </ng-template>
+        </p-multiselect>
+        <label for="attachments">Attachments</label>
       </p-floatlabel>
     </div>
 

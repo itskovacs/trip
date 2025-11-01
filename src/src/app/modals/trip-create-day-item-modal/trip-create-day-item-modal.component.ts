@@ -4,7 +4,7 @@ import { ButtonModule } from 'primeng/button';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { InputTextModule } from 'primeng/inputtext';
-import { TripDay, TripMember, TripStatus } from '../../types/trip';
+import { Trip, TripAttachment, TripDay, TripMember, TripStatus } from '../../types/trip';
 import { Place } from '../../types/poi';
 import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
@@ -17,6 +17,8 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { Popover, PopoverModule } from 'primeng/popover';
+import { ApiService } from '../../services/api.service';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-trip-create-day-item-modal',
@@ -51,11 +53,13 @@ export class TripCreateDayItemModalComponent {
   statuses: TripStatus[] = [];
   previous_image_id: number | null = null;
   previous_image: string | null = null;
+  trip?: Trip;
 
   constructor(
     private ref: DynamicDialogRef,
     private fb: FormBuilder,
     private config: DynamicDialogConfig,
+    private apiService: ApiService,
     private utilsService: UtilsService,
   ) {
     this.statuses = this.utilsService.statuses;
@@ -91,6 +95,7 @@ export class TripCreateDayItemModalComponent {
         },
       ],
       paid_by: null,
+      attachments: [],
     });
 
     const data = this.config.data;
@@ -98,11 +103,13 @@ export class TripCreateDayItemModalComponent {
       this.members = data.members ?? [];
       this.places = data.places ?? [];
       this.days = data.days ?? [];
+      this.trip = data.trip ?? [];
 
       if (data.item)
         this.itemForm.patchValue({
           ...data.item,
           place: data.item.place?.id ?? null,
+          attachments: data.item.attachments.map((a: TripAttachment) => a.id),
         });
 
       if (data.selectedDay) this.itemForm.get('day_id')?.setValue([data.selectedDay]);
@@ -165,6 +172,10 @@ export class TripCreateDayItemModalComponent {
     }
     if (ret['gpx'] == '1') delete ret['gpx'];
     if (!ret['place']) delete ret['place'];
+    if (ret['attachments']) {
+      ret['attachment_ids'] = ret['attachments'];
+      delete ret['attachments'];
+    }
     this.ref.close(ret);
   }
 
@@ -237,5 +248,21 @@ export class TripCreateDayItemModalComponent {
   clearGPX() {
     this.itemForm.get('gpx')?.setValue(null);
     this.itemForm.get('gpx')?.markAsDirty();
+  }
+
+  onFileUploadInputChange(event: Event) {
+    if (!this.trip) return;
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+
+    const formdata = new FormData();
+    formdata.append('file', input.files[0]);
+
+    this.apiService
+      .postTripAttachment(this.trip?.id, formdata)
+      .pipe(take(1))
+      .subscribe({
+        next: (attachment) => (this.trip!.attachments = [...this.trip!.attachments!, attachment]),
+      });
   }
 }
