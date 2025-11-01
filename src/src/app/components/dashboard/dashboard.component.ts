@@ -133,6 +133,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       currency: ['', Validators.required],
       do_not_display: [],
       tile_layer: ['', Validators.required],
+      _google_apikey: [null, { validators: [Validators.pattern('AIza[0-9A-Za-z\\-]{35}')] }],
     });
 
     // HACK: Subscribe in constructor for takeUntilDestroyed
@@ -666,7 +667,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   updateSettings() {
     this.apiService
-      .putSettings(this.settingsForm.value)
+      .putSettings({ ...this.settingsForm.value, google_apikey: this.settingsForm.get('_google_apikey')?.value })
       .pipe(take(1))
       .subscribe({
         next: (settings) => {
@@ -976,6 +977,29 @@ export class DashboardComponent implements OnInit, AfterViewInit {
               error: () => this.utilsService.toast('error', 'Error', 'Error disabling TOTP'),
             });
           },
+        });
+      },
+    });
+  }
+
+  deleteGoogleApiKey() {
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: 'Confirm',
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      breakpoints: {
+        '640px': '90vw',
+      },
+      data: 'Are you sure you want to delete GMaps API Key ?',
+    })!;
+
+    modal.onClose.subscribe({
+      next: (bool: boolean) => {
+        if (!bool) return;
+        this.apiService.putSettings({ google_apikey: null }).subscribe({
+          next: () => (this.settings!.google_apikey = false),
+          error: () => this.utilsService.toast('error', 'Error', 'Error deleting GMaps API key'),
         });
       },
     });

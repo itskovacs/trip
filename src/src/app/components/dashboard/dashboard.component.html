@@ -232,15 +232,48 @@
 
           <div class="mt-6 flex justify-between items-center">
             <div class="min-w-0 truncate">
-              <h1 class="font-semibold tracking-tight text-xl">TOTP</h1>
+              <div class="flex gap-2 items-center">
+                <h1 class="font-semibold tracking-tight text-xl">TOTP</h1>
+                @if (settings?.totp_enabled) {
+                <span
+                  class="inline-flex items-center gap-x-1.5 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded min-w-fit dark:bg-green-400">
+                  <span class="size-1.5 inline-block rounded-full bg-green-800 dark:bg-green-500"></span>enabled</span>
+                } @else {
+                <span
+                  class="inline-flex items-center gap-x-1.5 bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded min-w-fit dark:bg-red-400">
+                  <span class="size-1.5 inline-block rounded-full bg-red-800 dark:bg-red-500"></span>disabled</span>
+                }
+              </div>
               <span class="text-xs text-gray-500 dark:text-gray-400">Add a second layer of security to your
                 account</span>
             </div>
 
-            <p-button [icon]="settings?.totp_enabled ? 'pi pi-lock' : 'pi pi-lock-open'" (click)="toggleTOTP()"
-              [severity]="settings?.totp_enabled ? 'success' : 'danger'"
-              [pTooltip]="settings?.totp_enabled ? 'Click to disable' : 'Click to enable'"
-              [label]="settings?.totp_enabled ? 'Enabled' : 'Disabled'" text />
+            <p-button [icon]="settings?.totp_enabled ? 'pi pi-trash' : 'pi pi-lock'" (click)="toggleTOTP()"
+              [severity]="settings?.totp_enabled ? 'danger' : 'success'"
+              [label]="settings?.totp_enabled ? 'Disable' : 'Enable'" text />
+          </div>
+
+          <div [formGroup]="settingsForm">
+            @if (settings?.google_apikey) {
+            <div class="mt-4 flex justify-between items-center">
+              <div class="min-w-0 truncate">
+                <h1 class="font-semibold tracking-tight text-xl">Google API Key</h1>
+              </div>
+
+              <p-button icon="pi pi-trash" (click)="deleteGoogleApiKey()" severity="danger" label="Delete" text />
+            </div>
+            } @else {
+            <h1 class="mt-4 font-semibold tracking-tight text-xl">Google API Key</h1>
+
+            <p-floatlabel variant="in" class="mt-4">
+              <input id="_google_apikey" formControlName="_google_apikey" pInputText fluid />
+              <label for="_google_apikey">API Key</label>
+            </p-floatlabel>
+            <div class="mt-2 w-full text-right">
+              <p-button (click)="updateSettings()" label="Update" text
+                [disabled]="!settingsForm.valid || settingsForm.pristine" />
+            </div>
+            }
           </div>
         </p-tabpanel>
         <p-tabpanel [value]="2">

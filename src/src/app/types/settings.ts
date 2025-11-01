@@ -11,6 +11,7 @@ export interface Settings {
   mode_dark?: boolean;
   mode_gpx_in_place?: boolean;
   totp_enabled?: boolean;
+  google_apikey?: boolean | null;
 }
 
 export interface ImportResponse {

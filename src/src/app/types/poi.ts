@@ -25,3 +25,13 @@ export interface Place {
   visited?: boolean;
   favorite?: boolean;
 }
+
+export interface GooglePlaceResult {
+  name: string;
+  lat: number;
+  lng: number;
+  price: number;
+  types: string[];
+  allowdog: boolean;
+  description: string;
+}

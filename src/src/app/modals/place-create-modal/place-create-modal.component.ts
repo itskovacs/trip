@@ -203,4 +203,19 @@ export class PlaceCreateModalComponent {
     this.placeForm.get('gpx')?.setValue(null);
     this.placeForm.get('gpx')?.markAsDirty();
   }
+
+  gmapsSearchText() {
+    const query = this.placeForm.get('name')?.value;
+    if (!query) return;
+    this.apiService.gmapsSearchText(query).subscribe({
+      next: (results) => {
+        if (results.length == 1) {
+          const r = results[0];
+          this.placeForm.patchValue({ ...r, lat: formatLatLng(r.lat), lng: formatLatLng(r.lng), place: r.name || '' });
+          this.placeForm.get('category')?.markAsDirty();
+          return;
+        }
+      },
+    });
+  }
 }

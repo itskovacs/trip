@@ -1,9 +1,13 @@
 <section>
   <div pFocusTrap class="grid grid-cols-2 md:grid-cols-4 gap-4" [formGroup]="placeForm">
-    <p-floatlabel variant="in" class="col-span-2">
-      <input id="name" formControlName="name" pInputText autofocus fluid />
-      <label for="name">Name</label>
-    </p-floatlabel>
+    <div class="relative col-span-2">
+      <p-floatlabel variant="in">
+        <input id="name" formControlName="name" pInputText autofocus fluid />
+        <label for="name">Name</label>
+      </p-floatlabel>
+      <p-button icon="pi pi-sparkles" variant="text" [disabled]="!placeForm.get('name')!.value"
+        class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Query GMaps API" (click)="gmapsSearchText()" />
+    </div>
 
     <p-floatlabel variant="in">
       <input id="lat" formControlName="lat" pInputText fluid placeholder="Lat or Lat, Lng" />
@@ -17,7 +21,7 @@
 
     <p-inputgroup class="col-span-2 lg:col-span-3">
       <p-floatlabel variant="in">
-        <input id="place" formControlName="place" pInputText fluid placeholder="" />
+        <input id="place" formControlName="place" pInputText fluid />
         <label for="place">Place</label>
       </p-floatlabel>
       <p-inputgroup-addon>
@@ -70,10 +74,17 @@
     </div>
 
     <div class="grid col-span-full md:grid-cols-4">
-      <p-floatlabel variant="in" class="col-span-full md:col-span-3">
-        <textarea pTextarea id="description" formControlName="description" rows="3" autoResize fluid></textarea>
-        <label for="description">Description</label>
-      </p-floatlabel>
+      <div class="relative col-span-full md:col-span-3">
+        <p-floatlabel variant="in">
+          <textarea pTextarea id="description" formControlName="description" rows="3" #descriptionInput autoResize
+            fluid></textarea>
+          <label for="description">Description</label>
+        </p-floatlabel>
+        @if (descriptionInput.value) {
+        <p-button icon="pi pi-times" severity="danger" variant="text" class="absolute right-2 top-2"
+          (click)="placeForm.get('description')?.setValue('')" pTooltip="Clear" />
+        }
+      </div>
 
       <div class="mt-4 md:mt-0 grid place-items-center col-span-full md:col-span-1">
         @if (placeForm.get("image_id")?.value) {

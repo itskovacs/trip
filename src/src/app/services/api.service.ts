@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Category, Place } from '../types/poi';
+import { Category, GooglePlaceResult, Place } from '../types/poi';
 import { BehaviorSubject, map, Observable, shareReplay, tap } from 'rxjs';
 import { Info } from '../types/info';
 import { Backup, ImportResponse, Settings } from '../types/settings';
@@ -320,5 +320,9 @@ export class ApiService {
 
   verifyTOTP(code: string): Observable<any> {
     return this.httpClient.post<any>(this.apiBaseUrl + '/settings/totp/verify', { code });
+  }
+
+  gmapsSearchText(q: string): Observable<GooglePlaceResult[]> {
+    return this.httpClient.get<GooglePlaceResult[]>(`${this.apiBaseUrl}/places/google-search`, { params: { q } });
   }
 }
