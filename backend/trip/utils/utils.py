@@ -1,5 +1,4 @@
 import base64
-from datetime import UTC, datetime
 from io import BytesIO
 from pathlib import Path
 from secrets import token_urlsafe
@@ -73,10 +72,6 @@ def remove_image(filename: str):
         image_fp.unlink()
     except OSError:
         pass
-
-
-def utc_now():
-    return datetime.now(UTC)
 
 
 async def httpx_get(link: str) -> str:

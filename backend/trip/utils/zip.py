@@ -16,8 +16,9 @@ from ..models.models import (Backup, BackupStatus, Category, CategoryRead,
                              TripChecklistItem, TripChecklistItemRead, TripDay,
                              TripItem, TripPackingListItem,
                              TripPackingListItemRead, TripRead, User, UserRead)
+from .date import dt_utc
 from .utils import (assets_folder_path, attachments_trip_folder_path,
-                    b64img_decode, save_image_to_file, utc_now)
+                    b64img_decode, save_image_to_file)
 
 
 def process_backup_export(session: SessionDep, backup_id: int):
@@ -59,7 +60,7 @@ def process_backup_export(session: SessionDep, backup_id: int):
         trips = session.exec(trips_query).all()
         images = session.exec(select(Image).where(Image.user == db_backup.user)).all()
 
-        backup_datetime = utc_now()
+        backup_datetime = dt_utc()
         iso_date = backup_datetime.strftime("%Y-%m-%d")
         filename = f"TRIP_{iso_date}_{db_backup.user}_backup.zip"
         zip_fp = Path(settings.BACKUPS_FOLDER) / filename
@@ -116,7 +117,7 @@ def process_backup_export(session: SessionDep, backup_id: int):
 
         db_backup.file_size = zip_fp.stat().st_size
         db_backup.status = BackupStatus.COMPLETED
-        db_backup.completed_at = utc_now()
+        db_backup.completed_at = dt_utc()
         db_backup.filename = filename
         session.commit()
     except Exception as exc:

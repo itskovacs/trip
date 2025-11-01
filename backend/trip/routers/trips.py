@@ -20,9 +20,10 @@ from ..models.models import (Image, Place, Trip, TripAttachment,
                              TripPackingListItemRead,
                              TripPackingListItemUpdate, TripRead, TripReadBase,
                              TripShare, TripShareURL, TripUpdate, User)
+from ..utils.date import dt_utc
 from ..utils.utils import (attachments_trip_folder_path, b64img_decode,
                            generate_urlsafe, save_attachment,
-                           save_image_to_file, utc_now)
+                           save_image_to_file)
 
 router = APIRouter(prefix="/api/trips", tags=["trips"])
 
@@ -891,7 +892,7 @@ def accept_invite(
         raise HTTPException(status_code=404, detail="Not found")
     if db_member.joined_at:
         raise HTTPException(status_code=409, detail="Already a member")
-    db_member.joined_at = utc_now()
+    db_member.joined_at = dt_utc()
     session.add(db_member)
     session.commit()
     return {}
