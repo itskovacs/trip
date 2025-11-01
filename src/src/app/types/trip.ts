@@ -59,6 +59,7 @@ export interface TripItem {
   image_id?: number;
   gpx?: string;
   paid_by?: string;
+  attachments?: TripAttachment[];
 }
 
 export interface TripStatus {
@@ -85,6 +86,7 @@ export interface FlattenedTripItem {
   image_id?: number;
   gpx?: string;
   paid_by?: string;
+  attachments?: TripAttachment[];
 }
 
 export interface TripMember {
