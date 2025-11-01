@@ -97,13 +97,13 @@ class PendingTOTP(BaseModel):
 
 
 class GooglePlaceResult(BaseModel):
-    id: str | None = None
     name: str | None = None
     lat: float | None = None
     lng: float | None = None
     price: float | None = None
+    allowsdog: bool | None = None
+    description: str | None = None
     types: list[str] = []
-    allows_dogs: bool | None = None
 
 
 class ImageBase(SQLModel):
@@ -198,6 +198,7 @@ class UserUpdate(UserBase):
     map_lng: float | None = None
     currency: str | None = None
     do_not_display: list[str] | None = None
+    google_apikey: str | None = None
 
 
 class UserRead(UserBase):
@@ -219,7 +220,7 @@ class UserRead(UserBase):
             mode_dark=obj.mode_dark,
             mode_gpx_in_place=obj.mode_gpx_in_place,
             totp_enabled=obj.totp_enabled,
-            google_apikey=True if obj.google_apikey else False
+            google_apikey=True if obj.google_apikey else False,
         )
 
 

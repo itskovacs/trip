@@ -6,12 +6,14 @@ from sqlmodel import select
 
 from ..config import settings
 from ..deps import SessionDep, get_current_username
-from ..models.models import (Category, Image, GooglePlaceResult, Place, PlaceCreate,
-                             PlaceRead, PlacesCreate, PlaceUpdate)
+from ..models.models import (Category, GooglePlaceResult, Image, Place,
+                             PlaceCreate, PlaceRead, PlacesCreate, PlaceUpdate,
+                             User)
 from ..security import verify_exists_and_owns
+from ..utils.gmaps import (compute_avg_price, compute_description,
+                           gmaps_textsearch)
 from ..utils.utils import (b64img_decode, download_file, patch_image,
                            save_image_to_file)
-from ..utils.gmaps import compute_avg_price, gmaps_textsearch
 
 router = APIRouter(prefix="/api/places", tags=["places"])
 
@@ -111,25 +113,26 @@ async def create_places(
     return [PlaceRead.serialize(p) for p in new_places]
 
 
-@router.get("/google-search", response_model=list[GooglePlaceResult])
-async def google_search_text(q: str, session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]) -> list[GooglePlaceResult]:
+@router.get("/google-search")
+async def google_search_text(
+    q: str, session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]
+):
     db_user = session.get(User, current_user)
     if not db_user or not db_user.google_apikey:
         raise HTTPException(status_code=400, detail="Google Maps API key not configured")
 
     data = await gmaps_textsearch(q, db_user.google_apikey)
-
     results = []
     for place in data:
         loc = place.get("location", {})
         result = GooglePlaceResult(
-            id=place.get("id"),
-            name=place.get("displayName", {}).get('text'),
-            lat=loc.get("latitude"),
-            lng=loc.get("longitude"),
+            name=place.get("displayName", {}).get("text"),
+            lat=loc.get("latitude", None),
+            lng=loc.get("longitude", None),
             price=compute_avg_price(place.get("priceRange")),
             types=place.get("types", []),
-            allow_dogs=place.get("allowDogs")
+            allowdog=place.get("allowDogs"),
+            description=compute_description(place),
         )
         results.append(result)
 
