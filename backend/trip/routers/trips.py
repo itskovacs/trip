@@ -404,6 +404,18 @@ def create_tripitem(
 
         new_item.paid_by = item.paid_by
 
+    if item.attachment_ids:
+        attachments = session.exec(
+            select(TripAttachment)
+            .where(TripAttachment.id.in_(item.attachment_ids))
+            .where(TripAttachment.trip_id == trip_id)
+        ).all()
+
+        if len(attachments) != len(item.attachment_ids):
+            raise HTTPException(status_code=400, detail="One or more attachments not found in trip")
+
+        new_item.attachments = list(attachments)
+
     session.add(new_item)
     session.commit()
     session.refresh(new_item)
@@ -489,6 +501,22 @@ def update_tripitem(
             db_item.paid_by = paid_by
         else:
             db_item.paid_by = None
+
+    attachment_ids = item_data.pop("attachment_ids", None)
+    if attachment_ids is not None:  # Could be empty [], so 'in'
+        if attachment_ids:
+            attachments = session.exec(
+                select(TripAttachment)
+                .where(TripAttachment.id.in_(attachment_ids))
+                .where(TripAttachment.trip_id == trip_id)
+            ).all()
+
+            if len(attachments) != len(attachment_ids):
+                raise HTTPException(status_code=400, detail="One or more attachments not found in trip")
+
+            db_item.attachments = list(attachments)
+        else:
+            db_item.attachments = []
 
     for key, value in item_data.items():
         setattr(db_item, key, value)

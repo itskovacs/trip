@@ -506,6 +506,11 @@ class TripDayRead(TripDayBase):
         )
 
 
+class TripItemAttachmentLink(SQLModel, table=True):
+    item_id: int = Field(foreign_key="tripitem.id", ondelete="CASCADE", primary_key=True, index=True)
+    attachment_id: int = Field(foreign_key="tripattachment.id", ondelete="CASCADE", primary_key=True)
+
+
 class TripItemBase(SQLModel):
     time: Annotated[
         str,
@@ -540,12 +545,17 @@ class TripItem(TripItemBase, table=True):
 
     paid_by: int | None = Field(default=None, foreign_key="user.username", ondelete="SET NULL")
 
+    attachments: list["TripAttachment"] = Relationship(
+        back_populates="items", link_model=TripItemAttachmentLink
+    )
+
 
 class TripItemCreate(TripItemBase):
     place: int | None = None
     status: TripItemStatusEnum | None = None
     image: str | None = None
     paid_by: str | None = None
+    attachment_ids: list[int] = []
 
 
 class TripItemUpdate(TripItemBase):
@@ -556,6 +566,7 @@ class TripItemUpdate(TripItemBase):
     status: TripItemStatusEnum | None = None
     image: str | None = None
     paid_by: str | None = None
+    attachment_ids: list[int] = []
 
 
 class TripItemRead(TripItemBase):
@@ -566,6 +577,7 @@ class TripItemRead(TripItemBase):
     image: str | None
     image_id: int | None
     paid_by: str | None
+    attachments: list["TripAttachmentRead"]
 
     @classmethod
     def serialize(cls, obj: TripItem) -> "TripItemRead":
@@ -584,6 +596,7 @@ class TripItemRead(TripItemBase):
             image_id=obj.image_id,
             gpx=obj.gpx,
             paid_by=obj.paid_by,
+            attachments=[TripAttachmentRead.serialize(att) for att in obj.attachments],
         )
 
 
@@ -674,6 +687,8 @@ class TripAttachment(TripAttachmentBase, table=True):
 
     trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE", index=True)
     trip: Trip | None = Relationship(back_populates="attachments")
+
+    items: list["TripItem"] = Relationship(back_populates="attachments", link_model=TripItemAttachmentLink)
 
 
 @event.listens_for(TripAttachment, "after_delete")
