@@ -14,7 +14,7 @@
 
 <div align="center">
 
-![TRIP Planning](./.github/screenshot.png)
+![TRIP Planning](./.github/screenshot.jpg)
 
 </div>
 
@@ -44,7 +44,7 @@ See the [📸 demo](#demo) to explore TRIP in action.
 
 ## 🌱 Getting Started <a name = "getting_started"></a>
 
-If you need help, feel free to open an [issue](https://github.com/itskovacs/trip/issues).
+If you need help, feel free to open a [discussion](https://github.com/itskovacs/trip/discussions).
 
 Deployment is designed to be simple using Docker.
 
@@ -85,8 +85,8 @@ A demo is available at [itskovacs-trip.netlify.app](https://itskovacs-trip.netli
 
 |         |         |
 |:-------:|:-------:|
-| ![](./.github/sc_map.png) | ![](./.github/sc_map_filters_list.png) |
-| ![](./.github/sc_trip.png) | ![](./.github/sc_trips.png) |
+| ![](./.github/sc_map.jpg) | ![](./.github/sc_map_filters_list.jpg) |
+| ![](./.github/sc_trip.jpg) | ![](./.github/sc_trips.jpg) |
 
 </div>
 
