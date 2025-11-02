@@ -108,16 +108,13 @@ export class TripsComponent implements OnInit {
 
   generateTripDays(daterange: Date[]): Partial<TripDay>[] {
     const [from, to] = daterange;
-    const tripDays: Partial<TripDay>[] = [];
-    const sameMonth = from.getFullYear() === to.getFullYear() && from.getMonth() === to.getMonth();
-
     const months = ['Jan.', 'Feb.', 'Mar.', 'Apr.', 'May.', 'Jun.', 'Jul.', 'Aug.', 'Sep.', 'Oct.', 'Nov.', 'Dec.'];
 
+    const tripDays: Partial<TripDay>[] = [];
     const current = new Date(from);
     while (current <= to) {
       const day = current.getDate().toString().padStart(2, '0');
-      const month = current.getMonth();
-      const label = sameMonth ? `${day} ${months[month]}` : `${(month + 1).toString().padStart(2, '0')}/${day}`;
+      const label = `${day} ${months[current.getMonth()]}`;
       tripDays.push({ label, dt: current.toISOString().split('T')[0] });
       current.setDate(current.getDate() + 1);
     }
