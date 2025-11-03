@@ -53,3 +53,26 @@ async def gmaps_textsearch(search: str, api_key: str) -> list[dict[str, Any]]:
             return data.get("places", [])
     except Exception:
         raise HTTPException(status_code=400, detail="Bad Request")
+
+
+async def gmaps_get_boundaries(name: str, api_key: str) -> dict[str, Any] | None:
+    url = "https://maps.googleapis.com/maps/api/geocode/json"
+    params = {"address": name, "key": api_key}
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(url, params=params)
+            response.raise_for_status()
+            data = response.json()
+
+            if data.get("status") != "OK" or not data.get("results"):
+                return None
+
+            result = data["results"][0]
+            geometry = result.get("geometry", {})
+            bounds = geometry.get("bounds")
+            if not bounds:
+                bounds = geometry.get("viewport")
+            return bounds
+    except Exception:
+        raise HTTPException(status_code=400, detail="Bad Request")

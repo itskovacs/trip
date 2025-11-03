@@ -11,7 +11,7 @@ from ..models.models import (Category, GooglePlaceResult, Image, Place,
                              User)
 from ..security import verify_exists_and_owns
 from ..utils.gmaps import (compute_avg_price, compute_description,
-                           gmaps_textsearch)
+                           gmaps_get_boundaries, gmaps_textsearch)
 from ..utils.utils import (b64img_decode, download_file, patch_image,
                            save_image_to_file)
 
@@ -137,6 +137,20 @@ async def google_search_text(
         results.append(result)
 
     return results
+
+
+@router.get("/google-geocode")
+async def google_geocode_search(
+    q: str, session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]
+):
+    db_user = session.get(User, current_user)
+    if not db_user or not db_user.google_apikey:
+        raise HTTPException(status_code=400, detail="Google Maps API key not configured")
+
+    bounds = await gmaps_get_boundaries(q, db_user.google_apikey)
+    if not bounds:
+        raise HTTPException(status_code=400, detail="Location not resolved by GMaps")
+    return bounds
 
 
 @router.put("/{place_id}", response_model=PlaceRead)
