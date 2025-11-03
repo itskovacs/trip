@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Category, GooglePlaceResult, Place } from '../types/poi';
+import { Category, GoogleBoundaries, GooglePlaceResult, Place } from '../types/poi';
 import { BehaviorSubject, map, Observable, shareReplay, tap } from 'rxjs';
 import { Info } from '../types/info';
 import { Backup, ImportResponse, Settings } from '../types/settings';
@@ -324,5 +324,9 @@ export class ApiService {
 
   gmapsSearchText(q: string): Observable<GooglePlaceResult[]> {
     return this.httpClient.get<GooglePlaceResult[]>(`${this.apiBaseUrl}/places/google-search`, { params: { q } });
+  }
+
+  gmapsGeocodeBoundaries(q: string): Observable<GoogleBoundaries> {
+    return this.httpClient.get<GoogleBoundaries>(`${this.apiBaseUrl}/places/google-geocode`, { params: { q } });
   }
 }

@@ -35,3 +35,8 @@ export interface GooglePlaceResult {
   allowdog: boolean;
   description: string;
 }
+
+export interface GoogleBoundaries {
+  northeast: { lat: number; lng: number };
+  southwest: { lat: number; lng: number };
+}
