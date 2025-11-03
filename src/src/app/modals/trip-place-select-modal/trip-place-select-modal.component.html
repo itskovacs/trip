@@ -1,13 +1,8 @@
 <section>
   <div class="max-w-full overflow-y-auto">
-    <div class="mb-4">
-      <p-floatlabel variant="in">
-        <input id="search" pSize="small" [formControl]="searchInput" pInputText fluid />
-        <label for="search">Search...</label>
-      </p-floatlabel>
-    </div>
 
-    <div class="mt-8 flex justify-between items-center gap-4">
+    <div class="mt-8 flex justify-between items-center gap-4 cursor-pointer"
+      (click)="showSelectedPlaces = !showSelectedPlaces">
       <div class="flex flex-col">
         <div class="flex items-center gap-2">
           <h1 class="font-semibold tracking-tight text-xl">Selected</h1>
@@ -18,9 +13,9 @@
           }}</span>
       </div>
 
-      <p-button [icon]="showSelectedPlaces ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" text
-        (click)="showSelectedPlaces = !showSelectedPlaces" />
+      <p-button [icon]="showSelectedPlaces ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" text />
     </div>
+
     @if (showSelectedPlaces) {
     @for (p of selectedPlaces; track p.id) {
     <div
@@ -58,8 +53,38 @@
 
     <div class="mt-8 mb-16">
       <h1 class="font-semibold tracking-tight text-xl">List</h1>
-      <span class="text-xs text-gray-500">Available points</span>
+      <span class="text-xs text-gray-500">Available Places</span>
       @defer {
+
+      <div class="grid md:grid-cols-3 gap-2 mt-2 p-2">
+        <p-floatlabel variant="in" class="md:col-span-2">
+          <input id="search" pSize="small" [formControl]="searchInput" pInputText fluid />
+          <label for="search">Search...</label>
+        </p-floatlabel>
+
+        <div class="relative">
+          <p-floatlabel variant="in">
+            <input id="geocodeInput" pSize="small" (keydown.enter)="gmapsGeocodeFilter()"
+              [formControl]="googleGeocodeInput" pInputText autofocus fluid />
+            <label for="geocodeInput">Filter by Country / City </label>
+          </p-floatlabel>
+
+          @if (boundariesFiltering) {<p-button icon="pi pi-times" variant="text" severity="danger"
+            class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Clear and Cancel"
+            (click)="resetGeocodeFilters()" />}
+          @else {<p-button icon="pi pi-sparkles" variant="text" [disabled]="!googleGeocodeInput.value"
+            class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Filter using location (GMaps API)"
+            (click)="gmapsGeocodeFilter()" />}
+        </div>
+      </div>
+
+      @if (boundariesFiltering) {
+      <div class="mt-4 flex justify-center items-center gap-1">
+        <p class="text-gray-500 dark:text-gray-400">Filtering for location: {{ googleGeocodeInput.value }}</p>
+        <p-button icon="pi pi-times" variant="text" severity="danger" pTooltip="Cancel"
+          (click)="resetGeocodeFilters()" />
+      </div>
+      }
 
       @for (p of displayedPlaces; track p.id) {
       <div
@@ -91,8 +116,8 @@
         </div>
       </div>
       } @empty {
-      <div class="text-center">
-        <h1 class="tracking-tight">Nothing to see</h1>
+      <div class="mt-8 text-center">
+        <p class="text-base text-gray-500 dark:text-gray-400">Nothing to see</p>
       </div>
       }
 

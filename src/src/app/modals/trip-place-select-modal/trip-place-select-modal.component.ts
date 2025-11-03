@@ -4,20 +4,25 @@ import { ButtonModule } from 'primeng/button';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { InputTextModule } from 'primeng/inputtext';
-import { Place } from '../../types/poi';
+import { GoogleBoundaries, Place } from '../../types/poi';
 import { ApiService } from '../../services/api.service';
 import { SkeletonModule } from 'primeng/skeleton';
 import { UtilsService } from '../../services/utils.service';
+import { take } from 'rxjs';
+import { isPointInBounds } from '../../shared/map';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-trip-place-select-modal',
-  imports: [FloatLabelModule, InputTextModule, ButtonModule, ReactiveFormsModule, SkeletonModule],
+  imports: [FloatLabelModule, InputTextModule, ButtonModule, ReactiveFormsModule, SkeletonModule, TooltipModule],
   standalone: true,
   templateUrl: './trip-place-select-modal.component.html',
   styleUrl: './trip-place-select-modal.component.scss',
 })
 export class TripPlaceSelectModalComponent {
   searchInput = new FormControl('');
+  googleGeocodeInput = new FormControl('');
+  boundariesFiltering?: GoogleBoundaries;
 
   selectedPlaces: Place[] = [];
   showSelectedPlaces: boolean = false;
@@ -48,17 +53,7 @@ export class TripPlaceSelectModalComponent {
     }
 
     this.searchInput.valueChanges.subscribe({
-      next: (value) => {
-        if (!value) {
-          this.displayedPlaces = this.places;
-          return;
-        }
-
-        const v = value.toLowerCase();
-        this.displayedPlaces = this.places.filter(
-          (p) => p.name.toLowerCase().includes(v) || p.description?.toLowerCase().includes(v),
-        );
-      },
+      next: () => this.filterPlaces(),
     });
   }
 
@@ -86,7 +81,43 @@ export class TripPlaceSelectModalComponent {
     this.selectedPlaces.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
   }
 
+  filterPlaces() {
+    const searchInputValue = (this.searchInput.value || '').toLowerCase();
+    this.displayedPlaces = this.places.filter((place) => {
+      if (this.boundariesFiltering) {
+        if (!isPointInBounds(place.lat, place.lng, this.boundariesFiltering)) return false;
+      }
+
+      if (!searchInputValue) return true;
+      return (
+        place.name.toLowerCase().includes(searchInputValue) ||
+        place.description?.toLowerCase().includes(searchInputValue)
+      );
+    });
+  }
+
+  resetGeocodeFilters() {
+    this.boundariesFiltering = undefined;
+    this.googleGeocodeInput.setValue('');
+    this.filterPlaces();
+  }
+
   closeDialog() {
     this.ref.close(this.selectedPlaces);
+  }
+
+  gmapsGeocodeFilter() {
+    const value = this.googleGeocodeInput.value;
+    if (!value) return;
+
+    this.apiService
+      .gmapsGeocodeBoundaries(value)
+      .pipe(take(1))
+      .subscribe({
+        next: (boundaries) => {
+          this.boundariesFiltering = boundaries;
+          this.filterPlaces();
+        },
+      });
   }
 }

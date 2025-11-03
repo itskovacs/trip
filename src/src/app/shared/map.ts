@@ -1,7 +1,7 @@
 import * as L from 'leaflet';
 import 'leaflet.markercluster';
 import 'leaflet-contextmenu';
-import { Place } from '../types/poi';
+import { GoogleBoundaries, Place } from '../types/poi';
 
 export const DEFAULT_TILE_URL = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 export interface ContextMenuItem {
@@ -142,4 +142,15 @@ export function gpxToPolyline(gpx: string): L.Polyline {
   );
 
   return L.polyline(latlngs, { color: 'blue' });
+}
+
+export function isPointInBounds(lat: number, lng: number, bounds: GoogleBoundaries): boolean {
+  if (!bounds || !bounds.northeast || !bounds.southwest) return false;
+
+  const ne = bounds.northeast;
+  const sw = bounds.southwest;
+
+  if (lat < sw.lat || lat > ne.lat) return false;
+
+  return sw.lng <= ne.lng ? lng >= sw.lng && lng <= ne.lng : lng >= sw.lng || lng <= ne.lng;
 }
