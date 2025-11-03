@@ -6,7 +6,7 @@
   </p-floatlabel>
 
   <p-floatlabel variant="in">
-    <input class="col-span-2" id="text" formControlName="text" (keypress.enter)="closeDialog()" pInputText fluid />
+    <input class="col-span-2" id="text" formControlName="text" (keydown.enter)="closeDialog()" pInputText fluid />
     <label for="text">Text</label>
   </p-floatlabel>
 
