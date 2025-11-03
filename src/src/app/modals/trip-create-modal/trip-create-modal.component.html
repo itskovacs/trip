@@ -23,9 +23,9 @@
 
   <div class="grid place-items-center md:col-span-1">
     @if (tripForm.get("image_id")?.value) {
-    <div class="max-w-80 max-h-80 relative group cursor-pointer" (click)="fileInput.click()">
+    <div class="max-w-40 max-h-32 relative group cursor-pointer" (click)="fileInput.click()">
       <img [src]="tripForm.get('image')?.value"
-        class="max-w-80 max-h-80 object-cover rounded-lg shadow-lg transition-transform duration-300" />
+        class="max-w-40 max-h-32 object-cover rounded-lg shadow-lg transition-transform duration-300" />
       <div
         class="absolute inset-0 bg-black/50 rounded-lg flex flex-col gap-4 items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
         <span class="text-sm text-gray-300">Click to edit</span><i class="pi pi-upload text-white"></i>
@@ -34,17 +34,17 @@
     <input type="file" accept="image/*" #fileInput class="hidden" (change)="onFileSelected($event)" />
     } @else {
     @if (tripForm.get("image")?.value) {
-    <div class="max-w-80 max-h-80 relative group cursor-pointer" (click)="clearImage()">
+    <div class="max-w-40 max-h-32 relative group cursor-pointer" (click)="clearImage()">
       <img [src]="tripForm.get('image')?.value"
-        class="max-w-80 max-h-80 object-cover rounded-lg shadow-lg transition-transform duration-300" />
+        class="max-w-40 max-h-32 object-cover rounded-lg shadow-lg transition-transform duration-300" />
       <div
         class="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
         <i class="pi pi-trash text-white text-3xl"></i>
       </div>
     </div>
     } @else {
-    <div class="max-w-80 max-h-80 relative group cursor-pointer" (click)="fileInput.click()">
-      <img src="/favicon.png" class="max-w-80 max-h-80 object-cover transition-transform duration-300" />
+    <div class="max-w-40 max-h-32 relative group cursor-pointer" (click)="fileInput.click()">
+      <img src="/favicon.png" class="max-w-40 max-h-32 object-cover transition-transform duration-300" />
       <div
         class="absolute inset-0 bg-black/50 rounded-lg flex flex-col gap-4 items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
         <span class="text-sm text-gray-300">Click to edit</span><i class="pi pi-upload text-white"></i>
