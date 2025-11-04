@@ -192,22 +192,28 @@
           </div>
 
           <div class="flex flex-col md:flex-row justify-center md:justify-start items-center gap-4 mt-8 md:mt-4">
-            <a href="https://ko-fi.com/itskovacs" target="_blank" class="custom-button flex items-center">Support
-              TRIP ☕</a>
+            <a href="https://itskovacs.github.io/trip/docs/intro" target="_blank"
+              class="custom-button flex items-center">📘 Documentation</a>
+            <span class="text-center text-gray-400">Learn more here</span>
+          </div>
+
+          <div class="flex flex-col md:flex-row justify-center md:justify-start items-center gap-4 mt-8 md:mt-4">
+            <a href="https://ko-fi.com/itskovacs" target="_blank" class="custom-button flex items-center">☕ Support
+              TRIP</a>
             <span class="text-center text-gray-400">Support development through optional donations. Thank you!</span>
           </div>
 
           <div class="flex flex-col md:flex-row justify-center md:justify-start items-center gap-4 mt-8 md:mt-4">
             @if (this.info?.update) {
             <button class="custom-button orange" (click)="toGithub()">
-              Open Github
+              🚀 Open Github
             </button>
             <div class="text-center text-gray-400">TRIP {{ this.info?.update }} available on
               Github. <a [href]="'https://github.com/itskovacs/trip/releases/tag/' + this.info?.update"
                 class="text-blue-500 font-semibold" target="_blank">Changelog</a></div>
             } @else {
             <button class="custom-button" (click)="check_update()">
-              Check for updates
+              👀 Check for updates
             </button>
             <span class="text-center flex items-center gap-2 text-gray-400">TRIP {{ info?.version }}</span>
             }
