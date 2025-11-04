@@ -70,10 +70,10 @@ docker run -d -p 8080:8000 -v ./storage:/app/storage ghcr.io/itskovacs/trip:1
 
 ### Configuration
 
-Refer to the [configuration documentation](https://github.com/itskovacs/trip/tree/main/docs/config.md) to set up OIDC authentication and other settings.
+Refer to the [configuration documentation](https://itskovacs.github.io/trip/docs/getting-started/configuration) to set up OIDC authentication and other settings.
 
 > [!TIP]
-> See [Usage Tips](https://github.com/itskovacs/trip/tree/main/docs/usage_tips.md) in docs for advanced features.
+> See [Documentation](https://itskovacs.github.io/trip/docs/intro) to learn more.
 
 <br>
 
