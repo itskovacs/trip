@@ -259,7 +259,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         this.selectedPlace = { ...place };
 
         let toView = { ...e.latlng };
-        if ('ontouchstart' in window) toView.lat = toView.lat - 0.0175;
+        if ('ontouchstart' in window) {
+          const pixelPoint = this.map!.latLngToContainerPoint(e.latlng);
+          pixelPoint.y += 75;
+          toView = this.map!.containerPointToLatLng(pixelPoint);
+        }
 
         marker.closeTooltip();
         this.map?.setView(toView);
