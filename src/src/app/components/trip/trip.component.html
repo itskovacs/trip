@@ -98,7 +98,7 @@
       groupRowsBy="td_label" [resizableColumns]="tableExpandableMode">
       <ng-template #header>
         <tr>
-          @if (!tableExpandableMode && tripTableSelectedColumns.includes('day')) {<th class="w-24" pResizableColumn>Day
+          @if (!tableExpandableMode && tripTableSelectedColumns.includes('day')) {<th class="w-32" pResizableColumn>Day
           </th>}
           @if (tripTableSelectedColumns.includes('time')) {<th class="w-12" pResizableColumn>Time</th>}
           @if (tripTableSelectedColumns.includes('text')) {<th pResizableColumn>Text</th>}
