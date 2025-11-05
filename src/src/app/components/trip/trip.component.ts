@@ -386,13 +386,15 @@ export class TripComponent implements AfterViewInit {
       .sort((a, b) => {
         const dateA = a.day.dt;
         const dateB = b.day.dt;
-        if (dateA && dateB) return dateA.localeCompare(dateB) || (a.item.time || '').localeCompare(b.item.time || '');
-        if (!dateA && !dateB) {
-          return (
-            (a.day.label || '').localeCompare(b.day.label || '') || (a.item.time || '').localeCompare(b.item.time || '')
-          );
+        if (dateA !== dateB) {
+          if (!dateA) return 1;
+          if (!dateB) return -1;
+          const dateCompare = dateA.localeCompare(dateB);
+          if (dateCompare !== 0) return dateCompare;
         }
-        return dateA ? -1 : 1;
+        const labelCompare = (a.day.label || '').localeCompare(b.day.label || '');
+        if (labelCompare !== 0) return labelCompare;
+        return (a.item.time || '').localeCompare(b.item.time || '');
       })
       .map(({ item, day }) => {
         const lat = item.lat ?? item.place?.lat;
