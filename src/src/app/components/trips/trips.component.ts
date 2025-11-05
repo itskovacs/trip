@@ -113,9 +113,11 @@ export class TripsComponent implements OnInit {
     const tripDays: Partial<TripDay>[] = [];
     const current = new Date(from);
     while (current <= to) {
-      const day = current.getDate().toString().padStart(2, '0');
+      const year = current.getUTCFullYear();
+      const month = String(current.getMonth() + 1).padStart(2, '0');
+      const day = String(current.getDate()).padStart(2, '0');
       const label = `${day} ${months[current.getMonth()]}`;
-      tripDays.push({ label, dt: current.toISOString().split('T')[0] });
+      tripDays.push({ label, dt: `${year}-${month}-${day}` });
       current.setDate(current.getDate() + 1);
     }
     return tripDays;
