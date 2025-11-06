@@ -14,9 +14,10 @@ from ..deps import SessionDep, get_current_username
 from ..models.models import (Backup, BackupStatus, Category, CategoryRead,
                              Image, Place, PlaceRead, Trip, TripAttachment,
                              TripChecklistItem, TripChecklistItemRead, TripDay,
-                             TripItem, TripPackingListItem,
-                             TripPackingListItemRead, TripRead, User, UserRead)
-from .date import dt_utc
+                             TripItem, TripItemAttachmentLink,
+                             TripPackingListItem, TripPackingListItemRead,
+                             TripRead, User, UserRead)
+from .date import dt_utc, iso_to_dt
 from .utils import (assets_folder_path, attachments_trip_folder_path,
                     b64img_decode, save_image_to_file)
 
@@ -308,6 +309,7 @@ async def process_backup_import(
                 items_to_add = []
                 packing_to_add = []
                 checklist_to_add = []
+                attachment_links_to_add = []
                 for trip in data.get("trips", []):
                     new_trip = {
                         key: trip[key]
@@ -356,18 +358,49 @@ async def process_backup_import(
                             if db_place:
                                 new_trip.places.append(db_place)
 
+                    trip_attachment_mapping = {}
+                    for attachment in trip.get("attachments", []):
+                        stored_filename = attachment.get("stored_filename")
+                        old_attachment_id = attachment.get("id")
+
+                        if not stored_filename or not old_attachment_id:
+                            continue
+
+                        if stored_filename in attachment_files:
+                            try:
+                                attachment_bytes = zipf.read(attachment_files[stored_filename])
+                                new_attachment = {
+                                    key: attachment[key]
+                                    for key in attachment
+                                    if key not in {"id", "trip_id", "trip"}
+                                }
+                                new_attachment["trip_id"] = new_trip.id
+                                new_attachment["user"] = current_user
+                                new_attachment_obj = TripAttachment(**new_attachment)
+
+                                attachment_path = attachments_trip_folder_path(new_trip.id) / stored_filename
+                                attachment_path.write_bytes(attachment_bytes)
+                                session.add(new_attachment_obj)
+                                session.flush()
+                                session.refresh(new_attachment_obj)
+                                trip_attachment_mapping[old_attachment_id] = new_attachment_obj.id
+
+                            except Exception:
+                                continue
+
                     for day in trip.get("days", []):
                         day_data = {key: day[key] for key in day if key not in {"id", "items"}}
-                        new_day = TripDay(**day_data, trip_id=new_trip.id, user=current_user)
+                        if "dt" in day_data and isinstance(day_data["dt"], str):
+                            day_data["dt"] = iso_to_dt(day_data["dt"])
+                        new_day = TripDay(**day_data, trip_id=new_trip.id)
                         session.add(new_day)
                         session.flush()
-                        session.refresh(new_day)
 
                         for item in day.get("items", []):
                             item_data = {
                                 key: item[key]
                                 for key in item
-                                if key not in {"id", "place", "place_id", "image", "image_id"}
+                                if key not in {"id", "place", "place_id", "image", "image_id", "attachments"}
                             }
                             item_data["day_id"] = new_day.id
                             item_data["user"] = current_user
@@ -393,7 +426,19 @@ async def process_backup_import(
                                         pass
 
                             trip_item = TripItem(**item_data)
+                            session.add(trip_item)
+                            session.flush()
+                            session.refresh(trip_item)
                             items_to_add.append(trip_item)
+
+                            for attachment in item.get("attachments", []):
+                                attachment_id = attachment.get("id")
+                                if attachment_id and attachment_id in trip_attachment_mapping:
+                                    new_attachment_id = trip_attachment_mapping[attachment_id]
+                                    link = TripItemAttachmentLink(
+                                        item_id=trip_item.id, attachment_id=new_attachment_id
+                                    )
+                                    attachment_links_to_add.append(link)
 
                     for item in trip.get("packing_items", []):
                         new_packing = {
@@ -409,28 +454,8 @@ async def process_backup_import(
                         new_checklist["trip_id"] = new_trip.id
                         checklist_to_add.append(TripChecklistItem(**new_checklist))
 
-                    for attachment in trip.get("attachments", []):
-                        stored_filename = attachment.get("stored_filename")
-                        if not stored_filename:
-                            continue
-
-                        if stored_filename and stored_filename in attachment_files:
-                            try:
-                                attachment_bytes = zipf.read(attachment_files[stored_filename])
-                                new_attachment = {
-                                    key: attachment[key]
-                                    for key in attachment
-                                    if key not in {"id", "trip_id", "trip"}
-                                }
-                                new_attachment["trip_id"] = new_trip.id
-                                new_attachment["user"] = current_user
-                                new_attachment = TripAttachment(**new_attachment)
-
-                                attachment_path = attachments_trip_folder_path(new_trip.id) / stored_filename
-                                attachment_path.write_bytes(attachment_bytes)
-                                session.add(new_attachment)
-                            except Exception:
-                                continue
+                if attachment_links_to_add:
+                    session.add_all(attachment_links_to_add)
 
                 if items_to_add:
                     session.add_all(items_to_add)
