@@ -28,12 +28,14 @@ export interface Place {
 
 export interface GooglePlaceResult {
   name: string;
+  category?: string;
   lat: number;
   lng: number;
   price: number;
   types: string[];
   allowdog: boolean;
   description: string;
+  image: string;
 }
 
 export interface GoogleBoundaries {
