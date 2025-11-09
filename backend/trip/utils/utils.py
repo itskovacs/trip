@@ -92,9 +92,12 @@ async def httpx_get(link: str) -> str:
 
 
 async def download_file(link: str, raise_on_error: bool = False) -> str:
+    if not link[:4] == "http":
+        raise HTTPException(status_code=400, detail="Bad Request")
+
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept": "image/*",
         "Accept-Language": "en-US,en;q=0.5",
         "Referer": link,
     }
@@ -103,8 +106,15 @@ async def download_file(link: str, raise_on_error: bool = False) -> str:
         async with httpx.AsyncClient(follow_redirects=True, headers=headers, timeout=5) as client:
             response = await client.get(link)
             response.raise_for_status()
-
-            path = assets_folder_path() / generate_filename(link.split("?")[0].split(".")[-1])
+            content_type = response.headers.get("Content-Type", "")
+            if not content_type.startswith("image/"):
+                raise HTTPException(
+                    status_code=400, detail="Bad Request: provided image URL is not an image"
+                )
+            infer_extension = content_type.split("/")[1]
+            if not infer_extension:
+                infer_extension = "jpg"
+            path = assets_folder_path() / generate_filename(infer_extension)
             with open(path, "wb") as f:
                 f.write(response.content)
                 return f.name
