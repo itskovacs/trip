@@ -54,7 +54,12 @@ export const Interceptor = (req: HttpRequest<unknown>, next: HttpHandlerFn): Obs
       const errDetails = ERROR_CONFIG[err.status];
       if (errDetails) {
         console.error(err);
-        return showAndThrowError(errDetails.title, `${err.error?.detail || err.message || errDetails.detail}`);
+        let msg = ""
+        msg = err.message || errDetails.detail;
+        if (!Array.isArray(err.error?.detail)) {
+          msg = err.error.detail;
+        }
+        return showAndThrowError(errDetails.title, msg);
       }
 
       if (err.status == 401 && authService.accessToken) {
