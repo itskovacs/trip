@@ -2,7 +2,8 @@
   <div pFocusTrap class="grid grid-cols-2 md:grid-cols-4 gap-4" [formGroup]="placeForm">
     <div class="relative col-span-2">
       <p-floatlabel variant="in">
-        <input id="name" formControlName="name" pInputText autofocus fluid />
+        <input id="name" formControlName="name" pInputText autofocus fluid (keydown.shift.enter)="gmapsSearchText()"
+          (keydown.control.enter)="closeDialog()" />
         <label for="name">Name</label>
       </p-floatlabel>
       <p-button icon="pi pi-sparkles" variant="text" [disabled]="!placeForm.get('name')!.value"
