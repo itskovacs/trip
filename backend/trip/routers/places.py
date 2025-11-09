@@ -11,7 +11,7 @@ from ..models.models import (Category, GooglePlaceResult, Image, Place,
                              User)
 from ..security import verify_exists_and_owns
 from ..utils.gmaps import (compute_avg_price, compute_description,
-                           gmaps_get_boundaries, gmaps_textsearch)
+                           gmaps_get_boundaries, gmaps_photo, gmaps_textsearch)
 from ..utils.utils import (b64img_decode, download_file, patch_image,
                            save_image_to_file)
 
@@ -134,6 +134,10 @@ async def google_search_text(
             allowdog=place.get("allowDogs"),
             description=compute_description(place),
         )
+        if place.get("photos"):
+            photo_name = place.get("photos")[0].get("name")
+            if photo_name:
+                result.image = await gmaps_photo(photo_name, db_user.google_apikey)
         results.append(result)
 
     return results
