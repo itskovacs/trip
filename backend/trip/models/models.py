@@ -98,12 +98,14 @@ class PendingTOTP(BaseModel):
 
 class GooglePlaceResult(BaseModel):
     name: str | None = None
+    category: str | None = None
     lat: float | None = None
     lng: float | None = None
     price: float | None = None
     allowsdog: bool | None = None
     description: str | None = None
     types: list[str] = []
+    image: str | None = None
 
 
 class ImageBase(SQLModel):
