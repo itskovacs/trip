@@ -6,9 +6,16 @@
           (keydown.control.enter)="closeDialog()" />
         <label for="name">Name</label>
       </p-floatlabel>
-      <p-button icon="pi pi-sparkles" variant="text" [disabled]="!placeForm.get('name')!.value"
-        class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Complete using GMaps API"
-        (click)="gmapsSearchText()" />
+      <div class="absolute right-2 top-1/2 -translate-y-1/2">
+        @if (gmapsLoading) {
+          <svg viewBox="25 25 50 50">
+            <circle r="20" cy="50" cx="50"></circle>
+          </svg>
+        } @else {
+          <p-button icon="pi pi-sparkles" variant="text" [disabled]="!placeForm.get('name')!.value" pTooltip="Complete using GMaps API"
+            (click)="gmapsSearchText()" />
+        }
+      </div>
     </div>
 
     <p-floatlabel variant="in">

@@ -47,6 +47,7 @@ export class PlaceCreateModalComponent {
   categories$?: Observable<Category[]>;
   previous_image_id: number | null = null;
   previous_image: string | null = null;
+  gmapsLoading = false;
 
   placeInputTooltip: string =
     "<div class='text-center'>You can paste a Google Maps Place link to fill <i>Name</i>, <i>Place</i>, <i>Lat</i>, <i>Lng</i>.</div>\n<div class='text-sm text-center'>https://google.com/maps/place/XXX</div>\n<div class='text-xs text-center'>Either « click » on a point of interest or « search » for it (eg: British Museum) and copy the URL</div>";
@@ -209,23 +210,27 @@ export class PlaceCreateModalComponent {
   gmapsToForm(r: GooglePlaceResult) {
     this.placeForm.patchValue({ ...r, lat: formatLatLng(r.lat), lng: formatLatLng(r.lng), place: r.name || '' });
     this.placeForm.get('category')?.markAsDirty();
-
+    this.gmapsLoading = false;
     if (r.category) {
-      this.categories$?.pipe(take(1)).subscribe({next: categories => {
-        const category: Category | undefined = categories.find(c => c.name == r.category);
-        if (!category) return;
-        this.placeForm.get('category')?.setValue(category.id);
-    }})
+      this.categories$?.pipe(take(1)).subscribe({
+        next: categories => {
+          const category: Category | undefined = categories.find(c => c.name == r.category);
+          if (!category) return;
+          this.placeForm.get('category')?.setValue(category.id);
+        }
+      })
     }
   }
 
   gmapsSearchText() {
+    this.gmapsLoading = true;
     const query = this.placeForm.get('name')?.value;
     if (!query) return;
     this.apiService.gmapsSearchText(query).subscribe({
       next: (results) => {
         if (!results.length) {
           this.utilsService.toast('warn', 'No result', 'No result available for this autocompletion');
+          this.gmapsLoading = false;
           return;
         }
 
@@ -250,7 +255,10 @@ export class PlaceCreateModalComponent {
 
         modal.onClose.pipe(take(1)).subscribe({
           next: (result: GooglePlaceResult | null) => {
-            if (!result) return;
+            if (!result) {
+              this.gmapsLoading = false;
+              return;
+            }
             this.gmapsToForm(result);
           },
         });
