@@ -62,8 +62,8 @@ def process_backup_export(session: SessionDep, backup_id: int):
         images = session.exec(select(Image).where(Image.user == db_backup.user)).all()
 
         backup_datetime = dt_utc()
-        iso_date = backup_datetime.strftime("%Y-%m-%d")
-        filename = f"TRIP_{iso_date}_{db_backup.user}_backup.zip"
+        iso_date = backup_datetime.strftime("%Y-%m-%dT%H-%M-%S")
+        filename = f"TRIP_{db_backup.user}_{iso_date}_backup.zip"
         zip_fp = Path(settings.BACKUPS_FOLDER) / filename
         Path(settings.BACKUPS_FOLDER).mkdir(parents=True, exist_ok=True)
 
