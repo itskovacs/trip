@@ -117,7 +117,7 @@ async def download_file(link: str, raise_on_error: bool = False) -> str:
             path = assets_folder_path() / generate_filename(infer_extension)
             with open(path, "wb") as f:
                 f.write(response.content)
-                return f.name
+            return str(path)
     except Exception as e:
         if raise_on_error:
             raise HTTPException(status_code=400, detail=f"Failed to download file: {e}")

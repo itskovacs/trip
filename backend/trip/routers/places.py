@@ -32,7 +32,7 @@ def read_places(
 
 
 @router.post("", response_model=PlaceRead)
-def create_place(
+async def create_place(
     place: PlaceCreate, session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]
 ) -> PlaceRead:
     new_place = Place(
@@ -51,16 +51,25 @@ def create_place(
     )
 
     if place.image:
-        image_bytes = b64img_decode(place.image)
-        filename = save_image_to_file(image_bytes, settings.PLACE_IMAGE_SIZE)
-        if not filename:
-            raise HTTPException(status_code=400, detail="Bad request")
-
-        image = Image(filename=filename, user=current_user)
-        session.add(image)
-        session.commit()
-        session.refresh(image)
-        new_place.image_id = image.id
+        if place.image[:4] == "http":
+            fp = await download_file(place.image)
+            if fp:
+                patch_image(fp)
+                image = Image(filename=fp.split("/")[-1], user=current_user)
+                session.add(image)
+                session.flush()
+                session.refresh(image)
+                new_place.image_id = image.id
+        else:
+            image_bytes = b64img_decode(place.image)
+            filename = save_image_to_file(image_bytes, settings.PLACE_IMAGE_SIZE)
+            if not filename:
+                raise HTTPException(status_code=400, detail="Bad request")
+            image = Image(filename=filename, user=current_user)
+            session.add(image)
+            session.commit()
+            session.refresh(image)
+            new_place.image_id = image.id
 
     session.add(new_place)
     session.commit()

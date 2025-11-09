@@ -3,6 +3,16 @@ from typing import Any
 import httpx
 from fastapi import HTTPException
 
+gmaps_types_mapper: dict[str, list] = {
+    "Nature & Outdoor": ["natural_feature", "landmark"],
+    "Entertainment & Leisure": ["amusement", "aquarium"],
+    "Culture": ["museum", "historical", "art_", "church"],
+    "Food & Drink": ["food", "bar", "bakery", "coffee_shop", "restaurant"],
+    "Adventure & Sports": ["adventure_sports_center"],
+    "Wellness": ["wellness"],
+    "Accommodation": ["hotel", "camping"],
+}
+
 
 def compute_avg_price(price_range: dict | None) -> float | None:
     if not price_range:
@@ -42,7 +52,7 @@ async def gmaps_textsearch(search: str, api_key: str) -> list[dict[str, Any]]:
     headers = {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": api_key,
-        "X-Goog-FieldMask": "places.id,places.types,places.location,places.priceRange,places.formattedAddress,places.websiteUri,places.internationalPhoneNumber,places.displayName,places.allowsDogs",
+        "X-Goog-FieldMask": "places.id,places.types,places.location,places.priceRange,places.formattedAddress,places.websiteUri,places.internationalPhoneNumber,places.displayName,places.allowsDogs,places.photos",
     }
 
     try:
