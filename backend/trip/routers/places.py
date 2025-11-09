@@ -11,7 +11,8 @@ from ..models.models import (Category, GooglePlaceResult, Image, Place,
                              User)
 from ..security import verify_exists_and_owns
 from ..utils.gmaps import (compute_avg_price, compute_description,
-                           gmaps_get_boundaries, gmaps_photo, gmaps_textsearch)
+                           gmaps_get_boundaries, gmaps_photo, gmaps_textsearch,
+                           gmaps_types_mapper)
 from ..utils.utils import (b64img_decode, download_file, patch_image,
                            save_image_to_file)
 
@@ -138,6 +139,12 @@ async def google_search_text(
             photo_name = place.get("photos")[0].get("name")
             if photo_name:
                 result.image = await gmaps_photo(photo_name, db_user.google_apikey)
+        # FIXME: Using default categories, update Settings/Categories to integrate types mapping
+        place_types = set(place.get("types", []))
+        for key, v in gmaps_types_mapper.items():
+            if any(any(substring in place_type for place_type in place_types) for substring in v):
+                result.category = key
+                break
         results.append(result)
 
     return results
