@@ -1,11 +1,11 @@
 from datetime import UTC, date, datetime, timedelta
 
 
-def dt_utc() -> date:
+def dt_utc() -> datetime:
     return datetime.now(UTC)
 
 
-def dt_utc_offset(min: int) -> date:
+def dt_utc_offset(min: int) -> datetime:
     return datetime.now(UTC) + timedelta(minutes=min)
 
 
