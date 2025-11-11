@@ -2027,13 +2027,16 @@ export class TripComponent implements AfterViewInit {
         next: () => {
           this.trip!.attachments = this.trip?.attachments?.filter((att) => att.id != attachmentId);
           let modifiedItem = false;
-          this.trip?.days.forEach(d => d.items.forEach(i => {
-            if (i.attachments?.length) {
-              i.attachments = i.attachments.filter(attachment => attachment.id != attachmentId);
-              modifiedItem = true;
-            }
-          }))
-          if (this.selectedItem?.attachments?.length) this.selectedItem.attachments = this.selectedItem.attachments.filter((a) => a.id != attachmentId);
+          this.trip?.days.forEach((d) =>
+            d.items.forEach((i) => {
+              if (i.attachments?.length) {
+                i.attachments = i.attachments.filter((attachment) => attachment.id != attachmentId);
+                modifiedItem = true;
+              }
+            }),
+          );
+          if (this.selectedItem?.attachments?.length)
+            this.selectedItem.attachments = this.selectedItem.attachments.filter((a) => a.id != attachmentId);
           if (modifiedItem) this.flattenTripDayItems();
         },
       });
