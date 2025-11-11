@@ -54,7 +54,7 @@ export const Interceptor = (req: HttpRequest<unknown>, next: HttpHandlerFn): Obs
       const errDetails = ERROR_CONFIG[err.status];
       if (errDetails) {
         console.error(err);
-        let msg = ""
+        let msg = '';
         msg = err.message || errDetails.detail;
         if (!Array.isArray(err.error?.detail)) {
           msg = err.error.detail;

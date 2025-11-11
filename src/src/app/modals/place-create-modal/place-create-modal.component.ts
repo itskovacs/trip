@@ -213,12 +213,12 @@ export class PlaceCreateModalComponent {
     this.gmapsLoading = false;
     if (r.category) {
       this.categories$?.pipe(take(1)).subscribe({
-        next: categories => {
-          const category: Category | undefined = categories.find(c => c.name == r.category);
+        next: (categories) => {
+          const category: Category | undefined = categories.find((c) => c.name == r.category);
           if (!category) return;
           this.placeForm.get('category')?.setValue(category.id);
-        }
-      })
+        },
+      });
     }
   }
 
@@ -235,7 +235,7 @@ export class PlaceCreateModalComponent {
         }
 
         if (results.length == 1) {
-          this.gmapsToForm(results[0])
+          this.gmapsToForm(results[0]);
           return;
         }
 
