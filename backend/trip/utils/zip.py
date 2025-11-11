@@ -19,7 +19,7 @@ from ..models.models import (Backup, BackupStatus, Category, CategoryRead,
                              TripRead, User, UserRead)
 from .date import dt_utc, iso_to_dt
 from .utils import (assets_folder_path, attachments_trip_folder_path,
-                    b64img_decode, save_image_to_file)
+                    b64img_decode, remove_image, save_image_to_file)
 
 
 def process_backup_export(session: SessionDep, backup_id: int):
@@ -147,79 +147,47 @@ async def process_backup_import(
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid file")
 
-    try:
-        with ZipFile(io.BytesIO(zip_content), "r") as zipf:
-            zip_filenames = zipf.namelist()
-            if "data.json" not in zip_filenames:
-                raise HTTPException(status_code=400, detail="Invalid file")
+    with ZipFile(io.BytesIO(zip_content), "r") as zipf:
+        zip_filenames = zipf.namelist()
+        if "data.json" not in zip_filenames:
+            raise HTTPException(status_code=400, detail="Invalid file")
 
-            try:
-                data = json.loads(zipf.read("data.json"))
-            except Exception:
-                raise HTTPException(status_code=400, detail="Invalid file")
+        try:
+            data = json.loads(zipf.read("data.json"))
+        except Exception:
+            raise HTTPException(status_code=400, detail="Invalid file")
 
-            image_files = {
-                path.split("/")[-1]: path
-                for path in zip_filenames
-                if path.startswith("images/") and not path.endswith("/")
+        image_files = {
+            path.split("/")[-1]: path
+            for path in zip_filenames
+            if path.startswith("images/") and not path.endswith("/")
+        }
+
+        attachment_files = {
+            path.split("/")[-1]: path
+            for path in zip_filenames
+            if path.startswith("attachments/") and not path.endswith("/")
+        }
+
+        error_details = "Bad request"
+        created_image_filenames = []
+        created_attachment_trips = []
+        try:
+            existing_categories = {
+                category.name: category
+                for category in session.exec(select(Category).where(Category.user == current_user)).all()
             }
 
-            attachment_files = {
-                path.split("/")[-1]: path
-                for path in zip_filenames
-                if path.startswith("attachments/") and not path.endswith("/")
-            }
+            categories_to_add = []
+            for category in data.get("categories", []):
+                category_name = category.get("name")
+                category_exists = existing_categories.get(category_name)
 
-            try:
-                existing_categories = {
-                    category.name: category
-                    for category in session.exec(select(Category).where(Category.user == current_user)).all()
-                }
+                if category_exists:
+                    if category.get("color"):
+                        category_exists.color = category["color"]
 
-                categories_to_add = []
-                for category in data.get("categories", []):
-                    category_name = category.get("name")
-                    category_exists = existing_categories.get(category_name)
-
-                    if category_exists:
-                        if category.get("color"):
-                            category_exists.color = category["color"]
-
-                        if category.get("image_id") and category.get("image_id") != category_exists.image_id:
-                            category_filename = category.get("image").split("/")[-1]
-                            if category_filename and category_filename in image_files:
-                                try:
-                                    image_bytes = zipf.read(image_files[category_filename])
-                                    filename = save_image_to_file(image_bytes, settings.PLACE_IMAGE_SIZE)
-                                    if filename:
-                                        image = Image(filename=filename, user=current_user)
-                                        session.add(image)
-                                        session.flush()
-                                        session.refresh(image)
-
-                                        if category_exists.image_id:
-                                            old_image = session.get(Image, category_exists.image_id)
-                                            if old_image:
-                                                session.delete(old_image)
-                                                category_exists.image_id = None
-                                                session.flush()
-
-                                        category_exists.image_id = image.id
-                                except Exception:
-                                    pass
-
-                        session.add(category_exists)
-                        existing_categories[category_name] = category_exists
-                        continue
-
-                    new_category = {
-                        key: category[key]
-                        for key in category.keys()
-                        if key not in {"id", "image", "image_id"}
-                    }
-                    new_category["user"] = current_user
-
-                    if category.get("image_id"):
+                    if category.get("image_id") and category.get("image_id") != category_exists.image_id:
                         category_filename = category.get("image").split("/")[-1]
                         if category_filename and category_filename in image_files:
                             try:
@@ -230,266 +198,317 @@ async def process_backup_import(
                                     session.add(image)
                                     session.flush()
                                     session.refresh(image)
-                                    new_category["image_id"] = image.id
+                                    created_image_filenames.append(filename)
+
+                                    if category_exists.image_id:
+                                        old_image = session.get(Image, category_exists.image_id)
+                                        if old_image:
+                                            session.delete(old_image)
+                                            category_exists.image_id = None
+                                            session.flush()
+
+                                    category_exists.image_id = image.id
                             except Exception:
                                 pass
 
-                    new_category = Category(**new_category)
-                    categories_to_add.append(new_category)
-                    session.add(new_category)
+                    session.add(category_exists)
+                    existing_categories[category_name] = category_exists
+                    continue
 
-                if categories_to_add:
-                    session.flush()
-                    for category in categories_to_add:
-                        existing_categories[category.name] = category
+                new_category = {
+                    key: category[key] for key in category.keys() if key not in {"id", "image", "image_id"}
+                }
+                new_category["user"] = current_user
 
-                places = []
-                places_to_add = []
-                for place in data.get("places", []):
-                    category_name = place.get("category", {}).get("name")
-                    category = existing_categories.get(category_name)
-                    if not category:
+                if category.get("image_id"):
+                    category_filename = category.get("image").split("/")[-1]
+                    if category_filename and category_filename in image_files:
+                        try:
+                            image_bytes = zipf.read(image_files[category_filename])
+                            filename = save_image_to_file(image_bytes, settings.PLACE_IMAGE_SIZE)
+                            if filename:
+                                image = Image(filename=filename, user=current_user)
+                                session.add(image)
+                                session.flush()
+                                session.refresh(image)
+                                created_image_filenames.append(filename)
+                                new_category["image_id"] = image.id
+                        except Exception:
+                            pass
+
+                new_category = Category(**new_category)
+                categories_to_add.append(new_category)
+                session.add(new_category)
+
+            if categories_to_add:
+                session.flush()
+                for category in categories_to_add:
+                    existing_categories[category.name] = category
+
+            places = []
+            places_to_add = []
+            for place in data.get("places", []):
+                category_name = place.get("category", {}).get("name")
+                category = existing_categories.get(category_name)
+                if not category:
+                    continue
+
+                new_place = {
+                    key: place[key]
+                    for key in place.keys()
+                    if key not in {"id", "image", "image_id", "category", "category_id"}
+                }
+                new_place["user"] = current_user
+                new_place["category_id"] = category.id
+
+                if place.get("image_id"):
+                    place_filename = place.get("image").split("/")[-1]
+                    if place_filename and place_filename in image_files:
+                        try:
+                            image_bytes = zipf.read(image_files[place_filename])
+                            filename = save_image_to_file(image_bytes, settings.PLACE_IMAGE_SIZE)
+                            if filename:
+                                image = Image(filename=filename, user=current_user)
+                                session.add(image)
+                                session.flush()
+                                session.refresh(image)
+                                created_image_filenames.append(filename)
+                                new_place["image_id"] = image.id
+                        except Exception:
+                            pass
+
+                new_place = Place(**new_place)
+                places_to_add.append(new_place)
+                places.append(new_place)
+
+            if places_to_add:
+                session.add_all(places_to_add)
+                session.flush()
+
+            db_user = session.get(User, current_user)
+            if data.get("settings") and db_user:
+                settings_data = data["settings"]
+                setting_fields = [
+                    "map_lat",
+                    "map_lng",
+                    "currency",
+                    "tile_layer",
+                    "mode_low_network",
+                    "mode_dark",
+                    "mode_gpx_in_place",
+                ]
+
+                for field in setting_fields:
+                    if field in settings_data:
+                        setattr(db_user, field, settings_data[field])
+
+                if "do_not_display" in settings_data:
+                    db_user.do_not_display = ",".join(settings_data["do_not_display"])
+
+                session.add(db_user)
+                session.flush()
+
+            trip_place_id_map = {p["id"]: new_p.id for p, new_p in zip(data.get("places", []), places)}
+            items_to_add = []
+            packing_to_add = []
+            checklist_to_add = []
+            attachment_links_to_add = []
+            for trip in data.get("trips", []):
+                new_trip = {
+                    key: trip[key]
+                    for key in trip.keys()
+                    if key
+                    not in {
+                        "id",
+                        "image",
+                        "image_id",
+                        "places",
+                        "days",
+                        "shared",
+                        "collaborators",
+                        "attachments",
+                        "packing_items",
+                        "checklist_items",
+                    }
+                }
+                new_trip["user"] = current_user
+
+                if trip.get("image_id"):
+                    trip_filename = trip.get("image").split("/")[-1]
+                    if trip_filename and trip_filename in image_files:
+                        try:
+                            image_bytes = zipf.read(image_files[trip_filename])
+                            filename = save_image_to_file(image_bytes, settings.TRIP_IMAGE_SIZE)
+                            if filename:
+                                image = Image(filename=filename, user=current_user)
+                                session.add(image)
+                                session.flush()
+                                session.refresh(image)
+                                created_image_filenames.append(filename)
+                                new_trip["image_id"] = image.id
+                        except Exception:
+                            pass
+
+                new_trip = Trip(**new_trip)
+                session.add(new_trip)
+                session.flush()
+                session.refresh(new_trip)
+
+                for place in trip.get("places", []):
+                    old_id = place.get("id")
+                    new_place_id = trip_place_id_map.get(old_id)
+                    if new_place_id:
+                        db_place = session.get(Place, new_place_id)
+                        if db_place:
+                            new_trip.places.append(db_place)
+
+                trip_attachment_mapping = {}
+                for attachment in trip.get("attachments", []):
+                    stored_filename = attachment.get("stored_filename")
+                    old_attachment_id = attachment.get("id")
+
+                    if not stored_filename or not old_attachment_id:
                         continue
 
-                    new_place = {
-                        key: place[key]
-                        for key in place.keys()
-                        if key not in {"id", "image", "image_id", "category", "category_id"}
-                    }
-                    new_place["user"] = current_user
-                    new_place["category_id"] = category.id
+                    if stored_filename in attachment_files:
+                        try:
+                            attachment_bytes = zipf.read(attachment_files[stored_filename])
+                            new_attachment = {
+                                key: attachment[key]
+                                for key in attachment
+                                if key not in {"id", "trip_id", "trip", "uploaded_by"}
+                            }
+                            new_attachment["trip_id"] = new_trip.id
+                            new_attachment["uploaded_by"] = current_user
+                            new_attachment_obj = TripAttachment(**new_attachment)
 
-                    if place.get("image_id"):
-                        place_filename = place.get("image").split("/")[-1]
-                        if place_filename and place_filename in image_files:
-                            try:
-                                image_bytes = zipf.read(image_files[place_filename])
-                                filename = save_image_to_file(image_bytes, settings.PLACE_IMAGE_SIZE)
-                                if filename:
-                                    image = Image(filename=filename, user=current_user)
-                                    session.add(image)
-                                    session.flush()
-                                    session.refresh(image)
-                                    new_place["image_id"] = image.id
-                            except Exception:
-                                pass
+                            attachment_path = attachments_trip_folder_path(new_trip.id) / stored_filename
+                            created_attachment_trips.append(new_trip.id)
+                            attachment_path.write_bytes(attachment_bytes)
+                            session.add(new_attachment_obj)
+                            session.flush()
+                            session.refresh(new_attachment_obj)
+                            trip_attachment_mapping[old_attachment_id] = new_attachment_obj.id
 
-                    new_place = Place(**new_place)
-                    places_to_add.append(new_place)
-                    places.append(new_place)
-
-                if places_to_add:
-                    session.add_all(places_to_add)
-                    session.flush()
-
-                db_user = session.get(User, current_user)
-                if data.get("settings") and db_user:
-                    settings_data = data["settings"]
-                    setting_fields = [
-                        "map_lat",
-                        "map_lng",
-                        "currency",
-                        "tile_layer",
-                        "mode_low_network",
-                        "mode_dark",
-                        "mode_gpx_in_place",
-                    ]
-
-                    for field in setting_fields:
-                        if field in settings_data:
-                            setattr(db_user, field, settings_data[field])
-
-                    if "do_not_display" in settings_data:
-                        db_user.do_not_display = ",".join(settings_data["do_not_display"])
-
-                    session.add(db_user)
-                    session.flush()
-
-                trip_place_id_map = {p["id"]: new_p.id for p, new_p in zip(data.get("places", []), places)}
-                items_to_add = []
-                packing_to_add = []
-                checklist_to_add = []
-                attachment_links_to_add = []
-                for trip in data.get("trips", []):
-                    new_trip = {
-                        key: trip[key]
-                        for key in trip.keys()
-                        if key
-                        not in {
-                            "id",
-                            "image",
-                            "image_id",
-                            "places",
-                            "days",
-                            "shared",
-                            "collaborators",
-                            "attachments",
-                            "packing_items",
-                            "checklist_items",
-                        }
-                    }
-                    new_trip["user"] = current_user
-
-                    if trip.get("image_id"):
-                        trip_filename = trip.get("image").split("/")[-1]
-                        if trip_filename and trip_filename in image_files:
-                            try:
-                                image_bytes = zipf.read(image_files[trip_filename])
-                                filename = save_image_to_file(image_bytes, settings.TRIP_IMAGE_SIZE)
-                                if filename:
-                                    image = Image(filename=filename, user=current_user)
-                                    session.add(image)
-                                    session.flush()
-                                    session.refresh(image)
-                                    new_trip["image_id"] = image.id
-                            except Exception:
-                                pass
-
-                    new_trip = Trip(**new_trip)
-                    session.add(new_trip)
-                    session.flush()
-                    session.refresh(new_trip)
-
-                    for place in trip.get("places", []):
-                        old_id = place.get("id")
-                        new_place_id = trip_place_id_map.get(old_id)
-                        if new_place_id:
-                            db_place = session.get(Place, new_place_id)
-                            if db_place:
-                                new_trip.places.append(db_place)
-
-                    trip_attachment_mapping = {}
-                    for attachment in trip.get("attachments", []):
-                        stored_filename = attachment.get("stored_filename")
-                        old_attachment_id = attachment.get("id")
-
-                        if not stored_filename or not old_attachment_id:
+                        except Exception:
                             continue
 
-                        if stored_filename in attachment_files:
-                            try:
-                                attachment_bytes = zipf.read(attachment_files[stored_filename])
-                                new_attachment = {
-                                    key: attachment[key]
-                                    for key in attachment
-                                    if key not in {"id", "trip_id", "trip"}
-                                }
-                                new_attachment["trip_id"] = new_trip.id
-                                new_attachment["user"] = current_user
-                                new_attachment_obj = TripAttachment(**new_attachment)
+                for day in trip.get("days", []):
+                    day_data = {key: day[key] for key in day if key not in {"id", "items"}}
+                    if "dt" in day_data and isinstance(day_data["dt"], str):
+                        day_data["dt"] = iso_to_dt(day_data["dt"])
+                    new_day = TripDay(**day_data, trip_id=new_trip.id)
+                    session.add(new_day)
+                    session.flush()
 
-                                attachment_path = attachments_trip_folder_path(new_trip.id) / stored_filename
-                                attachment_path.write_bytes(attachment_bytes)
-                                session.add(new_attachment_obj)
-                                session.flush()
-                                session.refresh(new_attachment_obj)
-                                trip_attachment_mapping[old_attachment_id] = new_attachment_obj.id
+                    for item in day.get("items", []):
+                        if item.get("paid_by"):
+                            u = item.get("paid_by")
+                            db_user = session.get(User, u)
+                            if not db_user:
+                                error_details = f"User <{u}> does not exist and is specified in Paid By"
+                                raise
 
-                            except Exception:
-                                continue
+                        item_data = {
+                            key: item[key]
+                            for key in item
+                            if key not in {"id", "place", "place_id", "image", "image_id", "attachments"}
+                        }
+                        item_data["day_id"] = new_day.id
 
-                    for day in trip.get("days", []):
-                        day_data = {key: day[key] for key in day if key not in {"id", "items"}}
-                        if "dt" in day_data and isinstance(day_data["dt"], str):
-                            day_data["dt"] = iso_to_dt(day_data["dt"])
-                        new_day = TripDay(**day_data, trip_id=new_trip.id)
-                        session.add(new_day)
+                        place = item.get("place")
+                        if place and (place_id := place.get("id")):
+                            new_place_id = trip_place_id_map.get(place_id)
+                            item_data["place_id"] = new_place_id
+
+                        if item_data.get("image_id"):
+                            place_filename = place.get("image").split("/")[-1]
+                            if place_filename and place_filename in image_files:
+                                try:
+                                    image_bytes = zipf.read(image_files[place_filename])
+                                    filename = save_image_to_file(image_bytes, settings.PLACE_IMAGE_SIZE)
+                                    if filename:
+                                        image = Image(filename=filename, user=current_user)
+                                        session.add(image)
+                                        session.flush()
+                                        session.refresh(image)
+                                        created_image_filenames.append(filename)
+                                        item_data["image_id"] = image.id
+                                except Exception:
+                                    pass
+
+                        trip_item = TripItem(**item_data)
+                        session.add(trip_item)
                         session.flush()
+                        session.refresh(trip_item)
+                        items_to_add.append(trip_item)
 
-                        for item in day.get("items", []):
-                            item_data = {
-                                key: item[key]
-                                for key in item
-                                if key not in {"id", "place", "place_id", "image", "image_id", "attachments"}
-                            }
-                            item_data["day_id"] = new_day.id
-                            item_data["user"] = current_user
+                        for attachment in item.get("attachments", []):
+                            attachment_id = attachment.get("id")
+                            if attachment_id and attachment_id in trip_attachment_mapping:
+                                new_attachment_id = trip_attachment_mapping[attachment_id]
+                                link = TripItemAttachmentLink(
+                                    item_id=trip_item.id, attachment_id=new_attachment_id
+                                )
+                                attachment_links_to_add.append(link)
 
-                            place = item.get("place")
-                            if place and (place_id := place.get("id")):
-                                new_place_id = trip_place_id_map.get(place_id)
-                                item_data["place_id"] = new_place_id
+                for item in trip.get("packing_items", []):
+                    new_packing = {
+                        key: item[key] for key in item.keys() if key not in {"id", "trip_id", "trip"}
+                    }
+                    new_packing["trip_id"] = new_trip.id
+                    packing_to_add.append(TripPackingListItem(**new_packing))
 
-                            if item_data.get("image_id"):
-                                place_filename = place.get("image").split("/")[-1]
-                                if place_filename and place_filename in image_files:
-                                    try:
-                                        image_bytes = zipf.read(image_files[place_filename])
-                                        filename = save_image_to_file(image_bytes, settings.PLACE_IMAGE_SIZE)
-                                        if filename:
-                                            image = Image(filename=filename, user=current_user)
-                                            session.add(image)
-                                            session.flush()
-                                            session.refresh(image)
-                                            item_data["image_id"] = image.id
-                                    except Exception:
-                                        pass
+                for item in trip.get("checklist_items", []):
+                    new_checklist = {
+                        key: item[key] for key in item.keys() if key not in {"id", "trip_id", "trip"}
+                    }
+                    new_checklist["trip_id"] = new_trip.id
+                    checklist_to_add.append(TripChecklistItem(**new_checklist))
 
-                            trip_item = TripItem(**item_data)
-                            session.add(trip_item)
-                            session.flush()
-                            session.refresh(trip_item)
-                            items_to_add.append(trip_item)
+            if attachment_links_to_add:
+                session.add_all(attachment_links_to_add)
 
-                            for attachment in item.get("attachments", []):
-                                attachment_id = attachment.get("id")
-                                if attachment_id and attachment_id in trip_attachment_mapping:
-                                    new_attachment_id = trip_attachment_mapping[attachment_id]
-                                    link = TripItemAttachmentLink(
-                                        item_id=trip_item.id, attachment_id=new_attachment_id
-                                    )
-                                    attachment_links_to_add.append(link)
+            if items_to_add:
+                session.add_all(items_to_add)
 
-                    for item in trip.get("packing_items", []):
-                        new_packing = {
-                            key: item[key] for key in item.keys() if key not in {"id", "trip_id", "trip"}
-                        }
-                        new_packing["trip_id"] = new_trip.id
-                        packing_to_add.append(TripPackingListItem(**new_packing))
+            if packing_to_add:
+                session.add_all(packing_to_add)
 
-                    for item in trip.get("checklist_items", []):
-                        new_checklist = {
-                            key: item[key] for key in item.keys() if key not in {"id", "trip_id", "trip"}
-                        }
-                        new_checklist["trip_id"] = new_trip.id
-                        checklist_to_add.append(TripChecklistItem(**new_checklist))
+            if checklist_to_add:
+                session.add_all(checklist_to_add)
 
-                if attachment_links_to_add:
-                    session.add_all(attachment_links_to_add)
+            # BOOM!
+            session.commit()
 
-                if items_to_add:
-                    session.add_all(items_to_add)
+            return {
+                "places": [PlaceRead.serialize(p) for p in places],
+                "categories": [
+                    CategoryRead.serialize(c)
+                    for c in session.exec(
+                        select(Category)
+                        .options(selectinload(Category.image))
+                        .where(Category.user == current_user)
+                    ).all()
+                ],
+                "settings": UserRead.serialize(session.get(User, current_user)),
+            }
 
-                if packing_to_add:
-                    session.add_all(packing_to_add)
-
-                if checklist_to_add:
-                    session.add_all(checklist_to_add)
-
-                # BOOM!
-                session.commit()
-
-                return {
-                    "places": [PlaceRead.serialize(p) for p in places],
-                    "categories": [
-                        CategoryRead.serialize(c)
-                        for c in session.exec(
-                            select(Category)
-                            .options(selectinload(Category.image))
-                            .where(Category.user == current_user)
-                        ).all()
-                    ],
-                    "settings": UserRead.serialize(session.get(User, current_user)),
-                }
-
-            except Exception as exc:
-                session.rollback()
-                print(exc)
-                raise HTTPException(status_code=400, detail="Bad request")
-
-    except Exception as exc:
-        print(exc)
-        raise HTTPException(status_code=400, detail="Bad request")
+        except Exception:
+            session.rollback()
+            for filename in created_image_filenames:
+                remove_image(filename)
+            for trip_id in created_attachment_trips:
+                try:
+                    folder = attachments_trip_folder_path(trip_id)
+                    if not folder.exists():
+                        return
+                    for file in folder.iterdir():
+                        file.unlink()
+                    folder.rmdir()
+                except Exception:
+                    pass
+            raise HTTPException(status_code=400, detail=error_details)
 
 
 async def process_legacy_import(
