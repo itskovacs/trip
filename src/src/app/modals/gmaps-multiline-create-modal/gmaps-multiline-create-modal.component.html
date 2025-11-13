@@ -1,0 +1,18 @@
+<section class="space-y-3">
+  <div>
+    <p-floatlabel variant="in">
+      <textarea pTextarea id="batch" [formControl]="batchInput" rows="6" fluid placeholder="One link per line">
+      </textarea>
+      <label for="batch">Batch Content</label>
+    </p-floatlabel>
+  </div>
+
+  <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+    <i class="pi pi-info-circle"></i>
+    <span>Enter one item per line</span>
+  </div>
+
+  <div class="mt-4 text-right">
+    <p-button (click)="closeDialog()" text [disabled]="!batchInput.value" label="Confirm" />
+  </div>
+</section>
