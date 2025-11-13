@@ -1339,9 +1339,10 @@ export class TripComponent implements AfterViewInit {
               const places = [...this.places];
               const idx = places.findIndex((p) => p.id == place.id);
               if (idx > -1) places.splice(idx, 1, place);
-              places.push(place);
+              else places.push(place);
               places.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
               if (this.selectedItem?.place) this.selectedItem.place = place;
+              this.places = places;
             },
           });
       },
