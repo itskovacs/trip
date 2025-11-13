@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import {} from 'primeng/api';
 import { ToastModule } from 'primeng/toast';
 
 @Component({
