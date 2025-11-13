@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
@@ -10,9 +10,9 @@ from ..models.models import (Category, GooglePlaceResult, Image, Place,
                              PlaceCreate, PlaceRead, PlacesCreate, PlaceUpdate,
                              User)
 from ..security import verify_exists_and_owns
-from ..utils.gmaps import (compute_avg_price, compute_description,
-                           gmaps_get_boundaries, gmaps_photo, gmaps_textsearch,
-                           gmaps_types_mapper)
+from ..utils.csv import iter_csv_lines
+from ..utils.gmaps import (gmaps_get_boundaries, gmaps_textsearch,
+                           gmaps_url_to_search, result_to_place)
 from ..utils.utils import (b64img_decode, download_file, patch_image,
                            save_image_to_file)
 
@@ -123,40 +123,62 @@ async def create_places(
     return [PlaceRead.serialize(p) for p in new_places]
 
 
+@router.post("/google-multilinks")
+async def process_multilinks(
+    links: list[str], session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]
+) -> list[GooglePlaceResult]:
+    db_user = session.get(User, current_user)
+    if not db_user or not db_user.google_apikey:
+        raise HTTPException(status_code=400, detail="Google Maps API key not configured")
+
+    places = []
+    for url in links:
+        result = await gmaps_url_to_search(url, db_user.google_apikey)
+        place = await result_to_place(result, db_user.google_apikey)
+        places.append(place)
+    return places
+
+
+@router.post("/google-takeout-import")
+async def process_takeout_csv(
+    session: SessionDep,
+    current_user: Annotated[str, Depends(get_current_username)],
+    file: UploadFile = File(...),
+) -> list[GooglePlaceResult]:
+    # TODO: chunk.decode?
+    db_user = session.get(User, current_user)
+    if not db_user or not db_user.google_apikey:
+        raise HTTPException(status_code=400, detail="Google Maps API key not configured")
+
+    content_type = file.content_type
+    if content_type != "text/csv":
+        raise HTTPException(status_code=400, detail="Bad request, expected CSV file")
+
+    places = []
+    async for row in iter_csv_lines(file):
+        url = row.pop("URL", None)
+        if not url:
+            continue
+        result = await gmaps_url_to_search(url, db_user.google_apikey)
+        place = await result_to_place(result, db_user.google_apikey)
+        places.append(place)
+    return places
+
+
 @router.get("/google-search")
 async def google_search_text(
     q: str, session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]
-):
+) -> list[GooglePlaceResult]:
     db_user = session.get(User, current_user)
     if not db_user or not db_user.google_apikey:
         raise HTTPException(status_code=400, detail="Google Maps API key not configured")
 
     data = await gmaps_textsearch(q, db_user.google_apikey)
-    results = []
-    for place in data:
-        loc = place.get("location", {})
-        result = GooglePlaceResult(
-            name=place.get("displayName", {}).get("text"),
-            lat=loc.get("latitude", None),
-            lng=loc.get("longitude", None),
-            price=compute_avg_price(place.get("priceRange")),
-            types=place.get("types", []),
-            allowdog=place.get("allowDogs"),
-            description=compute_description(place),
-        )
-        if place.get("photos"):
-            photo_name = place.get("photos")[0].get("name")
-            if photo_name:
-                result.image = await gmaps_photo(photo_name, db_user.google_apikey)
-        # FIXME: Using default categories, update Settings/Categories to integrate types mapping
-        place_types = set(place.get("types", []))
-        for key, v in gmaps_types_mapper.items():
-            if any(any(substring in place_type for place_type in place_types) for substring in v):
-                result.category = key
-                break
-        results.append(result)
-
-    return results
+    places = []
+    for result in data:
+        place = await result_to_place(result, db_user.google_apikey)
+        places.append(place)
+    return places
 
 
 @router.get("/google-geocode")
