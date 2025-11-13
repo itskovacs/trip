@@ -12,7 +12,7 @@
           <circle r="20" cy="50" cx="50"></circle>
         </svg>
         } @else {
-        <p-button icon="pi pi-sparkles" variant="text" [disabled]="!placeForm.get('name')!.value"
+        <p-button icon="pi pi-sparkles" text [disabled]="!placeForm.get('name')!.value"
           pTooltip="Complete using GMaps API" (click)="gmapsSearchText()" />
         }
       </div>
@@ -90,7 +90,7 @@
           <label for="description">Description</label>
         </p-floatlabel>
         @if (descriptionInput.value) {
-        <p-button icon="pi pi-times" severity="danger" variant="text" class="absolute right-2 top-2"
+        <p-button icon="pi pi-times" severity="danger" text class="absolute right-2 top-2"
           (click)="placeForm.get('description')?.setValue('')" pTooltip="Clear" />
         }
       </div>
