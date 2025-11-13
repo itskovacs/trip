@@ -98,6 +98,7 @@ class PendingTOTP(BaseModel):
 
 class GooglePlaceResult(BaseModel):
     name: str | None = None
+    place: str | None = None
     category: str | None = None
     lat: float | None = None
     lng: float | None = None

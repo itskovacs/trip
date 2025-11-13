@@ -28,6 +28,7 @@ export interface Place {
 
 export interface GooglePlaceResult {
   name: string;
+  place: string;
   category?: string;
   lat: number;
   lng: number;
