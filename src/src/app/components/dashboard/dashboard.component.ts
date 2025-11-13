@@ -1,6 +1,6 @@
-import { AfterViewInit, Component, OnInit } from '@angular/core';
-import { combineLatest, debounceTime, interval, take, takeWhile, tap } from 'rxjs';
-import { Place, Category } from '../../types/poi';
+import { AfterViewInit, Component, Input, OnInit, ViewChild } from '@angular/core';
+import { combineLatest, debounceTime, forkJoin, interval, take, takeWhile, tap } from 'rxjs';
+import { Place, Category, GoogleBoundaries, GooglePlaceResult } from '../../types/poi';
 import { ApiService } from '../../services/api.service';
 import { PlaceBoxComponent } from '../../shared/place-box/place-box.component';
 import * as L from 'leaflet';
@@ -18,13 +18,13 @@ import { FloatLabelModule } from 'primeng/floatlabel';
 import { BatchCreateModalComponent } from '../../modals/batch-create-modal/batch-create-modal.component';
 import { UtilsService } from '../../services/utils.service';
 import { Info } from '../../types/info';
-import { createMap, placeToMarker, createClusterGroup, gpxToPolyline } from '../../shared/map';
+import { createMap, placeToMarker, createClusterGroup, gpxToPolyline, isPointInBounds } from '../../shared/map';
 import { Router } from '@angular/router';
 import { SelectModule } from 'primeng/select';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { TooltipModule } from 'primeng/tooltip';
 import { Backup, Settings } from '../../types/settings';
-import { SelectItemGroup } from 'primeng/api';
+import { MenuItem, SelectItemGroup } from 'primeng/api';
 import { YesNoModalComponent } from '../../modals/yes-no-modal/yes-no-modal.component';
 import { CategoryCreateModalComponent } from '../../modals/category-create-modal/category-create-modal.component';
 import { AuthService } from '../../services/auth.service';
@@ -33,6 +33,10 @@ import { PlaceGPXComponent } from '../../shared/place-gpx/place-gpx.component';
 import { CommonModule } from '@angular/common';
 import { FileSizePipe } from '../../shared/filesize.pipe';
 import { TotpVerifyModalComponent } from '../../modals/totp-verify-modal/totp-verify-modal.component';
+import { MenuModule } from 'primeng/menu';
+import { MultiPlacesCreateModalComponent } from '../../modals/multi-places-create-modal/multi-places-create-modal.component';
+import { LoaderComponent } from '../../shared/loader';
+import { GmapsMultilineCreateModalComponent } from '../../modals/gmaps-multiline-create-modal/gmaps-multiline-create-modal.component';
 
 export interface ContextMenuItem {
   text: string;
@@ -68,20 +72,31 @@ export interface MarkerOptions extends L.MarkerOptions {
     ButtonModule,
     CommonModule,
     FileSizePipe,
+    MenuModule,
+    LoaderComponent,
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })
 export class DashboardComponent implements OnInit, AfterViewInit {
+  @ViewChild('fileUpload') fileUpload!: any;
+  gmapsGeocodeFilterInput = new FormControl('');
+  boundariesFiltering?: GoogleBoundaries;
   searchInput = new FormControl('');
   info?: Info;
   isLowNet = false;
   isGpxInPlaceMode = false;
+  loadingMessage? = '';
 
   viewSettings = false;
+  mapParamsExpanded = false;
+  displaySettingsExpanded = false;
+  dataFiltersExpanded = false;
   viewFilters = false;
-  viewMarkersList = false;
-  viewMarkersListSearch = false;
+  viewPlacesList = false;
+  expandedPlacesList = false;
+  viewPlacesListSearch = false;
+  hideOutOfBoundsPlaces = false;
   tabsIndex: number = 0;
   backups: Backup[] = [];
   refreshBackups = false;
@@ -105,6 +120,47 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   filter_display_favorite_only = false;
   filter_dog_only = false;
   activeCategories = new Set<string>();
+  readonly menuCreatePlaceItems: MenuItem[] = [
+    {
+      label: 'Places',
+      items: [
+        {
+          label: 'Batch creation',
+          icon: 'pi pi-list',
+          command: () => {
+            this.batchAddModal();
+          },
+        },
+      ],
+    },
+    {
+      label: 'Google',
+      items: [
+        {
+          label: 'Google Takeout (Saved)',
+          icon: 'pi pi-google',
+          command: () => {
+            if (!this.settings?.google_apikey) {
+              this.utilsService.toast('error', 'Missing Key', 'Google Maps API key not configured');
+              return;
+            }
+            this.fileUpload.nativeElement.click();
+          },
+        },
+        {
+          label: 'Google Maps links',
+          icon: 'pi pi-google',
+          command: () => {
+            if (!this.settings?.google_apikey) {
+              this.utilsService.toast('error', 'Missing Key', 'Google Maps API key not configured');
+              return;
+            }
+            this.openGmapsMultilineModal();
+          },
+        },
+      ],
+    },
+  ];
 
   constructor(
     private apiService: ApiService,
@@ -138,7 +194,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
     // HACK: Subscribe in constructor for takeUntilDestroyed
     this.searchInput.valueChanges.pipe(debounceTime(200), takeUntilDestroyed()).subscribe({
-      next: () => this.setVisibleMarkers(),
+      next: () => this.setVisiblePlaces(),
     });
   }
 
@@ -198,39 +254,45 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       });
     }
     this.map.setView(L.latLng(this.settings.map_lat, this.settings.map_lng));
-    this.map.on('moveend zoomend', () => this.setVisibleMarkers());
+    this.map.on('moveend zoomend', () => {
+      if (this.hideOutOfBoundsPlaces) this.setVisiblePlaces();
+    });
     this.markerClusterGroup = createClusterGroup().addTo(this.map);
   }
 
-  setVisibleMarkers() {
-    if (!this.viewMarkersList || !this.map) return;
-    const bounds = this.map.getBounds();
+  setVisiblePlaces() {
+    if (!this.viewPlacesList || !this.map) return;
+    if (!this.hideOutOfBoundsPlaces) {
+      this.visiblePlaces = [...this.filteredPlaces];
+    } else {
+      const bounds = this.map.getBounds();
+      this.visiblePlaces = this.filteredPlaces.filter((p) => bounds.contains([p.lat, p.lng]));
+    }
 
-    this.visiblePlaces = this.filteredPlaces.filter((p) => bounds.contains([p.lat, p.lng]));
-
-    const searchValue = this.searchInput.value?.toLowerCase() ?? '';
-    if (searchValue)
-      this.visiblePlaces = this.visiblePlaces.filter(
-        (p) => p.name.toLowerCase().includes(searchValue) || p.description?.toLowerCase().includes(searchValue),
-      );
-
+    const searchValue = (this.searchInput.value || '').toLowerCase();
+    this.visiblePlaces = this.visiblePlaces.filter((place) => {
+      if (this.boundariesFiltering) if (!isPointInBounds(place.lat, place.lng, this.boundariesFiltering)) return false;
+      if (!searchValue) return true;
+      return place.name.toLowerCase().includes(searchValue) || place.description?.toLowerCase().includes(searchValue);
+    });
     this.visiblePlaces.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
   }
 
   resetFilters() {
     this.filter_display_visited = false;
+    this.filter_dog_only = false;
     this.filter_display_favorite_only = false;
     this.activeCategories = new Set(this.categories.map((c) => c.name));
     this.settings?.do_not_display.forEach((c) => this.activeCategories.delete(c));
     this.updateMarkersAndClusters();
-    if (this.viewMarkersList) this.setVisibleMarkers();
+    if (this.viewPlacesList) this.setVisiblePlaces();
   }
 
   updateActiveCategories(c: string) {
     if (this.activeCategories.has(c)) this.activeCategories.delete(c);
     else this.activeCategories.add(c);
     this.updateMarkersAndClusters();
-    if (this.viewMarkersList) this.setVisibleMarkers();
+    if (this.viewPlacesList) this.setVisiblePlaces();
   }
 
   get filteredPlaces(): Place[] {
@@ -294,17 +356,51 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       next: (place: Place | null) => {
         if (!place) return;
 
-        this.apiService
-          .postPlace(place)
-          .pipe(take(1))
-          .subscribe({
-            next: (place: Place) => {
-              this.places = [...this.places, place].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
-              setTimeout(() => {
-                this.updateMarkersAndClusters();
-              }, 10);
+        const duplicate = this.checkDuplicatePlace(place);
+        if (duplicate) {
+          const confirmModal = this.dialogService.open(YesNoModalComponent, {
+            header: 'Possible duplicate',
+            modal: true,
+            closable: true,
+            dismissableMask: true,
+            breakpoints: {
+              '640px': '90vw',
+            },
+            data: `A possible duplicate place (${duplicate.name}) exists. Create anyway?`,
+          })!;
+
+          confirmModal.onClose.pipe(take(1)).subscribe({
+            next: (confirmed: boolean) => {
+              if (confirmed) {
+                this.apiService
+                  .postPlace(place)
+                  .pipe(take(1))
+                  .subscribe({
+                    next: (place: Place) => {
+                      this.places = [...this.places, place].sort((a, b) =>
+                        a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
+                      );
+                      setTimeout(() => {
+                        this.updateMarkersAndClusters();
+                      }, 10);
+                    },
+                  });
+              }
             },
           });
+        } else {
+          this.apiService
+            .postPlace(place)
+            .pipe(take(1))
+            .subscribe({
+              next: (place: Place) => {
+                this.places = [...this.places, place].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+                setTimeout(() => {
+                  this.updateMarkersAndClusters();
+                }, 10);
+              },
+            });
+        }
       },
     });
   }
@@ -442,7 +538,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
               this.places = this.places.filter((p) => p.id !== this.selectedPlace!.id);
               this.closePlaceBox();
               this.updateMarkersAndClusters();
-              if (this.viewMarkersList) this.setVisibleMarkers();
+              if (this.viewPlacesList) this.setVisiblePlaces();
             },
           });
       },
@@ -490,7 +586,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
               setTimeout(() => {
                 this.updateMarkersAndClusters();
               }, 10);
-              if (this.viewMarkersList) this.setVisibleMarkers();
+              if (this.viewPlacesList) this.setVisiblePlaces();
             },
           });
       },
@@ -558,16 +654,16 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.viewFilters = !this.viewFilters;
   }
 
-  toggleMarkersList() {
-    this.viewMarkersList = !this.viewMarkersList;
-    this.viewMarkersListSearch = false;
+  togglePlacesList() {
+    this.viewPlacesList = !this.viewPlacesList;
+    this.viewPlacesListSearch = false;
     this.searchInput.setValue('');
-    if (this.viewMarkersList) this.setVisibleMarkers();
+    if (this.viewPlacesList) this.setVisiblePlaces();
   }
 
-  toggleMarkersListSearch() {
-    this.viewMarkersListSearch = !this.viewMarkersListSearch;
-    if (this.viewMarkersListSearch) this.searchInput.setValue('');
+  togglePlacesListSearch() {
+    this.viewPlacesListSearch = !this.viewPlacesListSearch;
+    if (this.viewPlacesListSearch) this.searchInput.setValue('');
   }
 
   setMapCenterToCurrent() {
@@ -683,7 +779,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             this.updateMarkersAndClusters();
           }
           this.resetFilters();
-          this.toggleSettings();
+          this.utilsService.toast('success', 'Success', 'Preferences saved');
         },
       });
   }
@@ -840,7 +936,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.utilsService.toGithubTRIP();
   }
 
-  check_update() {
+  checkUpdate() {
     this.apiService
       .checkVersion()
       .pipe(take(1))
@@ -858,7 +954,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .putSettings({ mode_low_network: this.isLowNet })
       .pipe(take(1))
       .subscribe({
-        next: (_) => {
+        next: () => {
           setTimeout(() => {
             this.updateMarkersAndClusters();
           }, 100);
@@ -1005,6 +1101,207 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           next: () => (this.settings!.google_apikey = false),
           error: () => this.utilsService.toast('error', 'Error', 'Error deleting GMaps API key'),
         });
+      },
+    });
+  }
+
+  onGoogleTakeoutInputChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+
+    const file = input.files[0];
+    if (!file.name.toLowerCase().endsWith('.csv')) {
+      this.utilsService.toast('error', 'Unsupported file', 'Expected .csv file');
+      return;
+    }
+
+    this.loadingMessage = 'Querying Google Maps API...';
+    const reader = new FileReader();
+    reader.onload = (e: ProgressEvent<FileReader>) => {
+      const text = e.target?.result as string;
+      const lineCount = text.split('\n').length;
+      if (lineCount > 125) {
+        const modal = this.dialogService.open(YesNoModalComponent, {
+          header: 'Confirm',
+          modal: true,
+          closable: true,
+          dismissableMask: true,
+          breakpoints: {
+            '640px': '90vw',
+          },
+          data: 'Your file contains many lines. Ensure it does not exceed your quota (10.000 requests/month by default)',
+        })!;
+
+        modal.onClose.subscribe({
+          next: (bool: boolean) => {
+            if (!bool) return;
+            const formdata = new FormData();
+            formdata.append('file', file);
+            this.apiService
+              .postTakeoutFile(formdata)
+              .pipe(take(1))
+              .subscribe({
+                next: (places) => this.multiPlaceModal(places),
+                error: () => (this.loadingMessage = undefined),
+              });
+          },
+        });
+      } else {
+        const formdata = new FormData();
+        formdata.append('file', file);
+        this.apiService
+          .postTakeoutFile(formdata)
+          .pipe(take(1))
+          .subscribe({
+            next: (places) => this.multiPlaceModal(places),
+            error: () => (this.loadingMessage = undefined),
+          });
+      }
+    };
+
+    reader.onerror = () => {
+      alert('Error reading file.');
+      this.loadingMessage = undefined;
+    };
+
+    reader.readAsText(file);
+  }
+
+  checkDuplicatePlace(newPlace: Place): Place | undefined {
+    return this.places.find((p) => {
+      const source = newPlace.name.toLowerCase();
+      const target = p.name.toLowerCase();
+      if (source === target) return true;
+      const sourceLength = source.length;
+      const targetLength = target.length;
+      console.log(sourceLength, targetLength);
+      if (sourceLength === 0) return targetLength;
+      if (targetLength === 0) return sourceLength;
+      let previousRow = Array.from({ length: targetLength + 1 }, (_, i) => i);
+      let currentRow = new Array<number>(targetLength + 1);
+      for (let i = 1; i <= sourceLength; i++) {
+        currentRow[0] = i;
+        for (let j = 1; j <= targetLength; j++) {
+          const substitutionCost = source[i - 1] === target[j - 1] ? 0 : 1;
+          currentRow[j] = Math.min(previousRow[j] + 1, currentRow[j - 1] + 1, previousRow[j - 1] + substitutionCost);
+        }
+        [previousRow, currentRow] = [currentRow, previousRow];
+      }
+      const closeName = previousRow[targetLength] < 5;
+      const latDiff = Math.abs(p.lat - newPlace.lat);
+      const lngDiff = Math.abs(p.lng - newPlace.lng);
+      const closeLocation = latDiff < 0.0001 && lngDiff < 0.0001;
+      return closeName || closeLocation;
+    });
+  }
+
+  multiPlaceModal(places: GooglePlaceResult[]) {
+    this.loadingMessage = undefined;
+    const modal: DynamicDialogRef = this.dialogService.open(MultiPlacesCreateModalComponent, {
+      header: 'Create Places',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: false,
+      width: '55vw',
+      breakpoints: {
+        '1920px': '70vw',
+        '1260px': '90vw',
+      },
+      data: { places },
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (places: Place[] | null) => {
+        if (!places) return;
+        const obs$ = places.map((p) => this.apiService.postPlace(p));
+        this.loadingMessage = 'Creating places...';
+        forkJoin(obs$)
+          .pipe(take(1))
+          .subscribe({
+            next: (places: Place[]) => {
+              this.places = [...this.places, ...places].sort((a, b) =>
+                a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
+              );
+              setTimeout(() => {
+                this.updateMarkersAndClusters();
+              }, 10);
+              this.loadingMessage = undefined;
+            },
+            error: () => {
+              this.loadingMessage = undefined;
+            },
+          });
+      },
+    });
+  }
+
+  toggleOutOfBoundsPlaces() {
+    this.hideOutOfBoundsPlaces = !this.hideOutOfBoundsPlaces;
+    this.setVisiblePlaces();
+  }
+
+  toggleExpandPlacesList(): void {
+    this.expandedPlacesList = !this.expandedPlacesList;
+  }
+
+  gmapsGeocodeFilter() {
+    const value = this.gmapsGeocodeFilterInput.value;
+    if (!value) return;
+    if (!this.settings?.google_apikey) {
+      this.utilsService.toast('error', 'Missing Key', 'Google Maps API key not configured');
+      return;
+    }
+
+    this.apiService
+      .gmapsGeocodeBoundaries(value)
+      .pipe(take(1))
+      .subscribe({
+        next: (boundaries) => {
+          this.boundariesFiltering = boundaries;
+          this.setVisiblePlaces();
+        },
+      });
+  }
+
+  resetGeocodeFilters() {
+    this.boundariesFiltering = undefined;
+    this.gmapsGeocodeFilterInput.setValue('');
+    this.setVisiblePlaces();
+  }
+
+  getCategoryPlacesCount(category: string): number {
+    return this.places.filter((place) => place.category.name == category).length;
+  }
+
+  openGmapsMultilineModal() {
+    const modal: DynamicDialogRef = this.dialogService.open(GmapsMultilineCreateModalComponent, {
+      header: 'Create Places from GMaps',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: false,
+      width: '55vw',
+      breakpoints: {
+        '1920px': '70vw',
+        '1260px': '90vw',
+      },
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (links: string[] | null) => {
+        if (!links) return;
+        this.loadingMessage = 'Querying Google Maps API...';
+        this.apiService
+          .postGmapsMultiline(links)
+          .pipe(take(1))
+          .subscribe({
+            next: (places) => {
+              this.loadingMessage = undefined;
+              this.multiPlaceModal(places);
+            },
+            error: () => (this.loadingMessage = undefined),
+          });
       },
     });
   }

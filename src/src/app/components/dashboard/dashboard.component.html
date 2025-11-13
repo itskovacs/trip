@@ -1,4 +1,5 @@
-<div id="map"></div>
+<app-loader [message]="loadingMessage" />
+<div id="map" class="fixed inset-0"></div>
 
 @if (selectedPlace) {
 <app-place-box [selectedPlace]="selectedPlace" (deleteEmitter)="deletePlace()" (editEmitter)="editPlace()"
@@ -11,156 +12,373 @@
   (closeEmitter)="closePlaceGPX()"></app-place-gpx>
 }
 
-<div class="absolute z-30 top-2 right-2 p-2 bg-white shadow rounded dark:bg-surface-900">
-  <p-button (click)="toggleMarkersList()" text severity="secondary" icon="pi pi-map-marker" />
-</div>
-
-<div class="absolute z-30 top-20 right-2 p-2 bg-white shadow rounded dark:bg-surface-900">
-  <p-button (click)="toggleFilters()" text [severity]="viewFilters ? 'danger' : 'secondary'"
-    [icon]="viewFilters ? 'pi pi-times' : 'pi pi-filter'" />
-</div>
-
-<div [class.z-50]="viewSettings"
-  class="absolute z-30 top-[9.5rem] right-2 p-2 bg-white shadow rounded dark:bg-surface-900">
-  <p-button (click)="toggleSettings()" text [severity]="viewSettings ? 'danger' : 'secondary'"
-    [icon]="viewSettings ? 'pi pi-times' : 'pi pi-cog'" />
-</div>
-
-<div class="absolute z-30 bottom-4 right-2">
-  <div class="relative group flex flex-col-reverse items-end h-28">
-    <div
-      class="absolute right-0 bottom-20 p-2 bg-white shadow rounded transition-all duration-200 opacity-0 pointer-events-none group-hover:opacity-100 group-hover:pointer-events-auto dark:bg-surface-900">
-      <p-button (click)="batchAddModal()" text severity="secondary" icon="pi pi-ellipsis-v" />
-    </div>
-
-    <div class="p-2 bg-white shadow rounded dark:bg-surface-900">
-      <p-button (click)="addPlaceModal()" text severity="secondary" icon="pi pi-plus" />
+<div class="fixed top-0 left-0 z-40 pointer-events-none">
+  <div class="mx-4 mt-4 sm:mx-6 sm:mt-6 pointer-events-auto">
+    <div class="w-fit h-12 p-2 bg-white/95 dark:bg-black/95 rounded-lg shadow-lg shadow-black/5">
+      <div (click)="navigateToTrips()"
+        class="cursor-pointer flex items-center gap-2.5 h-8 px-4 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg">
+        <div class="w-6 h-6 rounded-lg flex items-center justify-center flex-none">
+          <i class="pi pi-list text-xs"></i>
+        </div>
+        <span class="hidden sm:inline text-sm font-semibold text-gray-900 dark:text-white">Trips</span>
+      </div>
     </div>
   </div>
 </div>
 
-<div class="absolute z-30 top-2 left-2 p-2 bg-white shadow rounded dark:bg-surface-900">
-  <p-button (click)="navigateToTrips()" label="Trips" severity="secondary" text icon="pi pi-bars" />
-</div>
+<div class="fixed top-0 right-0 z-40 pointer-events-none">
+  <div class="mr-4 mt-4 sm:mr-6 sm:mt-6 pointer-events-auto">
+    <div
+      class="inline-flex items-center gap-2 p-1.5 bg-white/70 dark:bg-black/70 backdrop-blur-xl rounded-lg shadow-lg shadow-black/5">
 
-@if (viewMarkersList) {
-<section animate.enter="slide-x" animate.leave="a-slide-x"
-  class="absolute left-2 right-2 top-2 bottom-4 md:max-w-md bg-white z-40 rounded-xl shadow p-4 flex flex-col dark:bg-surface-900">
-  <div class="mt-1 p-4 flex items-center justify-between">
-    <div>
-      <h1 class="font-semibold tracking-tight text-xl">Points</h1>
-      <span class="text-xs text-gray-500">Currently displayed points</span>
-    </div>
+      <div (click)="togglePlacesList()"
+        class="cursor-pointer flex items-center justify-center gap-2 h-9 md:w-28 px-2.5 rounded-lg transition-all"
+        [class.hover:bg-gray-100]="!viewPlacesList" [class.dark:hover:bg-gray-900]="!viewPlacesList"
+        [class.bg-blue-50]="viewPlacesList" [class.dark:bg-blue-950]="viewPlacesList">
+        <div class="w-7 h-7 flex items-center justify-center">
+          <i class="pi text-sm transition-transform duration-200" [class.pi-map-marker]="!viewPlacesList"
+            [class.pi-times]="viewPlacesList" [class.text-gray-700]="!viewPlacesList"
+            [class.dark:text-gray-300]="!viewPlacesList" [class.text-blue-600]="viewPlacesList"
+            [class.dark:text-blue-400]="viewPlacesList" [class.rotate-90]="viewPlacesList"></i>
+        </div>
+        <span class="hidden md:inline text-sm font-medium" [class.text-gray-900]="!viewPlacesList"
+          [class.dark:text-white]="!viewPlacesList" [class.text-blue-600]="viewPlacesList"
+          [class.dark:text-blue-400]="viewPlacesList">
+          {{ viewPlacesList ? 'Close' : 'Markers' }}
+        </span>
+      </div>
 
-    <div class="flex gap-2">
-      <p-button (click)="toggleMarkersListSearch()" icon="pi pi-search" text severity="secondary" />
-      <p-button (click)="toggleMarkersList()" icon="pi pi-times" text severity="danger" />
+      <div class="w-px h-5 bg-gray-200 dark:bg-gray-800"></div>
+
+      <button (click)="toggleFilters()"
+        class="cursor-pointer flex items-center justify-center gap-2 h-9 md:w-24 px-2.5 rounded-lg transition-all"
+        [class.hover:bg-gray-100]="!viewFilters" [class.dark:hover:bg-gray-900]="!viewFilters"
+        [class.bg-blue-50]="viewFilters" [class.dark:bg-blue-950]="viewFilters">
+        <div class="w-7 h-7 flex items-center justify-center">
+          <i class="pi text-sm transition-transform duration-200" [class.pi-filter]="!viewFilters"
+            [class.pi-times]="viewFilters" [class.text-gray-700]="!viewFilters"
+            [class.dark:text-gray-300]="!viewFilters" [class.text-blue-600]="viewFilters"
+            [class.dark:text-blue-400]="viewFilters" [class.rotate-90]="viewFilters"></i>
+        </div>
+        <span class="hidden md:inline text-sm font-medium" [class.text-gray-900]="!viewFilters"
+          [class.dark:text-white]="!viewFilters" [class.text-blue-600]="viewFilters"
+          [class.dark:text-blue-400]="viewFilters">
+          {{ viewFilters ? 'Close' : 'Filter' }}
+        </span>
+      </button>
+
+      <div class="w-px h-5 bg-gray-200 dark:bg-gray-800"></div>
+
+      <button (click)="toggleSettings()"
+        class="cursor-pointer flex items-center justify-center w-9 h-9 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-all">
+        <i class="pi pi-cog text-gray-700 dark:text-gray-300 text-sm transition-transform duration-300"
+          [class.rotate-90]="viewSettings"></i>
+      </button>
     </div>
   </div>
+</div>
 
-  <div class="max-w-full overflow-y-auto">
-    @if (viewMarkersListSearch) {
-    <div class="mb-4">
-      <p-floatlabel variant="in">
-        <input id="search" pSize="small" [formControl]="searchInput" pInputText fluid />
-        <label for="search">Search...</label>
-      </p-floatlabel>
-    </div>
-    }
-
-    @for (p of visiblePlaces; track p.id) {
+<div class="fixed bottom-0 right-0 z-40 pointer-events-none">
+  <div class="mx-4 mb-4 sm:mx-6 sm:mb-6 pointer-events-auto">
     <div
-      class="group/item relative mt-4 flex items-center gap-4 hover:bg-gray-50 rounded-xl cursor-pointer py-2 px-4 dark:hover:bg-gray-800"
-      (click)="togglePlaceSelection(p)" (mouseenter)="hoverPlace(p)" (mouseleave)="resetHoverPlace()">
-      <img [src]="p.image || p.category.image" class="w-12 rounded-full object-fit">
+      class="inline-flex items-center gap-2 p-1.5 bg-white/70 dark:bg-black/70 backdrop-blur-xl rounded-lg shadow-lg shadow-black/5">
+      <button (click)="menuCreatePlace.toggle($event)"
+        class="cursor-pointer flex items-center justify-center w-9 h-9 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-all">
+        <i class="pi pi-ellipsis-h text-gray-700 dark:text-gray-300 text-sm"></i>
+      </button>
 
-      <div class="flex flex-col gap-1 truncate">
-        <h1 class="tracking-tight truncate dark:text-surface-300">{{ p.name }}</h1>
-        <span class="text-xs text-gray-500 truncate">{{ p.place }}</span>
+      <div class="w-px h-5 bg-gray-200 dark:bg-gray-800"></div>
 
-        <div class="flex gap-0.5">
-          <span class=" text-sm me-2 px-2.5 py-0.5 rounded"
-            [ngClass]="p.allowdog ? 'bg-green-100 text-green-800 dark:bg-green-100/85' : 'bg-red-100 text-red-800 dark:bg-red-100/85'">🐶</span>
+      <button (click)="addPlaceModal()"
+        class="cursor-pointer relative flex items-center gap-2 h-9 pl-2.5 pr-3 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-all">
+        <div class="w-7 h-7 flex items-center justify-center">
+          <i class="pi pi-plus text-gray-700 dark:text-gray-300 text-sm"></i>
+        </div>
+        <span class="text-sm font-medium text-gray-900 dark:text-white">Place</span>
+      </button>
+      <p-menu #menuCreatePlace [model]="menuCreatePlaceItems" appendTo="body" [popup]="true" />
+      <input type="file" style="display: none;" (change)="onGoogleTakeoutInputChange($event)" #fileUpload>
+    </div>
+  </div>
+</div>
 
-          @if (p.visited) {
-          <span class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-green-100/85"><i
-              class="pi pi-eye text-xs"></i></span>
-          } @else {
-          <span class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-red-100/85"><i
-              class="pi pi-eye-slash text-xs"></i></span>
-          }
+@if (viewPlacesList) {
+<section class="fixed top-0 left-0 z-40 pointer-events-none">
+  <div animate.enter="slide-x-no-opacity" animate.leave="a-slide-x"
+    class="ml-4 my-4 sm:ml-6 sm:my-6 h-[calc(100vh-2rem)] md:h-[calc(100vh-3rem)] pointer-events-auto transition-all duration-300"
+    [class.w-[calc(100vw-2rem)]]="!expandedPlacesList" [class.sm:w-96]="!expandedPlacesList"
+    [class.lg:w-[800px]]="expandedPlacesList">
+    <div
+      class="w-full h-full flex flex-col bg-white/50 dark:bg-black/50 backdrop-blur-xl rounded-lg shadow-lg shadow-black/5">
+      <div class="p-4 border-b border-gray-200 dark:border-gray-800">
+        <div class="flex items-center justify-between gap-4">
+          <div class="flex items-center items-center gap-2 min-w-0">
+            <h2 class="text-base font-semibold text-gray-900 dark:text-white">Places</h2>
+            <span
+              class="px-2.5 py-1 bg-blue-100 dark:bg-blue-900 rounded-lg text-xs font-bold text-blue-900 dark:text-white border-dashed"
+              [ngClass]="{'border-2 border-blue-400': hideOutOfBoundsPlaces}">{{ visiblePlaces.length }}</span>
+          </div>
 
-          <span [style.color]="p.category.color" [style.background-color]="p.category.color + '1A'"
-            class="text-xs font-medium me-2 px-2.5 py-0.5 rounded flex gap-2 items-center truncate"><i
-              class="pi pi-box text-xs"></i>{{ p.category.name }}</span>
+          <div class="flex items-center gap-2">
+            <button (click)="toggleOutOfBoundsPlaces()" pTooltip="Show out-of-bounds places"
+              class="cursor-pointer flex items-center justify-center size-10 rounded-lg transition-all"
+              [class.hover:bg-gray-100]="!hideOutOfBoundsPlaces" [class.dark:hover:bg-gray-900]="!hideOutOfBoundsPlaces"
+              [class.bg-blue-50]="hideOutOfBoundsPlaces" [class.dark:bg-blue-950]="hideOutOfBoundsPlaces">
+              <i class="pi pi-expand text-sm" [class.text-gray-700]="!hideOutOfBoundsPlaces"
+                [class.dark:text-gray-300]="!hideOutOfBoundsPlaces" [class.text-blue-600]="hideOutOfBoundsPlaces"
+                [class.dark:text-blue-400]="hideOutOfBoundsPlaces"></i>
+            </button>
+
+            <button (click)="togglePlacesListSearch()"
+              class="cursor-pointer flex items-center justify-center size-10 rounded-lg transition-all"
+              [class.hover:bg-gray-100]="!viewPlacesListSearch" [class.dark:hover:bg-gray-900]="!viewPlacesListSearch"
+              [class.bg-blue-50]="viewPlacesListSearch" [class.dark:bg-blue-950]="viewPlacesListSearch">
+              <i class="pi pi-search text-sm" [class.text-gray-700]="!viewPlacesListSearch"
+                [class.dark:text-gray-300]="!viewPlacesListSearch" [class.text-blue-600]="viewPlacesListSearch"
+                [class.dark:text-blue-400]="viewPlacesListSearch"></i>
+            </button>
+
+            <p-button text icon="pi pi-times" severity="danger" (click)="togglePlacesList()" />
+          </div>
         </div>
 
-        <div
-          class="invisible absolute top-7 transition-all right-2 group-hover/item:visible group-hover/item:-translate-x-2">
-          <p-button text icon="pi pi-pencil" (click)="editPlace(p); $event.stopPropagation()" />
+        @if (viewPlacesListSearch) {
+        <div class="grid md:grid-cols-2 gap-2 mt-2 p-2">
+          <div class="relative">
+            <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+            <input type="text" [formControl]="searchInput" placeholder="Search..."
+              class="w-full h-9 pl-9 pr-3 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors" />
+          </div>
+
+          <div class="relative">
+            <i class="pi pi-google absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+            <input type="text" [formControl]="gmapsGeocodeFilterInput" (keydown.enter)="gmapsGeocodeFilter()"
+              placeholder="Country, City, ..."
+              class="w-full h-9 pl-9 pr-3 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors" />
+
+            @if (boundariesFiltering) {<p-button icon="pi pi-times" text severity="danger"
+              class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Clear and Cancel"
+              (click)="resetGeocodeFilters()" />}
+            @else {<p-button icon="pi pi-sparkles" text [disabled]="!gmapsGeocodeFilterInput.value"
+              class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Filter using location (GMaps API)"
+              (click)="gmapsGeocodeFilter()" />}
+          </div>
+        </div>
+        }
+      </div>
+
+      <div class="flex-1 overflow-y-auto overscroll-contain p-3">
+        @if (boundariesFiltering) {
+        <div class="my-4 flex justify-center items-center gap-1">
+          <span
+            class="px-2.5 py-1 bg-gray-100 dark:bg-gray-900 rounded-lg text-xs font-bold text-gray-900 dark:text-white">
+            Filtering for <b>{{
+              gmapsGeocodeFilterInput.value }}</b>
+          </span>
+
+          <p-button icon="pi pi-times" text severity="danger" pTooltip="Clear" (click)="resetGeocodeFilters()" />
+        </div>
+        }
+
+        <div class="transition-all duration-300" [class.space-y-2]="!expandedPlacesList"
+          [class.grid]="expandedPlacesList" [class.lg:grid-cols-2]="expandedPlacesList"
+          [class.gap-2]="expandedPlacesList">
+          @defer () {
+          @for (place of visiblePlaces; track place.id) {
+          <div (click)="togglePlaceSelection(place)" (mouseenter)="hoverPlace(place)" (mouseleave)="resetHoverPlace()"
+            class="group w-full flex items-center gap-3 p-3 bg-white dark:bg-gray-950 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg cursor-pointer transition-all border border-gray-200 dark:border-gray-800 text-left">
+
+            <div class="w-12 h-12 rounded overflow-hidden bg-gray-100 dark:bg-gray-800">
+              <img [src]="place.image || place.category.image" [alt]="place.name" class="w-full h-full object-cover" />
+            </div>
+
+            <div class="flex-1 min-w-0">
+              <h3 class="text-sm font-semibold text-gray-900 dark:text-white truncate">
+                {{ place.name }}
+              </h3>
+              <p class="text-xs text-gray-600 dark:text-gray-400 truncate mt-0.5">
+                {{ place.place }}
+              </p>
+
+              <div class="flex flex-wrap gap-1 mt-1.5">
+                <span class="flex items-center px-1.5 py-0.5 rounded text-xs" [class.bg-emerald-100]="place.allowdog"
+                  [class.text-emerald-700]="place.allowdog" [class.dark:bg-emerald-950]="place.allowdog"
+                  [class.dark:text-emerald-400]="place.allowdog" [class.bg-gray-100]="!place.allowdog"
+                  [class.text-gray-600]="!place.allowdog" [class.dark:bg-gray-800]="!place.allowdog"
+                  [class.dark:text-gray-500]="!place.allowdog">
+                  🐶
+                </span>
+
+                <span class="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium"
+                  [class.bg-blue-100]="place.visited" [class.text-blue-700]="place.visited"
+                  [class.dark:bg-blue-950]="place.visited" [class.dark:text-blue-400]="place.visited"
+                  [class.bg-gray-100]="!place.visited" [class.text-gray-600]="!place.visited"
+                  [class.dark:bg-gray-800]="!place.visited" [class.dark:text-gray-500]="!place.visited">
+                  <i class="pi" style="font-size: 12px;" [class.pi-eye]="place.visited"
+                    [class.pi-eye-slash]="!place.visited"></i>
+                </span>
+
+                <span class="flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium max-w-[90px]"
+                  [style.color]="place.category.color" [style.background-color]="place.category.color + '15'">
+                  <i class="pi pi-tag flex-none" style="font-size: 12px;"></i>
+                  <span class="truncate">{{ place.category.name }}</span>
+                </span>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 group-hover:-translate-x-2 ">
+              <p-button (click)="editPlace(place); $event.stopPropagation()" icon="pi pi-pencil" severity="secondary"
+                text />
+            </div>
+          </div>
+          } @empty {
+          <div class="flex flex-col items-center justify-center col-span-full py-12 text-center px-6">
+            <i class="pi pi-map-marker text-gray-300 dark:text-gray-700 mb-3" style="font-size: 24px"></i>
+            <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Nothing to see</h3>
+          </div>
+          }
+          } @placeholder (minimum 0.4s) {
+          @for (_ of [1,2,3,4,5,6]; track _) {
+          <div
+            class="rounded-lg overflow-hidden backdrop-blur-md bg-white/50 dark:bg-gray-900/50 border border-white/20 dark:border-gray-700/30">
+            <p-skeleton height="5rem"
+              class="!bg-gradient-to-br !from-gray-200 !to-gray-300 dark:!from-gray-700 dark:!to-gray-800" />
+          </div>
+          }
+          }
         </div>
       </div>
     </div>
-    } @empty {
-    <div class="text-center">
-      <h1 class="tracking-tight">No data</h1>
-      <span class="text-xs text-gray-500">Try moving the map to see markers</span>
-    </div>
-    }
+
+    <button (click)="toggleExpandPlacesList()"
+      class="hidden lg:flex absolute top-1/2 -translate-y-1/2 -right-3 items-center justify-center w-6 h-16 bg-white/70 dark:bg-black/70 backdrop-blur-xl hover:bg-white/90 dark:hover:bg-black/90 rounded-r-lg shadow-lg shadow-black/5 border border-l-0 border-gray-200 dark:border-gray-800 transition-all group z-50">
+      <i class="cursor-pointer pi text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-all"
+        [class.pi-chevron-right]="!expandedPlacesList" [class.pi-chevron-left]="expandedPlacesList"></i>
+    </button>
   </div>
 </section>
 }
 
 @if (viewFilters) {
-<section animate.enter="slide-y" animate.leave="a-slide-y"
-  class="absolute right-2 top-36 bg-white z-40 rounded-xl shadow p-8 max-w-screen md:max-w-md dark:bg-surface-900">
+<section class="fixed top-0 right-0 z-40 pointer-events-none">
+  <div animate.enter="slide-y-no-opacity" animate.leave="a-slide-y" class="mr-4 mt-20 sm:mr-6 pointer-events-auto">
+    <div class="bg-white/50 dark:bg-black/50 backdrop-blur-xl z-40 rounded-lg shadow p-8 max-w-screen md:max-w-md">
+      <div class="mt-1 flex justify-between items-center">
+        <div>
+          <h1 class="font-semibold tracking-tight text-xl">Filters</h1>
+          <span class="text-xs text-gray-500">Customize your view</span>
+        </div>
+        <div class="flex gap-1">
+          <p-button text icon="pi pi-refresh" severity="danger" (click)="resetFilters()" />
+          <p-button text icon="pi pi-times" severity="danger" (click)="toggleFilters()" />
+        </div>
+      </div>
 
-  <div class="mt-1 flex justify-between items-center">
-    <div>
-      <h1 class="font-semibold tracking-tight text-xl">Filters</h1>
-      <span class="text-xs text-gray-500">You can customize the view</span>
-    </div>
+      <div class="space-y-3">
+        <div class="mt-6 flex items-center justify-between mb-4">
+          <h3 class="text-base font-bold text-gray-900 dark:text-white">Quick Filters</h3>
+        </div>
 
-    <p-button text icon="pi pi-refresh" severity="danger" (click)="resetFilters()" />
-  </div>
+        <div class="flex flex-wrap gap-2">
+          <button (click)="filter_display_visited = !filter_display_visited; updateMarkersAndClusters()"
+            class="cursor-pointer inline-flex items-center gap-2 h-8 w-24 max-w-[25vw] px-3 rounded-lg text-sm font-medium transition-all"
+            [ngClass]="filter_display_visited ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
+            @if (filter_display_visited) {
+            <i class="pi pi-check text-xs"></i>
+            } @else {
+            <i class="pi pi-eye text-xs"></i>
+            }
+            <span class="truncate">Visited</span>
+          </button>
 
-  <div class="mt-2 grid gap-2 select-none">
-    <div class="flex justify-between">
-      <div>Visited</div>
-      <p-toggleswitch [(ngModel)]="filter_display_visited" (onChange)="updateMarkersAndClusters()" />
-    </div>
-    <div class="flex justify-between">
-      <div>Allow dog only</div>
-      <p-toggleswitch [(ngModel)]="filter_dog_only" (onChange)="updateMarkersAndClusters()" />
-    </div>
-    <div class="flex justify-between">
-      <div>Favorites only</div>
-      <p-toggleswitch [(ngModel)]="filter_display_favorite_only" (onChange)="updateMarkersAndClusters()" />
-    </div>
-  </div>
+          <button (click)="filter_dog_only = !filter_dog_only; updateMarkersAndClusters()"
+            class="cursor-pointer inline-flex items-center gap-2 h-8 w-36 max-w-[25vw] px-3 rounded-lg text-sm font-medium transition-all"
+            [ngClass]="filter_dog_only ? 'bg-emerald-600 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
+            @if (filter_dog_only) {
+            <i class="pi pi-check text-xs"></i>
+            } @else {
+            <span>🐶</span>
+            }
+            <span class="truncate">Dog-friendly</span>
+          </button>
 
-  <div class="mt-8">
-    <h1 class="font-semibold tracking-tight text-xl">Categories</h1>
-  </div>
+          <button (click)="filter_display_favorite_only = !filter_display_favorite_only; updateMarkersAndClusters()"
+            class="cursor-pointer inline-flex items-center gap-2 h-8 w-28 max-w-[25vw] px-3 rounded-lg text-sm font-medium transition-all"
+            [ngClass]="filter_display_favorite_only ? 'bg-rose-400 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
+            @if (filter_display_favorite_only) {
+            <i class="pi pi-check text-xs"></i>
+            } @else {
+            <i class="pi pi-heart-fill text-xs"></i>
+            }
+            <span class="truncate">Favorites</span>
+          </button>
+        </div>
+      </div>
 
-  <div class="mt-4 grid items-center gap-2">
-    @for (c of categories; track c.id) {
-    <div class="flex justify-between truncate select-none">
-      <div class="truncate pr-8">{{ c.name }}</div>
 
-      <div>
-        <p-toggleswitch [ngModel]="activeCategories.has(c.name)" (onChange)="updateActiveCategories(c.name)" />
+      <div class="mt-6 flex items-center justify-between mb-4">
+        <h3 class="text-base font-bold text-gray-900 dark:text-white">Categories</h3>
+        <span [class.bg-red-400]="!activeCategories.size"
+          class="px-2.5 py-1 bg-gray-100 dark:bg-gray-900 rounded-lg text-xs font-bold text-gray-900 dark:text-white">
+          {{ activeCategories.size }}/{{ categories.length }}
+        </span>
+      </div>
+
+      <div class="max-h-[50vh] overflow-y-auto overscroll-contain grid md:grid-cols-2 gap-2">
+        @for (category of categories; track category.id) {
+        <div (click)="updateActiveCategories(category.name)" [ngClass]="{
+          'bg-gray-900 dark:bg-white border-gray-900 dark:border-white shadow-lg': activeCategories.has(category.name),
+          'bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900': !activeCategories.has(category.name)
+        }"
+          class="cursor-pointer group w-full flex items-center gap-3 py-3 px-4 rounded-xl transition-all active:scale-[0.98] border-2 min-w-0">
+
+          <div class="size-3 rounded-full flex-none shadow-sm" [class.ring-2]="activeCategories.has(category.name)"
+            [class.ring-white]="activeCategories.has(category.name)"
+            [class.dark:ring-gray-900]="activeCategories.has(category.name)" [style.background-color]="category.color">
+          </div>
+
+          <span class="text-base font-semibold flex-1 text-left truncate"
+            [class.text-white]="activeCategories.has(category.name)"
+            [class.dark:text-gray-900]="activeCategories.has(category.name)"
+            [class.text-gray-900]="!activeCategories.has(category.name)"
+            [class.dark:text-white]="!activeCategories.has(category.name)">
+            {{ category.name }}
+          </span>
+
+          @if (activeCategories.has(category.name)) {
+          <div class="flex items-center justify-center w-6 h-6 rounded-full flex-none"
+            [class.bg-white/20]="activeCategories.has(category.name)"
+            [class.dark:bg-gray-900/20]="activeCategories.has(category.name)">
+            <i class="pi pi-check text-sm" [class.text-white]="activeCategories.has(category.name)"
+              [class.dark:text-gray-900]="activeCategories.has(category.name)"></i>
+          </div>
+          }
+        </div>
+        }
       </div>
     </div>
-    }
   </div>
 </section>
 }
 
 @if (viewSettings) {
-<section class="absolute inset-0 flex items-center justify-center z-40 bg-black/30">
+<section class="absolute inset-0 flex items-center justify-center z-40 bg-black/30 backdrop-blur-xl">
   <div
     class="w-10/12 max-w-screen md:max-w-3xl h-fit max-h-screen bg-white rounded-xl shadow-2xl p-4 md:p-8 z-50 dark:bg-surface-900">
+    <div class="flex-none flex items-center justify-between gap-4 p-4 border-b border-gray-200 dark:border-gray-800">
+      <div>
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white">Settings</h2>
+        <p class="text-xs text-gray-600 dark:text-gray-400 mt-0.5">Customize your experience</p>
+      </div>
+
+      <div class="flex items-center gap-1">
+        <p-button (click)="toggleDarkMode()" text [icon]="settings?.mode_dark ? 'pi pi-sun' : 'pi pi-moon'" />
+        <p-button (click)="toGithub()" text severity="primary" icon="pi pi-github" />
+        <p-button (click)="logout()" text severity="primary" icon="pi pi-sign-out" />
+        <p-button (click)="toggleSettings()" severity="danger" text icon="pi pi-times" />
+      </div>
+    </div>
+
     <p-tabs [(value)]="tabsIndex" scrollable>
       <p-tablist>
         <p-tab [value]="0" class="flex items-center gap-2">
@@ -176,291 +394,540 @@
           <i class="pi pi-th-large"></i><span class="font-bold whitespace-nowrap">Categories</span>
         </p-tab>
         <p-tab [value]="4" class="flex items-center gap-2">
-          <i class="pi pi-database"></i><span class="font-bold whitespace-nowrap">Backups</span>
+          <i class="pi pi-database"></i><span class="font-bold whitespace-nowrap">Data</span>
         </p-tab>
       </p-tablist>
       <p-tabpanels>
         <p-tabpanel [value]="0">
-          <div class="mt-2 flex justify-between items-center">
-            <h1 class="font-semibold tracking-tight text-xl">About</h1>
+          <div class="mt-4 grid md:grid-cols-2 gap-4">
+            <a href="https://itskovacs.github.io/trip/docs/intro" target="_blank"
+              class="group relative p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-hidden">
+              <div class="flex gap-4 items-center relative z-10">
+                <div class="text-4xl">📘</div>
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">Documentation</h3>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">Learn how to use TRIP</p>
+                </div>
+              </div>
+              <div
+                class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500">
+              </div>
+            </a>
 
-            <div class="flex">
-              <p-button (click)="toggleDarkMode()" text [icon]="settings?.mode_dark ? 'pi pi-sun' : 'pi pi-moon'"
-                size="large" />
-              <p-button (click)="toGithub()" text severity="primary" icon="pi pi-github" size="large" />
+            <a href="https://ko-fi.com/itskovacs" target="_blank"
+              class="group relative p-6 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-hidden">
+              <div class="flex gap-4 items-center relative z-10">
+                <div class="text-4xl">☕</div>
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">Support TRIP</h3>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">Buy me a coffee</p>
+                </div>
+              </div>
+              <div
+                class="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500">
+              </div>
+            </a>
+
+            @if (this.info?.update) {
+            <div (click)="toGithub()"
+              class="cursor-pointer group relative p-6 bg-gradient-to-br from-red-50 to-red-200 dark:from-red-900/20 dark:to-red-900/40 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-hidden">
+              <div class="flex gap-4 items-center relative z-10">
+                <div class="text-4xl">🚀</div>
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">TRIP {{ this.info?.update }}</h3>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">New version available</p>
+                </div>
+              </div>
+              <div
+                class="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500">
+              </div>
+            </div>
+            } @else {
+            <div (click)="checkUpdate()"
+              class="cursor-pointer group relative p-6 bg-gradient-to-br from-purple-50 to-rose-50 dark:from-purple-900/20 dark:to-rose-900/20 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-hidden">
+              <div class="flex gap-4 items-center relative z-10">
+                <div class="text-4xl">👀</div>
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">Check update</h3>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">Current: TRIP {{ info?.version }}</p>
+                </div>
+              </div>
+              <div
+                class="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500">
+              </div>
+            </div>
+            }
+
+            <div (click)="tabsIndex = 4"
+              class="cursor-pointer group relative p-6 bg-gradient-to-br from-gray-50 to-zinc-100 dark:from-gray-900/20 dark:to-zinc-900/20 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-hidden">
+              <div class="flex gap-4 items-center relative z-10">
+                <div class="text-4xl">🗃️</div>
+                <div>
+                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">Data</h3>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">Manage your data</p>
+                </div>
+              </div>
+              <div
+                class="absolute top-0 right-0 w-32 h-32 bg-zinc-500/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500">
+              </div>
             </div>
           </div>
 
-          <div class="flex flex-col md:flex-row justify-center md:justify-start items-center gap-4 mt-8 md:mt-4">
-            <a href="https://itskovacs.github.io/trip/docs/intro" target="_blank"
-              class="custom-button flex items-center">📘 Documentation</a>
-            <span class="text-center text-gray-400">Learn more here</span>
-          </div>
-
-          <div class="flex flex-col md:flex-row justify-center md:justify-start items-center gap-4 mt-8 md:mt-4">
-            <a href="https://ko-fi.com/itskovacs" target="_blank" class="custom-button flex items-center">☕ Support
-              TRIP</a>
-            <span class="text-center text-gray-400">Support development through optional donations. Thank you!</span>
-          </div>
-
-          <div class="flex flex-col md:flex-row justify-center md:justify-start items-center gap-4 mt-8 md:mt-4">
-            @if (this.info?.update) {
-            <button class="custom-button orange" (click)="toGithub()">
-              🚀 Open Github
-            </button>
-            <div class="text-center text-gray-400">TRIP {{ this.info?.update }} available on
-              Github. <a [href]="'https://github.com/itskovacs/trip/releases/tag/' + this.info?.update"
-                class="text-blue-500 font-semibold" target="_blank">Changelog</a></div>
-            } @else {
-            <button class="custom-button" (click)="check_update()">
-              👀 Check for updates
-            </button>
-            <span class="text-center flex items-center gap-2 text-gray-400">TRIP {{ info?.version }}</span>
-            }
-          </div>
-
-          <div class="flex justify-around mt-8 gap-4">
-            <p-button (click)="tabsIndex = 4" text icon="pi pi-download" label="Export" />
-            <p-button (click)="fileUpload.click()" text icon="pi pi-upload" label="Import" />
-            <input type="file" style="display: none;" (change)="importData($event)" #fileUpload>
-          </div>
-
-          <div class="mt-4 text-center text-sm text-gray-500 dark:text-gray-400">Made with ❤️ in BZH</div>
+          <div class="mt-8 text-center text-xs text-gray-500 dark:text-gray-400">TRIP {{ info?.version }}</div>
+          <div class="text-center text-sm text-gray-500 dark:text-gray-400">Made with ❤️ in BZH</div>
         </p-tabpanel>
         <p-tabpanel [value]="1">
-          <div class="mt-2 flex justify-between items-center">
-            <h1 class="font-semibold tracking-tight text-xl">Account</h1>
+          <div class="max-h-[60vh] overflow-y-auto overscroll-contain">
+            <div class="mx-auto p-4 space-y-4">
+              <div
+                class="rounded-xl border border-gray-200/60 dark:border-gray-800/60 bg-white dark:bg-gray-900 p-5 transition-shadow hover:shadow-md">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div class="flex items-center gap-3 min-w-0 flex-1">
+                    <div
+                      class="flex-shrink-0 flex items-center justify-center size-9 rounded-lg bg-blue-500/10 dark:bg-blue-500/20">
+                      <i class="pi pi-shield text-blue-600 dark:text-blue-400"></i>
+                    </div>
 
-            <div class="flex">
-              <p-button (click)="logout()" text severity="primary" icon="pi pi-sign-out" label="Log out" />
-            </div>
-          </div>
-
-          <div class="mt-6 flex justify-between items-center">
-            <div class="min-w-0 truncate">
-              <div class="flex gap-2 items-center">
-                <h1 class="font-semibold tracking-tight text-xl">TOTP</h1>
-                @if (settings?.totp_enabled) {
-                <span
-                  class="inline-flex items-center gap-x-1.5 bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded min-w-fit dark:bg-green-400">
-                  <span class="size-1.5 inline-block rounded-full bg-green-800 dark:bg-green-500"></span>enabled</span>
-                } @else {
-                <span
-                  class="inline-flex items-center gap-x-1.5 bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded min-w-fit dark:bg-red-400">
-                  <span class="size-1.5 inline-block rounded-full bg-red-800 dark:bg-red-500"></span>disabled</span>
-                }
-              </div>
-              <span class="text-xs text-gray-500 dark:text-gray-400">Add a second layer of security to your
-                account</span>
-            </div>
-
-            <p-button [icon]="settings?.totp_enabled ? 'pi pi-trash' : 'pi pi-lock'" (click)="toggleTOTP()"
-              [severity]="settings?.totp_enabled ? 'danger' : 'success'"
-              [label]="settings?.totp_enabled ? 'Disable' : 'Enable'" text />
-          </div>
-
-          <div [formGroup]="settingsForm">
-            @if (settings?.google_apikey) {
-            <div class="mt-4 flex justify-between items-center">
-              <div class="min-w-0 truncate">
-                <h1 class="font-semibold tracking-tight text-xl">Google API Key</h1>
-              </div>
-
-              <p-button icon="pi pi-trash" (click)="deleteGoogleApiKey()" severity="danger" label="Delete" text />
-            </div>
-            } @else {
-            <h1 class="mt-4 font-semibold tracking-tight text-xl">Google API Key</h1>
-
-            <p-floatlabel variant="in" class="mt-4">
-              <input id="_google_apikey" formControlName="_google_apikey" pInputText fluid />
-              <label for="_google_apikey">API Key</label>
-            </p-floatlabel>
-            <div class="mt-2 w-full text-right">
-              <p-button (click)="updateSettings()" label="Update" text
-                [disabled]="!settingsForm.valid || settingsForm.pristine" />
-            </div>
-            }
-          </div>
-        </p-tabpanel>
-        <p-tabpanel [value]="2">
-          <section [formGroup]="settingsForm">
-            <div class="mt-4 flex justify-between items-center">
-              <div>
-                <h1 class="font-semibold tracking-tight text-xl">Map parameters</h1>
-                <span class="text-xs text-gray-500 dark:text-gray-400">You can customize the default view on map
-                  loading</span>
-              </div>
-
-              <p-button icon="pi pi-ethereum" pTooltip="Set current map center as default"
-                (click)="setMapCenterToCurrent()" text />
-            </div>
-
-            <div class="grid grid-cols-2 gap-4 mt-4">
-              <p-floatlabel variant="in">
-                <input id="map_lat" formControlName="map_lat" pInputText fluid />
-                <label for="map_lat">Default Lat.</label>
-              </p-floatlabel>
-
-              <p-floatlabel variant="in">
-                <input id="map_lng" formControlName="map_lng" pInputText fluid />
-                <label for="map_lng">Default Long.</label>
-              </p-floatlabel>
-
-              <p-floatlabel variant="in" class="col-span-full">
-                <input id="tile_layer" formControlName="tile_layer" pInputText fluid />
-                <label for="tile_layer">Tile Layer</label>
-              </p-floatlabel>
-            </div>
-          </section>
-
-          <div class="mt-4 flex items-center justify-between">
-            <div class="truncate min-w-0">
-              <div class="font-semibold tracking-tight text-xl">Low Network Mode</div>
-              <span class="text-xs text-gray-500 dark:text-gray-400">You can disable Low Network Mode.
-                Default is true. Display Category image instead of Place image.</span>
-            </div>
-
-            <div>
-              <p-toggleswitch [(ngModel)]="isLowNet" (onChange)="toggleLowNet()" />
-            </div>
-          </div>
-
-          <div class="mt-4 flex items-center justify-between">
-            <div class="truncate min-w-0">
-              <div class="font-semibold tracking-tight text-xl">GPX Indication</div>
-              <span class="text-xs text-gray-500 dark:text-gray-400 truncate">Display a compass in Place bubble when a
-                GPX is present.</span>
-            </div>
-            <div>
-              <p-toggleswitch [(ngModel)]="isGpxInPlaceMode" (onChange)="toggleGpxInPlace()" />
-            </div>
-          </div>
-
-          <section [formGroup]="settingsForm">
-            <div class="mt-4">
-              <h1 class="font-semibold tracking-tight text-xl">Currency</h1>
-            </div>
-            <div class="mt-4">
-              <p-floatlabel variant="in" class="md:col-span-2">
-                <input id="currency" formControlName="currency" pInputText fluid />
-                <label for="currency">Currency</label>
-              </p-floatlabel>
-            </div>
-
-            <div class="mt-4">
-              <h1 class="font-semibold tracking-tight text-xl">Filters</h1>
-              <span class="text-xs text-gray-500 dark:text-gray-400">You can customize the categories to hide by
-                default</span>
-            </div>
-            <div class="mt-4">
-              <p-floatlabel variant="in" class="md:col-span-2">
-                <p-multiselect [options]="doNotDisplayOptions" [group]="true" [filter]="false" [showToggleAll]="false"
-                  class="capitalize" formControlName="do_not_display" [showClear]="true" fluid />
-                <label for="do_not_display">Hide</label>
-              </p-floatlabel>
-            </div>
-
-            <div class="mt-2 w-full text-right">
-              <p-button (click)="updateSettings()" label="Update" text
-                [disabled]="!settingsForm.valid || settingsForm.pristine" />
-            </div>
-          </section>
-        </p-tabpanel>
-        <p-tabpanel [value]="3">
-          <div class="mt-1 p-2 mb-2 flex justify-between items-center">
-            <div>
-              <h1 class="font-semibold tracking-tight text-xl">Categories</h1>
-              <span class="text-xs text-gray-500 dark:text-gray-400">You can modify the categories.</span>
-              <span class="ml-1 text-xs text-orange-500">You cannot delete a used category.</span>
-            </div>
-
-            <p-button icon="pi pi-plus" (click)="addCategory()" text />
-          </div>
-
-          <div class="mt-4 flex flex-col overflow-y-auto h-full max-h-[500px]">
-            @for (category of categories; track category.id) {
-            <div class="p-3 flex items-center justify-between rounded-md hover:bg-gray-50 dark:hover:bg-gray-800">
-              <div class="flex items-center gap-2 w-full min-w-0">
-                <img [src]="category.image" style="border: 2px solid" [style.border-color]="category.color"
-                  class="size-8 rounded-full" />
-                <span class="block truncate">{{ category.name }}</span>
-              </div>
-
-              <div class="flex flex-none gap-2 md:gap-4 justify-end">
-                <p-button severity="danger" (click)="deleteCategory(category.id)" icon="pi pi-trash" text />
-                <p-button (click)="editCategory(category)" icon="pi pi-pencil" text />
-              </div>
-            </div>
-            }
-          </div>
-        </p-tabpanel>
-        <p-tabpanel [value]="4">
-          <div class="mt-1 py-2 mb-2 flex justify-between items-center">
-            <div>
-              <h1 class="font-semibold tracking-tight text-xl">Export data</h1>
-              <span class="text-xs text-gray-500 dark:text-gray-400">Start an export and download it</span>
-            </div>
-
-            <div class="flex items-center justify-center gap-1">
-              <span class="relative flex size-3">
-                <span [class.animate-ping]="refreshBackups"
-                  class="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
-                <span [ngClass]="refreshBackups ? 'bg-green-500' : 'bg-gray-400'"
-                  class="relative inline-flex size-3 rounded-full"></span>
-              </span>
-              <p-button icon="pi pi-sync" pTooltip="Refresh" (click)="getBackups()" text />
-            </div>
-          </div>
-
-          <div class="mt-4 flex justify-center">
-            <p-button icon="pi pi-cloud-download" label="Create backup" severity="help" (click)="createBackup()" text />
-          </div>
-
-          <div class="mt-4 flex flex-col overflow-y-auto h-full max-h-[500px] gap-4">
-            @for (backup of backups; track backup.id) {
-            <div class="flex items-center justify-between">
-              <div class="flex flex-col min-w-0">
-                <div class="truncate font-mono text-md text-gray-900 dark:text-gray-100">{{ backup.filename }}</div>
-                <div class="flex items-center gap-2 mt-1 text-xs font-mono text-gray-500 dark:text-gray-400">
-                  @if (backup.file_size) {<span>{{ backup.file_size | fileSize }}</span>}
-                  @if (backup.status == 'pending') {
-                  <span
-                    class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded min-w-fit dark:bg-gray-400">{{
-                    backup.status }}</span>
-                  } @else if (backup.status == 'processing') {
-                  <span
-                    class="bg-blue-100 text-blue-800 text-xs font-medium px-2.5 py-0.5 rounded min-w-fit dark:bg-blue-400">{{
-                    backup.status }}</span>
-                  } @else if (backup.status == 'completed') {
-                  <span
-                    class="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded min-w-fit dark:bg-green-400">{{
-                    backup.status }}</span>
-                  } @else if (backup.status == 'failed') {
-                  <span
-                    class="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded min-w-fit dark:bg-red-400">{{
-                    backup.status }}</span>
-                  <pre>{{ backup.error_message }}</pre>
-                  }
+                    <div class="min-w-0 flex-1">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <h2 class="text-base font-semibold text-gray-900 dark:text-gray-50">Two-Factor Auth</h2>
+                        @if (settings?.totp_enabled) {
+                        <span
+                          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
+                          <span class="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                          on
+                        </span>
+                        } @else {
+                        <span
+                          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-600 dark:bg-red-800 dark:text-red-400">
+                          <span class="size-1.5 rounded-full bg-red-400"></span>
+                          off
+                        </span>
+                        }
+                      </div>
+                      <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Add extra security layer</p>
+                    </div>
+                  </div>
+                  <div class="text-center">
+                    <p-button [icon]="settings?.totp_enabled ? 'pi pi-times-circle' : 'pi pi-check-circle'"
+                      (click)="toggleTOTP()" [severity]="settings?.totp_enabled ? 'danger' : 'success'" size="small"
+                      [label]="settings?.totp_enabled ? 'Disable' : 'Enable'" text />
+                  </div>
                 </div>
               </div>
 
-              <div class="flex gap-1">
-                @if (backup.status == 'completed') {
-                <p-button icon="pi pi-download" pTooltip="Download export" (click)="downloadBackup(backup)" text />
+              <div
+                class="rounded-xl border border-gray-200/60 dark:border-gray-800/60 bg-white dark:bg-gray-900 p-5 transition-shadow hover:shadow-md">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                  <div class="flex items-center gap-3 min-w-0 flex-1">
+                    <div
+                      class="flex-shrink-0 flex items-center justify-center size-9 rounded-lg bg-amber-500/10 dark:bg-amber-500/20">
+                      <i class="pi pi-key text-amber-600 dark:text-amber-400"></i>
+                    </div>
+
+                    <div class="min-w-0 flex-1">
+                      <div class="flex items-center gap-2 flex-wrap">
+                        <h2 class="text-base font-semibold text-gray-900 dark:text-gray-50">Google API Key</h2>
+                        @if (settings?.google_apikey) {
+                        <span
+                          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
+                          <span class="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                          on
+                        </span>
+                        } @else {
+                        <span
+                          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-600 dark:bg-red-800 dark:text-red-400">
+                          <span class="size-1.5 rounded-full bg-red-400"></span>
+                          off
+                        </span>
+                        }
+                      </div>
+                      <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">Connect your Google API key
+                        for
+                        enhanced location services</p>
+                    </div>
+                  </div>
+
+                  <div class="text-center">
+                    @if (settings?.google_apikey) {
+                    <p-button (click)="deleteGoogleApiKey()" icon="pi pi-trash" label="Remove" severity="danger" text
+                      size="small" />
+                    } @else {
+                    <div [formGroup]="settingsForm" class="flex gap-2 w-40">
+                      <input id="_google_apikey" type="password" formControlName="_google_apikey" pInputText fluid
+                        pSize="small" placeholder="AIza..." />
+                      <p-button icon="pi pi-check" size="small"
+                        [disabled]="!settingsForm.valid || settingsForm.pristine" text severity="success"
+                        (click)="updateSettings()" />
+                    </div>
+                    }
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </p-tabpanel>
+        <p-tabpanel [value]="2">
+          <div class="max-h-[60vh] overflow-y-auto overscroll-contain">
+            <div class="flex flex-col gap-4 p-4 max-w-5xl mx-auto">
+              <section [formGroup]="settingsForm"
+                class="rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div (click)="mapParamsExpanded = !mapParamsExpanded"
+                  class="select-none w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer">
+                  <div class="flex items-center gap-3">
+                    <div class="flex items-center justify-center size-10 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                      <i class="pi pi-map text-blue-600 dark:text-blue-400"></i>
+                    </div>
+                    <div class="flex flex-col items-start">
+                      <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Map Parameters</h2>
+                      <p class="text-xs text-gray-600 dark:text-gray-400">Configure default map view and tile layers
+                      </p>
+                    </div>
+                  </div>
+                  <i [class]="mapParamsExpanded ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                    class="text-gray-400 transition-transform"></i>
+                </div>
+
+                @if (mapParamsExpanded) {
+                <div class="flex flex-col gap-4 p-4 border-t border-gray-200 dark:border-gray-700">
+                  <div class="flex justify-end">
+                    <p-button icon="pi pi-compass" label="Set Current" [outlined]="true"
+                      (click)="setMapCenterToCurrent()" size="small" styleClass="whitespace-nowrap" />
+                  </div>
+
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <p-floatlabel variant="in">
+                      <input id="map_lat" formControlName="map_lat" pInputText fluid pSize="small" />
+                      <label for="map_lat">Default Latitude</label>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="in">
+                      <input id="map_lng" formControlName="map_lng" pInputText fluid pSize="small" />
+                      <label for="map_lng">Default Longitude</label>
+                    </p-floatlabel>
+
+                    <p-floatlabel variant="in" class="md:col-span-2">
+                      <input id="tile_layer" formControlName="tile_layer" pInputText fluid pSize="small" />
+                      <label for="tile_layer">Tile Layer URL</label>
+                    </p-floatlabel>
+                  </div>
+                </div>
                 }
-                @if (['completed', 'failed'].includes(backup.status)) {
-                <p-button icon="pi pi-trash" pTooltip="Trash export" severity="danger" (click)="deleteBackup(backup)"
-                  text />
+              </section>
+
+              <section
+                class="rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-200">
+                <div (click)="displaySettingsExpanded = !displaySettingsExpanded"
+                  class="select-none w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer">
+                  <div class="flex items-center gap-3">
+                    <div class="flex items-center justify-center size-10 rounded-lg bg-green-100 dark:bg-green-900/30">
+                      <i class="pi pi-eye text-green-600 dark:text-green-400"></i>
+                    </div>
+                    <div class="flex flex-col items-start">
+                      <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100">Display & Performance</h2>
+                      <p class="text-xs text-gray-500 dark:text-gray-400">Visual and performance options</p>
+                    </div>
+                  </div>
+                  <i [class]="displaySettingsExpanded ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                    class="text-gray-400 transition-transform duration-200"></i>
+                </div>
+
+                @if (displaySettingsExpanded) {
+                <div class="flex flex-col gap-3 p-4 pt-0 border-t border-gray-200 dark:border-gray-700">
+                  <div
+                    class="mt-4 flex items-center justify-between py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                      <i class="pi pi-wifi text-orange-600 dark:text-orange-400 flex-shrink-0"></i>
+                      <div class="min-w-0">
+                        <span class="font-medium text-sm text-gray-900 dark:text-gray-100 block">Low Network Mode</span>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Use category images to
+                          reduce bandwidth</p>
+                      </div>
+                    </div>
+                    <p-toggleswitch [(ngModel)]="isLowNet" (onChange)="toggleLowNet()" class="flex-shrink-0 ml-4" />
+                  </div>
+
+                  <div
+                    class="flex items-center justify-between py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                      <i class="pi pi-compass text-purple-600 dark:text-purple-400 flex-shrink-0"></i>
+                      <div class="min-w-0">
+                        <span class="font-medium text-sm text-gray-900 dark:text-gray-100 block">GPX Indicator</span>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Show compass when GPX data
+                          available</p>
+                      </div>
+                    </div>
+                    <p-toggleswitch [(ngModel)]="isGpxInPlaceMode" (onChange)="toggleGpxInPlace()"
+                      class="flex-shrink-0 ml-4" />
+                  </div>
+                </div>
+                }
+              </section>
+
+              <section [formGroup]="settingsForm"
+                class="rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div (click)="dataFiltersExpanded = !dataFiltersExpanded"
+                  class="select-none w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer">
+                  <div class="flex items-center gap-3">
+                    <div
+                      class="flex items-center justify-center size-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/30">
+                      <i class="pi pi-sliders-h text-indigo-600 dark:text-indigo-400"></i>
+                    </div>
+                    <div class="flex flex-col items-start">
+                      <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Data & Filters</h2>
+                      <p class="text-xs text-gray-600 dark:text-gray-400">Manage currency and category visibility
+                      </p>
+                    </div>
+                  </div>
+                  <i [class]="dataFiltersExpanded ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                    class="text-gray-400 transition-transform"></i>
+                </div>
+
+                @if (dataFiltersExpanded) {
+                <div class="flex flex-col gap-3 p-4 pt-0 border-t border-gray-200 dark:border-gray-700">
+                  <div
+                    class="mt-4 flex flex-col gap-2 md:flex-row items-center justify-between py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                      <i class="pi pi-wallet text-gray-600 dark:text-gray-400 flex-shrink-0"></i>
+                      <div class="min-w-0">
+                        <span class="font-medium text-sm text-gray-900 dark:text-gray-100 block">Currency</span>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Update the default currency
+                        </p>
+                      </div>
+                    </div>
+                    <div class="w-68">
+                      <input id="currency" formControlName="currency" placeholder="€" pInputText fluid pSize="small" />
+                    </div>
+                  </div>
+
+                  <div
+                    class="flex flex-col gap-2 md:flex-row items-center justify-between py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                      <i class="pi pi-filter text-gray-600 dark:text-gray-400 flex-shrink-0"></i>
+                      <div class="min-w-0">
+                        <span class="font-medium text-sm text-gray-900 dark:text-gray-100 block">Hidden
+                          Categories</span>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Selected will be hidden by
+                          default
+                        </p>
+                      </div>
+                    </div>
+                    <div class="w-68">
+                      <p-multiselect id="do_not_display" [options]="doNotDisplayOptions" [group]="true" [filter]="false"
+                        [showToggleAll]="false" formControlName="do_not_display" placeholder="Select..."
+                        [showClear]="true" appendTo="body" pSize="small" class="capitalize" fluid />
+                    </div>
+                  </div>
+                </div>
+                }
+              </section>
+
+              <div
+                class="select-none flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-800 border border-blue-100 dark:border-gray-700 shadow-sm">
+                <div class="flex items-center gap-3 min-w-0 flex-1 pr-4">
+                  <i class="pi pi-info-circle text-blue-600 dark:text-blue-400 flex-shrink-0"></i>
+                  <span class="text-sm text-gray-700 dark:text-gray-300 truncate">
+                    @if (settingsForm.pristine) {
+                    No changes to save
+                    } @else if (!settingsForm.valid) {
+                    Please fix validation errors
+                    } @else {
+                    You have unsaved changes
+                    }
+                  </span>
+                </div>
+
+                <div class="flex gap-2 flex-shrink-0">
+                  <p-button [label]="settingsForm.pristine ? 'Saved' : 'Save'" icon="pi pi-check"
+                    (click)="updateSettings()" [disabled]="!settingsForm.valid || settingsForm.pristine" size="small" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </p-tabpanel>
+        <p-tabpanel [value]="3">
+          <div class="max-h-[60vh] overflow-y-auto overscroll-contain">
+            <div class="flex flex-col gap-4 p-4 mx-auto">
+              <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                <div (click)="addCategory()"
+                  class="group relative flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50/50 dark:bg-gray-800/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:border-indigo-400 dark:hover:border-indigo-500 transition-all duration-200 cursor-pointer">
+                  <div
+                    class="flex items-center justify-center w-12 h-12 rounded-full bg-white dark:bg-gray-700 border-2 border-dashed border-gray-300 dark:border-gray-600 group-hover:border-indigo-400 dark:group-hover:border-indigo-500 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/30 transition-all duration-200 group-hover:scale-110">
+                    <i
+                      class="pi pi-plus text-gray-400 dark:text-gray-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-200"></i>
+                  </div>
+
+                  <div class="flex flex-col items-start">
+                    <span
+                      class="font-semibold text-sm text-gray-600 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-200">
+                      Add Category
+                    </span>
+                  </div>
+                </div>
+
+                @for (category of categories; track category.id) {
+                <div
+                  class="group relative flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-600 transition-all duration-200">
+                  <div class="relative flex-shrink-0">
+                    <img [src]="category.image" style="border: 3px solid" [style.border-color]="category.color"
+                      class="select-none size-12 rounded-full object-cover" />
+                    <div class="absolute -bottom-1 -right-1 px-2 py-1 bg-gray-100 dark:bg-gray-900 rounded-lg text-xs font-bold text-gray-900
+                      dark:text-white">{{
+                      getCategoryPlacesCount(category.name) }}
+                    </div>
+                  </div>
+
+                  <div class="flex-1 min-w-0">
+                    <span class="block font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">
+                      {{ category.name }}
+                    </span>
+                    <span class="block text-xs dark:text-gray-400" [style.color]="category.color">
+                      {{ category.color }}
+                    </span>
+                  </div>
+                  <div
+                    class="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
+                    <p-button (click)="editCategory(category)" icon="pi pi-pencil" text size="small"
+                      severity="secondary" pTooltip="Edit category" tooltipPosition="top" />
+                    <p-button severity="danger" (click)="deleteCategory(category.id)" icon="pi pi-trash" text
+                      size="small" pTooltip="Delete category" tooltipPosition="top" />
+                  </div>
+                </div>
                 }
               </div>
             </div>
-            } @empty {
-            <div class="col-span-full flex flex-col items-center justify-center mt-4 text-center select-none">
-              <i style="font-size: 3rem" class="pi pi-inbox mb-2 text-gray-300 dark:text-gray-700"></i>
-              <p class="text-sm text-gray-500 dark:text-gray-400">No backup</p>
-            </div>
-            }
           </div>
+        </p-tabpanel>
+        <p-tabpanel [value]="4">
+          <div class="max-h-[60vh] overflow-y-auto overscroll-contain">
+            <div class="flex flex-col gap-4 p-4 mx-auto">
+              <div
+                class="flex flex-col md:flex-row gap-4 p-5 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 border border-blue-100/50 dark:border-blue-800/30">
+                <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+                  <div
+                    class="flex-shrink-0 flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-blue-500 shadow-sm">
+                    <i class="pi pi-database text-white text-base sm:text-lg"></i>
+                  </div>
+
+                  <div class="min-w-0 flex-1">
+                    <h1 class="text-base font-semibold text-gray-900 dark:text-white">Backups</h1>
+                    <p class="text-xs text-gray-600 dark:text-gray-400">Export your data</p>
+                  </div>
+                </div>
+
+                <div class="flex grow flex-wrap items-center md:justify-end gap-2">
+                  <p-button (click)="fileUpload.click()" text icon="pi pi-upload" label="Import" size="small" />
+                  <input type="file" class="hidden" (change)="importData($event)" #fileUpload>
+                  <p-button icon="pi pi-sync" (click)="getBackups()" text size="small" />
+                  <p-button (click)="createBackup()" text label="Create" icon="pi pi-plus" size="small" />
+                </div>
+              </div>
+
+              <div class="flex flex-col gap-2.5">
+                @for (backup of backups; track backup.id) {
+                <div
+                  class="group flex items-center gap-4 py-4 md:p-4 rounded-lg bg-white dark:bg-gray-800 hover:shadow-sm transition-all duration-200">
+                  <div class="flex-shrink-0">
+                    @if (backup.status === 'completed') {
+                    <div
+                      class="flex items-center justify-center size-10 rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
+                      <i class="pi pi-check-circle text-emerald-600 dark:text-emerald-400"></i>
+                    </div>
+                    } @else if (backup.status === 'pending') {
+                    <div class="flex items-center justify-center size-10 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+                      <i class="pi pi-ellipsis-h text-gray-600 dark:text-gray-400"></i>
+                    </div>
+                    } @else if (backup.status === 'processing') {
+                    <div class="flex items-center justify-center size-10 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+                      <i class="pi pi-spin pi-spinner text-blue-600 dark:text-blue-400"></i>
+                    </div>
+                    } @else if (backup.status === 'failed') {
+                    <div class="flex items-center justify-center size-10 rounded-lg bg-red-50 dark:bg-red-900/20">
+                      <i class="pi pi-times-circle text-red-600 dark:text-red-400"></i>
+                    </div>
+                    } @else {
+                    <div class="flex items-center justify-center size-10 rounded-lg bg-gray-50 dark:bg-gray-900/20">
+                      <i class="pi pi-clock text-gray-600 dark:text-gray-400"></i>
+                    </div>
+                    }
+                  </div>
+
+                  <div class="flex flex-col min-w-0">
+                    <div class="flex items-center gap-2 mb-1">
+                      <span
+                        class="font-medium text-sm text-gray-900 group-hover:font-semibold dark:text-white truncate">
+                        {{ backup.filename }}
+                      </span>
+
+                      @if (backup.status === 'processing') {
+                      <span
+                        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                        Processing
+                      </span>
+                      } @else if (backup.status === 'pending') {
+                      <span
+                        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-gray-50 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300">
+                        Starting
+                      </span>
+                      }@else if (backup.status === 'failed') {
+                      <span
+                        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300">
+                        Failed
+                      </span>
+                      }
+                    </div>
+
+                    <div
+                      class="flex flex-col md:flex-row md:items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                      @if (backup.file_size) {
+                      <span class="font-mono">{{ backup.file_size | fileSize }}</span>
+                      }
+                      @if (backup.created_at) {
+                      <div class="hidden md:inline-flex w-px h-4 bg-gray-200 dark:bg-gray-800"></div>
+                      <span class="hidden md:inline-flex text-xs">Created {{ backup.created_at| date: 'd MMM. y'
+                        }}</span>
+                      }
+                      @if (backup.status === 'failed' && backup.error_message) {
+                      <span class="text-red-600 dark:text-red-400 truncate">• {{ backup.error_message }}</span>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="flex grow items-center justify-end gap-1">
+                    @if (backup.status === 'completed') {
+                    <p-button (click)="downloadBackup(backup)" text icon="pi pi-download" />
+                    }
+                    @if (backup.status === 'completed' || backup.status === 'failed') {
+                    <p-button (click)="deleteBackup(backup)" severity="danger" text icon="pi pi-trash" />
+                    }
+                  </div>
+                </div>
+                } @empty {
+                <div
+                  class="flex flex-col items-center justify-center py-16 px-6 text-center rounded-lg border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30">
+                  <div
+                    class="flex items-center justify-center w-14 h-14 rounded-full bg-blue-100 dark:bg-blue-900/30 mb-4">
+                    <i class="pi pi-cloud text-2xl text-blue-600 dark:text-blue-400"></i>
+                  </div>
+
+                  <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-1">
+                    No backups yet
+                  </h3>
+                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-6 max-w-xs">
+                    Create your first backup to export your trip data
+                  </p>
+
+                  <button (click)="createBackup()"
+                    class="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-medium text-sm shadow-sm hover:shadow transition-all duration-200">
+                    <i class="pi pi-plus text-xs"></i>
+                    <span>Create Backup</span>
+                  </button>
+                </div>
+                }
+              </div>
+            </div>
+          </div>
+
         </p-tabpanel>
       </p-tabpanels>
     </p-tabs>
