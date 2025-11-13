@@ -854,11 +854,6 @@
 
                   <div class="flex flex-col min-w-0">
                     <div class="flex items-center gap-2 mb-1">
-                      <span
-                        class="font-medium text-sm text-gray-900 group-hover:font-semibold dark:text-white truncate">
-                        {{ backup.filename }}
-                      </span>
-
                       @if (backup.status === 'processing') {
                       <span
                         class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
@@ -869,19 +864,22 @@
                         class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-gray-50 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300">
                         Starting
                       </span>
-                      }@else if (backup.status === 'failed') {
+                      } @else if (backup.status === 'failed') {
                       <span
                         class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300">
                         Failed
+                      </span>
+                      } @else {
+                      <span
+                        class="font-medium text-sm text-gray-900 group-hover:font-semibold dark:text-white truncate">
+                        {{ backup.filename }}
                       </span>
                       }
                     </div>
 
                     <div
                       class="flex flex-col md:flex-row md:items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-                      @if (backup.file_size) {
-                      <span class="font-mono">{{ backup.file_size | fileSize }}</span>
-                      }
+                      <span class="font-mono">{{ (backup.file_size || 0) | fileSize }}</span>
                       @if (backup.created_at) {
                       <div class="hidden md:inline-flex w-px h-4 bg-gray-200 dark:bg-gray-800"></div>
                       <span class="hidden md:inline-flex text-xs">Created {{ backup.created_at| date: 'd MMM. y'
@@ -905,20 +903,15 @@
                 } @empty {
                 <div
                   class="flex flex-col items-center justify-center py-16 px-6 text-center rounded-lg border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30">
-                  <div
-                    class="flex items-center justify-center w-14 h-14 rounded-full bg-blue-100 dark:bg-blue-900/30 mb-4">
-                    <i class="pi pi-cloud text-2xl text-blue-600 dark:text-blue-400"></i>
-                  </div>
-
                   <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-1">
-                    No backups yet
+                    No backups
                   </h3>
                   <p class="text-sm text-gray-600 dark:text-gray-400 mb-6 max-w-xs">
-                    Create your first backup to export your trip data
+                    Create your first backup to safeguard your data
                   </p>
 
                   <button (click)="createBackup()"
-                    class="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-medium text-sm shadow-sm hover:shadow transition-all duration-200">
+                    class="cursor-pointer flex items-center gap-2 px-5 py-2.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-medium text-sm shadow-sm hover:shadow transition-all duration-200">
                     <i class="pi pi-plus text-xs"></i>
                     <span>Create Backup</span>
                   </button>
