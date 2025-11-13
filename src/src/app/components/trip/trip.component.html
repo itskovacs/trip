@@ -466,7 +466,8 @@
       <div [class.max-h-64!]="!isExpanded" class="max-h-[340px] overflow-y-auto">
         @defer {
         @for (p of places; track p.id) {
-        <div class="flex items-center gap-4 py-2 px-4 hover:bg-gray-50 rounded-md overflow-auto dark:hover:bg-gray-800"
+        <div
+          class="group/item relative flex items-center gap-4 py-2 px-4 hover:bg-gray-50 rounded-md overflow-auto dark:hover:bg-gray-800"
           (mouseenter)="placeHighlightMarker(p)" (mouseleave)="resetPlaceHighlightMarker()">
           <img [src]="p.image || p.category.image" class="w-12 rounded-full object-fit">
 
@@ -497,6 +498,13 @@
                 }}</span>
               }
             </div>
+          </div>
+
+          <div
+            class="invisible absolute top-6 transition-all right-2 group-hover/item:visible group-hover/item:-translate-x-2">
+            <p-button [disabled]="p.user != username" tooltipPosition="left"
+              [pTooltip]="p.user == username ? 'Edit place details' : 'Cannot edit someone else place'" text
+              icon="pi pi-pencil" (click)="editPlace(p)" />
           </div>
         </div>
         } @empty {
