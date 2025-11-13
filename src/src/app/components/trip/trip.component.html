@@ -149,7 +149,8 @@
             @if (tripitem.place) {
             <div class="ml-7 print:ml-0 truncate print:whitespace-normal">
               <img [src]="tripitem.place.image || tripitem.place.category.image"
-                class="absolute left-0 top-1/2 -translate-y-1/2 w-9 rounded-full object-cover print:hidden" /> {{
+                class="absolute left-0 top-1/2 -translate-y-1/2 w-9 rounded-full object-cover print:hidden text-black dark:text-white" />
+              {{
               tripitem.place.name }}
             </div>
             } @else {-}
@@ -218,7 +219,7 @@
               <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden flex-shrink-0">
                 <img [src]="tripitem.place.image || tripitem.place.category.image" class="size-full object-cover" />
               </div>
-              <span class="text-sm truncate min-w-0">{{ tripitem.place.name }}</span>
+              <span class="text-sm truncate min-w-0 text-black dark:text-white">{{ tripitem.place.name }}</span>
             </div>
             } @else {-}
           </td>}
