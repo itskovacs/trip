@@ -329,4 +329,12 @@ export class ApiService {
   gmapsGeocodeBoundaries(q: string): Observable<GoogleBoundaries> {
     return this.httpClient.get<GoogleBoundaries>(`${this.apiBaseUrl}/places/google-geocode`, { params: { q } });
   }
+
+  postTakeoutFile(formdata: FormData): Observable<GooglePlaceResult[]> {
+    return this.httpClient.post<GooglePlaceResult[]>(`${this.apiBaseUrl}/places/google-takeout-import`, formdata);
+  }
+
+  postGmapsMultiline(links: string[]): Observable<GooglePlaceResult[]> {
+    return this.httpClient.post<GooglePlaceResult[]>(`${this.apiBaseUrl}/places/google-multilinks`, links);
+  }
 }
