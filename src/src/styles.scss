@@ -232,6 +232,15 @@ html {
   }
 }
 
+@keyframes slide-x-no-opacity {
+  0% {
+    transform: translateX(-20px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
 @keyframes slide-y {
   0% {
     opacity: 0;
@@ -239,6 +248,15 @@ html {
   }
   100% {
     opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-y-no-opacity {
+  0% {
+    transform: translateY(-20px);
+  }
+  100% {
     transform: translateY(0);
   }
 }
@@ -260,8 +278,16 @@ html {
   animation: slide-x 0.3s both normal;
 }
 
+.slide-x-no-opacity {
+  animation: slide-x-no-opacity 0.3s both normal;
+}
+
 .a-slide-x {
   animation: slide-x 0.3s both reverse;
+}
+
+.slide-y-no-opacity {
+  animation: slide-y-no-opacity 0.3s both normal;
 }
 
 .slide-y {
