@@ -3,9 +3,10 @@
 
 <div align="center">
 
+[![Sponsor](https://img.shields.io/badge/sponsor-30363D?style=for-the-badge&logo=GitHub-Sponsors&logoColor=#white)](https://ko-fi.com/itskovacs)
 ![Status](https://img.shields.io/badge/status-active-success?style=for-the-badge)
 [![GitHub Issues](https://img.shields.io/github/issues/itskovacs/trip?style=for-the-badge&color=ededed)](https://github.com/itskovacs/trip/issues)
-[![License](https://img.shields.io/badge/license-_CC_BY_NC_SA_4.0-2596be?style=for-the-badge)](/LICENSE)
+![Pulls](https://img.shields.io/badge/pulls-35k+-2596be?style=for-the-badge)
 
 </div>
 
@@ -101,7 +102,7 @@ Contributions are welcome! Open an issue to report bugs, start a discussion to s
 3. Commit and push your changes
 4. Open a pull request
 
-TRIP is and will always remain completely free, no paywalled features, no telemetry, no tracking, no ads. Development is supported through optional donations. If TRIP helps plan your adventures, consider [leaving a small tip](https://ko-fi.com/itskovacs) ☕.
+TRIP is and will always remain completely free, no paywalled features, no telemetry, no tracking, no ads. Development is supported through optional donations. If TRIP helps plan your adventures, consider [leaving me a small tip](https://ko-fi.com/itskovacs) ☕.
 
 <br>
 
@@ -130,7 +131,7 @@ TRIP is licensed under the **CC BY-NC-SA 4.0**. You may use, modify, and share f
 
 <div align="center">
 
-If you like TRIP, consider giving it a **star** ⭐!  
+If you like TRIP, consider giving it a ⭐ for visibility!  
 Made with ❤️ in BZH  
 
 <a href='https://ko-fi.com/itskovacs' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi1.png' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>  
