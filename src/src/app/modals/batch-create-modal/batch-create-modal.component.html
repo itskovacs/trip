@@ -1,10 +1,18 @@
 <section>
-  <p-floatlabel variant="in">
-    <textarea pTextarea id="batch" [formControl]="batchInput" rows="6" fluid></textarea>
-    <label for="batch">Batch</label>
-  </p-floatlabel>
+  <div class="relative">
+    <p-floatlabel variant="in">
+      <textarea pTextarea id="batch" [formControl]="batchInput" rows="6" fluid></textarea>
+      <label for="batch">Batch</label>
+    </p-floatlabel>
+
+    <div class="absolute top-2 right-2">
+      <p-button (click)="importJsonFileInput.click()" label="Import JSON" icon="pi pi-file-import" severity="secondary"
+        text />
+    </div>
+  </div>
 
   <div class="mt-4 text-right">
     <p-button (click)="closeDialog()" text [disabled]="!batchInput.value" label="Add" />
   </div>
 </section>
+<input type="file" class="hidden" #importJsonFileInput (change)="onFileSelect($event)">

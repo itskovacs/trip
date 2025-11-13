@@ -20,4 +20,22 @@ export class BatchCreateModalComponent {
   closeDialog() {
     this.ref.close(this.batchInput.value);
   }
+
+  onFileSelect(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length == 1) {
+      const file = input.files[0];
+      const reader = new FileReader();
+
+      reader.onload = (e) => {
+        this.batchInput.setValue(e.target?.result as string);
+      };
+
+      reader.onerror = (e) => {
+        console.error('Error reading file:', e);
+      };
+
+      reader.readAsText(file);
+    }
+  }
 }
