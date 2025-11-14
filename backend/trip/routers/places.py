@@ -1,3 +1,4 @@
+import asyncio
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
@@ -11,12 +12,32 @@ from ..models.models import (Category, GooglePlaceResult, Image, Place,
                              User)
 from ..security import verify_exists_and_owns
 from ..utils.csv import iter_csv_lines
-from ..utils.gmaps import (gmaps_get_boundaries, gmaps_textsearch,
-                           gmaps_url_to_search, result_to_place)
+from ..utils.gmaps import (cid_to_pid, gmaps_get_boundaries, gmaps_pid_search,
+                           gmaps_textsearch, gmaps_url_to_search,
+                           result_to_place)
 from ..utils.utils import (b64img_decode, download_file, patch_image,
                            save_image_to_file)
+from ..utils.zip import extract_cids_from_kmz
 
 router = APIRouter(prefix="/api/places", tags=["places"])
+
+
+async def _process_gmaps_batch(items: list[str], api_key: str, processor_func) -> list[GooglePlaceResult]:
+    if not items:
+        return []
+
+    semaphore = asyncio.Semaphore(4)
+
+    async def _process_with_semaphore(item):
+        async with semaphore:
+            return await processor_func(item, api_key)
+
+    results = await asyncio.gather(
+        *[_process_with_semaphore(item) for item in items],
+        return_exceptions=True,
+    )
+
+    return [result for result in results if isinstance(result, GooglePlaceResult)]
 
 
 @router.get("", response_model=list[PlaceRead])
@@ -124,23 +145,58 @@ async def create_places(
 
 
 @router.post("/google-multilinks")
-async def process_multilinks(
+async def google_links_to_places(
     links: list[str], session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]
+) -> list[GooglePlaceResult]:
+    db_user = session.get(User, current_user)
+    if not links:
+        return []
+
+    async def _process_url(url: str, api_key: str) -> GooglePlaceResult | None:
+        if result := await gmaps_url_to_search(url, api_key):
+            return await result_to_place(result, api_key)
+        return None
+
+    return await _process_gmaps_batch(
+        links,
+        db_user.google_apikey,
+        _process_url,
+    )
+
+
+@router.post("/google-kmz-import")
+async def google_kmz_import(
+    session: SessionDep,
+    current_user: Annotated[str, Depends(get_current_username)],
+    file: UploadFile = File(...),
 ) -> list[GooglePlaceResult]:
     db_user = session.get(User, current_user)
     if not db_user or not db_user.google_apikey:
         raise HTTPException(status_code=400, detail="Google Maps API key not configured")
+    if not file.filename or not file.filename.lower().endswith((".kmz")):
+        raise HTTPException(status_code=400, detail="Invalid KMZ file")
 
-    places = []
-    for url in links:
-        result = await gmaps_url_to_search(url, db_user.google_apikey)
-        place = await result_to_place(result, db_user.google_apikey)
-        places.append(place)
-    return places
+    cids = await extract_cids_from_kmz(file)
+    if not cids:
+        return []
+
+    async def _process_cid(cid: str, api_key: str) -> GooglePlaceResult | None:
+        try:
+            pid = await cid_to_pid(cid, api_key)
+            result = await gmaps_pid_search(pid, api_key)
+            return await result_to_place(result, api_key)
+        except Exception:
+            return None
+
+    return await _process_gmaps_batch(
+        list(cids),
+        db_user.google_apikey,
+        _process_cid,
+    )
 
 
 @router.post("/google-takeout-import")
-async def process_takeout_csv(
+async def google_takeout_import(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
     file: UploadFile = File(...),
@@ -150,47 +206,72 @@ async def process_takeout_csv(
     if not db_user or not db_user.google_apikey:
         raise HTTPException(status_code=400, detail="Google Maps API key not configured")
 
-    content_type = file.content_type
-    if content_type != "text/csv":
+    if file.content_type != "text/csv":
         raise HTTPException(status_code=400, detail="Bad request, expected CSV file")
 
-    places = []
+    urls = []
     async for row in iter_csv_lines(file):
-        url = row.pop("URL", None)
-        if not url:
-            continue
-        result = await gmaps_url_to_search(url, db_user.google_apikey)
-        place = await result_to_place(result, db_user.google_apikey)
-        places.append(place)
-    return places
+        if url := row.get("URL"):
+            urls.append(url)
+
+    if not urls:
+        return []
+
+    async def _process_url(url: str, api_key: str) -> GooglePlaceResult | None:
+        if place_data := await gmaps_url_to_search(url, api_key):
+            return await result_to_place(place_data, api_key)
+        return None
+
+    return await _process_gmaps_batch(
+        urls,
+        db_user.google_apikey,
+        _process_url,
+    )
 
 
 @router.get("/google-search")
 async def google_search_text(
     q: str, session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]
 ) -> list[GooglePlaceResult]:
+    if not q or not q.strip():
+        raise HTTPException(status_code=400, detail="Bad Request")
+
     db_user = session.get(User, current_user)
     if not db_user or not db_user.google_apikey:
         raise HTTPException(status_code=400, detail="Google Maps API key not configured")
 
-    data = await gmaps_textsearch(q, db_user.google_apikey)
-    places = []
-    for result in data:
-        place = await result_to_place(result, db_user.google_apikey)
-        places.append(place)
-    return places
+    results = await gmaps_textsearch(q.strip(), db_user.google_apikey)
+    if not results:
+        return []
+
+    async def _process_result(
+        place_data: dict,
+        api_key: str,
+    ) -> GooglePlaceResult | None:
+        try:
+            return await result_to_place(place_data, api_key)
+        except Exception:
+            return None
+
+    return await _process_gmaps_batch(
+        results,
+        db_user.google_apikey,
+        _process_result,
+    )
 
 
 @router.get("/google-geocode")
 async def google_geocode_search(
     q: str, session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]
 ):
+    if not q or not q.strip():
+        raise HTTPException(status_code=400, detail="Bad Request")
+
     db_user = session.get(User, current_user)
     if not db_user or not db_user.google_apikey:
         raise HTTPException(status_code=400, detail="Google Maps API key not configured")
 
-    bounds = await gmaps_get_boundaries(q, db_user.google_apikey)
-    if not bounds:
+    if not (bounds := await gmaps_get_boundaries(q.strip(), db_user.google_apikey)):
         raise HTTPException(status_code=400, detail="Location not resolved by GMaps")
     return bounds
 
