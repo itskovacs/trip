@@ -1,37 +1,42 @@
 <section>
-  <div class="max-w-full overflow-y-auto">
+  <div class="max-w-full grid md:grid-cols-2 xl:grid-cols-3 gap-2 overflow-y-auto">
     @for (p of places; track p.id) {
-    <div
-      class="mt-4 flex items-center gap-4 hover:bg-gray-50 rounded-xl cursor-pointer py-2 px-4 dark:hover:bg-gray-800"
-      (click)="editPlace(p)">
-      <img [src]="p.image || 'favicon.png'" class="size-14 rounded-full object-fit">
-      <div class="flex flex-col gap-1 truncate">
-        <h1 class="tracking-tight truncate dark:text-surface-300"
-          [ngClass]="{ 'text-red-500 font-semibold invalid-content': !isPlaceValid(p) }">{{ p.name }}
-        </h1>
-        <span class="text-xs text-gray-500 truncate">{{ p.place }}</span>
+    <div (click)="editPlace(p)"
+      class="group w-full flex items-center gap-3 p-3 bg-white dark:bg-gray-950 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg cursor-pointer transition-all border border-gray-200 dark:border-gray-800 text-left">
 
-        <div class="flex gap-0.5">
-          @if (p.allowdog) {
-          <span
-            class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded flex items-center dark:bg-green-100/85">🐶</span>
-          } @else {
-          <span
-            class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded flex items-center dark:bg-red-100/85">🐶</span>
-          }
+      <div class="w-12 h-12 rounded overflow-hidden bg-gray-100 dark:bg-gray-800">
+        <img [src]="p.image || 'favicon.png'" class="w-full h-full object-cover" />
+      </div>
 
-          @if (p.visited) {
-          <span
-            class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded flex items-center dark:bg-green-100/85"><i
-              class="pi pi-eye text-xs"></i></span>
-          } @else {
-          <span
-            class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded flex items-center dark:bg-red-100/85"><i
-              class="pi pi-eye-slash text-xs"></i></span>
-          }
+      <div class="flex-1 min-w-0">
+        <h3 class="text-sm font-semibold text-gray-900 dark:text-white truncate"
+          [ngClass]="{ 'text-red-500 font-semibold invalid-content': !isPlaceValid(p) }">
+          {{ p.name }}
+        </h3>
+        <p class="text-xs text-gray-600 dark:text-gray-400 truncate mt-0.5">
+          {{ p.place }}
+        </p>
+
+        <div class="flex flex-wrap gap-1 mt-1.5">
+          <span class="flex items-center px-1.5 py-0.5 rounded text-xs" [class.bg-emerald-100]="p.allowdog"
+            [class.text-emerald-700]="p.allowdog" [class.dark:bg-emerald-950]="p.allowdog"
+            [class.dark:text-emerald-400]="p.allowdog" [class.bg-gray-100]="!p.allowdog"
+            [class.text-gray-600]="!p.allowdog" [class.dark:bg-gray-800]="!p.allowdog"
+            [class.dark:text-gray-500]="!p.allowdog">
+            🐶
+          </span>
+
+          <span class="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium"
+            [class.bg-blue-100]="p.visited" [class.text-blue-700]="p.visited" [class.dark:bg-blue-950]="p.visited"
+            [class.dark:text-blue-400]="p.visited" [class.bg-gray-100]="!p.visited" [class.text-gray-600]="!p.visited"
+            [class.dark:bg-gray-800]="!p.visited" [class.dark:text-gray-500]="!p.visited">
+            <i class="pi" style="font-size: 12px;" [class.pi-eye]="p.visited" [class.pi-eye-slash]="!p.visited"></i>
+          </span>
 
           @if (p.category_id) {
-          <span
+          <span class="flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium max-w-[90px]"
+            [style.color]="categoryIDToCategory(p.category_id).color"
+            [style.background-color]="categoryIDToCategory(p.category_id).color + '15'"
             class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded flex gap-2 items-center truncate dark:bg-blue-100/85"><i
               class="pi pi-box text-xs"></i>{{ categoryIDToCategory(p.category_id).name }}</span>
           }
