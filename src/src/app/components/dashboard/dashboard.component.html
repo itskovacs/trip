@@ -97,7 +97,8 @@
         <span class="text-sm font-medium text-gray-900 dark:text-white">Place</span>
       </button>
       <p-menu #menuCreatePlace [model]="menuCreatePlaceItems" appendTo="body" [popup]="true" />
-      <input type="file" style="display: none;" (change)="onGoogleTakeoutInputChange($event)" #fileUpload>
+      <input type="file" style="display: none;" (change)="onGoogleTakeoutInputChange($event)" #fileUploadTakeout>
+      <input type="file" style="display: none;" (change)="onGoogleKmzInputChange($event)" #fileUploadKmz>
     </div>
   </div>
 </div>
@@ -189,7 +190,7 @@
             class="group w-full flex items-center gap-3 p-3 bg-white dark:bg-gray-950 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg cursor-pointer transition-all border border-gray-200 dark:border-gray-800 text-left">
 
             <div class="w-12 h-12 rounded overflow-hidden bg-gray-100 dark:bg-gray-800">
-              <img [src]="place.image || place.category.image" [alt]="place.name" class="w-full h-full object-cover" />
+              <img [src]="place.image || place.category.image" class="w-full h-full object-cover" />
             </div>
 
             <div class="flex-1 min-w-0">

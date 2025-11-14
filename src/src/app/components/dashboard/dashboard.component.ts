@@ -79,7 +79,8 @@ export interface MarkerOptions extends L.MarkerOptions {
   styleUrls: ['./dashboard.component.scss'],
 })
 export class DashboardComponent implements OnInit, AfterViewInit {
-  @ViewChild('fileUpload') fileUpload!: any;
+  @ViewChild('fileUploadTakeout') fileUploadTakeout!: any;
+  @ViewChild('fileUploadKmz') fileUploadKmz!: any;
   gmapsGeocodeFilterInput = new FormControl('');
   boundariesFiltering?: GoogleBoundaries;
   searchInput = new FormControl('');
@@ -138,6 +139,17 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       label: 'Google',
       items: [
         {
+          label: 'Google KMZ (My Maps)',
+          icon: 'pi pi-google',
+          command: () => {
+            if (!this.settings?.google_apikey) {
+              this.utilsService.toast('error', 'Missing Key', 'Google Maps API key not configured');
+              return;
+            }
+            this.fileUploadKmz.nativeElement.click();
+          },
+        },
+        {
           label: 'Google Takeout (Saved)',
           icon: 'pi pi-google',
           command: () => {
@@ -145,7 +157,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
               this.utilsService.toast('error', 'Missing Key', 'Google Maps API key not configured');
               return;
             }
-            this.fileUpload.nativeElement.click();
+            this.fileUploadTakeout.nativeElement.click();
           },
         },
         {
@@ -345,10 +357,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
-      width: '55vw',
+      width: '40vw',
       breakpoints: {
-        '1920px': '70vw',
-        '1260px': '90vw',
+        '960px': '75vw',
+        '640px': '90vw',
       },
       ...opts,
     })!;
@@ -364,7 +376,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             modal: true,
             closable: true,
             dismissableMask: true,
+            width: '40vw',
             breakpoints: {
+              '960px': '75vw',
               '640px': '90vw',
             },
             data: `A possible duplicate place (${duplicate.name}) exists. Create anyway?`,
@@ -411,10 +425,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
-      width: '55vw',
+      width: '40vw',
       breakpoints: {
-        '1920px': '70vw',
-        '1260px': '90vw',
+        '960px': '75vw',
+        '640px': '90vw',
       },
     })!;
 
@@ -521,6 +535,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       closable: true,
       dismissableMask: true,
       breakpoints: {
+        '960px': '75vw',
         '640px': '90vw',
       },
       data: `Delete ${this.selectedPlace.name} ?`,
@@ -554,10 +569,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
-      width: '55vw',
+      width: '40vw',
       breakpoints: {
-        '1920px': '70vw',
-        '1260px': '90vw',
+        '960px': '75vw',
+        '640px': '90vw',
       },
       data: {
         place: {
@@ -791,9 +806,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       closable: true,
       dismissableMask: true,
       data: { category: c },
-      width: '40vw',
+      width: '30vw',
       breakpoints: {
-        '960px': '70vw',
+        '960px': '75vw',
         '640px': '90vw',
       },
     })!;
@@ -831,9 +846,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
-      width: '40vw',
+      width: '30vw',
       breakpoints: {
-        '960px': '70vw',
+        '960px': '75vw',
         '640px': '90vw',
       },
     })!;
@@ -1166,6 +1181,44 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     reader.readAsText(file);
   }
 
+  onGoogleKmzInputChange(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (!input.files?.length) return;
+
+    const file = input.files[0];
+    if (!file.name.toLowerCase().endsWith('.kmz')) {
+      this.utilsService.toast('error', 'Unsupported file', 'Expected .kmz file');
+      return;
+    }
+
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: 'Confirm',
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      breakpoints: {
+        '640px': '90vw',
+      },
+      data: 'Import KMZ (MyMaps) ? Ensure it does not exceed your quota (10.000 requests/month by default)',
+    })!;
+
+    modal.onClose.subscribe({
+      next: (bool: boolean) => {
+        if (!bool) return;
+        this.loadingMessage = 'Querying Google Maps API...';
+        const formdata = new FormData();
+        formdata.append('file', file);
+        this.apiService
+          .postKmzFile(formdata)
+          .pipe(take(1))
+          .subscribe({
+            next: (places) => this.multiPlaceModal(places),
+            error: () => (this.loadingMessage = undefined),
+          });
+      },
+    });
+  }
+
   checkDuplicatePlace(newPlace: Place): Place | undefined {
     return this.places.find((p) => {
       const source = newPlace.name.toLowerCase();
@@ -1202,10 +1255,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       appendTo: 'body',
       closable: true,
       dismissableMask: false,
-      width: '55vw',
+      width: '50vw',
       breakpoints: {
-        '1920px': '70vw',
-        '1260px': '90vw',
+        '960px': '75vw',
+        '640px': '90vw',
       },
       data: { places },
     })!;
@@ -1278,10 +1331,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       appendTo: 'body',
       closable: true,
       dismissableMask: false,
-      width: '55vw',
+      width: '50vw',
       breakpoints: {
-        '1920px': '70vw',
-        '1260px': '90vw',
+        '960px': '75vw',
+        '640px': '90vw',
       },
     })!;
 
