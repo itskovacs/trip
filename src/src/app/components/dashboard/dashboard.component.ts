@@ -1226,7 +1226,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       if (source === target) return true;
       const sourceLength = source.length;
       const targetLength = target.length;
-      console.log(sourceLength, targetLength);
       if (sourceLength === 0) return targetLength;
       if (targetLength === 0) return sourceLength;
       let previousRow = Array.from({ length: targetLength + 1 }, (_, i) => i);
