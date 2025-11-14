@@ -4,6 +4,7 @@ import { ButtonModule } from 'primeng/button';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { TextareaModule } from 'primeng/textarea';
+import { Place } from '../../types/poi';
 
 @Component({
   selector: 'app-batch-create-modal',
@@ -36,6 +37,30 @@ export class BatchCreateModalComponent {
       };
 
       reader.readAsText(file);
+    }
+  }
+
+  isPlaceValid(p: Place) {
+    return (
+      p !== null &&
+      typeof p === 'object' &&
+      typeof p.category === 'string' &&
+      typeof p.place === 'string' &&
+      typeof p.name === 'string' &&
+      typeof p.lat === 'number' &&
+      typeof p.lng === 'number'
+    );
+  }
+
+  isValidJson(): boolean {
+    if (!this.batchInput.value) return false;
+    try {
+      const data = JSON.parse(this.batchInput.value);
+      if (!Array.isArray(data)) return false;
+      const isInvalid = data.some((p: Place) => !this.isPlaceValid(p));
+      return !isInvalid;
+    } catch {
+      return false;
     }
   }
 }
