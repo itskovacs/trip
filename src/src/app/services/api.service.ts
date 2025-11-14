@@ -337,4 +337,8 @@ export class ApiService {
   postGmapsMultiline(links: string[]): Observable<GooglePlaceResult[]> {
     return this.httpClient.post<GooglePlaceResult[]>(`${this.apiBaseUrl}/places/google-multilinks`, links);
   }
+
+  postKmzFile(formdata: FormData): Observable<GooglePlaceResult[]> {
+    return this.httpClient.post<GooglePlaceResult[]>(`${this.apiBaseUrl}/places/google-kmz-import`, formdata);
+  }
 }
