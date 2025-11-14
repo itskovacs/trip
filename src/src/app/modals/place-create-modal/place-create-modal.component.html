@@ -1,138 +1,183 @@
-<section>
-  <div pFocusTrap class="grid grid-cols-2 md:grid-cols-4 gap-4" [formGroup]="placeForm">
-    <div class="relative col-span-2">
-      <p-floatlabel variant="in">
-        <input id="name" formControlName="name" pInputText autofocus fluid (keydown.shift.enter)="gmapsSearchText()"
-          (keydown.control.enter)="closeDialog()" />
-        <label for="name">Name</label>
-      </p-floatlabel>
-      <div class="absolute right-2 top-1/2 -translate-y-1/2">
-        @if (gmapsLoading) {
-        <svg viewBox="25 25 50 50">
-          <circle r="20" cy="50" cx="50"></circle>
-        </svg>
-        } @else {
-        <p-button icon="pi pi-sparkles" text [disabled]="!placeForm.get('name')!.value"
-          pTooltip="Complete using GMaps API" (click)="gmapsSearchText()" />
-        }
-      </div>
-    </div>
+<section class="mx-auto max-w-5xl space-y-6" [formGroup]="placeForm">
+  <div class="space-y-4">
+    <h2 class="text-sm font-semibold text-gray-900 dark:text-surface-50">Mandatory Information</h2>
 
-    <p-floatlabel variant="in">
-      <input id="lat" formControlName="lat" pInputText fluid placeholder="Lat or Lat, Lng" />
-      <label for="lat">Latitude</label>
-    </p-floatlabel>
-
-    <p-floatlabel variant="in">
-      <input id="lng" formControlName="lng" pInputText fluid />
-      <label for="lng">Longitude</label>
-    </p-floatlabel>
-
-    <p-inputgroup class="col-span-2 lg:col-span-3">
-      <p-floatlabel variant="in">
-        <input id="place" formControlName="place" pInputText fluid />
-        <label for="place">Place</label>
-      </p-floatlabel>
-      <p-inputgroup-addon>
-        <p-button icon="pi pi-info-circle" tabindex="-1" [pTooltip]="placeInputTooltip" [escape]="false"
-          tooltipEvent="focus" severity="secondary" class="h-full" />
-      </p-inputgroup-addon>
-    </p-inputgroup>
-
-    <p-floatlabel variant="in" class="col-span-2 lg:col-span-1">
-      <p-select [options]="(categories$ | async) || []" optionValue="id" optionLabel="name"
-        [loading]="!(categories$ | async)?.length" inputId="category" id="category" formControlName="category"
-        [checkmark]="true" class="capitalize" fluid>
-        <ng-template let-category #item>
-          <div class="whitespace-normal">{{ category.name }}</div>
-        </ng-template>
-      </p-select>
-      <label for="category">Category</label>
-    </p-floatlabel>
-
-    <p-floatlabel variant="in">
-      <p-inputnumber id="duration" formControlName="duration" mode="decimal" fluid />
-      <label for="duration">Duration</label>
-    </p-floatlabel>
-
-    <p-floatlabel variant="in">
-      <p-inputnumber id="price" formControlName="price" mode="decimal" [minFractionDigits]="0" [maxFractionDigits]="2"
-        fluid />
-      <label for="price">Price</label>
-    </p-floatlabel>
-
-    <div class="col-span-2 grid grid-cols-2 md:grid-cols-3 gap-4">
-      <div class="flex justify-center items-center">
-        <p-checkbox formControlName="allowdog" [binary]="true" inputId="allowdog" />
-        <label for="allowdog" class="ml-2">Allow 🐶</label>
-      </div>
-
-      <div class="flex justify-center items-center">
-        <p-checkbox formControlName="visited" [binary]="true" inputId="visited" />
-        <label for="visited" class="ml-2">Visited</label>
-      </div>
-
-      <div class="col-span-2 md:col-span-1 flex justify-center items-center">
-        @if (placeForm.get('gpx')?.value) {
-        <p-button text icon="pi pi-times" label="GPX" severity="danger" (click)="clearGPX()" />
-        } @else {
-        <p-button text icon="pi pi-paperclip" label="GPX" (click)="gpxInput.click()" />
-        }
-        <input type="file" accept=".gpx" #gpxInput class="hidden" (change)="onGPXSelected($event)" />
-      </div>
-    </div>
-
-    <div class="grid col-span-full md:grid-cols-4">
-      <div class="relative col-span-full md:col-span-3">
+    <div class="grid grid-cols-2 gap-4">
+      <div class="relative col-span-2">
         <p-floatlabel variant="in">
-          <textarea pTextarea id="description" formControlName="description" rows="3" #descriptionInput autoResize
-            fluid></textarea>
-          <label for="description">Description</label>
+          <input id="name" formControlName="name" pInputText autofocus fluid class="!pr-12"
+            (keydown.shift.enter)="gmapsSearchText()" (keydown.control.enter)="closeDialog()" />
+          <label for="name">Name</label>
         </p-floatlabel>
-        @if (descriptionInput.value) {
-        <p-button icon="pi pi-times" severity="danger" text class="absolute right-2 top-2"
-          (click)="placeForm.get('description')?.setValue('')" pTooltip="Clear" />
-        }
+        <div class="absolute right-3 top-1/2 -translate-y-1/2">
+          @if (gmapsLoading) {
+          <i class="pi pi-spin pi-spinner text-primary-500"></i>
+          } @else {
+          <button type="button" [disabled]="!placeForm.get('name')!.value"
+            class="text-surface-400 hover:text-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            pTooltip="Complete using GMaps API" (click)="gmapsSearchText()">
+            <i class="pi pi-sparkles text-xl"></i>
+          </button>
+          }
+        </div>
       </div>
 
-      <div class="mt-4 md:mt-0 grid place-items-center col-span-full md:col-span-1">
-        @if (placeForm.get("image_id")?.value) {
-        <div class="w-2/3 relative group cursor-pointer" (click)="imageInput.click()">
-          <img [src]="placeForm.get('image')?.value"
-            class="w-full max-h-20 object-cover rounded-full shadow-lg transition-transform duration-300" />
+      <p-floatlabel variant="in">
+        <input id="lat" formControlName="lat" pInputText fluid />
+        <label for="lat">Latitude</label>
+      </p-floatlabel>
+
+      <p-floatlabel variant="in">
+        <input id="lng" formControlName="lng" pInputText fluid />
+        <label for="lng">Longitude</label>
+      </p-floatlabel>
+    </div>
+
+    <div class="grid md:grid-cols-4 gap-4">
+      <div class="md:col-span-3">
+        <p-inputgroup>
+          <p-floatlabel variant="in">
+            <input id="place" formControlName="place" pInputText fluid />
+            <label for="place">Place</label>
+          </p-floatlabel>
+          <button type="button" pButton icon="pi pi-info-circle" severity="secondary" [outlined]="true"
+            [pTooltip]="placeInputTooltip" [escape]="false" tooltipEvent="focus"></button>
+        </p-inputgroup>
+      </div>
+
+      <p-floatlabel variant="in">
+        <p-select [options]="(categories$ | async) || []" optionValue="id" optionLabel="name"
+          [loading]="!(categories$ | async)?.length" inputId="category" formControlName="category" [checkmark]="true"
+          fluid>
+          <ng-template let-category #item>
+            <div class="capitalize whitespace-normal">{{ category.name }}</div>
+          </ng-template>
+        </p-select>
+        <label for="category">Category</label>
+      </p-floatlabel>
+    </div>
+  </div>
+
+  <div class="space-y-4">
+    <h2 class="text-sm font-semibold text-gray-900 dark:text-surface-50">Additional Details</h2>
+    <div class="grid md:grid-cols-[auto_1fr] gap-4">
+      <div
+        class="flex flex-col items-center justify-center gap-2 p-4 bg-surface-50 dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700">
+        <div class="relative group">
+          @if (placeForm.get("image_id")?.value || placeForm.get("image")?.value) {
+          <img [src]="placeForm.get('image')?.value || '/favicon.png'"
+            class="size-24 object-cover rounded-lg shadow ring-2 ring-surface-200 dark:ring-surface-700 cursor-pointer transition-all group-hover:ring-primary-400"
+            (click)="imageInput.click()" />
           <div
-            class="absolute inset-0 bg-black/50 rounded-full flex flex-col gap-4 items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <span class="text-sm text-gray-300">Click to edit</span><i class="pi pi-upload text-white"></i>
+            class="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+            (click)="imageInput.click()">
+            <i class="pi pi-camera text-white text-2xl"></i>
+          </div>
+          @if (!placeForm.get("image_id")?.value) {
+          <button type="button"
+            class="cursor-pointer absolute -top-2 -right-2 size-7 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-full shadow transition"
+            (click)="clearImage(); $event.stopPropagation()">
+            <i class="pi pi-times text-xs"></i>
+          </button>
+          }
+          } @else {
+          <div
+            class="size-24 flex items-center justify-center bg-surface-100 dark:bg-surface-900 rounded-lg border-2 border-dashed border-surface-300 dark:border-surface-600 cursor-pointer transition hover:border-primary-400"
+            (click)="imageInput.click()">
+            <i class="pi pi-image text-3xl text-surface-400"></i>
+          </div>
+          }
+          <input type="file" accept="image/*" #imageInput class="hidden" (change)="onImageSelected($event)" />
+        </div>
+        <p-button icon="pi pi-link" label="URL" severity="secondary" size="small" text
+          (click)="showImageUrlDialog = true" />
+      </div>
+
+      <div class="space-y-4">
+
+        <div
+          class="flex flex-wrap gap-4 p-3 bg-surface-50 dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700">
+          <button (click)="toggleCheckbox('allowdog')"
+            class="select-none cursor-pointer inline-flex items-center gap-2 h-8 w-36 max-w-[25vw] px-3 rounded-lg text-sm font-medium transition-all"
+            [ngClass]="placeForm.get('allowdog')?.value ? 'bg-emerald-600 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
+            @if (placeForm.get('allowdog')?.value) {
+            <i class="pi pi-check text-xs"></i>
+            } @else {
+            <span>🐶</span>
+            }
+            <span class="truncate">Dog-friendly</span>
+          </button>
+
+          <button (click)="toggleCheckbox('visited')"
+            class="select-none cursor-pointer inline-flex items-center gap-2 h-8 w-24 max-w-[25vw] px-3 rounded-lg text-sm font-medium transition-all"
+            [ngClass]="placeForm.get('visited')?.value ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
+            @if (placeForm.get('visited')?.value) {
+            <i class="pi pi-check text-xs"></i>
+            } @else {
+            <i class="pi pi-eye text-xs"></i>
+            }
+            <span class="truncate">Visited</span>
+          </button>
+
+          <div class="flex items-center gap-2">
+            @if (placeForm.get('gpx')?.value) {
+            <p-button icon="pi pi-check" styleClass="hover:border-red-500! hover:bg-red-500! dark:hover:bg-red-900/40!"
+              label="GPX" severity="success" size="small" (click)="clearGPX()" />
+            } @else {
+            <p-button icon="pi pi-paperclip" label="GPX" severity="secondary" size="small" (click)="gpxInput.click()" />
+            }
+            <input type="file" accept=".gpx" #gpxInput class="hidden" (change)="onGPXSelected($event)" />
           </div>
         </div>
-        } @else {
-        @if (placeForm.get("image")?.value) {
-        <div class="w-2/3 relative group cursor-pointer" (click)="clearImage()">
-          <img [src]="placeForm.get('image')?.value"
-            class="w-full max-h-20 object-cover rounded-full shadow-lg transition-transform duration-300" />
-          <div
-            class="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <i class="pi pi-trash text-white text-3xl"></i>
-          </div>
+        <div class="grid grid-cols-2 gap-4">
+          <p-floatlabel variant="in">
+            <p-inputnumber id="duration" formControlName="duration" mode="decimal" fluid />
+            <label for="duration">Duration (minutes)</label>
+          </p-floatlabel>
+
+          <p-floatlabel variant="in">
+            <p-inputnumber id="price" formControlName="price" mode="decimal" [minFractionDigits]="0"
+              [maxFractionDigits]="2" fluid />
+            <label for="price">Price</label>
+          </p-floatlabel>
         </div>
-        } @else {
-        <div class="w-2/3 relative group cursor-pointer" (click)="imageInput.click()">
-          <img src="/favicon.png"
-            class="w-full max-h-20 object-cover rounded-full shadow-lg transition-transform duration-300" />
-          <div
-            class="absolute inset-0 bg-black/50 rounded-full flex flex-col gap-4 items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <span class="text-sm text-gray-300">Click to edit</span><i class="pi pi-upload text-white"></i>
-          </div>
+
+        <div class="relative">
+          <p-floatlabel variant="in">
+            <textarea pTextarea id="description" formControlName="description" rows="4" #descriptionInput autoResize
+              fluid class="!pr-10"></textarea>
+            <label for="description">Description</label>
+          </p-floatlabel>
+          @if (descriptionInput.value) {
+          <button type="button"
+            class="absolute right-2 top-2 size-8 flex items-center justify-center text-surface-400 hover:text-red-500 rounded-lg transition"
+            (click)="placeForm.get('description')?.setValue('')" pTooltip="Clear">
+            <i class="pi pi-times"></i>
+          </button>
+          }
         </div>
-        }
-        }
-        <input type="file" accept="image/*" #imageInput class="hidden" (change)="onImageSelected($event)" />
       </div>
     </div>
   </div>
 
-  <div class="mt-4 text-right">
-    <p-button (click)="closeDialog()" [disabled]="!placeForm.dirty || !placeForm.valid">{{ placeForm.get("id")?.value
-      !== -1 ? "Update" : "Create" }}</p-button>
+  <div class="flex justify-end gap-3 pt-4 border-t border-surface-200 dark:border-surface-700">
+    <p-button label="Cancel" severity="secondary" [outlined]="true" (click)="onCancel()" />
+    <p-button [label]="placeForm.get('id')?.value !== -1 ? 'Update' : 'Create'" icon="pi pi-check"
+      [disabled]="!placeForm.dirty || !placeForm.valid" (click)="closeDialog()" />
   </div>
 </section>
+
+<p-dialog [(visible)]="showImageUrlDialog" header="Add Image URL" [modal]="true" [style]="{width: '450px'}"
+  [draggable]="false" [resizable]="false">
+  <div class="py-4">
+    <p-floatlabel variant="in">
+      <input id="imageUrl" type="url" [(ngModel)]="imageUrl" pInputText fluid />
+      <label for="imageUrl">Image URL</label>
+    </p-floatlabel>
+  </div>
+  <ng-template #footer>
+    <p-button label="Cancel" severity="secondary" [outlined]="true"
+      (click)="showImageUrlDialog = false; imageUrl = ''" />
+    <p-button label="Add" [disabled]="!imageUrl" (click)="setImageFromUrl()" />
+  </ng-template>
+</p-dialog>

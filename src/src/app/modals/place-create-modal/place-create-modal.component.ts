@@ -1,6 +1,6 @@
 import { Component } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DialogService, DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { FloatLabelModule } from 'primeng/floatlabel';
@@ -8,7 +8,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
 import { Observable, take } from 'rxjs';
-import { AsyncPipe } from '@angular/common';
+import { AsyncPipe, CommonModule } from '@angular/common';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { ApiService } from '../../services/api.service';
@@ -20,6 +20,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { checkAndParseLatLng, formatLatLng } from '../../shared/latlng-parser';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { PlaceCreateGmapsModalComponent } from '../place-create-gmaps-modal/place-create-gmaps-modal.component';
+import { DialogModule } from 'primeng/dialog';
 
 @Component({
   selector: 'app-place-create-modal',
@@ -37,6 +38,9 @@ import { PlaceCreateGmapsModalComponent } from '../place-create-gmaps-modal/plac
     CheckboxModule,
     AsyncPipe,
     FocusTrapModule,
+    DialogModule,
+    CommonModule,
+    FormsModule,
   ],
   standalone: true,
   templateUrl: './place-create-modal.component.html',
@@ -49,6 +53,8 @@ export class PlaceCreateModalComponent {
   previous_image: string | null = null;
   gmapsLoading = false;
 
+  showImageUrlDialog = false;
+  imageUrl = '';
   placeInputTooltip: string =
     "<div class='text-center'>You can paste a Google Maps Place link to fill <i>Name</i>, <i>Place</i>, <i>Lat</i>, <i>Lng</i>.</div>\n<div class='text-sm text-center'>https://google.com/maps/place/XXX</div>\n<div class='text-xs text-center'>Either « click » on a point of interest or « search » for it (eg: British Museum) and copy the URL</div>";
 
@@ -264,5 +270,20 @@ export class PlaceCreateModalComponent {
         });
       },
     });
+  }
+
+  toggleCheckbox(k: string) {
+    this.placeForm.get(k)?.setValue(!this.placeForm.get(k)?.value);
+  }
+
+  onCancel() {
+    this.ref.close(null);
+  }
+
+  setImageFromUrl() {
+    if (!this.imageUrl) return;
+    this.placeForm.patchValue({ image: this.imageUrl });
+    this.showImageUrlDialog = false;
+    this.imageUrl = '';
   }
 }
