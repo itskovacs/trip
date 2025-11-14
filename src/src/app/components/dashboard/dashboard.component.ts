@@ -120,6 +120,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   filter_display_favorite_only = false;
   filter_dog_only = false;
   activeCategories = new Set<string>();
+  collator = new Intl.Collator(undefined, { sensitivity: 'base' });
   readonly menuCreatePlaceItems: MenuItem[] = [
     {
       label: 'Places',
@@ -275,7 +276,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       if (!searchValue) return true;
       return place.name.toLowerCase().includes(searchValue) || place.description?.toLowerCase().includes(searchValue);
     });
-    this.visiblePlaces.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+    this.visiblePlaces.sort((a, b) => this.collator.compare(a.name, b.name));
   }
 
   resetFilters() {
@@ -377,9 +378,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
                   .pipe(take(1))
                   .subscribe({
                     next: (place: Place) => {
-                      this.places = [...this.places, place].sort((a, b) =>
-                        a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
-                      );
+                      this.places = [...this.places, place].sort((a, b) => this.collator.compare(a.name, b.name));
                       setTimeout(() => {
                         this.updateMarkersAndClusters();
                       }, 10);
@@ -394,7 +393,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             .pipe(take(1))
             .subscribe({
               next: (place: Place) => {
-                this.places = [...this.places, place].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+                this.places = [...this.places, place].sort((a, b) => this.collator.compare(a.name, b.name));
                 setTimeout(() => {
                   this.updateMarkersAndClusters();
                 }, 10);
@@ -436,7 +435,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           .postPlaces(parsedPlaces)
           .pipe(take(1))
           .subscribe((places) => {
-            this.places = [...this.places, ...places].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+            this.places = [...this.places, ...places].sort((a, b) => this.collator.compare(a.name, b.name));
             setTimeout(() => {
               this.updateMarkersAndClusters();
             }, 10);
@@ -580,7 +579,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
               const places = [...this.places];
               const idx = places.findIndex((p) => p.id == place.id);
               if (idx > -1) places.splice(idx, 1, place);
-              places.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+              places.sort((a, b) => this.collator.compare(a.name, b.name));
               this.places = places;
               if (this.selectedPlace) this.selectedPlace = { ...place };
               setTimeout(() => {
@@ -849,7 +848,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           .subscribe({
             next: (category: Category) => {
               this.categories.push(category);
-              this.categories.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+              this.categories.sort((a, b) => this.collator.compare(a.name, b.name));
               this.activeCategories.add(category.name);
             },
           });
@@ -895,7 +894,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   sortCategories() {
-    this.categories = [...this.categories].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
+    this.categories = [...this.categories].sort((a, b) => this.collator.compare(a.name, b.name));
   }
 
   navigateToTrips() {
@@ -1220,9 +1219,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           .pipe(take(1))
           .subscribe({
             next: (places: Place[]) => {
-              this.places = [...this.places, ...places].sort((a, b) =>
-                a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
-              );
+              this.places = [...this.places, ...places].sort((a, b) => this.collator.compare(a.name, b.name));
               setTimeout(() => {
                 this.updateMarkersAndClusters();
               }, 10);
