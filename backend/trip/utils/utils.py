@@ -1,4 +1,5 @@
 import base64
+import logging
 from io import BytesIO
 from pathlib import Path
 from secrets import token_urlsafe
@@ -240,3 +241,8 @@ async def save_attachment(trip_id: int, file: UploadFile) -> str:
         if filepath.exists():
             filepath.unlink()
     return ""
+
+
+def silence_http_logging():
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("httpcore").setLevel(logging.WARNING)

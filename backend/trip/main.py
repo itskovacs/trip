@@ -13,6 +13,7 @@ from .db.core import init_and_migrate_db
 from .routers import auth, categories, places
 from .routers import settings as settings_r
 from .routers import trips
+from .utils.utils import silence_http_logging
 
 if not Path(settings.FRONTEND_FOLDER).is_dir():
     raise ValueError()
@@ -24,6 +25,7 @@ Path(settings.ATTACHMENTS_FOLDER).mkdir(parents=True, exist_ok=True)
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await init_and_migrate_db()
+    silence_http_logging()
     yield
 
 
