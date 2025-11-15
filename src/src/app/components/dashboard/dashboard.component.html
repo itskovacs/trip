@@ -30,6 +30,7 @@
   <div class="mr-4 mt-4 sm:mr-6 sm:mt-6 pointer-events-auto">
     <div
       class="inline-flex items-center gap-2 p-1.5 bg-white/70 dark:bg-black/70 backdrop-blur-xl rounded-lg shadow-lg shadow-black/5">
+
       <div (click)="togglePlacesList()"
         class="cursor-pointer flex items-center justify-center gap-2 h-9 md:w-28 px-2.5 rounded-lg transition-all"
         [class]="viewPlacesList ? 'bg-blue-50 dark:bg-blue-950' : 'hover:bg-gray-100 dark:hover:bg-gray-900'">
@@ -617,7 +618,7 @@
                           reduce bandwidth</p>
                       </div>
                     </div>
-                    <p-toggleswitch [(ngModel)]="isLowNet" (onChange)="toggleLowNet()" class="flex-shrink-0 ml-4" />
+                    <p-toggleswitch [(ngModel)]="isLowNetMode" (onChange)="toggleLowNet()" class="flex-shrink-0 ml-4" />
                   </div>
 
                   <div
@@ -631,6 +632,21 @@
                       </div>
                     </div>
                     <p-toggleswitch [(ngModel)]="isGpxInPlaceMode" (onChange)="toggleGpxInPlace()"
+                      class="flex-shrink-0 ml-4" />
+                  </div>
+
+                  <div
+                    class="flex items-center justify-between py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                      <i class="pi pi-eye text-indigo-600 dark:text-indigo-400 flex-shrink-0"></i>
+                      <div class="min-w-0">
+                        <span class="font-medium text-sm text-gray-900 dark:text-gray-100 block">Show Visited
+                          Places</span>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Always display visited
+                          places as small dots</p>
+                      </div>
+                    </div>
+                    <p-toggleswitch [(ngModel)]="isVisitedDisplayedMode" (onChange)="toggleVisitedDisplayed()"
                       class="flex-shrink-0 ml-4" />
                   </div>
                 </div>
@@ -893,6 +909,7 @@
               </div>
             </div>
           </div>
+
         </p-tabpanel>
       </p-tabpanels>
     </p-tabs>

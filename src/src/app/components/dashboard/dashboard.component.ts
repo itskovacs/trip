@@ -18,7 +18,14 @@ import { FloatLabelModule } from 'primeng/floatlabel';
 import { BatchCreateModalComponent } from '../../modals/batch-create-modal/batch-create-modal.component';
 import { UtilsService } from '../../services/utils.service';
 import { Info } from '../../types/info';
-import { createMap, placeToMarker, createClusterGroup, gpxToPolyline, isPointInBounds } from '../../shared/map';
+import {
+  createMap,
+  placeToMarker,
+  createClusterGroup,
+  gpxToPolyline,
+  isPointInBounds,
+  placeToDotMarker,
+} from '../../shared/map';
 import { Router } from '@angular/router';
 import { SelectModule } from 'primeng/select';
 import { MultiSelectModule } from 'primeng/multiselect';
@@ -85,8 +92,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   boundariesFiltering?: GoogleBoundaries;
   searchInput = new FormControl('');
   info?: Info;
-  isLowNet = false;
+  isLowNetMode = false;
   isGpxInPlaceMode = false;
+  isVisitedDisplayedMode = false;
   loadingMessage? = '';
 
   viewSettings = false;
@@ -236,8 +244,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           this.sortCategories();
           this.activeCategories = new Set(categories.map((c) => c.name));
 
-          this.isLowNet = !!settings.mode_low_network;
+          this.isLowNetMode = !!settings.mode_low_network;
           this.isGpxInPlaceMode = !!settings.mode_gpx_in_place;
+          this.isVisitedDisplayedMode = !!settings.mode_display_visited;
           if (settings.mode_dark) this.utilsService.enableDarkMode();
           this.resetFilters();
 
@@ -325,10 +334,18 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       const marker = this._placeToMarker(place);
       this.markerClusterGroup?.addLayer(marker);
     });
+
+    if (this.isVisitedDisplayedMode)
+      this.places
+        .filter((p) => p.visited)
+        .forEach((place) => {
+          const marker = placeToDotMarker(place);
+          this.markerClusterGroup?.addLayer(marker);
+        });
   }
 
   _placeToMarker(place: Place): L.Marker {
-    const marker = placeToMarker(place, this.isLowNet, place.visited, this.isGpxInPlaceMode);
+    const marker = placeToMarker(place, this.isLowNetMode, place.visited, this.isGpxInPlaceMode);
     marker
       .on('click', (e) => {
         this.selectedPlace = { ...place };
@@ -662,6 +679,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         items: this.categories.map((c) => ({ label: c.name, value: c.name })),
       },
     ];
+    this.mapParamsExpanded = false;
+    this.dataFiltersExpanded = false;
+    this.displaySettingsExpanded = false;
   }
 
   toggleFilters() {
@@ -694,22 +714,21 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const formdata = new FormData();
     formdata.append('file', input.files[0]);
 
+    this.loadingMessage = 'Ingesting your backup...';
     this.apiService
       .settingsUserImport(formdata)
       .pipe(take(1))
       .subscribe({
         next: (resp) => {
-          this.places = [...this.places, ...resp.places].sort((a, b) =>
-            a.name < b.name ? -1 : a.name > b.name ? 1 : 0,
-          );
-
+          this.places = [...this.places, ...resp.places].sort((a, b) => this.collator.compare(a.name, b.name));
           this.categories = resp.categories;
           this.sortCategories();
           this.activeCategories = new Set(resp.categories.map((c) => c.name));
 
           this.settings = resp.settings;
-          this.isLowNet = !!resp.settings.mode_low_network;
+          this.isLowNetMode = !!resp.settings.mode_low_network;
           this.isGpxInPlaceMode = !!resp.settings.mode_gpx_in_place;
+          this.isVisitedDisplayedMode = !!resp.settings.mode_display_visited;
           if (resp.settings.mode_dark) this.utilsService.enableDarkMode();
           this.resetFilters();
 
@@ -717,7 +736,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           this.initMap();
           this.updateMarkersAndClusters();
           this.viewSettings = false;
+          this.loadingMessage = undefined;
         },
+        error: () => (this.loadingMessage = undefined),
       });
   }
 
@@ -794,6 +815,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           }
           this.resetFilters();
           this.utilsService.toast('success', 'Success', 'Preferences saved');
+          this.settingsForm.markAsPristine();
         },
       });
   }
@@ -965,7 +987,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   toggleLowNet() {
     this.apiService
-      .putSettings({ mode_low_network: this.isLowNet })
+      .putSettings({ mode_low_network: this.isLowNetMode })
       .pipe(take(1))
       .subscribe({
         next: () => {
@@ -1012,6 +1034,17 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   toggleGpxInPlace() {
     this.apiService
       .putSettings({ mode_gpx_in_place: this.isGpxInPlaceMode })
+      .pipe(take(1))
+      .subscribe({
+        next: (_) => {
+          this.updateMarkersAndClusters();
+        },
+      });
+  }
+
+  toggleVisitedDisplayed() {
+    this.apiService
+      .putSettings({ mode_display_visited: this.isVisitedDisplayedMode })
       .pipe(take(1))
       .subscribe({
         next: (_) => {

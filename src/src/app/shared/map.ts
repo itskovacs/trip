@@ -86,6 +86,26 @@ export function tripDayMarker(item: { text: string; lat: number; lng: number; ti
   return marker;
 }
 
+export function placeToDotMarker(place: Place) {
+  const marker = new L.Marker([place.lat!, place.lng], {
+    icon: L.divIcon({
+      className: 'rounded-lg',
+      iconSize: [11, 11],
+      html: `<div class="border-0 h-[11px] w-[11px] rounded" style="background:${place.category.color};"></div>`,
+    }),
+  });
+
+  const touchDevice = 'ontouchstart' in window;
+  if (!touchDevice) {
+    marker.bindTooltip(placeHoverTooltip(place), {
+      direction: 'right',
+      offset: [11, 0],
+      className: 'class-tooltip',
+    });
+  }
+  return marker;
+}
+
 export function placeToMarker(
   place: Place,
   isLowNet: boolean = true,

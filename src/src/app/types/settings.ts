@@ -12,6 +12,7 @@ export interface Settings {
   mode_gpx_in_place?: boolean;
   totp_enabled?: boolean;
   google_apikey?: boolean | null;
+  mode_display_visited?: boolean;
 }
 
 export interface ImportResponse {
