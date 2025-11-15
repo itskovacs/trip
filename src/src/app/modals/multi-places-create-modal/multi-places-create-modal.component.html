@@ -10,7 +10,7 @@
 
       <div class="flex-1 min-w-0">
         <h3 class="text-sm font-semibold text-gray-900 dark:text-white truncate"
-          [ngClass]="{ 'text-red-500 font-semibold invalid-content': !isPlaceValid(p) }">
+          [class]="isPlaceValid(p) ? undefined : 'text-red-500 font-semibold invalid-content'">
           {{ p.name }}
         </h3>
         <p class="text-xs text-gray-600 dark:text-gray-400 truncate mt-0.5">

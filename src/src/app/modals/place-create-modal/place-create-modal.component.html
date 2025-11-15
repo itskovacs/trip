@@ -14,7 +14,7 @@
           <i class="pi pi-spin pi-spinner text-primary-500"></i>
           } @else {
           <button type="button" [disabled]="!placeForm.get('name')!.value"
-            class="text-surface-400 hover:text-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            class="cursor-pointer text-surface-400 hover:text-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             pTooltip="Complete using GMaps API" (click)="gmapsSearchText()">
             <i class="pi pi-sparkles text-xl"></i>
           </button>
@@ -99,7 +99,7 @@
           class="flex flex-wrap gap-4 p-3 bg-surface-50 dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700">
           <button (click)="toggleCheckbox('allowdog')"
             class="select-none cursor-pointer inline-flex items-center gap-2 h-8 w-36 max-w-[25vw] px-3 rounded-lg text-sm font-medium transition-all"
-            [ngClass]="placeForm.get('allowdog')?.value ? 'bg-emerald-600 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
+            [class]="placeForm.get('allowdog')?.value ? 'bg-emerald-600 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
             @if (placeForm.get('allowdog')?.value) {
             <i class="pi pi-check text-xs"></i>
             } @else {
@@ -110,7 +110,7 @@
 
           <button (click)="toggleCheckbox('visited')"
             class="select-none cursor-pointer inline-flex items-center gap-2 h-8 w-24 max-w-[25vw] px-3 rounded-lg text-sm font-medium transition-all"
-            [ngClass]="placeForm.get('visited')?.value ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
+            [class]="placeForm.get('visited')?.value ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
             @if (placeForm.get('visited')?.value) {
             <i class="pi pi-check text-xs"></i>
             } @else {
