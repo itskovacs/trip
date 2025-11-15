@@ -210,7 +210,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       currency: ['', Validators.required],
       do_not_display: [],
       tile_layer: ['', Validators.required],
-      _google_apikey: [null, { validators: [Validators.pattern('AIza[0-9A-Za-z\\-]{35}')] }],
+      _google_apikey: [null, { validators: [Validators.pattern('AIza[0-9A-Za-z\\-_]{35}')] }],
     });
 
     // HACK: Subscribe in constructor for takeUntilDestroyed
