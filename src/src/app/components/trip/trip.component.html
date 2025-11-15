@@ -49,7 +49,7 @@
 </section>
 
 <section class="p-4 print:px-1 grid lg:grid-cols-3 gap-4 print:block" [class.prettyprint]="isPrinting">
-  <div [ngClass]="isExpanded ? 'lg:col-span-3' : 'lg:col-span-2'" class="p-4 shadow self-start rounded-md max-w-screen">
+  <div [class]="isExpanded ? 'lg:col-span-3' : 'lg:col-span-2'" class="p-4 shadow self-start rounded-md max-w-screen">
     <div [class.sticky]="!isMapFullscreen"
       class="top-0 z-10 bg-white p-2 mb-2 flex justify-between items-center dark:bg-surface-900">
       <div>
@@ -291,7 +291,7 @@
     }
   </div>
 
-  <div [ngClass]="isExpanded ? 'grid col-span-full grid-cols-4' : 'flex flex-col sticky'"
+  <div [class]="isExpanded ? 'grid col-span-full grid-cols-4' : 'flex flex-col sticky'"
     class="gap-4 top-4 self-start max-w-screen print:hidden min-w-0">
     @if (selectedItem) {
     <div class="p-4 w-full max-w-full min-h-20 rounded-md shadow text-center">
@@ -604,14 +604,14 @@
   <div animate.enter="expand" animate.leave="collapse" class="overflow-y-auto max-h-[calc(30vh-5rem)] p-2 space-y-1">
     @for(day of trip?.days; track day.id) {
     <button (click)="toggleTripDayHighlight(day.id)"
-      [ngClass]="tripMapAntLayerDayID === day.id ? 'shadow-md bg-blue-500' : 'hover:bg-blue-50 dark:hover:bg-blue-950/20'"
+      [class]="tripMapAntLayerDayID === day.id ? 'shadow-md bg-blue-500' : 'hover:bg-blue-50 dark:hover:bg-blue-950/20'"
       class="w-full flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all">
       <span class="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg font-semibold text-sm"
-        [ngClass]="tripMapAntLayerDayID === day.id ? 'bg-white text-blue-600' : 'bg-blue-100 text-blue-800 dark:bg-blue-900'">
+        [class]="tripMapAntLayerDayID === day.id ? 'bg-white text-blue-600' : 'bg-blue-100 text-blue-800 dark:bg-blue-900'">
         {{ day.items.length }}
       </span>
       <span class="flex-1 text-left text-sm font-medium truncate"
-        [ngClass]="tripMapAntLayerDayID === day.id ? 'text-white' : 'text-gray-900 dark:text-gray-50'">
+        [class]="tripMapAntLayerDayID === day.id ? 'text-white' : 'text-gray-900 dark:text-gray-50'">
         {{ day.label }}
       </span>
     </button>
@@ -619,10 +619,10 @@
   </div>
   }
 
-  <div [ngClass]="isMapFullscreenDays ? 'border-t border-gray-200 dark:border-surface-700' : ''"
+  <div [class]="isMapFullscreenDays ? 'border-t border-gray-200 dark:border-surface-700' : ''"
     class="px-4 py-3 cursor-pointer select-none flex justify-between items-center" (click)="toggleMapFullscreenDays()">
     <h2 class="font-semibold text-sm">Days</h2>
-    <i [ngClass]="isMapFullscreenDays ? 'pi pi-chevron-down' : 'pi pi-chevron-up'" class="text-gray-500"></i>
+    <i [class]="isMapFullscreenDays ? 'pi pi-chevron-down' : 'pi pi-chevron-up'" class="text-gray-500"></i>
   </div>
 </div>
 }
@@ -780,11 +780,8 @@
       @for (m of tripMembers; track m.user) {
       <div class="flex items-center justify-between gap-6 py-5">
         <div class="flex items-center min-w-0 gap-4">
-          <div class="size-12 flex flex-none rounded-full items-center justify-center" [ngClass]="{
-            'bg-red-100': !m.invited_at,
-            'bg-gray-50': m.invited_at && !m.joined_at,
-            'bg-blue-100': m.invited_at && m.joined_at
-            }">
+          <div class="size-12 flex flex-none rounded-full items-center justify-center"
+            [class]="!m.invited_at ? 'bg-red-100' : m.invited_at && !m.joined_at ? 'bg-gray-50' : 'bg-blue-100'">
             <i class="pi pi-user"></i>
           </div>
 
@@ -812,7 +809,7 @@
 
         <div class="flex items-center gap-2">
           <span
-            [ngClass]="m.balance ? m.balance > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'"
+            [class]="m.balance ? m.balance > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'"
             class="text-center text-xs px-2.5 py-0.5 rounded-md group-hover:hidden">{{
             m.balance || '-' }} {{ trip?.currency }}</span>
 
