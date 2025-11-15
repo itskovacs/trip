@@ -186,6 +186,7 @@ class UserBase(SQLModel):
     mode_low_network: bool | None = True
     mode_dark: bool | None = False
     mode_gpx_in_place: bool | None = False
+    mode_display_visited: bool | None = False
 
 
 class User(UserBase, table=True):
@@ -222,6 +223,7 @@ class UserRead(UserBase):
             mode_low_network=obj.mode_low_network,
             mode_dark=obj.mode_dark,
             mode_gpx_in_place=obj.mode_gpx_in_place,
+            mode_display_visited=obj.mode_display_visited,
             totp_enabled=obj.totp_enabled,
             google_apikey=True if obj.google_apikey else False,
         )
