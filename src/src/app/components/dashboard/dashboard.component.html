@@ -30,20 +30,15 @@
   <div class="mr-4 mt-4 sm:mr-6 sm:mt-6 pointer-events-auto">
     <div
       class="inline-flex items-center gap-2 p-1.5 bg-white/70 dark:bg-black/70 backdrop-blur-xl rounded-lg shadow-lg shadow-black/5">
-
       <div (click)="togglePlacesList()"
         class="cursor-pointer flex items-center justify-center gap-2 h-9 md:w-28 px-2.5 rounded-lg transition-all"
-        [class.hover:bg-gray-100]="!viewPlacesList" [class.dark:hover:bg-gray-900]="!viewPlacesList"
-        [class.bg-blue-50]="viewPlacesList" [class.dark:bg-blue-950]="viewPlacesList">
+        [class]="viewPlacesList ? 'bg-blue-50 dark:bg-blue-950' : 'hover:bg-gray-100 dark:hover:bg-gray-900'">
         <div class="w-7 h-7 flex items-center justify-center">
-          <i class="pi text-sm transition-transform duration-200" [class.pi-map-marker]="!viewPlacesList"
-            [class.pi-times]="viewPlacesList" [class.text-gray-700]="!viewPlacesList"
-            [class.dark:text-gray-300]="!viewPlacesList" [class.text-blue-600]="viewPlacesList"
-            [class.dark:text-blue-400]="viewPlacesList" [class.rotate-90]="viewPlacesList"></i>
+          <i class="pi text-sm transition-transform duration-200"
+            [class]="viewPlacesList ? 'pi-times text-blue-600 dark:text-blue-400 rotate-90' : 'pi-map-marker text-gray-700 dark:text-gray-300'"></i>
         </div>
-        <span class="hidden md:inline text-sm font-medium" [class.text-gray-900]="!viewPlacesList"
-          [class.dark:text-white]="!viewPlacesList" [class.text-blue-600]="viewPlacesList"
-          [class.dark:text-blue-400]="viewPlacesList">
+        <span class="hidden md:inline text-sm font-medium"
+          [class]="viewPlacesList ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'">
           {{ viewPlacesList ? 'Close' : 'Places' }}
         </span>
       </div>
@@ -52,17 +47,13 @@
 
       <button (click)="toggleFilters()"
         class="cursor-pointer flex items-center justify-center gap-2 h-9 md:w-24 px-2.5 rounded-lg transition-all"
-        [class.hover:bg-gray-100]="!viewFilters" [class.dark:hover:bg-gray-900]="!viewFilters"
-        [class.bg-blue-50]="viewFilters" [class.dark:bg-blue-950]="viewFilters">
+        [class]="viewFilters ? 'bg-blue-50 dark:bg-blue-950' : 'hover:bg-gray-100 dark:hover:bg-gray-900'">
         <div class="w-7 h-7 flex items-center justify-center">
-          <i class="pi text-sm transition-transform duration-200" [class.pi-filter]="!viewFilters"
-            [class.pi-times]="viewFilters" [class.text-gray-700]="!viewFilters"
-            [class.dark:text-gray-300]="!viewFilters" [class.text-blue-600]="viewFilters"
-            [class.dark:text-blue-400]="viewFilters" [class.rotate-90]="viewFilters"></i>
+          <i class="pi text-sm transition-transform duration-200"
+            [class]="viewFilters ? 'pi-times text-blue-600 dark:text-blue-400 rotate-90' : 'pi-filter text-gray-700 dark:text-gray-300'"></i>
         </div>
-        <span class="hidden md:inline text-sm font-medium" [class.text-gray-900]="!viewFilters"
-          [class.dark:text-white]="!viewFilters" [class.text-blue-600]="viewFilters"
-          [class.dark:text-blue-400]="viewFilters">
+        <span class="hidden md:inline text-sm font-medium"
+          [class]="viewFilters ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'">
           {{ viewFilters ? 'Close' : 'Filter' }}
         </span>
       </button>
@@ -107,36 +98,31 @@
 <section class="fixed top-0 left-0 z-40 pointer-events-none">
   <div animate.enter="slide-x-no-opacity" animate.leave="a-slide-x"
     class="ml-4 my-4 sm:ml-6 sm:my-6 h-[calc(100vh-2rem)] md:h-[calc(100vh-3rem)] pointer-events-auto transition-all duration-300"
-    [class.w-[calc(100vw-2rem)]]="!expandedPlacesList" [class.sm:w-96]="!expandedPlacesList"
-    [class.lg:w-[800px]]="expandedPlacesList">
+    [class]="expandedPlacesList ? 'lg:w-[800px]' : 'w-[calc(100vw-2rem)] sm:w-96'">
     <div
       class="w-full h-full flex flex-col bg-white/50 dark:bg-black/50 backdrop-blur-xl rounded-lg shadow-lg shadow-black/5">
       <div class="p-4 border-b border-gray-200 dark:border-gray-800">
         <div class="flex items-center justify-between gap-4">
-          <div class="flex items-center items-center gap-2 min-w-0">
+          <div class="flex items-center gap-2 min-w-0">
             <h2 class="text-base font-semibold text-gray-900 dark:text-white">Places</h2>
             <span
               class="px-2.5 py-1 bg-blue-100 dark:bg-blue-900 rounded-lg text-xs font-bold text-blue-900 dark:text-white border-dashed"
-              [ngClass]="{'border-2 border-blue-400': hideOutOfBoundsPlaces}">{{ visiblePlaces.length }}</span>
+              [class]="hideOutOfBoundsPlaces ? 'border-2 border-blue-400' : undefined">{{ visiblePlaces.length }}</span>
           </div>
 
           <div class="flex items-center gap-2">
             <button (click)="toggleOutOfBoundsPlaces()" pTooltip="Show out-of-bounds places"
               class="cursor-pointer flex items-center justify-center size-10 rounded-lg transition-all"
-              [class.hover:bg-gray-100]="!hideOutOfBoundsPlaces" [class.dark:hover:bg-gray-900]="!hideOutOfBoundsPlaces"
-              [class.bg-blue-50]="hideOutOfBoundsPlaces" [class.dark:bg-blue-950]="hideOutOfBoundsPlaces">
-              <i class="pi pi-expand text-sm" [class.text-gray-700]="!hideOutOfBoundsPlaces"
-                [class.dark:text-gray-300]="!hideOutOfBoundsPlaces" [class.text-blue-600]="hideOutOfBoundsPlaces"
-                [class.dark:text-blue-400]="hideOutOfBoundsPlaces"></i>
+              [class]="hideOutOfBoundsPlaces ? 'bg-blue-50 dark:bg-blue-950' : 'hover:bg-gray-100 dark:hover:bg-gray-900'">
+              <i class="pi pi-expand text-sm"
+                [class]="hideOutOfBoundsPlaces ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'"></i>
             </button>
 
             <button (click)="togglePlacesListSearch()"
               class="cursor-pointer flex items-center justify-center size-10 rounded-lg transition-all"
-              [class.hover:bg-gray-100]="!viewPlacesListSearch" [class.dark:hover:bg-gray-900]="!viewPlacesListSearch"
-              [class.bg-blue-50]="viewPlacesListSearch" [class.dark:bg-blue-950]="viewPlacesListSearch">
-              <i class="pi pi-search text-sm" [class.text-gray-700]="!viewPlacesListSearch"
-                [class.dark:text-gray-300]="!viewPlacesListSearch" [class.text-blue-600]="viewPlacesListSearch"
-                [class.dark:text-blue-400]="viewPlacesListSearch"></i>
+              [class]="viewPlacesListSearch ? 'bg-blue-50 dark:bg-blue-950' : 'hover:bg-gray-100 dark:hover:bg-gray-900'">
+              <i class="pi pi-search text-sm"
+                [class]="viewPlacesListSearch ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'"></i>
             </button>
 
             <p-button text icon="pi pi-times" severity="danger" (click)="togglePlacesList()" />
@@ -181,9 +167,8 @@
         </div>
         }
 
-        <div class="transition-all duration-300" [class.space-y-2]="!expandedPlacesList"
-          [class.grid]="expandedPlacesList" [class.lg:grid-cols-2]="expandedPlacesList"
-          [class.gap-2]="expandedPlacesList">
+        <div class="transition-all duration-300"
+          [class]="expandedPlacesList ? 'grid gap-2 lg:grid-cols-2' :  'space-y-2'">
           @defer () {
           @for (place of visiblePlaces; track place.id) {
           <div (click)="togglePlaceSelection(place)" (mouseenter)="hoverPlace(place)" (mouseleave)="resetHoverPlace()"
@@ -202,21 +187,14 @@
               </p>
 
               <div class="flex flex-wrap gap-1 mt-1.5">
-                <span class="flex items-center px-1.5 py-0.5 rounded text-xs" [class.bg-emerald-100]="place.allowdog"
-                  [class.text-emerald-700]="place.allowdog" [class.dark:bg-emerald-950]="place.allowdog"
-                  [class.dark:text-emerald-400]="place.allowdog" [class.bg-gray-100]="!place.allowdog"
-                  [class.text-gray-600]="!place.allowdog" [class.dark:bg-gray-800]="!place.allowdog"
-                  [class.dark:text-gray-500]="!place.allowdog">
+                <span class="flex items-center px-1.5 py-0.5 rounded text-xs"
+                  [class]="place.allowdog ? 'pi-eye bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400' : 'pi-eye-slash bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-500'">>
                   🐶
                 </span>
 
                 <span class="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium"
-                  [class.bg-blue-100]="place.visited" [class.text-blue-700]="place.visited"
-                  [class.dark:bg-blue-950]="place.visited" [class.dark:text-blue-400]="place.visited"
-                  [class.bg-gray-100]="!place.visited" [class.text-gray-600]="!place.visited"
-                  [class.dark:bg-gray-800]="!place.visited" [class.dark:text-gray-500]="!place.visited">
-                  <i class="pi" style="font-size: 12px;" [class.pi-eye]="place.visited"
-                    [class.pi-eye-slash]="!place.visited"></i>
+                  [class]="place.visited ? 'pi-eye bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400' : 'pi-eye-slash bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-500'">
+                  <i class="pi" style="font-size: 12px;" [class]="place.visited ? 'pi-eye' : 'pi-eye-slash'"></i>
                 </span>
 
                 <span class="flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium max-w-[90px]"
@@ -254,7 +232,7 @@
     <button (click)="toggleExpandPlacesList()"
       class="hidden lg:flex absolute top-1/2 -translate-y-1/2 -right-3 items-center justify-center w-6 h-16 bg-white/70 dark:bg-black/70 backdrop-blur-xl hover:bg-white/90 dark:hover:bg-black/90 rounded-r-lg shadow-lg shadow-black/5 border border-l-0 border-gray-200 dark:border-gray-800 transition-all group z-50">
       <i class="cursor-pointer pi text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-all"
-        [class.pi-chevron-right]="!expandedPlacesList" [class.pi-chevron-left]="expandedPlacesList"></i>
+        [class]="expandedPlacesList ? 'pi-chevron-left' : 'pi-chevron-right'"></i>
     </button>
   </div>
 </section>
@@ -283,7 +261,7 @@
         <div class="flex flex-wrap gap-2">
           <button (click)="filter_display_visited = !filter_display_visited; updateMarkersAndClusters()"
             class="cursor-pointer inline-flex items-center gap-2 h-8 w-24 max-w-[25vw] px-3 rounded-lg text-sm font-medium transition-all"
-            [ngClass]="filter_display_visited ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
+            [class]="filter_display_visited ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
             @if (filter_display_visited) {
             <i class="pi pi-check text-xs"></i>
             } @else {
@@ -294,7 +272,7 @@
 
           <button (click)="filter_dog_only = !filter_dog_only; updateMarkersAndClusters()"
             class="cursor-pointer inline-flex items-center gap-2 h-8 w-36 max-w-[25vw] px-3 rounded-lg text-sm font-medium transition-all"
-            [ngClass]="filter_dog_only ? 'bg-emerald-600 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
+            [class]="filter_dog_only ? 'bg-emerald-600 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
             @if (filter_dog_only) {
             <i class="pi pi-check text-xs"></i>
             } @else {
@@ -305,7 +283,7 @@
 
           <button (click)="filter_display_favorite_only = !filter_display_favorite_only; updateMarkersAndClusters()"
             class="cursor-pointer inline-flex items-center gap-2 h-8 w-28 max-w-[25vw] px-3 rounded-lg text-sm font-medium transition-all"
-            [ngClass]="filter_display_favorite_only ? 'bg-rose-400 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
+            [class]="filter_display_favorite_only ? 'bg-rose-400 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
             @if (filter_display_favorite_only) {
             <i class="pi pi-check text-xs"></i>
             } @else {
@@ -327,31 +305,25 @@
 
       <div class="max-h-[50vh] overflow-y-auto overscroll-contain grid md:grid-cols-2 gap-2">
         @for (category of categories; track category.id) {
-        <div (click)="updateActiveCategories(category.name)" [ngClass]="{
-          'bg-gray-900 dark:bg-white border-gray-900 dark:border-white shadow-lg': activeCategories.has(category.name),
-          'bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900': !activeCategories.has(category.name)
-        }"
+        <div (click)="updateActiveCategories(category.name)"
+          [class]="activeCategories.has(category.name) ? 'bg-gray-900 dark:bg-white border-gray-900 dark:border-white shadow-lg': 'bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900'"
           class="cursor-pointer group w-full flex items-center gap-3 py-3 px-4 rounded-xl transition-all active:scale-[0.98] border-2 min-w-0">
 
-          <div class="size-3 rounded-full flex-none shadow-sm" [class.ring-2]="activeCategories.has(category.name)"
-            [class.ring-white]="activeCategories.has(category.name)"
-            [class.dark:ring-gray-900]="activeCategories.has(category.name)" [style.background-color]="category.color">
+          <div class="size-3 rounded-full flex-none shadow-sm"
+            [class]="activeCategories.has(category.name) ? 'ring-2 ring-white dark:ring-gray-900' : undefined"
+            [style.background-color]="category.color">
           </div>
 
           <span class="text-base font-semibold flex-1 text-left truncate"
-            [class.text-white]="activeCategories.has(category.name)"
-            [class.dark:text-gray-900]="activeCategories.has(category.name)"
-            [class.text-gray-900]="!activeCategories.has(category.name)"
-            [class.dark:text-white]="!activeCategories.has(category.name)">
+            [class]="activeCategories.has(category.name) ? 'text-white dark:text-gray-900' : 'text-gray-900 dark:text-white'">
             {{ category.name }}
           </span>
 
           @if (activeCategories.has(category.name)) {
           <div class="flex items-center justify-center w-6 h-6 rounded-full flex-none"
-            [class.bg-white/20]="activeCategories.has(category.name)"
-            [class.dark:bg-gray-900/20]="activeCategories.has(category.name)">
-            <i class="pi pi-check text-sm" [class.text-white]="activeCategories.has(category.name)"
-              [class.dark:text-gray-900]="activeCategories.has(category.name)"></i>
+            [class]="activeCategories.has(category.name) ? 'bg-white/20' : 'bg-gray-900/20'">
+            <i class="pi pi-check text-sm"
+              [class]="activeCategories.has(category.name) ? 'text-white dark:text-gray-900' : undefined"></i>
           </div>
           }
         </div>
@@ -921,7 +893,6 @@
               </div>
             </div>
           </div>
-
         </p-tabpanel>
       </p-tabpanels>
     </p-tabs>
