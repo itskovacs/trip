@@ -841,9 +841,11 @@ export class TripComponent implements AfterViewInit {
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
-      width: '50vw',
+      width: '35vw',
       breakpoints: {
-        '640px': '80vw',
+        '1280px': '50vw',
+        '960px': '60vw',
+        '640px': '90vw',
       },
       data: { trip: this.trip },
     })!;

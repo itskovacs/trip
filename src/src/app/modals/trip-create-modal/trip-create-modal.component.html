@@ -37,7 +37,7 @@
       </p-floatlabel>
 
       <div class="grid grid-cols-3 gap-4">
-        <p-floatlabel variant="in">
+        <p-floatlabel variant="in" [class.col-span-full]="tripForm.get('id')?.value !== -1">
           <input id="currency" formControlName="currency" pInputText fluid />
           <label for="currency">Currency</label>
         </p-floatlabel>
