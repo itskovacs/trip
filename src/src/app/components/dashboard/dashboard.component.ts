@@ -336,7 +336,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       this.markerClusterGroup?.addLayer(marker);
     });
 
-    if (this.isVisitedDisplayedMode)
+    if (!this.filter_display_visited && this.isVisitedDisplayedMode)
       this.places
         .filter((p) => p.visited)
         .forEach((place) => {
