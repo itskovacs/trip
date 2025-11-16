@@ -1380,7 +1380,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           .pipe(take(1))
           .subscribe({
             next: (places) => {
-              this.loadingMessage = undefined;
               this.multiPlaceModal(places);
             },
             error: () => (this.loadingMessage = undefined),

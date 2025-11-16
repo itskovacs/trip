@@ -69,10 +69,10 @@
             <label for="geocodeInput">Filter by Country / City </label>
           </p-floatlabel>
 
-          @if (boundariesFiltering) {<p-button icon="pi pi-times" text severity="danger"
+          @if (boundariesFiltering) {<p-button icon="pi pi-times" text severity="danger" size="small"
             class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Clear and Cancel"
             (click)="resetGeocodeFilters()" />}
-          @else {<p-button icon="pi pi-sparkles" text [disabled]="!googleGeocodeInput.value"
+          @else {<p-button icon="pi pi-sparkles" text [disabled]="!googleGeocodeInput.value" size="small"
             class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Filter using location (GMaps API)"
             (click)="gmapsGeocodeFilter()" />}
         </div>

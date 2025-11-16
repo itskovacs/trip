@@ -144,10 +144,10 @@
               placeholder="Country, City, ..."
               class="w-full h-9 pl-9 pr-3 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors" />
 
-            @if (boundariesFiltering) {<p-button icon="pi pi-times" text severity="danger"
+            @if (boundariesFiltering) {<p-button icon="pi pi-times" text severity="danger" size="small"
               class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Clear and Cancel"
               (click)="resetGeocodeFilters()" />}
-            @else {<p-button icon="pi pi-sparkles" text [disabled]="!gmapsGeocodeFilterInput.value"
+            @else {<p-button icon="pi pi-sparkles" text [disabled]="!gmapsGeocodeFilterInput.value" size="small"
               class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Filter using location (GMaps API)"
               (click)="gmapsGeocodeFilter()" />}
           </div>
