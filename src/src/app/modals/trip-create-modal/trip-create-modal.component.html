@@ -1,62 +1,62 @@
-<div pFocusTrap class="grid md:grid-cols-4 gap-4" [formGroup]="tripForm">
-  <div class="grid md:col-span-3 md:grid-cols-3 gap-4">
-    <p-floatlabel class="md:col-span-3" variant="in">
-      <input id="name" formControlName="name" autofocus pInputText fluid (keyup.enter)="closeDialog()" />
-      <label for="name">Name</label>
-    </p-floatlabel>
+<section class="mx-auto space-y-6" [formGroup]="tripForm">
+  <div class="grid md:grid-cols-[auto_1fr] gap-4 items-center">
+    <div
+      class="flex flex-col items-center justify-center p-4 bg-surface-50 dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700">
+      <div class="relative group">
+        @if (tripForm.get("image_id")?.value || tripForm.get("image")?.value) {
+        <img [src]="tripForm.get('image')?.value || '/favicon.png'"
+          class="h-24 w-44 object-cover rounded-lg shadow ring-2 ring-surface-200 dark:ring-surface-700 cursor-pointer transition-all group-hover:ring-primary-400"
+          (click)="fileInput.click()" />
+        <div
+          class="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+          (click)="fileInput.click()">
+          <i class="pi pi-camera text-white text-2xl"></i>
+        </div>
+        @if (!tripForm.get("image_id")?.value) {
+        <button type="button"
+          class="cursor-pointer absolute -top-2 -right-2 size-7 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-full shadow transition"
+          (click)="clearImage(); $event.stopPropagation()">
+          <i class="pi pi-times text-xs"></i>
+        </button>
+        }
+        } @else {
+        <div
+          class="h-24 w-44 flex items-center justify-center bg-surface-100 dark:bg-surface-900 rounded-lg border-2 border-dashed border-surface-300 dark:border-surface-600 cursor-pointer transition hover:border-primary-400"
+          (click)="fileInput.click()">
+          <i class="pi pi-image text-3xl text-surface-400"></i>
+        </div>
+        }
+        <input type="file" accept="image/*" #fileInput class="hidden" (change)="onFileSelected($event)" />
+      </div>
+    </div>
 
-    <p-floatlabel class="md:col-1" variant="in">
-      <input id="currency" formControlName="currency" pInputText fluid />
-      <label for="currency">Currency</label>
-    </p-floatlabel>
-
-    @if (tripForm.get("id")?.value === -1) {
-    <div class="md:col-span-2">
+    <div class="space-y-4">
       <p-floatlabel variant="in">
-        <p-datepicker id="daterange" formControlName="daterange" [iconDisplay]="'input'" [showIcon]="true"
-          selectionMode="range" appendTo="body" fluid />
-        <label for="daterange">Date Range</label>
+        <input id="name" formControlName="name" pInputText autofocus fluid (keydown.control.enter)="closeDialog()" />
+        <label for="name">Name</label>
       </p-floatlabel>
+
+      <div class="grid grid-cols-3 gap-4">
+        <p-floatlabel variant="in">
+          <input id="currency" formControlName="currency" pInputText fluid />
+          <label for="currency">Currency</label>
+        </p-floatlabel>
+
+        @if (tripForm.get("id")?.value === -1) {
+        <div class="col-span-2">
+          <p-floatlabel variant="in">
+            <p-datepicker id="daterange" formControlName="daterange" [iconDisplay]="'input'" [showIcon]="true"
+              selectionMode="range" appendTo="body" fluid />
+            <label for="daterange">Date Range</label>
+          </p-floatlabel>
+        </div>
+        }
+      </div>
     </div>
-    }
   </div>
 
-  <div class="grid place-items-center md:col-span-1">
-    @if (tripForm.get("image_id")?.value) {
-    <div class="max-w-40 max-h-32 relative group cursor-pointer" (click)="fileInput.click()">
-      <img [src]="tripForm.get('image')?.value"
-        class="max-w-40 max-h-32 object-cover rounded-lg shadow-lg transition-transform duration-300" />
-      <div
-        class="absolute inset-0 bg-black/50 rounded-lg flex flex-col gap-4 items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <span class="text-sm text-gray-300">Click to edit</span><i class="pi pi-upload text-white"></i>
-      </div>
-    </div>
-    <input type="file" accept="image/*" #fileInput class="hidden" (change)="onFileSelected($event)" />
-    } @else {
-    @if (tripForm.get("image")?.value) {
-    <div class="max-w-40 max-h-32 relative group cursor-pointer" (click)="clearImage()">
-      <img [src]="tripForm.get('image')?.value"
-        class="max-w-40 max-h-32 object-cover rounded-lg shadow-lg transition-transform duration-300" />
-      <div
-        class="absolute inset-0 bg-black/50 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <i class="pi pi-trash text-white text-3xl"></i>
-      </div>
-    </div>
-    } @else {
-    <div class="max-w-40 max-h-32 relative group cursor-pointer" (click)="fileInput.click()">
-      <img src="/favicon.png" class="max-w-40 max-h-32 object-cover transition-transform duration-300" />
-      <div
-        class="absolute inset-0 bg-black/50 rounded-lg flex flex-col gap-4 items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <span class="text-sm text-gray-300">Click to edit</span><i class="pi pi-upload text-white"></i>
-      </div>
-    </div>
-    <input type="file" accept="image/*" #fileInput class="hidden" (change)="onFileSelected($event)" />
-    }
-    }
+  <div class="flex justify-end gap-3 pt-4 border-t border-surface-200 dark:border-surface-700">
+    <p-button [label]="tripForm.get('id')?.value !== -1 ? 'Update' : 'Create'" icon="pi pi-check"
+      [disabled]="!tripForm.dirty || !tripForm.valid" (click)="closeDialog()" />
   </div>
-</div>
-
-<div class="mt-4 text-right">
-  <p-button (click)="closeDialog()" [disabled]="!tripForm.dirty || !tripForm.valid">{{ tripForm.get("id")?.value
-    !== -1 ? "Update" : "Create" }}</p-button>
-</div>
+</section>
