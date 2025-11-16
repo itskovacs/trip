@@ -148,7 +148,7 @@
           @if (tripTableSelectedColumns.includes('place')) {<td class="relative">
             @if (tripitem.place) {
             <div class="ml-7 print:ml-0 truncate print:whitespace-normal">
-              <img [src]="tripitem.place.image || tripitem.place.category.image"
+              <img [src]="tripitem.place.image || tripitem.place.category.image" loading="lazy"
                 class="absolute left-0 top-1/2 -translate-y-1/2 w-9 rounded-full object-cover print:hidden text-black dark:text-white" />
               {{
               tripitem.place.name }}
@@ -159,7 +159,7 @@
             @if (tripitem.image) {
             <div
               class="ml-7 print:ml-0 truncate print:whitespace-normal line-clamp-1 whitespace-pre-line print:line-clamp-none">
-              <img [src]="tripitem.image"
+              <img [src]="tripitem.image" loading="lazy"
                 class="absolute left-0 top-1/2 -translate-y-1/2 size-9 rounded-full object-cover" /> {{
               tripitem.comment }}
             </div>
@@ -217,7 +217,8 @@
             <div [style.background]="tripitem.place.category.color + '1A'"
               class="inline-flex items-center gap-2 text-gray-800 font-medium px-1 py-1 pr-3 rounded-full">
               <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden flex-shrink-0">
-                <img [src]="tripitem.place.image || tripitem.place.category.image" class="size-full object-cover" />
+                <img [src]="tripitem.place.image || tripitem.place.category.image" class="size-full object-cover"
+                  loading="lazy" />
               </div>
               <span class="text-sm truncate min-w-0 text-black dark:text-white">{{ tripitem.place.name }}</span>
             </div>
@@ -227,7 +228,7 @@
             @if (tripitem.image) {
             <div
               class="ml-7 print:ml-0 truncate print:whitespace-normal line-clamp-1 whitespace-pre-line print:line-clamp-none">
-              <img [src]="tripitem.image"
+              <img [src]="tripitem.image" loading="lazy"
                 class="absolute left-0 top-1/2 -translate-y-1/2 size-9 rounded-full object-cover print:hidden" /> {{
               tripitem.comment }}
             </div>
@@ -298,7 +299,7 @@
       <div class="flex justify-between items-center mb-3">
         <div class="p-2 flex items-center gap-4 w-full max-w-full">
           @if (selectedItem.place) {
-          <img [src]="selectedItem.place.image || selectedItem.place.category.image"
+          <img [src]="selectedItem.place.image || selectedItem.place.category.image" loading="lazy"
             class="hidden md:flex object-cover rounded-md h-20 w-32" />
           }
 
@@ -410,7 +411,7 @@
 
       @if (selectedItem.image) {
       <div class="p-4 px-2 gap-4 overflow-auto w-full min-h-0 max-h-64">
-        <img [src]="selectedItem.image" class="w-full object-cover rounded-md" />
+        <img [src]="selectedItem.image" class="w-full object-cover rounded-md" loading="lazy" />
       </div>
       }
     </div>
@@ -469,7 +470,7 @@
         <div
           class="group/item relative flex items-center gap-4 py-2 px-4 hover:bg-gray-50 rounded-md overflow-auto dark:hover:bg-gray-800"
           (mouseenter)="placeHighlightMarker(p)" (mouseleave)="resetPlaceHighlightMarker()">
-          <img [src]="p.image || p.category.image" class="w-12 rounded-full object-fit">
+          <img [src]="p.image || p.category.image" class="w-12 rounded-full object-fit" loading="lazy">
 
           <div class="flex flex-col gap-1 truncate">
             <h1 class="tracking-tight truncate dark:text-surface-300">{{ p.name }}</h1>
@@ -923,7 +924,8 @@
             <div
               class="inline-flex items-center gap-2 bg-gray-100 text-gray-800 font-medium px-1 py-1 pr-3 rounded-full">
               <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden flex-shrink-0">
-                <img [src]="item.place.image || item.place.category.image" class="size-full object-cover" />
+                <img [src]="item.place.image || item.place.category.image" class="size-full object-cover"
+                  loading="lazy" />
               </div>
               <span class="text-sm">{{ item.place.name }}</span>
             </div>
@@ -966,7 +968,7 @@
       @for(place of trip?.places; track place.id) {
       <div class="inline-flex items-center gap-2 bg-gray-100 text-gray-800 font-medium px-1 py-1 pr-3 rounded-full m-1">
         <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden flex-shrink-0">
-          <img [src]="place.image" class="size-full object-cover" />
+          <img [src]="place.image" class="size-full object-cover" loading="lazy" />
         </div>
         <span class="text-sm">{{ place.name }}</span>
       </div>
