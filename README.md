@@ -108,7 +108,7 @@ TRIP is and will always remain completely free, no paywalled features, no teleme
 
 ## 📜 License <a name = "license"></a>
 
-TRIP is licensed under the **CC BY-NC-SA 4.0**. You may use, modify, and share freely with attribution, but **commercial use is strictly prohibited**.
+TRIP is licensed under the **CC-BY-NC-4.0**. You may use, modify, and share freely with attribution, but **commercial use is strictly prohibited**.
 
 <br>
 
