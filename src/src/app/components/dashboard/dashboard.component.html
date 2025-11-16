@@ -4,7 +4,7 @@
 @if (selectedPlace) {
 <app-place-box [selectedPlace]="selectedPlace" (deleteEmitter)="deletePlace()" (editEmitter)="editPlace()"
   (favoriteEmitter)="favoritePlace()" (gpxEmitter)="getPlaceGPX()" (visitEmitter)="visitPlace()"
-  (closeEmitter)="closePlaceBox()"></app-place-box>
+  (closeEmitter)="closePlaceBox()" (openNavigationEmitter)="toNavigation()"></app-place-box>
 }
 
 @if (selectedGPX) {
@@ -761,8 +761,7 @@
                     <img [src]="category.image" style="border: 3px solid" loading="lazy"
                       [style.border-color]="category.color" class="select-none size-12 rounded-full object-cover" />
                     <div class="absolute -bottom-1 -right-1 px-2 py-1 bg-gray-100 dark:bg-gray-900 rounded-lg text-xs font-bold text-gray-900
-                      dark:text-white">{{
-                      getCategoryPlacesCount(category.name) }}
+                      dark:text-white">{{ getCategoryPlacesCount(category.name) }}
                     </div>
                   </div>
 

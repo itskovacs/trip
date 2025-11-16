@@ -20,7 +20,14 @@ import {
   TripAttachment,
 } from '../../types/trip';
 import { Place } from '../../types/poi';
-import { createMap, placeToMarker, createClusterGroup, tripDayMarker, gpxToPolyline } from '../../shared/map';
+import {
+  createMap,
+  placeToMarker,
+  createClusterGroup,
+  tripDayMarker,
+  gpxToPolyline,
+  openNavigation,
+} from '../../shared/map';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { TripPlaceSelectModalComponent } from '../../modals/trip-place-select-modal/trip-place-select-modal.component';
@@ -962,11 +969,8 @@ export class TripComponent implements AfterViewInit {
   }
 
   itemToNavigation() {
-    if (!this.selectedItem) return;
-    // TODO: More services
-    // const url = `http://maps.apple.com/?daddr=${this.selectedItem.lat},${this.selectedItem.lng}`;
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${this.selectedItem.lat},${this.selectedItem.lng}`;
-    window.open(url, '_blank');
+    if (!this.selectedItem || !this.selectedItem.lat || !this.selectedItem.lng) return;
+    openNavigation([{ lat: this.selectedItem.lat, lng: this.selectedItem.lng }]);
   }
 
   downloadItemGPX() {
@@ -988,19 +992,13 @@ export class TripComponent implements AfterViewInit {
     const items = data.filter((item) => item.lat && item.lng);
     if (!items.length) return;
 
-    const waypoints = items.map((item) => `${item.lat},${item.lng}`).join('/');
-    const url = `https://www.google.com/maps/dir/${waypoints}`;
-    window.open(url, '_blank');
+    openNavigation(items.map((item) => ({ lat: item.lat!, lng: item.lng! })));
   }
 
   tripToNavigation() {
-    // TODO: More services
     const items = this.flattenedTripItems.filter((item) => item.lat && item.lng);
     if (!items.length) return;
-
-    const waypoints = items.map((item) => `${item.lat},${item.lng}`).join('/');
-    const url = `https://www.google.com/maps/dir/${waypoints}`;
-    window.open(url, '_blank');
+    openNavigation(items.map((item) => ({ lat: item.lat!, lng: item.lng! })));
   }
 
   editDay(day: TripDay) {

@@ -25,6 +25,7 @@ export class PlaceBoxComponent implements OnInit {
   @Output() favoriteEmitter = new EventEmitter<void>();
   @Output() gpxEmitter = new EventEmitter<void>();
   @Output() closeEmitter = new EventEmitter<void>();
+  @Output() openNavigationEmitter = new EventEmitter<void>();
 
   menuItems: MenuItem[] = [];
   readonly currency$: Observable<string>;
@@ -39,33 +40,30 @@ export class PlaceBoxComponent implements OnInit {
         label: 'Edit',
         icon: 'pi pi-pencil',
         iconClass: 'text-blue-500!',
-        command: () => {
-          this.editPlace();
-        },
+        command: () => this.editPlace(),
       },
       {
         label: 'Favorite',
-        icon: 'pi pi-star',
-        iconClass: 'text-yellow-500!',
-        command: () => {
-          this.favoritePlace();
-        },
+        icon: 'pi pi-heart',
+        iconClass: 'text-rose-500!',
+        command: () => this.favoritePlace(),
       },
       {
         label: 'Mark',
         icon: 'pi pi-check',
         iconClass: 'text-green-500!',
-        command: () => {
-          this.visitPlace();
-        },
+        command: () => this.visitPlace(),
+      },
+      {
+        label: 'Navigation',
+        icon: 'pi pi-car',
+        command: () => this.openNavigationToPlace(),
       },
       {
         label: 'Delete',
         icon: 'pi pi-trash',
         iconClass: 'text-red-500!',
-        command: () => {
-          this.deletePlace();
-        },
+        command: () => this.deletePlace(),
       },
     ];
 
@@ -106,6 +104,10 @@ export class PlaceBoxComponent implements OnInit {
 
   deletePlace() {
     this.deleteEmitter.emit();
+  }
+
+  openNavigationToPlace() {
+    this.openNavigationEmitter.emit();
   }
 
   close() {

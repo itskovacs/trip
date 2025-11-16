@@ -174,3 +174,14 @@ export function isPointInBounds(lat: number, lng: number, bounds: GoogleBoundari
 
   return sw.lng <= ne.lng ? lng >= sw.lng && lng <= ne.lng : lng >= sw.lng || lng <= ne.lng;
 }
+
+export function openNavigation(coordinates: L.LatLngLiteral[]) {
+  if (!coordinates.length) return;
+
+  // GMaps
+  let url = 'https://www.google.com/maps/dir/';
+  if (coordinates.length == 1) url += '?api=1&destination=';
+  const waypoints = coordinates.map((c) => `${c.lat},${c.lng}`).join('/');
+  url += `${waypoints}`;
+  window.open(url, '_blank');
+}

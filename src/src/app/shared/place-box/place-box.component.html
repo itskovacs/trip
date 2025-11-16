@@ -40,10 +40,11 @@
                 <div class="flex items-center justify-end gap-2">
                     <div class="hidden md:flex">
                         @if(selectedPlace.gpx) {<p-button (click)="displayGPX()" text icon="pi pi-compass" />}
+                        <p-button (click)="openNavigationToPlace()" text icon="pi pi-car" />
                         <p-button (click)="visitPlace()" styleClass="text-green-500!" text
                             [icon]="selectedPlace.visited ? 'pi pi-check-circle': 'pi pi-check'" />
-                        <p-button (click)="favoritePlace()" styleClass="text-yellow-500!" text
-                            [icon]="selectedPlace.favorite ? 'pi pi-star-fill' : 'pi pi-star'" />
+                        <p-button (click)="favoritePlace()" styleClass="text-rose-500!" text
+                            [icon]="selectedPlace.favorite ? 'pi pi-heart-fill' : 'pi pi-heart'" />
                         <p-button (click)="deletePlace()" severity="danger" text icon="pi pi-trash" />
                         <p-button styleClass="text-blue-500!" (click)="editPlace()" text icon="pi pi-pencil" />
                     </div>

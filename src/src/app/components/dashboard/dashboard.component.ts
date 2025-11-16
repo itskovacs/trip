@@ -25,6 +25,7 @@ import {
   gpxToPolyline,
   isPointInBounds,
   placeToDotMarker,
+  openNavigation,
 } from '../../shared/map';
 import { Router } from '@angular/router';
 import { SelectModule } from 'primeng/select';
@@ -1386,5 +1387,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           });
       },
     });
+  }
+
+  toNavigation() {
+    if (!this.selectedPlace) return;
+    openNavigation([{ lat: this.selectedPlace.lat, lng: this.selectedPlace.lng }]);
   }
 }
