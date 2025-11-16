@@ -188,13 +188,13 @@
               </p>
 
               <div class="flex flex-wrap gap-1 mt-1.5">
-                <span class="flex items-center px-1.5 py-0.5 rounded text-xs"
-                  [class]="place.allowdog ? 'pi-eye bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400' : 'pi-eye-slash bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-500'">>
+                <span class="pi flex items-center px-1.5 py-0.5 rounded text-xs" style="font-size: 12px;"
+                  [class]="place.allowdog ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-500'">
                   🐶
                 </span>
 
                 <span class="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium"
-                  [class]="place.visited ? 'pi-eye bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400' : 'pi-eye-slash bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-500'">
+                  [class]="place.visited ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-500'">
                   <i class="pi" style="font-size: 12px;" [class]="place.visited ? 'pi-eye' : 'pi-eye-slash'"></i>
                 </span>
 
