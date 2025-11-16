@@ -18,19 +18,14 @@
         </p>
 
         <div class="flex flex-wrap gap-1 mt-1.5">
-          <span class="flex items-center px-1.5 py-0.5 rounded text-xs" [class.bg-emerald-100]="p.allowdog"
-            [class.text-emerald-700]="p.allowdog" [class.dark:bg-emerald-950]="p.allowdog"
-            [class.dark:text-emerald-400]="p.allowdog" [class.bg-gray-100]="!p.allowdog"
-            [class.text-gray-600]="!p.allowdog" [class.dark:bg-gray-800]="!p.allowdog"
-            [class.dark:text-gray-500]="!p.allowdog">
+          <span class="flex items-center px-1.5 py-0.5 rounded text-xs"
+            [class]="p.allowdog ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-500'">
             🐶
           </span>
 
           <span class="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium"
-            [class.bg-blue-100]="p.visited" [class.text-blue-700]="p.visited" [class.dark:bg-blue-950]="p.visited"
-            [class.dark:text-blue-400]="p.visited" [class.bg-gray-100]="!p.visited" [class.text-gray-600]="!p.visited"
-            [class.dark:bg-gray-800]="!p.visited" [class.dark:text-gray-500]="!p.visited">
-            <i class="pi" style="font-size: 12px;" [class.pi-eye]="p.visited" [class.pi-eye-slash]="!p.visited"></i>
+            [class]="p.visited ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-500'">
+            <i class="pi" style="font-size: 12px;" [class]="p.visited ? 'pi-eye' : 'pi-eye-slash'"></i>
           </span>
 
           @if (p.category_id) {

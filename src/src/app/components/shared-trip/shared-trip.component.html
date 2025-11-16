@@ -49,7 +49,7 @@
 </section>
 
 <section class="p-4 print:px-1 grid lg:grid-cols-3 gap-4 print:block" [class.prettyprint]="isPrinting">
-  <div [ngClass]="isExpanded ? 'lg:col-span-3' : 'lg:col-span-2'" class="p-4 shadow self-start rounded-md max-w-screen">
+  <div [class]="isExpanded ? 'lg:col-span-3' : 'lg:col-span-2'" class="p-4 shadow self-start rounded-md max-w-screen">
     <div [class.sticky]="!isMapFullscreen"
       class="top-0 z-10 bg-white p-2 mb-2 flex justify-between items-center dark:bg-surface-900">
       <div>
@@ -345,7 +345,7 @@
     }
   </div>
 
-  <div [ngClass]="isExpanded ? 'grid col-span-full grid-cols-4' : 'flex flex-col sticky'"
+  <div [class]="isExpanded ? 'grid col-span-full grid-cols-4' : 'flex flex-col sticky'"
     class="gap-4 top-4 self-start max-w-screen print:hidden min-w-0">
     @if (selectedItem) {
     <div class="p-4 w-full max-w-full min-h-20 rounded-md shadow text-center">
@@ -625,12 +625,12 @@
   @if (isMapFullscreenDays) {
   <div animate.enter="expand" animate.leave="collapse" class="overflow-y-auto max-h-[calc(30vh-5rem)] p-2 space-y-1">
     @for (day of trip.days; track day.id) {
-    <button (click)="toggleTripDayHighlight(day.id)" [ngClass]="
+    <button (click)="toggleTripDayHighlight(day.id)" [class]="
                   tripMapAntLayerDayID === day.id
                     ? 'shadow-md bg-blue-500'
                     : 'hover:bg-blue-50 dark:hover:bg-blue-950/20'
                 " class="w-full flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all">
-      <span class="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg font-semibold text-sm" [ngClass]="
+      <span class="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg font-semibold text-sm" [class]="
                     tripMapAntLayerDayID === day.id
                       ? 'bg-white text-blue-600'
                       : 'bg-blue-100 text-blue-800 dark:bg-blue-900'
@@ -638,7 +638,7 @@
         {{ day.items.length }}
       </span>
       <span class="flex-1 text-left text-sm font-medium truncate"
-        [ngClass]="tripMapAntLayerDayID === day.id ? 'text-white' : 'text-gray-900 dark:text-gray-50'">
+        [class]="tripMapAntLayerDayID === day.id ? 'text-white' : 'text-gray-900 dark:text-gray-50'">
         {{ day.label }}
       </span>
     </button>
@@ -646,10 +646,10 @@
   </div>
   }
 
-  <div [ngClass]="isMapFullscreenDays ? 'border-t border-gray-200 dark:border-surface-700' : ''"
+  <div [class]="isMapFullscreenDays ? 'border-t border-gray-200 dark:border-surface-700' : ''"
     class="px-4 py-3 cursor-pointer select-none flex justify-between items-center" (click)="toggleMapFullscreenDays()">
     <h2 class="font-semibold text-sm">Days</h2>
-    <i [ngClass]="isMapFullscreenDays ? 'pi pi-chevron-down' : 'pi pi-chevron-up'" class="text-gray-500"></i>
+    <i [class]="isMapFullscreenDays ? 'pi pi-chevron-down' : 'pi pi-chevron-up'" class="text-gray-500"></i>
   </div>
 </div>
 }
