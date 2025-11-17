@@ -168,6 +168,10 @@ export class AuthService {
     this.router.navigate(['/auth']);
   }
 
+  updatePassword(data: { current: string; updated: string; code: string | null }): Observable<{}> {
+    return this.httpClient.post<{}>(this.apiBaseUrl + '/auth/update_password', { ...data });
+  }
+
   private removeTokens(): void {
     localStorage.removeItem(JWT_TOKEN);
     localStorage.removeItem(REFRESH_TOKEN);

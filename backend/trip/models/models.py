@@ -86,6 +86,12 @@ class LoginRegisterModel(BaseModel):
     password: str
 
 
+class UpdateUserPassword(BaseModel):
+    current: str
+    updated: str
+    code: str | None = None
+
+
 class Token(BaseModel):
     access_token: str
     refresh_token: str

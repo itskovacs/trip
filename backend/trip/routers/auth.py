@@ -1,12 +1,14 @@
+from typing import Annotated
+
 import jwt
-from fastapi import APIRouter, Body, Cookie, HTTPException
+from fastapi import APIRouter, Body, Cookie, Depends, HTTPException
 from fastapi.responses import JSONResponse
 
 from ..config import settings
 from ..db.core import init_user_data
-from ..deps import SessionDep
+from ..deps import SessionDep, get_current_username
 from ..models.models import (AuthParams, LoginRegisterModel, PendingTOTP,
-                             Token, User)
+                             Token, UpdateUserPassword, User)
 from ..security import (create_access_token, create_tokens,
                         generate_totp_secret, get_oidc_client, get_oidc_config,
                         hash_password, verify_password, verify_totp_code)
@@ -191,3 +193,30 @@ def refresh_token(refresh_token: str = Body(..., embed=True)):
         raise HTTPException(status_code=401, detail="Invalid Token")
     except jwt.PyJWTError:
         raise HTTPException(status_code=401, detail="Invalid Token")
+
+
+@router.post("/update_password")
+async def update_password(
+    data: UpdateUserPassword,
+    session: SessionDep,
+    current_user: Annotated[str, Depends(get_current_username)],
+):
+    if settings.OIDC_CLIENT_ID and settings.OIDC_CLIENT_SECRET:
+        raise HTTPException(status_code=400, detail="Bad request")
+
+    db_user = session.get(User, current_user)
+    if db_user.totp_enabled:
+        if not data.code:
+            raise HTTPException(status_code=400, detail="Bad request: TOTP missing")
+
+        success = verify_totp_code(db_user.totp_secret, data.code)
+        if not success:
+            raise HTTPException(status_code=403, detail="Invalid code")
+
+    if not verify_password(data.current, db_user.password):
+        raise HTTPException(status_code=403, detail="Invalid credentials")
+
+    db_user.password = hash_password(data.updated)
+    session.add(db_user)
+    session.commit()
+    return {}
