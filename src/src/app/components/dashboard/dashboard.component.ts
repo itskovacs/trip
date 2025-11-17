@@ -269,6 +269,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           this.addPlaceModal(e);
         },
       },
+      {
+        text: 'Find nearby places (Google API)',
+        callback: (e: any) => {
+          this.googleNearbyPlaces(e);
+        },
+      },
     ];
     this.map = createMap(isTouch ? [] : contentMenuItems, this.settings?.tile_layer);
     if (isTouch) {
@@ -1391,5 +1397,24 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   toNavigation() {
     if (!this.selectedPlace) return;
     openNavigation([{ lat: this.selectedPlace.lat, lng: this.selectedPlace.lng }]);
+  }
+
+  googleNearbyPlaces(data: L.LeafletMouseEvent) {
+    this.loadingMessage = `Querying Google Maps API... `;
+    const latlng = { latitude: data.latlng.lat, longitude: data.latlng.lng };
+    this.apiService
+      .postGmapsNearbySearch(latlng)
+      .pipe(take(1))
+      .subscribe({
+        next: (places) => {
+          this.loadingMessage = undefined;
+          if (!places.length) {
+            this.utilsService.toast('warn', 'No result', 'Google API did not return any place');
+            return;
+          }
+          this.multiPlaceModal(places);
+        },
+        error: () => (this.loadingMessage = undefined),
+      });
   }
 }

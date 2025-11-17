@@ -175,3 +175,25 @@ async def gmaps_get_boundaries(name: str, api_key: str) -> dict[str, Any] | None
             return geometry.get("bounds") or geometry.get("viewport")
     except Exception:
         raise HTTPException(status_code=400, detail="Bad Request")
+
+
+async def gmaps_nearbysearch(location: dict[str, Any], api_key: str) -> list[dict[str, Any]]:
+    url = "https://places.googleapis.com/v1/places:searchNearby"
+    body = {
+        "locationRestriction": {"circle": {"center": location, "radius": 1600.0}},
+        "maxResultCount": 15,
+    }
+    headers = {
+        "Content-Type": "application/json",
+        "X-Goog-Api-Key": api_key,
+        "X-Goog-FieldMask": "places.id,places.types,places.location,places.priceRange,places.formattedAddress,places.websiteUri,places.internationalPhoneNumber,places.displayName,places.allowsDogs,places.photos",
+    }
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(url, json=body, headers=headers)
+            response.raise_for_status()
+            data = response.json()
+            return data.get("places", [])
+    except Exception:
+        raise HTTPException(status_code=400, detail="Bad Request")

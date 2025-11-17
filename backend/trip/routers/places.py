@@ -276,6 +276,35 @@ async def google_geocode_search(
     return bounds
 
 
+@router.post("/google-nearby-search")
+async def google_nearby_search(
+    data: LatitudeLongitude, session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]
+) -> list[GooglePlaceResult]:
+    db_user = session.get(User, current_user)
+    if not db_user or not db_user.google_apikey:
+        raise HTTPException(status_code=400, detail="Google Maps API key not configured")
+
+    location = {"latitude": data.latitude, "longitude": data.longitude}
+    results = await gmaps_nearbysearch(location, db_user.google_apikey)
+    if not results:
+        return []
+
+    async def _process_result(
+        place_data: dict,
+        api_key: str,
+    ) -> GooglePlaceResult | None:
+        try:
+            return await result_to_place(place_data, api_key)
+        except Exception:
+            return None
+
+    return await _process_gmaps_batch(
+        results,
+        db_user.google_apikey,
+        _process_result,
+    )
+
+
 @router.put("/{place_id}", response_model=PlaceRead)
 def update_place(
     session: SessionDep,

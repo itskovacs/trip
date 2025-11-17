@@ -341,4 +341,8 @@ export class ApiService {
   postKmzFile(formdata: FormData): Observable<GooglePlaceResult[]> {
     return this.httpClient.post<GooglePlaceResult[]>(`${this.apiBaseUrl}/places/google-kmz-import`, formdata);
   }
+
+  postGmapsNearbySearch(data: any): Observable<GooglePlaceResult[]> {
+    return this.httpClient.post<GooglePlaceResult[]>(`${this.apiBaseUrl}/places/google-nearby-search`, { ...data });
+  }
 }
