@@ -8,7 +8,7 @@ import { Component, input, ChangeDetectionStrategy } from '@angular/core';
   template: `
     @if (message()) {
       <div
-        class="z-[9999] flex items-center justify-center min-h-screen p-4 absolute inset-0 bg-white/30 dark:bg-gray-950/80 backdrop-blur-xl">
+        class="z-[9000] flex items-center justify-center min-h-screen p-4 absolute inset-0 bg-white/30 dark:bg-gray-950/80 backdrop-blur-xl">
         <div
           class="flex flex-col items-center gap-8 px-12 py-10
                 bg-white/80 dark:bg-gray-950/80 rounded-3xl
