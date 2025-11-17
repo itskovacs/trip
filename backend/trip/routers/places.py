@@ -7,22 +7,24 @@ from sqlmodel import select
 
 from ..config import settings
 from ..deps import SessionDep, get_current_username
-from ..models.models import (Category, GooglePlaceResult, Image, Place,
-                             PlaceCreate, PlaceRead, PlacesCreate, PlaceUpdate,
-                             User)
+from ..models.models import (Category, GooglePlaceResult, Image,
+                             LatitudeLongitude, Place, PlaceCreate, PlaceRead,
+                             PlacesCreate, PlaceUpdate, User)
 from ..security import verify_exists_and_owns
 from ..utils.csv import iter_csv_lines
-from ..utils.gmaps import (cid_to_pid, gmaps_get_boundaries, gmaps_pid_search,
+from ..utils.gmaps import (gmaps_get_boundaries, gmaps_nearbysearch,
                            gmaps_textsearch, gmaps_url_to_search,
                            result_to_place)
 from ..utils.utils import (b64img_decode, download_file, patch_image,
                            save_image_to_file)
-from ..utils.zip import extract_cids_from_kmz
+from ..utils.zip import parse_mymaps_kmz
 
 router = APIRouter(prefix="/api/places", tags=["places"])
 
 
-async def _process_gmaps_batch(items: list[str], api_key: str, processor_func) -> list[GooglePlaceResult]:
+async def _process_gmaps_batch(
+    items: list[str | dict], api_key: str, processor_func
+) -> list[GooglePlaceResult]:
     if not items:
         return []
 
@@ -176,22 +178,20 @@ async def google_kmz_import(
     if not file.filename or not file.filename.lower().endswith((".kmz")):
         raise HTTPException(status_code=400, detail="Invalid KMZ file")
 
-    cids = await extract_cids_from_kmz(file)
-    if not cids:
-        return []
+    places = await parse_mymaps_kmz(file)
 
-    async def _process_cid(cid: str, api_key: str) -> GooglePlaceResult | None:
+    async def _process_kml_place(place: dict, api_key: str) -> GooglePlaceResult | None:
         try:
-            pid = await cid_to_pid(cid, api_key)
-            result = await gmaps_pid_search(pid, api_key)
-            return await result_to_place(result, api_key)
+            location = {"latitude": float(place.get("lat")), "longitude": float(place.get("lng"))}
+            results = await gmaps_textsearch(place.get("name"), db_user.google_apikey, location)
+            return await result_to_place(results[0], api_key)
         except Exception:
             return None
 
     return await _process_gmaps_batch(
-        list(cids),
+        places,
         db_user.google_apikey,
-        _process_cid,
+        _process_kml_place,
     )
 
 

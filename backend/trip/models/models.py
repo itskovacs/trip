@@ -92,6 +92,11 @@ class UpdateUserPassword(BaseModel):
     code: str | None = None
 
 
+class LatitudeLongitude(BaseModel):
+    latitude: float
+    longitude: float
+
+
 class Token(BaseModel):
     access_token: str
     refresh_token: str

@@ -18,9 +18,9 @@ from ..models.models import (Backup, BackupStatus, Category, CategoryRead,
                              TripPackingListItem, TripPackingListItemRead,
                              TripRead, User, UserRead)
 from .date import dt_utc, iso_to_dt
-from .gmaps import extract_cids_from_text
 from .utils import (assets_folder_path, attachments_trip_folder_path,
                     b64img_decode, remove_image, save_image_to_file)
+from .xml import parse_mymaps_kml
 
 
 def process_backup_export(session: SessionDep, backup_id: int):
@@ -745,7 +745,7 @@ async def process_legacy_import(
     }
 
 
-async def extract_cids_from_kmz(file: UploadFile) -> set[str]:
+async def parse_mymaps_kmz(file: UploadFile) -> list[dict]:
     file_header = await file.read(4)
     if not file_header == b"PK\x03\x04":
         raise HTTPException(status_code=415, detail="Invalid KMZ file")
@@ -756,7 +756,7 @@ async def extract_cids_from_kmz(file: UploadFile) -> set[str]:
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid KMZ file")
 
-    cids = set()
+    places = []
     try:
         with ZipFile(io.BytesIO(kmz_content), "r") as kmz:
             kml_files = [name for name in kmz.namelist() if name.endswith(".kml")]
@@ -765,8 +765,8 @@ async def extract_cids_from_kmz(file: UploadFile) -> set[str]:
             for kml_filename in kml_files:
                 with kmz.open(kml_filename, "r") as kml_file:
                     kml_content = kml_file.read().decode("utf-8")
-                    cids.update(extract_cids_from_text(kml_content))
+                    places.extend(parse_mymaps_kml(kml_content))
     except Exception:
         raise HTTPException(status_code=400, detail="Failed to parse KMZ file")
 
-    return cids
+    return places

@@ -42,10 +42,6 @@ async def result_to_place(place, api_key: str) -> GooglePlaceResult:
     return result
 
 
-def extract_cids_from_text(text: str) -> set[str]:
-    return {str(int(match.group(2), 0)) for match in CID_PATTERN.finditer(text)}
-
-
 def url_to_cid(url: str) -> str | None:
     if match := CID_PATTERN.search(url):
         return str(int(match.group(2), 0))
@@ -125,7 +121,9 @@ async def gmaps_url_to_search(url: str, api_key: str) -> dict[str, Any] | None:
         return None
 
 
-async def gmaps_textsearch(search: str, api_key: str) -> list[dict[str, Any]]:
+async def gmaps_textsearch(
+    search: str, api_key: str, location: dict[str, Any] | None = None
+) -> list[dict[str, Any]]:
     url = "https://places.googleapis.com/v1/places:searchText"
     body = {"textQuery": search}
     headers = {
@@ -133,6 +131,8 @@ async def gmaps_textsearch(search: str, api_key: str) -> list[dict[str, Any]]:
         "X-Goog-Api-Key": api_key,
         "X-Goog-FieldMask": "places.id,places.types,places.location,places.priceRange,places.formattedAddress,places.websiteUri,places.internationalPhoneNumber,places.displayName,places.allowsDogs,places.photos",
     }
+    if location:
+        body["locationBias"] = {"circle": {"center": location, "radius": 400.0}}
 
     try:
         async with httpx.AsyncClient(timeout=10.0) as client:
