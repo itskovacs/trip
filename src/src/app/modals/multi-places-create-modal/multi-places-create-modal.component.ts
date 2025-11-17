@@ -12,6 +12,7 @@ import { Category, Place } from '../../types/poi';
 import { PlaceCreateModalComponent } from '../place-create-modal/place-create-modal.component';
 import { take } from 'rxjs';
 import { CommonModule } from '@angular/common';
+import { YesNoModalComponent } from '../yes-no-modal/yes-no-modal.component';
 
 @Component({
   selector: 'app-multi-places-create-modal',
@@ -88,6 +89,11 @@ export class MultiPlacesCreateModalComponent {
         if (index > -1) this.places.splice(index, 1, p);
       },
     });
+  }
+
+  deletePlace(p: Place) {
+    const index = this.places.findIndex((place) => place.id == p.id);
+    if (index > -1) this.places.splice(index, 1);
   }
 
   isPlaceValid(p: Place) {

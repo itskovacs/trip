@@ -2,7 +2,12 @@
   <div class="max-w-full grid md:grid-cols-2 xl:grid-cols-3 gap-2 overflow-y-auto">
     @for (p of places; track p.id) {
     <div (click)="editPlace(p)"
-      class="group w-full flex items-center gap-3 p-3 bg-white dark:bg-gray-950 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg cursor-pointer transition-all border border-gray-200 dark:border-gray-800 text-left">
+      class="relative group w-full flex items-center gap-3 p-3 bg-white dark:bg-gray-950 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg cursor-pointer transition-all border border-gray-200 dark:border-gray-800 text-left">
+      <button type="button"
+        class="cursor-pointer absolute top-1 right-1 size-8 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-lg shadow transition"
+        (click)="deletePlace(p); $event.stopPropagation()">
+        <i class="pi pi-times text-xs"></i>
+      </button>
 
       <div class="w-12 h-12 rounded overflow-hidden bg-gray-100 dark:bg-gray-800">
         <img [src]="p.image || 'favicon.png'" class="w-full h-full object-cover" />
