@@ -1,5 +1,19 @@
-import { AfterViewInit, Component, Input, OnInit, ViewChild } from '@angular/core';
-import { combineLatest, debounceTime, forkJoin, interval, take, takeWhile, tap } from 'rxjs';
+import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import {
+  catchError,
+  combineLatest,
+  concatMap,
+  debounceTime,
+  delay,
+  forkJoin,
+  from,
+  interval,
+  of,
+  take,
+  takeWhile,
+  tap,
+  toArray,
+} from 'rxjs';
 import { Place, Category, GoogleBoundaries, GooglePlaceResult } from '../../types/poi';
 import { ApiService } from '../../services/api.service';
 import { PlaceBoxComponent } from '../../shared/place-box/place-box.component';
@@ -45,6 +59,7 @@ import { MenuModule } from 'primeng/menu';
 import { MultiPlacesCreateModalComponent } from '../../modals/multi-places-create-modal/multi-places-create-modal.component';
 import { LoaderComponent } from '../../shared/loader';
 import { GmapsMultilineCreateModalComponent } from '../../modals/gmaps-multiline-create-modal/gmaps-multiline-create-modal.component';
+import { UpdatePasswordModalComponent } from '../../modals/update-password-modal/update-password-modal.component';
 
 export interface ContextMenuItem {
   text: string;
@@ -264,7 +279,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const contentMenuItems = [
       {
         text: 'Add Point of Interest',
-        icon: 'add-location.png',
         callback: (e: any) => {
           this.addPlaceModal(e);
         },
@@ -1200,48 +1214,66 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       return;
     }
 
-    this.loadingMessage = 'Querying Google Maps API...';
     const reader = new FileReader();
     reader.onload = (e: ProgressEvent<FileReader>) => {
       const text = e.target?.result as string;
-      const lineCount = text.split('\n').length;
-      if (lineCount > 125) {
-        const modal = this.dialogService.open(YesNoModalComponent, {
-          header: 'Confirm',
-          modal: true,
-          closable: true,
-          dismissableMask: true,
-          breakpoints: {
-            '640px': '90vw',
-          },
-          data: 'Your file contains many lines. Ensure it does not exceed your quota (10.000 requests/month by default)',
-        })!;
+      const header = text.split('\n')[0];
+      const lines = text.split('\n').filter((line) => line.includes('!1s'));
+      let processed = 0;
 
-        modal.onClose.subscribe({
-          next: (bool: boolean) => {
-            if (!bool) return;
+      this.loadingMessage = `Querying Google Maps API... [0/${lines.length}]`;
+      const batches: string[][] = [];
+      for (let i = 0; i < lines.length; i += 10) {
+        batches.push(lines.slice(i, i + 10));
+      }
+
+      from(batches)
+        .pipe(
+          concatMap((batch, batchIndex) => {
+            const batchText = [header, ...batch].join('\n');
+            const batchBlob = new Blob([batchText], { type: 'text/csv' });
+            const batchFile = new File([batchBlob], file.name, { type: 'text/csv' });
             const formdata = new FormData();
-            formdata.append('file', file);
-            this.apiService
-              .postTakeoutFile(formdata)
-              .pipe(take(1))
-              .subscribe({
-                next: (places) => this.multiPlaceModal(places),
-                error: () => (this.loadingMessage = undefined),
-              });
+            formdata.append('file', batchFile);
+
+            processed += batch.length;
+            this.loadingMessage = `Querying Google Maps API... [${processed}/${lines.length}]`;
+
+            return this.apiService.postTakeoutFile(formdata).pipe(
+              delay(batchIndex === batches.length - 1 ? 0 : 2500),
+              catchError((err) => {
+                this.utilsService.toast(
+                  'error',
+                  'Error',
+                  `Google API returned an error for lines ${processed} to ${processed + 10}`,
+                );
+                console.error(`Batch ${batchIndex + 1} failed:`, err);
+                return of([]);
+              }),
+            );
+          }),
+          toArray(),
+        )
+        .subscribe({
+          next: (results) => {
+            const places = results.flat();
+            this.loadingMessage = undefined;
+            if (!places.length) {
+              this.utilsService.toast('warn', 'No result', 'Google API did not return any place');
+              return;
+            }
+            if (lines.length != places.length)
+              this.utilsService.toast(
+                'warn',
+                'Missing a few results',
+                `[${places.length}]/[${lines.length}] Google did not return a result for every object`,
+              );
+            this.multiPlaceModal(places);
+          },
+          error: () => {
+            this.loadingMessage = undefined;
           },
         });
-      } else {
-        const formdata = new FormData();
-        formdata.append('file', file);
-        this.apiService
-          .postTakeoutFile(formdata)
-          .pipe(take(1))
-          .subscribe({
-            next: (places) => this.multiPlaceModal(places),
-            error: () => (this.loadingMessage = undefined),
-          });
-      }
     };
 
     reader.onerror = () => {
@@ -1283,7 +1315,14 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           .postKmzFile(formdata)
           .pipe(take(1))
           .subscribe({
-            next: (places) => this.multiPlaceModal(places),
+            next: (places) => {
+              this.loadingMessage = undefined;
+              if (!places.length) {
+                this.utilsService.toast('warn', 'No result', 'Your KMZ does not contain any Google Maps places');
+                return;
+              }
+              this.multiPlaceModal(places);
+            },
             error: () => (this.loadingMessage = undefined),
           });
       },
@@ -1318,7 +1357,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   multiPlaceModal(places: GooglePlaceResult[]) {
-    this.loadingMessage = undefined;
     const modal: DynamicDialogRef = this.dialogService.open(MultiPlacesCreateModalComponent, {
       header: 'Create Places',
       modal: true,
@@ -1417,6 +1455,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           .pipe(take(1))
           .subscribe({
             next: (places) => {
+              this.loadingMessage = undefined;
+              if (!places.length) {
+                this.utilsService.toast('warn', 'No result', 'Google API did not return any place');
+                return;
+              }
               this.multiPlaceModal(places);
             },
             error: () => (this.loadingMessage = undefined),
