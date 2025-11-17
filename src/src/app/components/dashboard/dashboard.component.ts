@@ -1136,6 +1136,37 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     });
   }
 
+  updatePassword() {
+    const modal = this.dialogService.open(UpdatePasswordModalComponent, {
+      header: 'Update Password',
+      modal: true,
+      closable: true,
+      width: '30vw',
+      breakpoints: {
+        '640px': '90vw',
+      },
+      data: this.settings?.totp_enabled,
+    })!;
+
+    modal.onClose.subscribe({
+      next: (data: any | null) => {
+        if (!data) return;
+        this.authService
+          .updatePassword(data)
+          .pipe(take(1))
+          .subscribe({
+            next: () => this.utilsService.toast('success', 'Success', 'Password updated'),
+            error: () =>
+              this.utilsService.toast(
+                'error',
+                'Error',
+                'Could not update the password. Ensure the current password is correct.',
+              ),
+          });
+      },
+    });
+  }
+
   deleteGoogleApiKey() {
     const modal = this.dialogService.open(YesNoModalComponent, {
       header: 'Confirm',
