@@ -13,6 +13,7 @@ export interface Settings {
   totp_enabled?: boolean;
   google_apikey?: boolean | null;
   mode_display_visited?: boolean;
+  api_token?: boolean;
 }
 
 export interface ImportResponse {

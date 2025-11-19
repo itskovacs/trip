@@ -1,0 +1,12 @@
+<div class="p-4 text-center">
+  <p class="whitespace-pre">This is your TRIP API Key, save it now as you won't be able to see it again</p>
+  <pre><p class="py-2 text-lg font-bold">{{ token }}</p></pre>
+
+  <div class="mt-4">
+    <p-button label="Copy" severity="secondary" icon="pi pi-copy" [cdkCopyToClipboard]="token" />
+  </div>
+</div>
+
+<div class="mt-4 text-end">
+  <p-button label="Close" icon="pi pi-times" severity="danger" (click)="close()" />
+</div>

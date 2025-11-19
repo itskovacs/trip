@@ -452,98 +452,94 @@
         </p-tabpanel>
         <p-tabpanel [value]="1">
           <div class="max-h-[60vh] overflow-y-auto overscroll-contain">
-            <div class="select-none mx-auto p-4 space-y-4">
-              <div
-                class="rounded-xl border border-gray-200/60 dark:border-gray-800/60 bg-white dark:bg-gray-900 p-5 transition-shadow hover:shadow-md">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div class="flex items-center gap-3 min-w-0 flex-1">
+            <div class="select-none mx-auto pt-4 space-y-4">
+              <section
+                class="rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-200">
+                <div (click)="accountSecurityExpanded = !accountSecurityExpanded"
+                  class="select-none w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer">
+                  <div class="flex items-center gap-3">
                     <div
-                      class="flex-shrink-0 flex items-center justify-center size-9 rounded-lg bg-gray-500/10 dark:bg-gray-500/20">
-                      <i class="pi pi-key text-gray-600 dark:text-gray-400"></i>
+                      class="flex items-center justify-center min-w-10 min-h-10 rounded-lg bg-gray-100 dark:bg-gray-900/30">
+                      <i class="pi pi-shield text-gray-600 dark:text-gray-400"></i>
                     </div>
-
-                    <div class="min-w-0">
-                      <h2 class="text-base font-semibold text-gray-900 dark:text-gray-50">Password</h2>
-                      <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Update your password</p>
+                    <div class="flex flex-col items-start">
+                      <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100 line-clamp-1">Security</h2>
+                      <p class="text-xs text-gray-500 dark:text-gray-400">Update your password, manage 2FA</p>
                     </div>
                   </div>
-                  <div class="text-center">
+                  <i [class]="accountSecurityExpanded ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                    class="text-gray-400 transition-transform duration-200"></i>
+                </div>
+
+                @if (accountSecurityExpanded) {
+                <div class="flex flex-col gap-3 p-4 pt-0 border-t border-gray-200 dark:border-gray-700">
+                  <div
+                    class="mt-4 flex items-center justify-between py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                      <i class="pi pi-key text-blue-600 dark:text-blue-400 flex-shrink-0"></i>
+                      <div class="min-w-0">
+                        <span class="font-medium text-sm text-gray-900 dark:text-gray-100 block">Password</span>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Update your password</p>
+                      </div>
+                    </div>
+
                     <p-button icon="pi pi-pencil" (click)="updatePassword()" severity="secondary" size="small"
                       label="Update" text />
                   </div>
-                </div>
-              </div>
 
-              <div
-                class="rounded-xl border border-gray-200/60 dark:border-gray-800/60 bg-white dark:bg-gray-900 p-5 transition-shadow hover:shadow-md">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div class="flex items-center gap-3 min-w-0 flex-1">
-                    <div
-                      class="flex-shrink-0 flex items-center justify-center size-9 rounded-lg bg-blue-500/10 dark:bg-blue-500/20">
-                      <i class="pi pi-shield text-blue-600 dark:text-blue-400"></i>
-                    </div>
-
-                    <div class="min-w-0 flex-1">
-                      <div class="flex items-center gap-2 flex-wrap">
-                        <h2 class="text-base font-semibold text-gray-900 dark:text-gray-50">Two-Factor Auth</h2>
-                        @if (settings?.totp_enabled) {
-                        <span
-                          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
-                          <span class="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                          on
-                        </span>
-                        } @else {
-                        <span
-                          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-600 dark:bg-red-800 dark:text-red-400">
-                          <span class="size-1.5 rounded-full bg-red-400"></span>
-                          off
-                        </span>
-                        }
+                  <div
+                    class="flex items-center justify-between py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                      <i class="pi pi-lock flex-shrink-0"
+                        [class]="settings?.totp_enabled ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"></i>
+                      <div class="min-w-0">
+                        <span class="font-medium text-sm text-gray-900 dark:text-gray-100 block">Two-Factor Auth
+                          (2FA)</span>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Add extra security layer</p>
                       </div>
-                      <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Add extra security layer</p>
                     </div>
-                  </div>
-                  <div class="text-center">
+
                     <p-button [icon]="settings?.totp_enabled ? 'pi pi-times-circle' : 'pi pi-check-circle'"
                       (click)="toggleTOTP()" [severity]="settings?.totp_enabled ? 'danger' : 'success'" size="small"
                       [label]="settings?.totp_enabled ? 'Disable' : 'Enable'" text />
                   </div>
                 </div>
-              </div>
+                }
+              </section>
 
-              <div
-                class="rounded-xl border border-gray-200/60 dark:border-gray-800/60 bg-white dark:bg-gray-900 p-5 transition-shadow hover:shadow-md">
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                  <div class="flex items-center gap-3 min-w-0 flex-1">
+              <section
+                class="rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-200">
+                <div (click)="accountIntegrationsExpanded = !accountIntegrationsExpanded"
+                  class="select-none w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer">
+                  <div class="flex items-center gap-3">
                     <div
-                      class="flex-shrink-0 flex items-center justify-center size-9 rounded-lg bg-amber-500/10 dark:bg-amber-500/20">
-                      <i class="pi pi-link text-amber-600 dark:text-amber-400"></i>
+                      class="flex items-center justify-center min-w-10 min-h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                      <i class="pi pi-share-alt text-blue-600 dark:text-blue-400"></i>
                     </div>
-
-                    <div class="min-w-0 flex-1">
-                      <div class="flex items-center gap-2 flex-wrap">
-                        <h2 class="text-base font-semibold text-gray-900 dark:text-gray-50">Google API Key</h2>
-                        @if (settings?.google_apikey) {
-                        <span
-                          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
-                          <span class="size-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                          on
-                        </span>
-                        } @else {
-                        <span
-                          class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-600 dark:bg-red-800 dark:text-red-400">
-                          <span class="size-1.5 rounded-full bg-red-400"></span>
-                          off
-                        </span>
-                        }
-                      </div>
-                      <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5 truncate">Connect your Google API key
-                        for
-                        enhanced location services</p>
+                    <div class="flex flex-col items-start">
+                      <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100 line-clamp-1">Integrations
+                      </h2>
+                      <p class="text-xs text-gray-500 dark:text-gray-400">Manage API keys</p>
                     </div>
                   </div>
+                  <i [class]="accountIntegrationsExpanded ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                    class="text-gray-400 transition-transform duration-200"></i>
+                </div>
 
-                  <div class="text-center">
+                @if (accountIntegrationsExpanded) {
+                <div class="flex flex-col gap-3 p-4 pt-0 border-t border-gray-200 dark:border-gray-700">
+                  <div
+                    class="mt-4 flex items-center justify-between py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                      <i class="pi pi-link flex-shrink-0"
+                        [class]="settings?.google_apikey ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"></i>
+                      <div class="min-w-0">
+                        <span class="font-medium text-sm text-gray-900 dark:text-gray-100 block">Google API Key</span>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Connect your Google API key
+                          for enhanced location services</p>
+                      </div>
+                    </div>
+
                     @if (settings?.google_apikey) {
                     <p-button (click)="deleteGoogleApiKey()" icon="pi pi-trash" label="Remove" severity="danger" text
                       size="small" />
@@ -557,20 +553,39 @@
                     </div>
                     }
                   </div>
+
+                  <div
+                    class="flex items-center justify-between py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                      <i class="pi pi-link flex-shrink-0"
+                        [class]="settings?.totp_enabled ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"></i>
+                      <div class="min-w-0">
+                        <span class="font-medium text-sm text-gray-900 dark:text-gray-100 block">TRIP API Key</span>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Use it to authenticate in
+                          scripts</p>
+                      </div>
+                    </div>
+
+                    <p-button [icon]="settings?.api_token ? 'pi pi-times-circle' : 'pi pi-check-circle'"
+                      (click)="toggleTripApiToken()" [severity]="settings?.api_token ? 'danger' : 'success'"
+                      size="small" [label]="settings?.api_token ? 'Disable' : 'Enable'" text />
+                  </div>
                 </div>
-              </div>
+                }
+              </section>
             </div>
           </div>
         </p-tabpanel>
         <p-tabpanel [value]="2">
           <div class="max-h-[60vh] overflow-y-auto overscroll-contain">
-            <div class="flex flex-col gap-4 p-4 max-w-5xl mx-auto">
+            <div class="space-y-4 pt-4 max-w-5xl mx-auto">
               <section [formGroup]="settingsForm"
                 class="rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
                 <div (click)="mapParamsExpanded = !mapParamsExpanded"
                   class="select-none w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer">
                   <div class="flex items-center gap-3">
-                    <div class="flex items-center justify-center size-10 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                    <div
+                      class="flex items-center justify-center min-w-10 min-h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30">
                       <i class="pi pi-map text-blue-600 dark:text-blue-400"></i>
                     </div>
                     <div class="flex flex-col items-start">
@@ -615,11 +630,13 @@
                 <div (click)="displaySettingsExpanded = !displaySettingsExpanded"
                   class="select-none w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer">
                   <div class="flex items-center gap-3">
-                    <div class="flex items-center justify-center size-10 rounded-lg bg-green-100 dark:bg-green-900/30">
+                    <div
+                      class="flex items-center justify-center min-w-10 min-h-10 rounded-lg bg-green-100 dark:bg-green-900/30">
                       <i class="pi pi-eye text-green-600 dark:text-green-400"></i>
                     </div>
                     <div class="flex flex-col items-start">
-                      <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100">Display & Performance</h2>
+                      <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100 line-clamp-1">Display &
+                        Performance</h2>
                       <p class="text-xs text-gray-500 dark:text-gray-400">Visual and performance options</p>
                     </div>
                   </div>
@@ -680,7 +697,7 @@
                   class="select-none w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer">
                   <div class="flex items-center gap-3">
                     <div
-                      class="flex items-center justify-center size-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/30">
+                      class="flex items-center justify-center min-w-10 min-h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/30">
                       <i class="pi pi-sliders-h text-indigo-600 dark:text-indigo-400"></i>
                     </div>
                     <div class="flex flex-col items-start">
@@ -705,7 +722,7 @@
                         </p>
                       </div>
                     </div>
-                    <div class="w-68">
+                    <div class="w-full md:w-68">
                       <input id="currency" formControlName="currency" placeholder="€" pInputText fluid pSize="small" />
                     </div>
                   </div>
@@ -722,7 +739,7 @@
                         </p>
                       </div>
                     </div>
-                    <div class="w-68">
+                    <div class="w-full md:w-68">
                       <p-multiselect id="do_not_display" [options]="doNotDisplayOptions" [group]="true" [filter]="false"
                         [showToggleAll]="false" formControlName="do_not_display" placeholder="Select..."
                         [showClear]="true" appendTo="body" pSize="small" class="capitalize" fluid />
@@ -757,7 +774,7 @@
         </p-tabpanel>
         <p-tabpanel [value]="3">
           <div class="max-h-[60vh] overflow-y-auto overscroll-contain">
-            <div class="flex flex-col gap-4 p-4 mx-auto">
+            <div class="flex flex-col gap-4 pt-4 mx-auto">
               <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 <div (click)="addCategory()"
                   class="group relative flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50/50 dark:bg-gray-800/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:border-indigo-400 dark:hover:border-indigo-500 transition-all duration-200 cursor-pointer">
@@ -809,7 +826,7 @@
         </p-tabpanel>
         <p-tabpanel [value]="4">
           <div class="max-h-[60vh] overflow-y-auto overscroll-contain">
-            <div class="flex flex-col gap-4 p-4 mx-auto">
+            <div class="flex flex-col gap-4 pt-4 mx-auto">
               <div
                 class="flex flex-col md:flex-row gap-4 p-5 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 border border-blue-100/50 dark:border-blue-800/30">
                 <div class="flex items-center gap-3 sm:gap-4 min-w-0">
@@ -824,8 +841,8 @@
                   </div>
                 </div>
 
-                <div class="flex grow flex-wrap items-center md:justify-end gap-2">
-                  <p-button (click)="fileUpload.click()" text icon="pi pi-upload" label="Import" size="small" />
+                <div class="flex grow flex-wrap items-center justify-center md:justify-end gap-2">
+                  <p-button (click)="fileUpload.click()" text icon="pi pi-upload" size="small" />
                   <input type="file" class="hidden" (change)="importData($event)" #fileUpload>
                   <p-button icon="pi pi-sync" (click)="getBackups()" text size="small" />
                   <p-button (click)="createBackup()" text label="Create" icon="pi pi-plus" size="small" />

@@ -12,7 +12,7 @@ from .config import settings
 from .db.core import init_and_migrate_db
 from .routers import auth, categories, places
 from .routers import settings as settings_r
-from .routers import trips
+from .routers import token, trips
 from .utils.utils import silence_http_logging
 
 if not Path(settings.FRONTEND_FOLDER).is_dir():
@@ -46,6 +46,7 @@ app.include_router(categories.router)
 app.include_router(places.router)
 app.include_router(settings_r.router)
 app.include_router(trips.router)
+app.include_router(token.router)
 
 
 @app.get("/api/info")

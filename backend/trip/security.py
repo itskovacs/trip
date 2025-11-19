@@ -6,9 +6,10 @@ from argon2 import PasswordHasher
 from argon2 import exceptions as argon_exceptions
 from authlib.integrations.httpx_client import OAuth2Client
 from fastapi import HTTPException
+from sqlmodel import Session, select
 
 from .config import settings
-from .models.models import Token
+from .models.models import Token, User
 from .utils.utils import httpx_get
 
 ph = PasswordHasher()
@@ -65,6 +66,16 @@ def verify_exists_and_owns(username: str, obj) -> None:
         raise HTTPException(status_code=403, detail="Forbidden")
 
     return None
+
+
+def api_token_to_user(session: Session, api_token: str) -> User | None:
+    if not api_token:
+        raise HTTPException(status_code=400, detail="Bad Request")
+
+    user = session.exec(select(User).where(User.api_token == api_token)).first()
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid Token")
+    return user
 
 
 def get_oidc_client():

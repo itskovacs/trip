@@ -345,4 +345,12 @@ export class ApiService {
   postGmapsNearbySearch(data: any): Observable<GooglePlaceResult[]> {
     return this.httpClient.post<GooglePlaceResult[]>(`${this.apiBaseUrl}/places/google-nearby-search`, { ...data });
   }
+
+  enableTripApiToken(): Observable<string> {
+    return this.httpClient.put<string>(this.apiBaseUrl + '/settings/api_token', {});
+  }
+
+  disableTripApiToken(): Observable<{}> {
+    return this.httpClient.delete<{}>(this.apiBaseUrl + '/settings/api_token');
+  }
 }

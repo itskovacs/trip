@@ -60,6 +60,7 @@ import { MultiPlacesCreateModalComponent } from '../../modals/multi-places-creat
 import { LoaderComponent } from '../../shared/loader';
 import { GmapsMultilineCreateModalComponent } from '../../modals/gmaps-multiline-create-modal/gmaps-multiline-create-modal.component';
 import { UpdatePasswordModalComponent } from '../../modals/update-password-modal/update-password-modal.component';
+import { SettingsViewTokenComponent } from '../../modals/settings-view-token/settings-view-token.component';
 
 export interface ContextMenuItem {
   text: string;
@@ -117,6 +118,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   mapParamsExpanded = false;
   displaySettingsExpanded = false;
   dataFiltersExpanded = false;
+  accountSecurityExpanded = false;
+  accountIntegrationsExpanded = false;
   viewFilters = false;
   viewPlacesList = false;
   expandedPlacesList = false;
@@ -1176,6 +1179,55 @@ export class DashboardComponent implements OnInit, AfterViewInit {
                 'Error',
                 'Could not update the password. Ensure the current password is correct.',
               ),
+          });
+      },
+    });
+  }
+
+  toggleTripApiToken() {
+    if (!this.settings?.api_token) {
+      this.enableTripApiToken();
+      return;
+    }
+    this.disableTripApiToken();
+  }
+
+  enableTripApiToken() {
+    this.apiService.enableTripApiToken().subscribe({
+      next: (token) => {
+        if (!token || !this.settings) return;
+        this.settings.api_token = !!token;
+        this.dialogService.open(SettingsViewTokenComponent, {
+          header: 'TRIP API Key',
+          modal: true,
+          closable: true,
+          dismissableMask: true,
+          breakpoints: {
+            '640px': '90vw',
+          },
+          data: { token },
+        });
+      },
+    });
+  }
+
+  disableTripApiToken() {
+    let modal = this.dialogService.open(YesNoModalComponent, {
+      header: 'TRIP API Key',
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      breakpoints: {
+        '640px': '90vw',
+      },
+      data: 'Remove your API Token ?',
+    })!;
+
+    modal.onClose.subscribe({
+      next: (bool) => {
+        if (bool)
+          this.apiService.disableTripApiToken().subscribe({
+            next: () => (this.settings!.api_token = false),
           });
       },
     });
