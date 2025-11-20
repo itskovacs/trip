@@ -2,6 +2,7 @@ import * as L from 'leaflet';
 import 'leaflet.markercluster';
 import 'leaflet-contextmenu';
 import { GoogleBoundaries, Place } from '../types/poi';
+import { TripItem } from '../types/trip';
 
 export const DEFAULT_TILE_URL = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
 export interface ContextMenuItem {
@@ -64,11 +65,11 @@ export function createClusterGroup(): L.MarkerClusterGroup {
   });
 }
 
-export function tripDayMarker(item: { text: string; lat: number; lng: number; time?: string }): L.Marker {
-  const marker = new L.Marker([item.lat!, item.lng], {
+export function tripDayMarker(item: Partial<TripItem>): L.Marker {
+  const marker = new L.Marker([item.lat!, item.lng!], {
     icon: L.divIcon({
-      className: 'bg-black rounded-full',
-      iconSize: [14, 14],
+      className: 'bg-black rounded-lg',
+      iconSize: [12, 12],
     }),
   });
 

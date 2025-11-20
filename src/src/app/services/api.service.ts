@@ -1,7 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Category, GoogleBoundaries, GooglePlaceResult, Place } from '../types/poi';
-import { BehaviorSubject, map, Observable, shareReplay, tap } from 'rxjs';
+import { BehaviorSubject, map, Observable, shareReplay, take, tap } from 'rxjs';
 import { Info } from '../types/info';
 import { Backup, ImportResponse, Settings } from '../types/settings';
 import {
@@ -256,7 +256,7 @@ export class ApiService {
         .pipe(tap((settings) => this.settingsSubject.next(settings)));
     }
 
-    return this.settings$ as Observable<Settings>;
+    return (this.settings$ as Observable<Settings>).pipe(take(1));
   }
 
   putSettings(settings: Partial<Settings>): Observable<Settings> {

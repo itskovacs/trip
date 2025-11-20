@@ -21,6 +21,7 @@
       <div class="flex gap-2 items-center text-xs text-gray-500"><i class="pi pi-github"></i>itskovacs/trip</div>
     </div>
     <div class="flex items-center gap-2 print:hidden">
+      <p-button text label="BETA" severity="help" (click)="toBeta()" />
       <div class="flex">
         <p-button (click)="openMenuTripActionsItems($event)" severity="secondary" text icon="pi pi-ellipsis-h" />
         <p-menu #menuTripActions [model]="menuTripActionsItems" [popup]="true" />

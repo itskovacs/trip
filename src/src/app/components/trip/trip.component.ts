@@ -309,6 +309,10 @@ export class TripComponent implements AfterViewInit {
       });
   }
 
+  toBeta() {
+    this.router.navigate([`/trips/n/${this.trip?.id}`]);
+  }
+
   initMap(settings: Settings): void {
     const contentMenuItems = [
       {

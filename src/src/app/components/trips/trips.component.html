@@ -64,17 +64,13 @@
           </div>
 
           <div class="absolute bottom-3 left-3 flex items-center gap-2">
-            <span class="select-none rounded-lg bg-black/70 px-2 py-0.5 text-xs font-medium text-surface-50">
-              {{ trip.days || 0 }}
-              {{ trip.days > 1 ? 'days' : 'day' }}
-            </span>
+            <span class="select-none rounded-lg bg-black/70 px-2 py-0.5 text-xs font-medium text-surface-50">{{
+              trip.days || 0 }} {{ trip.days > 1 ? 'days' : 'day' }}</span>
           </div>
         </div>
 
         <div class="flex items-center justify-between gap-2 p-3">
-          <h3 class="truncate text-sm font-semibold tracking-tight text-surface-900">
-            {{ trip.name }}
-          </h3>
+          <h3 class="truncate text-sm font-semibold tracking-tight text-surface-900">{{ trip.name }}</h3>
 
           <div
             class="inline-flex shrink-0 h-7 w-7 items-center justify-center rounded-full bg-surface-50 text-surface-400 transition-all duration-300 group-hover:translate-x-0.5 group-hover:bg-primary-50 group-hover:text-primary-600">

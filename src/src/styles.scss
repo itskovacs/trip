@@ -252,6 +252,17 @@ html {
   }
 }
 
+@keyframes slide-from-y {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes slide-y-no-opacity {
   0% {
     transform: translateY(-20px);
@@ -286,16 +297,28 @@ html {
   animation: slide-x 0.3s both reverse;
 }
 
-.slide-y-no-opacity {
-  animation: slide-y-no-opacity 0.3s both normal;
-}
-
 .slide-y {
   animation: slide-y 0.3s both normal;
 }
 
 .a-slide-y {
   animation: slide-y 0.3s both reverse;
+}
+
+.slide-from-y {
+  animation: slide-from-y 0.3s both normal;
+}
+
+.a-slide-from-y {
+  animation: slide-from-y 0.3s both reverse;
+}
+
+.slide-y-no-opacity {
+  animation: slide-y-no-opacity 0.3s both normal;
+}
+
+.a-slide-y-no-opacity {
+  animation: slide-y-no-opacity 0.3s both reverse;
 }
 
 .expand {
