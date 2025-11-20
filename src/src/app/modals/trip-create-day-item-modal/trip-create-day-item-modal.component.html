@@ -1,163 +1,221 @@
-<section>
-  <div [formGroup]="itemForm">
-    <div class="grid md:grid-cols-5 gap-4">
-      @if (itemForm.get('id')?.value !== -1) {
-      <p-floatlabel variant="in" class="min-w-0">
-        <p-select [options]="days" optionValue="id" optionLabel="label" inputId="day_id" id="day_id"
-          scrollHeight="320px" appendTo="body" formControlName="day_id" [checkmark]="true" [filter]="true" fluid>
-          <ng-template let-day #item>
-            <div class="whitespace-normal">{{ day.label }}</div>
-          </ng-template>
-        </p-select>
-        <label for="day_id">Day</label>
-      </p-floatlabel>
-      } @else {
-      <p-multiselect [options]="days" optionValue="id" optionLabel="label" formControlName="day_id" placeholder="Days"
-        [showToggleAll]="false" display="chip" class="flex items-center" scrollHeight="320px" appendTo="body"
-        selectedItemsLabel="{0} days selected" fluid>
-        <ng-template let-day #item>
-          <div class="whitespace-normal">{{ day.label }}</div>
-        </ng-template>
-      </p-multiselect>
-      }
+<section class="mx-auto max-w-5xl space-y-6" [formGroup]="itemForm">
+  <div class="space-y-4">
+    <h2 class="text-sm font-semibold text-gray-900 dark:text-surface-50">Mandatory Information</h2>
 
-      <p-floatlabel variant="in" class="w-full">
-        <p-inputmask id="time" formControlName="time" mask="99?:99" fluid class="w-full" />
-        <label for="time">Time (HH, HH:MM)</label>
-      </p-floatlabel>
-
+    <div class="grid md:grid-cols-12 gap-4">
       <div class="md:col-span-3">
+        @if (itemForm.get('id')?.value !== -1) {
+        <p-floatlabel variant="in">
+          <p-select [options]="trip?.days" optionValue="id" optionLabel="label" inputId="day_id"
+            formControlName="day_id" scrollHeight="320px" appendTo="body" [checkmark]="true" [filter]="true" fluid>
+            <ng-template let-day #item>
+              <div class="whitespace-normal">{{ day.label }}</div>
+            </ng-template>
+          </p-select>
+          <label for="day_id">Day</label>
+        </p-floatlabel>
+        } @else {
+        <p-floatlabel variant="in">
+          <p-multiselect [options]="trip?.days" optionValue="id" optionLabel="label" formControlName="day_id"
+            [showToggleAll]="false" display="chip" scrollHeight="320px" appendTo="body"
+            selectedItemsLabel="{0} days selected" fluid>
+            <ng-template let-day #item>
+              <div class="whitespace-normal">{{ day.label }}</div>
+            </ng-template>
+          </p-multiselect>
+          <label>Days</label>
+        </p-floatlabel>
+        }
+      </div>
+
+      <div class="md:col-span-2">
+        <p-floatlabel variant="in">
+          <p-inputmask id="time" formControlName="time" mask="99?:99" fluid />
+          <label for="time">Time</label>
+        </p-floatlabel>
+      </div>
+
+      <div class="md:col-span-7">
         <p-floatlabel variant="in">
           <input id="text" formControlName="text" pInputText fluid />
-          <label for="text">Text</label>
+          <label for="text">Plan Text</label>
         </p-floatlabel>
       </div>
     </div>
+  </div>
 
-    <div class="mt-4 grid md:grid-cols-7 grid-cols-2 gap-4">
-      <p-floatlabel variant="in" class="col-span-2">
-        <p-select [options]="places" appendTo="body" optionValue="id" optionLabel="name" inputId="place" id="place"
-          [filter]="true" filterBy="name" formControlName="place" [showClear]="true" class="capitalize" fluid>
+  <div class="space-y-4">
+    <h2 class="text-sm font-semibold text-gray-900 dark:text-surface-50">Additional Details</h2>
 
+    <div class="grid md:grid-cols-5 gap-4">
+      <p-floatlabel variant="in" class="md:col-span-3">
+        <p-select [options]="places" appendTo="body" optionValue="id" optionLabel="name" inputId="place" [filter]="true"
+          filterBy="name" formControlName="place" [showClear]="true" fluid>
           <ng-template let-place #item>
-            <div class="flex items-center whitespace-normal gap-2" [class.text-gray-500]="place.placeUsage">
-              <img [src]="place.image || place.category.image" class="rounded-full size-6" />
+            <div class="flex items-center gap-2" [class.text-gray-500]="place.placeUsage">
+              <img [src]="place.image || place.category.image" class="rounded-md size-6 object-cover" />
               <div>{{ place.name }}</div>
             </div>
+          </ng-template>
+          <ng-template let-selected #selectedItem>
+            @if (selected) {
+            <div class="flex items-center gap-2">
+              <img [src]="selected.image || selected.category.image" class="rounded-md size-5 object-cover" />
+              <div>{{ selected.name }}</div>
+            </div>
+            }
           </ng-template>
         </p-select>
         <label for="place">Place</label>
       </p-floatlabel>
 
-      <p-floatlabel variant="in">
-        <input id="lat" formControlName="lat" pInputText fluid />
-        <label for="lat">Latitude</label>
-      </p-floatlabel>
-
-      <p-floatlabel variant="in">
-        <input id="lng" formControlName="lng" pInputText fluid />
-        <label for="lng">Longitude</label>
-      </p-floatlabel>
-
-      <p-inputgroup>
-        <p-floatlabel variant="in">
-          <p-inputnumber id="price" formControlName="price" mode="decimal" [minFractionDigits]="0"
-            [maxFractionDigits]="2" fluid />
-          <label for="price">Price</label>
-        </p-floatlabel>
-        @if (members.length > 1) {
-        <p-inputgroup-addon>
-          <p-button [icon]="itemForm.get('paid_by')?.value ? 'pi pi-check' : 'pi pi-user'" severity="secondary"
-            tabindex="-1" (onClick)="togglePriceMembersPopover($event)" class="h-full" />
-        </p-inputgroup-addon>
-        }
-      </p-inputgroup>
-
-      <p-floatlabel variant="in">
-        <p-select [options]="statuses" optionValue="label" optionLabel="label" inputId="status" id="status"
-          class="capitalize" formControlName="status" [checkmark]="true" [showClear]="true" fluid>
-          <ng-template #selectedItem let-selectedOption>
-            @if (selectedOption) {
+      <p-floatlabel variant="in" class="md:col-span-2">
+        <p-select [options]="statuses" optionValue="label" optionLabel="label" inputId="status" formControlName="status"
+          [checkmark]="true" [showClear]="true" fluid class="capitalize">
+          <ng-template let-option #item>
             <div class="flex items-center gap-2">
-              <div class="size-4 rounded-md" [style]="'background:'+selectedOption.color"></div>
-              <div>{{ selectedOption.label }}</div>
+              <div class="size-3 rounded-full" [style.background]="option.color"></div>
+              <div>{{ option.label }}</div>
+            </div>
+          </ng-template>
+          <ng-template let-selected #selectedItem>
+            @if (selected) {
+            <div class="flex items-center gap-2">
+              <div class="size-3 rounded-full" [style.background]="selected.color"></div>
+              <div>{{ selected.label }}</div>
             </div>
             }
-          </ng-template>
-          <ng-template let-option #item>
-            <div class="whitespace-normal">{{ option.label }}</div>
           </ng-template>
         </p-select>
         <label for="status">Status</label>
       </p-floatlabel>
 
-      <p-floatlabel variant="in">
-        <p-multiselect [options]="trip?.attachments ?? []" optionValue="id" optionLabel="filename"
-          formControlName="attachments" [showToggleAll]="false" class="flex items-center" scrollHeight="320px"
-          appendTo="body" selectedItemsLabel="{0} attachments selected" fluid>
-          <ng-template let-option #item>
-            <div class="whitespace-normal">{{ option.filename }}</div>
-          </ng-template>
-          <ng-template #footer>
-            <div class="p-3 flex justify-center">
-              <p-button (click)="fileUpload.click()" icon="pi pi-upload" label="Upload attachment" text />
-              <input type="file" style="display: none;" (change)="onFileUploadInputChange($event)" #fileUpload>
-            </div>
-          </ng-template>
-        </p-multiselect>
-        <label for="attachments">Attachments</label>
-      </p-floatlabel>
-    </div>
-
-    <div class="mt-4 grid col-span-full md:grid-cols-7">
-      <p-floatlabel variant="in" class="col-span-full md:col-span-5">
-        <textarea pTextarea id="comment" formControlName="comment" rows="3" autoResize fluid></textarea>
-        <label for="comment">Comment</label>
+      <p-floatlabel variant="in" class="md:col-span-2">
+        <input id="lat" formControlName="lat" pInputText fluid />
+        <label for="lat">Latitude</label>
       </p-floatlabel>
 
-      <div class="mt-4 md:mt-0 grid place-items-center">
-        @if (itemForm.get("image")?.value) {
-        <div class="w-2/3 relative group cursor-pointer" (click)="clearImage()">
-          <img [src]="itemForm.get('image')?.value"
-            class="w-full max-h-20 object-cover rounded-md shadow-lg transition-transform duration-300" />
-          <div
-            class="absolute inset-0 bg-black/50 rounded-md flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <i class="pi pi-trash text-white text-3xl"></i>
-          </div>
-        </div>
-        } @else {
-        <p-button text label="Select image" icon="pi pi-image" (click)="imageInput.click()" />
+      <p-floatlabel variant="in" class="md:col-span-2">
+        <input id="lng" formControlName="lng" pInputText fluid />
+        <label for="lng">Longitude</label>
+      </p-floatlabel>
+
+      <p-inputgroup class="h-full">
+        <p-floatlabel variant="in">
+          <p-inputnumber id="price" formControlName="price" mode="decimal" [minFractionDigits]="0"
+            [maxFractionDigits]="2" currency="EUR" locale="fr-FR" fluid />
+          <label for="price">Price</label>
+        </p-floatlabel>
+        @if (members.length > 1) {
+        <p-inputgroup-addon>
+          <p-button [icon]="itemForm.get('paid_by')?.value ? 'pi pi-user-check' : 'pi pi-user'"
+            [severity]="itemForm.get('paid_by')?.value ? 'primary' : 'secondary'"
+            [text]="!itemForm.get('paid_by')?.value" (onClick)="togglePriceMembersPopover($event)" />
+        </p-inputgroup-addon>
         }
-        <input type="file" accept="image/*" #imageInput class="hidden" (change)="onImageSelected($event)" />
+      </p-inputgroup>
+    </div>
+
+    <div class="grid md:grid-cols-[auto_1fr] gap-4">
+      <div
+        class="flex flex-col items-center justify-center gap-2 p-4 bg-surface-50 dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700">
+        <div class="relative group">
+          @if (itemForm.get("image_id")?.value || itemForm.get("image")?.value) {
+          <img [src]="itemForm.get('image')?.value || '/favicon.png'"
+            class="size-24 object-cover rounded-lg shadow ring-2 ring-surface-200 dark:ring-surface-700 cursor-pointer transition-all group-hover:ring-primary-400"
+            (click)="imageInput.click()" />
+          <div
+            class="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+            (click)="imageInput.click()">
+            <i class="pi pi-camera text-white text-2xl"></i>
+          </div>
+          @if (!itemForm.get("image_id")?.value) {
+          <button type="button"
+            class="cursor-pointer absolute -top-2 -right-2 size-7 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-full shadow transition"
+            (click)="clearImage(); $event.stopPropagation()">
+            <i class="pi pi-times text-xs"></i>
+          </button>
+          }
+          } @else {
+          <div
+            class="size-24 flex items-center justify-center bg-surface-100 dark:bg-surface-900 rounded-lg border-2 border-dashed border-surface-300 dark:border-surface-600 cursor-pointer transition hover:border-primary-400"
+            (click)="imageInput.click()">
+            <i class="pi pi-image text-3xl text-surface-400"></i>
+          </div>
+          }
+          <input type="file" accept="image/*" #imageInput class="hidden" (change)="onImageSelected($event)" />
+        </div>
       </div>
 
-      <div class="mt-4 md:mt-0 grid place-items-center">
-        <div class="flex justify-center items-center">
-          @if (itemForm.get('gpx')?.value) {
-          <p-button text icon="pi pi-times" label="GPX" severity="danger" (click)="clearGPX()" />
-          } @else {
-          <p-button text icon="pi pi-paperclip" label="GPX" (click)="gpxInput.click()" />
+      <div class="space-y-4">
+        <div class="grid md:grid-cols-3 gap-4">
+          <div
+            class="flex flex-wrap gap-4 p-3 bg-surface-50 dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700">
+            <div class="flex items-center gap-2">
+              @if (itemForm.get('gpx')?.value) {
+              <p-button icon="pi pi-check"
+                styleClass="hover:border-red-500! hover:bg-red-500! dark:hover:bg-red-900/40!" label="GPX"
+                severity="success" size="small" (click)="clearGPX()" />
+              } @else {
+              <p-button icon="pi pi-paperclip" label="GPX" severity="secondary" size="small"
+                (click)="gpxInput.click()" />
+              }
+              <input type="file" accept=".gpx" #gpxInput class="hidden" (change)="onGPXSelected($event)" />
+            </div>
+          </div>
+
+          <p-floatlabel variant="in" class="md:col-span-2">
+            <p-multiselect [options]="trip?.attachments ?? []" optionValue="id" optionLabel="filename"
+              formControlName="attachments" [showToggleAll]="false" display="chip" scrollHeight="320px" appendTo="body"
+              fluid>
+              <ng-template #footer>
+                <div class="p-2 border-t border-surface-200 dark:border-surface-700">
+                  <p-button (click)="fileUpload.click()" icon="pi pi-plus" label="Upload New" text size="small" fluid />
+                  <input type="file" class="hidden" (change)="onFileUploadInputChange($event)" #fileUpload>
+                </div>
+              </ng-template>
+            </p-multiselect>
+            <label for="attachments">Attachments</label>
+          </p-floatlabel>
+        </div>
+
+        <div class="relative">
+          <p-floatlabel variant="in">
+            <textarea pTextarea id="comment" formControlName="comment" rows="4" #descriptionInput autoResize fluid
+              class="!pr-10"></textarea>
+            <label for="comment">Comment</label>
+          </p-floatlabel>
+          @if (descriptionInput.value) {
+          <button type="button"
+            class="absolute right-2 top-2 size-8 flex items-center justify-center text-surface-400 hover:text-red-500 rounded-lg transition"
+            (click)="itemForm.get('comment')?.setValue('')" pTooltip="Clear">
+            <i class="pi pi-times"></i>
+          </button>
           }
-          <input type="file" accept=".gpx" #gpxInput class="hidden" (change)="onGPXSelected($event)" />
         </div>
       </div>
     </div>
   </div>
 
-  <div class="mt-4 text-right">
-    <p-button (click)="closeDialog()" [disabled]="!itemForm.dirty || !itemForm.valid">{{ itemForm.get("id")?.value
-      !== -1 ? "Update" : "Create" }}</p-button>
+  <div class="flex justify-end gap-3 pt-4 border-t border-surface-200 dark:border-surface-700">
+    <p-button [label]="itemForm.get('id')?.value !== -1 ? 'Update Item' : 'Create Item'" icon="pi pi-check"
+      [disabled]="!itemForm.dirty || !itemForm.valid" (click)="closeDialog()" />
   </div>
+
 </section>
 
 <p-popover #op>
-  <span class="font-medium block mb-2">Members</span>
-  <div class="flex flex-col gap-2">
-    @for (member of members; track member) {
-    <div class="flex items-center gap-2 p-2 hover:bg-emphasis cursor-pointer rounded-border"
-      [class.font-semibold]="itemForm.get('paid_by')?.value == member.user" (click)="selectPriceMember(member.user)">{{
-      member.user
-      }}</div>
+  <div class="flex flex-col gap-1 w-48">
+    <span class="text-xs font-semibold text-surface-500 px-2 mb-1">Paid By</span>
+    @for (member of members; track member.user) {
+    <button
+      class="flex items-center justify-between w-full p-2 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-md text-sm transition-colors text-left"
+      (click)="selectPriceMember(member.user)">
+      <span>{{ member.user }}</span>
+      @if (itemForm.get('paid_by')?.value == member.user) {
+      <i class="pi pi-check text-primary-500 text-xs"></i>
+      }
+    </button>
     }
   </div>
 </p-popover>

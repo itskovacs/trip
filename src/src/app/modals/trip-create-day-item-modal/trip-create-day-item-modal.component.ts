@@ -48,7 +48,6 @@ export class TripCreateDayItemModalComponent {
   @ViewChild('op') op!: Popover;
   members: TripMember[] = [];
   itemForm: FormGroup;
-  days: TripDay[] = [];
   places: Place[] = [];
   statuses: TripStatus[] = [];
   previous_image_id: number | null = null;
@@ -102,7 +101,6 @@ export class TripCreateDayItemModalComponent {
     if (data) {
       this.members = data.members ?? [];
       this.places = data.places ?? [];
-      this.days = data.days ?? [];
       this.trip = data.trip ?? [];
 
       if (data.item)
