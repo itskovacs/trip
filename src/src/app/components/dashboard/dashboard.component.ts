@@ -57,7 +57,6 @@ import { FileSizePipe } from '../../shared/filesize.pipe';
 import { TotpVerifyModalComponent } from '../../modals/totp-verify-modal/totp-verify-modal.component';
 import { MenuModule } from 'primeng/menu';
 import { MultiPlacesCreateModalComponent } from '../../modals/multi-places-create-modal/multi-places-create-modal.component';
-import { LoaderComponent } from '../../shared/loader';
 import { GmapsMultilineCreateModalComponent } from '../../modals/gmaps-multiline-create-modal/gmaps-multiline-create-modal.component';
 import { UpdatePasswordModalComponent } from '../../modals/update-password-modal/update-password-modal.component';
 import { SettingsViewTokenComponent } from '../../modals/settings-view-token/settings-view-token.component';
@@ -97,7 +96,6 @@ export interface MarkerOptions extends L.MarkerOptions {
     CommonModule,
     FileSizePipe,
     MenuModule,
-    LoaderComponent,
   ],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
@@ -738,7 +736,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const formdata = new FormData();
     formdata.append('file', input.files[0]);
 
-    this.loadingMessage = 'Ingesting your backup...';
+    this.utilsService.setLoading('Ingesting your backup...');
     this.apiService
       .settingsUserImport(formdata)
       .pipe(take(1))
@@ -760,9 +758,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           this.initMap();
           this.updateMarkersAndClusters();
           this.viewSettings = false;
-          this.loadingMessage = undefined;
+          this.utilsService.setLoading('');
         },
-        error: () => (this.loadingMessage = undefined),
+        error: () => this.utilsService.setLoading(''),
       });
   }
 
@@ -1273,7 +1271,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       const lines = text.split('\n').filter((line) => line.includes('!1s'));
       let processed = 0;
 
-      this.loadingMessage = `Querying Google Maps API... [0/${lines.length}]`;
+      this.utilsService.setLoading(`Querying Google Maps API... [0/${lines.length}]`);
       const batches: string[][] = [];
       for (let i = 0; i < lines.length; i += 10) {
         batches.push(lines.slice(i, i + 10));
@@ -1289,7 +1287,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             formdata.append('file', batchFile);
 
             processed += batch.length;
-            this.loadingMessage = `Querying Google Maps API... [${processed}/${lines.length}]`;
+            this.utilsService.setLoading(`Querying Google Maps API... [${processed}/${lines.length}]`);
 
             return this.apiService.postTakeoutFile(formdata).pipe(
               delay(batchIndex === batches.length - 1 ? 0 : 2500),
@@ -1309,7 +1307,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         .subscribe({
           next: (results) => {
             const places = results.flat();
-            this.loadingMessage = undefined;
+            this.utilsService.setLoading('');
             if (!places.length) {
               this.utilsService.toast('warn', 'No result', 'Google API did not return any place');
               return;
@@ -1323,14 +1321,14 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             this.multiPlaceModal(places);
           },
           error: () => {
-            this.loadingMessage = undefined;
+            this.utilsService.setLoading('');
           },
         });
     };
 
     reader.onerror = () => {
       alert('Error reading file.');
-      this.loadingMessage = undefined;
+      this.utilsService.setLoading('');
     };
 
     reader.readAsText(file);
@@ -1360,7 +1358,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     modal.onClose.subscribe({
       next: (bool: boolean) => {
         if (!bool) return;
-        this.loadingMessage = 'Querying Google Maps API...';
+        this.utilsService.setLoading('Querying Google Maps API...');
         const formdata = new FormData();
         formdata.append('file', file);
         this.apiService
@@ -1368,14 +1366,14 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           .pipe(take(1))
           .subscribe({
             next: (places) => {
-              this.loadingMessage = undefined;
+              this.utilsService.setLoading('');
               if (!places.length) {
                 this.utilsService.toast('warn', 'No result', 'Your KMZ does not contain any Google Maps places');
                 return;
               }
               this.multiPlaceModal(places);
             },
-            error: () => (this.loadingMessage = undefined),
+            error: () => this.utilsService.setLoading(''),
           });
       },
     });
@@ -1427,7 +1425,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       next: (places: Place[] | null) => {
         if (!places) return;
         const obs$ = places.map((p) => this.apiService.postPlace(p));
-        this.loadingMessage = 'Creating places...';
+        this.utilsService.setLoading('Creating places...');
         forkJoin(obs$)
           .pipe(take(1))
           .subscribe({
@@ -1436,10 +1434,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
               setTimeout(() => {
                 this.updateMarkersAndClusters();
               }, 10);
-              this.loadingMessage = undefined;
+              this.utilsService.setLoading('');
             },
             error: () => {
-              this.loadingMessage = undefined;
+              this.utilsService.setLoading('');
             },
           });
       },
@@ -1501,20 +1499,20 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     modal.onClose.pipe(take(1)).subscribe({
       next: (links: string[] | null) => {
         if (!links) return;
-        this.loadingMessage = 'Querying Google Maps API...';
+        this.utilsService.setLoading('Querying Google Maps API...');
         this.apiService
           .postGmapsMultiline(links)
           .pipe(take(1))
           .subscribe({
             next: (places) => {
-              this.loadingMessage = undefined;
+              this.utilsService.setLoading('');
               if (!places.length) {
                 this.utilsService.toast('warn', 'No result', 'Google API did not return any place');
                 return;
               }
               this.multiPlaceModal(places);
             },
-            error: () => (this.loadingMessage = undefined),
+            error: () => this.utilsService.setLoading(''),
           });
       },
     });
@@ -1526,21 +1524,21 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   googleNearbyPlaces(data: L.LeafletMouseEvent) {
-    this.loadingMessage = `Querying Google Maps API... `;
+    this.utilsService.setLoading(`Querying Google Maps API... `);
     const latlng = { latitude: data.latlng.lat, longitude: data.latlng.lng };
     this.apiService
       .postGmapsNearbySearch(latlng)
       .pipe(take(1))
       .subscribe({
         next: (places) => {
-          this.loadingMessage = undefined;
+          this.utilsService.setLoading('');
           if (!places.length) {
             this.utilsService.toast('warn', 'No result', 'Google API did not return any place');
             return;
           }
           this.multiPlaceModal(places);
         },
-        error: () => (this.loadingMessage = undefined),
+        error: () => this.utilsService.setLoading(''),
       });
   }
 }

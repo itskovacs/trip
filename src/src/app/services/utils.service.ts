@@ -14,6 +14,7 @@ export class UtilsService {
   private apiService = inject(ApiService);
   currency$ = this.apiService.settings$.pipe(map((s) => s?.currency ?? '€'));
   packingListToCopy: Partial<PackingItem>[] = [];
+  readonly loadingMessage = signal<string>('');
 
   readonly statuses: TripStatus[] = [
     { label: 'pending', color: '#3258A8' },
@@ -49,6 +50,10 @@ export class UtilsService {
       detail,
       life,
     });
+  }
+
+  setLoading(message: string) {
+    this.loadingMessage.set(message);
   }
 
   parseGoogleMapsUrl(url: string): [place: string, latlng: string] {
