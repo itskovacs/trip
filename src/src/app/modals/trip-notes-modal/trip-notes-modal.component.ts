@@ -28,7 +28,7 @@ export class TripNotesModalComponent {
   }
 
   cancelEditing() {
-    this.notes.setValue(this.config.data);
+    this.notes.setValue(this.config.data.notes);
     this.notes.markAsPristine();
     this.toggleEditing();
   }
