@@ -13,8 +13,8 @@ from ..models.models import (Category, GooglePlaceResult, Image,
 from ..security import verify_exists_and_owns
 from ..utils.csv import iter_csv_lines
 from ..utils.gmaps import (gmaps_get_boundaries, gmaps_nearbysearch,
-                           gmaps_textsearch, gmaps_url_to_search,
-                           result_to_place)
+                           gmaps_resolve_shortlink, gmaps_textsearch,
+                           gmaps_url_to_search, result_to_place)
 from ..utils.utils import (b64img_decode, download_file, patch_image,
                            save_image_to_file)
 from ..utils.zip import parse_mymaps_kmz
@@ -303,6 +303,26 @@ async def google_nearby_search(
         db_user.google_apikey,
         _process_result,
     )
+
+
+@router.get("/google-resolve/{id}")
+async def google_resolve_shortlink(
+    id: str, session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]
+) -> GooglePlaceResult:
+    if not id:
+        raise HTTPException(status_code=400, detail="Bad Request")
+
+    db_user = session.get(User, current_user)
+    if not db_user or not db_user.google_apikey:
+        raise HTTPException(status_code=400, detail="Google Maps API key not configured")
+
+    url = await gmaps_resolve_shortlink(id)
+    if not url:
+        raise HTTPException(status_code=400, detail="Bad Request")
+
+    if place_data := await gmaps_url_to_search(url, db_user.google_apikey):
+        return await result_to_place(place_data, db_user.google_apikey)
+    raise HTTPException(status_code=400, detail="Bad Request")
 
 
 @router.put("/{place_id}", response_model=PlaceRead)

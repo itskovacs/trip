@@ -51,12 +51,8 @@ export class PlaceCreateModalComponent {
   categories$?: Observable<Category[]>;
   previous_image_id: number | null = null;
   previous_image: string | null = null;
-  gmapsLoading = false;
-
   showImageUrlDialog = false;
   imageUrl = '';
-  placeInputTooltip: string =
-    "<div class='text-center'>You can paste a Google Maps Place link to fill <i>Name</i>, <i>Place</i>, <i>Lat</i>, <i>Lng</i>.</div>\n<div class='text-sm text-center'>https://google.com/maps/place/XXX</div>\n<div class='text-xs text-center'>Either « click » on a point of interest or « search » for it (eg: British Museum) and copy the URL</div>";
 
   constructor(
     private ref: DynamicDialogRef,
@@ -101,19 +97,18 @@ export class PlaceCreateModalComponent {
 
     const patchValue = this.config.data?.place as Place | undefined;
     if (patchValue) this.placeForm.patchValue(patchValue);
-
     this.placeForm
       .get('place')
       ?.valueChanges.pipe(takeUntilDestroyed())
       .subscribe({
         next: (value: string) => {
           const isGoogleMapsURL = /^(https?:\/\/)?(www\.)?google\.[a-z.]+\/maps/.test(value);
-          if (isGoogleMapsURL) {
-            this.parseGoogleMapsUrl(value);
-          }
+          if (isGoogleMapsURL) this._parseGoogleMapsPlaceUrl(value);
+
+          const shortLinkMatch = /^https:\/\/maps.app.goo.gl\/([^\/]+)/.test(value);
+          if (shortLinkMatch) this._parseGoogleMapsShortUrl(value);
         },
       });
-
     this.placeForm
       .get('lat')
       ?.valueChanges.pipe(takeUntilDestroyed())
@@ -150,16 +145,33 @@ export class PlaceCreateModalComponent {
     this.ref.close(ret);
   }
 
-  parseGoogleMapsUrl(url: string): void {
-    const [place, latlng] = this.utilsService.parseGoogleMapsUrl(url);
+  _parseGoogleMapsPlaceUrl(url: string): void {
+    const [place, latlng] = this.utilsService.parseGoogleMapsPlaceUrl(url);
     if (!place || !latlng) return;
-
     const [lat, lng] = latlng.split(',');
     this.placeForm.get('place')?.setValue(place);
     this.placeForm.get('lat')?.setValue(lat);
     this.placeForm.get('lng')?.setValue(lng);
-
     if (!this.placeForm.get('name')?.value) this.placeForm.get('name')?.setValue(place);
+  }
+
+  _parseGoogleMapsShortUrl(url: string) {
+    const id = this.utilsService.parseGoogleMapsShortUrl(url);
+    if (!id) return;
+    this.utilsService.setLoading('Querying Google Maps API...');
+    this.apiService
+      .resolveGmapsShortLink(id)
+      .pipe(take(1))
+      .subscribe({
+        next: (result) => {
+          this.utilsService.setLoading('');
+          this.gmapsToForm(result);
+        },
+        error: () => {
+          this.utilsService.setLoading('');
+          this.utilsService.toast('error', 'Error', 'Could not parse maps.app.goo.gl identifier');
+        },
+      });
   }
 
   onImageSelected(event: Event) {
@@ -216,7 +228,7 @@ export class PlaceCreateModalComponent {
   gmapsToForm(r: GooglePlaceResult) {
     this.placeForm.patchValue({ ...r, lat: formatLatLng(r.lat), lng: formatLatLng(r.lng), place: r.name || '' });
     this.placeForm.get('category')?.markAsDirty();
-    this.gmapsLoading = false;
+    this.utilsService.setLoading('');
     if (r.category) {
       this.categories$?.pipe(take(1)).subscribe({
         next: (categories) => {
@@ -229,14 +241,14 @@ export class PlaceCreateModalComponent {
   }
 
   gmapsSearchText() {
-    this.gmapsLoading = true;
+    this.utilsService.setLoading('Querying Google Maps API...');
     const query = this.placeForm.get('name')?.value;
     if (!query) return;
     this.apiService.gmapsSearchText(query).subscribe({
       next: (results) => {
+        this.utilsService.setLoading('');
         if (!results.length) {
           this.utilsService.toast('warn', 'No result', 'No result available for this autocompletion');
-          this.gmapsLoading = false;
           return;
         }
 
@@ -261,10 +273,7 @@ export class PlaceCreateModalComponent {
 
         modal.onClose.pipe(take(1)).subscribe({
           next: (result: GooglePlaceResult | null) => {
-            if (!result) {
-              this.gmapsLoading = false;
-              return;
-            }
+            if (!result) return;
             this.gmapsToForm(result);
           },
         });

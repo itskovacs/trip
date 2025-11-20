@@ -10,15 +10,9 @@
           <label for="name">Name</label>
         </p-floatlabel>
         <div class="absolute right-3 top-1/2 -translate-y-1/2">
-          @if (gmapsLoading) {
-          <i class="pi pi-spin pi-spinner text-primary-500"></i>
-          } @else {
-          <button type="button" [disabled]="!placeForm.get('name')!.value"
+          <p-button [disabled]="!placeForm.get('name')!.value" text icon="pi pi-sparkles"
             class="cursor-pointer text-surface-400 hover:text-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            pTooltip="Complete using GMaps API" (click)="gmapsSearchText()">
-            <i class="pi pi-sparkles text-xl"></i>
-          </button>
-          }
+            pTooltip="Complete using GMaps API" (click)="gmapsSearchText()" />
         </div>
       </div>
 
@@ -33,28 +27,29 @@
       </p-floatlabel>
     </div>
 
-    <div class="grid md:grid-cols-4 gap-4">
+    <div class="grid md:grid-cols-4 items-start gap-4">
       <div class="md:col-span-3">
-        <p-inputgroup>
-          <p-floatlabel variant="in">
-            <input id="place" formControlName="place" pInputText fluid />
-            <label for="place">Place</label>
-          </p-floatlabel>
-          <button type="button" pButton icon="pi pi-info-circle" severity="secondary" [outlined]="true"
-            [pTooltip]="placeInputTooltip" [escape]="false" tooltipEvent="focus"></button>
-        </p-inputgroup>
+        <p-floatlabel variant="in">
+          <input id="place" aria-describedby="username-help" formControlName="place" pInputText fluid />
+          <label for="place">Place</label>
+        </p-floatlabel>
+        <span class="select-none text-xs text-gray-500">Supports <i>google.com/maps/place/</i> and
+          <i>https://maps.app.goo.gl</i>
+          (Google API Key required)</span>
       </div>
 
-      <p-floatlabel variant="in">
-        <p-select [options]="(categories$ | async) || []" optionValue="id" optionLabel="name"
-          [loading]="!(categories$ | async)?.length" inputId="category" formControlName="category" [checkmark]="true"
-          fluid>
-          <ng-template let-category #item>
-            <div class="capitalize whitespace-normal">{{ category.name }}</div>
-          </ng-template>
-        </p-select>
-        <label for="category">Category</label>
-      </p-floatlabel>
+      <div>
+        <p-floatlabel variant="in">
+          <p-select [options]="(categories$ | async) || []" optionValue="id" optionLabel="name"
+            [loading]="!(categories$ | async)?.length" inputId="category" formControlName="category" [checkmark]="true"
+            fluid>
+            <ng-template let-category #item>
+              <div class="capitalize whitespace-normal">{{ category.name }}</div>
+            </ng-template>
+          </p-select>
+          <label for="category">Category</label>
+        </p-floatlabel>
+      </div>
     </div>
   </div>
 

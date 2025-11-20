@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { MessageService } from 'primeng/api';
 import { PackingItem, TripStatus } from '../types/trip';
 import { ApiService } from './api.service';
@@ -56,7 +56,7 @@ export class UtilsService {
     this.loadingMessage.set(message);
   }
 
-  parseGoogleMapsUrl(url: string): [place: string, latlng: string] {
+  parseGoogleMapsPlaceUrl(url: string): [place: string, latlng: string] {
     // Look /place/<place>/ and !3d<lat> and !4d<lng>
     const placeMatch = url.match(/\/place\/([^\/]+)/);
     const latMatch = url.match(/!3d([\d\-.]+)/);
@@ -71,5 +71,12 @@ export class UtilsService {
     const place = decodeURIComponent(placeMatch[1].replace(/\+/g, ' ').trim());
     const latlng = `${latMatch[1]},${lngMatch[1]}`;
     return [place, latlng];
+  }
+
+  parseGoogleMapsShortUrl(url: string) {
+    // Look maps.app.goo.gl/<id>/
+    const shortLinkMatch = url.match(/^https:\/\/maps.app.goo.gl\/([^?]+)/);
+    if (!shortLinkMatch) return null;
+    return shortLinkMatch[1];
   }
 }

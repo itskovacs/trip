@@ -353,4 +353,8 @@ export class ApiService {
   disableTripApiToken(): Observable<{}> {
     return this.httpClient.delete<{}>(this.apiBaseUrl + '/settings/api_token');
   }
+
+  resolveGmapsShortLink(id: string): Observable<GooglePlaceResult> {
+    return this.httpClient.get<GooglePlaceResult>(`${this.apiBaseUrl}/places/google-resolve/${id}`);
+  }
 }

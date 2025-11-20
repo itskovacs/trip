@@ -16,7 +16,7 @@ GMAPS_TYPES_MAPPER: dict[str, list] = {
     "Accommodation": ["hotel", "camping"],
 }
 
-CID_PATTERN: re.Pattern[str] = re.compile(r"!1s(0x[0-9a-fA-F]+):(0x[0-9a-fA-F]+)")
+CID_PATTERN: re.Pattern[str] = re.compile(r"(0x[0-9a-fA-F]+):(0x[0-9a-fA-F]+)")
 
 
 async def result_to_place(place, api_key: str) -> GooglePlaceResult:
@@ -195,5 +195,16 @@ async def gmaps_nearbysearch(location: dict[str, Any], api_key: str) -> list[dic
             response.raise_for_status()
             data = response.json()
             return data.get("places", [])
+    except Exception:
+        raise HTTPException(status_code=400, detail="Bad Request")
+
+
+async def gmaps_resolve_shortlink(id: str) -> str:
+    url = f"https://maps.app.goo.gl/{id}"
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.get(url, follow_redirects=True)
+            response.raise_for_status()
+            return str(response.url)
     except Exception:
         raise HTTPException(status_code=400, detail="Bad Request")
