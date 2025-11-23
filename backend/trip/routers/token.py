@@ -82,7 +82,7 @@ def token_read_categories(
     return [CategoryRead.serialize(category) for category in db_categories]
 
 
-@router.get("/google-search")
+@router.post("/google-search")
 async def token_google_search(
     data: TokenGoogleSearch, session: SessionDep, X_Api_Token: Annotated[str | None, Header()] = None
 ) -> PlaceRead:
