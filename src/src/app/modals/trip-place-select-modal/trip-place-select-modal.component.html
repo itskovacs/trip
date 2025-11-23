@@ -1,133 +1,177 @@
 <section>
-  <div class="max-w-full overflow-y-auto">
-
-    <div class="mt-8 flex justify-between items-center gap-4 cursor-pointer"
-      (click)="showSelectedPlaces = !showSelectedPlaces">
-      <div class="flex flex-col">
-        <div class="flex items-center gap-2">
-          <h1 class="font-semibold tracking-tight text-xl">Selected</h1>
-          <span class="bg-blue-100 text-blue-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-blue-100/85"> {{
-            selectedPlaces.length }}</span>
+  <div
+    class="rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-200">
+    <div (click)="showSelectedPlaces = !showSelectedPlaces"
+      class="select-none w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer">
+      <div class="flex items-center gap-3">
+        <div class="flex items-center justify-center min-w-10 min-h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+          <i class="pi pi-check text-blue-600 dark:text-blue-400"></i>
         </div>
-        <span class="text-xs text-gray-500">Here are your selected place{{ selectedPlaces.length > 1 ? 's' : ''
-          }}</span>
+        <div class="flex flex-col items-start">
+          <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100 line-clamp-1">Selected</h2>
+          <p class="text-xs text-gray-500 dark:text-gray-400">{{ selectedPlaces.length }} place{{
+            selectedPlaces.length > 1 ? 's' : '' }} associated</p>
+        </div>
       </div>
-
-      <p-button [icon]="showSelectedPlaces ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" text />
+      <i [class]="showSelectedPlaces ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+        class="text-gray-400 transition-transform duration-200"></i>
     </div>
 
     @if (showSelectedPlaces) {
-    @for (p of selectedPlaces; track p.id) {
-    <div
-      class="mt-4 flex items-center gap-4 hover:bg-gray-50 rounded-xl cursor-pointer py-2 px-4 dark:hover:bg-gray-800"
-      (click)="togglePlace(p)">
-      <img [src]="p.image || p.category.image" class="w-12 rounded-full object-fit">
+    <div class="flex justify-end px-4">
+      <p-button icon="pi pi-minus-circle" severity="danger" text label="Deselect All" (click)="deselectAll()" />
+    </div>
 
-      <div class="flex flex-col gap-1 truncate">
-        <h1 class="tracking-tight truncate dark:text-surface-300">{{ p.name }}</h1>
-        <span class="text-xs text-gray-500 truncate">{{ p.place }}</span>
+    <div class="grid grid-cols-1 gap-2 px-4 py-2 md:grid-cols-2 lg:grid-cols-3">
+      @for (p of selectedPlaces; track p.id) {
+      <div (click)="togglePlace(p)"
+        class="group relative cursor-pointer rounded-xl border border-transparent p-3 transition-colors hover:border-surface-200 hover:bg-surface-50 dark:hover:border-surface-700 dark:hover:bg-surface-900">
+        <div class="flex items-center gap-3 min-w-0">
+          <div class="relative h-14 w-14 shrink-0">
+            <img [src]="p.image || p.category.image" loading="lazy" class="h-full w-full rounded object-cover" />
 
-        <div class="flex gap-0.5">
-          @if (p.allowdog) {
-          <span class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-green-100/85">🐶</span>
-          } @else {
-          <span class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-red-100/85">🐶</span>
-          }
+            <div
+              class="absolute inset-0 hidden items-center justify-center rounded bg-black/40 text-white group-hover:flex">
+              <i class="pi pi-times text-2xl"></i>
+            </div>
+          </div>
 
-          @if (p.visited) {
-          <span class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-green-100/85"><i
-              class="pi pi-eye text-xs"></i></span>
-          } @else {
-          <span class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-red-100/85"><i
-              class="pi pi-eye-slash text-xs"></i></span>
-          }
+          <div class="min-w-0 flex-1">
+            <h3 class="mb-0.5 truncate text-sm font-semibold text-gray-900 dark:text-white">
+              {{ p.name }}
+            </h3>
+            <p class="mb-1.5 truncate text-xs text-gray-500 dark:text-gray-400">
+              {{ p.place }}
+            </p>
 
-          <span
-            class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded flex gap-2 items-center truncate dark:bg-blue-100/85"><i
-              class="pi pi-box text-xs"></i>{{ p.category.name }}</span>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-medium"
+                [style.background]="p.category.color + '1A'" [style.color]="p.category.color">
+                {{ p.category.name }}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
+      }
     </div>
     }
-    }
+  </div>
 
-    <div class="mt-8 mb-16">
-      <h1 class="font-semibold tracking-tight text-xl">List</h1>
-      <span class="text-xs text-gray-500">Available Places</span>
-      @defer {
-
-      <div class="grid md:grid-cols-3 gap-2 mt-2 p-2">
-        <p-floatlabel variant="in" class="md:col-span-2">
+  <div class="mt-8 mb-16">
+    <div class="mb-3 flex flex-col gap-1">
+      <h1 class="text-base font-semibold tracking-tight">
+        List
+      </h1>
+      <span class="text-xs text-surface-500 dark:text-surface-400">
+        Available places
+      </span>
+    </div>
+    @defer {
+    <div
+      class="grid gap-2 rounded-xl border border-surface-200/70 bg-surface-0/80 p-3 backdrop-blur-sm dark:border-surface-700/70 dark:bg-surface-900/80 md:grid-cols-3">
+      <div class="relative md:col-span-2">
+        <p-floatlabel variant="in">
           <input id="search" pSize="small" [formControl]="searchInput" pInputText fluid />
           <label for="search">Search...</label>
         </p-floatlabel>
 
-        <div class="relative">
-          <p-floatlabel variant="in">
-            <input id="geocodeInput" pSize="small" (keydown.enter)="gmapsGeocodeFilter()"
-              [formControl]="googleGeocodeInput" pInputText autofocus fluid />
-            <label for="geocodeInput">Filter by Country / City </label>
-          </p-floatlabel>
-
-          @if (boundariesFiltering) {<p-button icon="pi pi-times" text severity="danger" size="small"
-            class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Clear and Cancel"
-            (click)="resetGeocodeFilters()" />}
-          @else {<p-button icon="pi pi-sparkles" text [disabled]="!googleGeocodeInput.value" size="small"
-            class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Filter using location (GMaps API)"
-            (click)="gmapsGeocodeFilter()" />}
-        </div>
+        @if (searchInput.value) {
+        <p-button icon="pi pi-times" text severity="danger" size="small"
+          class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Clear and Cancel"
+          (click)="searchInput.setValue('')" />
+        }
       </div>
 
-      @if (boundariesFiltering) {
-      <div class="mt-4 flex justify-center items-center gap-1">
-        <p class="text-gray-500 dark:text-gray-400">Filtering for location: {{ googleGeocodeInput.value }}</p>
+      <div class="relative">
+        <p-floatlabel variant="in">
+          <input id="geocodeInput" pSize="small" (keydown.enter)="gmapsGeocodeFilter()"
+            [formControl]="googleGeocodeInput" pInputText autofocus fluid />
+          <label for="geocodeInput">Filter by Country / City </label>
+        </p-floatlabel>
+
+        @if (boundariesFiltering) {<p-button icon="pi pi-times" text severity="danger" size="small"
+          class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Clear and Cancel"
+          (click)="resetGeocodeFilters()" />}
+        @else {<p-button icon="pi pi-sparkles" text [disabled]="!googleGeocodeInput.value" size="small"
+          class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Filter using location (GMaps API)"
+          (click)="gmapsGeocodeFilter()" />}
+      </div>
+    </div>
+
+    @if (boundariesFiltering) {
+    <div class="px-4 pt-1 flex flex-col md:flex-row justify-center md:justify-between items-center gap-1">
+      <div class="flex items-center gap-2">
+        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Filtering for location: <b>{{
+            googleGeocodeInput.value }}</b></p>
         <p-button icon="pi pi-times" text severity="danger" pTooltip="Clear" (click)="resetGeocodeFilters()" />
       </div>
-      }
+      <p-button icon="pi pi-check-circle" severity="success" text label="Select All" (click)="selectAll()" />
+    </div>
+    } @else {
+    <div class="flex justify-end px-4 pt-1">
+      <p-button icon="pi pi-check-circle" severity="success" text label="Select All" (click)="selectAll()" />
+    </div>
+    }
 
+    <div class="grid grid-cols-1 gap-2 px-4 py-2 md:grid-cols-2 lg:grid-cols-3">
       @for (p of displayedPlaces; track p.id) {
-      <div
-        class="mt-4 flex items-center gap-4 hover:bg-gray-50 rounded-xl cursor-pointer py-2 px-4 dark:hover:bg-gray-800"
-        [class.font-bold]="selectedPlacesID.includes(p.id)" (click)="togglePlace(p)">
-        <div class="flex flex-col gap-1 truncate">
-          <h1 class="tracking-tight truncate dark:text-surface-300">{{ p.name }}</h1>
-          <span class="text-xs text-gray-500 truncate">{{ p.place }}</span>
+      <div (click)="togglePlace(p)" class="group relative cursor-pointer rounded-xl border border-transparent p-3 transition-colors hover:border-surface-200
+          hover:bg-surface-50 dark:hover:border-surface-700 dark:hover:bg-surface-900">
+        <div class="flex items-center gap-3">
+          <div class="relative h-14 w-14 shrink-0">
+            <img [src]="p.image || p.category.image" loading="lazy" class="h-full w-full rounded object-cover" />
+            <div [class]="selectedPlacesID.includes(p.id) ? 'flex': 'hidden'"
+              class="absolute inset-0 items-center justify-center rounded bg-black/40 text-white">
+              <i class="pi pi-check"></i>
+            </div>
+          </div>
 
-          <div class="flex gap-0.5">
-            @if (p.allowdog) {
-            <span class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-green-100/85">🐶</span>
-            } @else {
-            <span class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-red-100/85">🐶</span>
-            }
+          <div class="min-w-0 flex-1">
+            <h3 class="mb-0.5 truncate text-sm font-semibold text-gray-900 dark:text-white">
+              {{ p.name }}
+            </h3>
+            <p class="mb-1.5 truncate text-xs text-gray-500 dark:text-gray-400">
+              {{ p.place }}
+            </p>
 
-            @if (p.visited) {
-            <span class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-green-100/85"><i
-                class="pi pi-eye text-xs"></i></span>
-            } @else {
-            <span class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-red-100/85"><i
-                class="pi pi-eye-slash text-xs"></i></span>
-            }
-
-            <span
-              class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded flex gap-2 items-center truncate dark:bg-blue-100/85"><i
-                class="pi pi-box text-xs"></i>{{ p.category.name }}</span>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-medium"
+                [style.background]="p.category.color + '1A'" [style.color]="p.category.color">
+                {{ p.category.name }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
       } @empty {
-      <div class="mt-8 text-center">
-        <p class="text-base text-gray-500 dark:text-gray-400">Nothing to see</p>
-      </div>
-      }
-
-      <div class="z-50 absolute w-full bg-white shadow p-4 bottom-0 left-0 text-center dark:bg-surface-900">
-        <p-button (click)="closeDialog()" label="Confirm" severity="secondary" />
-      </div>
-      } @placeholder (minimum 0.4s) {
-      <div class="my-2">
-        <p-skeleton height="4rem" />
+      <div class="col-span-full mt-8 text-center">
+        <p class="font-medium text-gray-500 dark:text-gray-400">Nothing to see</p>
       </div>
       }
     </div>
+
+    <div class="fixed inset-x-0 bottom-0 z-20 flex justify-center p-4">
+      <div
+        class="flex w-full max-w-md items-center justify-between gap-3 rounded-lg border border-surface-200/70 bg-surface-0/90 px-4 py-2.5 shadow-sm backdrop-blur-md dark:border-surface-700/70 dark:bg-surface-900/90">
+        <div class="flex flex-col">
+          <span class="text-xs font-semibold text-surface-700 dark:text-surface-200">
+            {{ selectedPlaces.length }} place{{ selectedPlaces.length === 1 ? '' : 's' }} selected
+          </span>
+          <span class="text-[11px] text-surface-500 dark:text-surface-400">
+            Confirm to apply your selection
+          </span>
+        </div>
+
+        <p-button (click)="closeDialog()" label="Confirm" size="small" severity="secondary" />
+      </div>
+    </div>
+    } @placeholder (minimum 0.4s) {
+    <div class="grid gap-2 px-4 py-2 md:grid-cols-2 lg:grid-cols-3">
+      @for (_ of [1,2,3,4]; track _) {
+      <p-skeleton height="5rem" />
+      }
+    </div>
+    }
   </div>
 </section>

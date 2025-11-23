@@ -106,6 +106,28 @@ export class TripPlaceSelectModalComponent {
     this.ref.close(this.selectedPlaces);
   }
 
+  selectAll() {
+    const toAdd = this.displayedPlaces.filter((p) => !this.selectedPlacesID.includes(p.id));
+    this.selectedPlacesID.push(...toAdd.map((p) => p.id));
+    this.selectedPlaces.push(...toAdd);
+    this.selectedPlaces.sort((a, b) => a.name.localeCompare(b.name));
+  }
+
+  deselectAll() {
+    const hasUsedPlace = this.selectedPlaces.some((p) => this.usedPlacesID.has(p.id));
+    if (hasUsedPlace) {
+      this.utilsService.toast(
+        'error',
+        'Place in use',
+        'One or more selected places are currently used in your plans, remove them from your plans before unselecting all places',
+        4000,
+      );
+      return;
+    }
+    this.selectedPlaces = [];
+    this.selectedPlacesID = [];
+  }
+
   gmapsGeocodeFilter() {
     const value = this.googleGeocodeInput.value;
     if (!value) return;
