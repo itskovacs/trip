@@ -114,7 +114,7 @@ class GooglePlaceResult(BaseModel):
     lat: float | None = None
     lng: float | None = None
     price: float | None = None
-    allowsdog: bool | None = None
+    allowdog: bool | None = None
     description: str | None = None
     types: list[str] = []
     image: str | None = None

@@ -198,7 +198,6 @@ def generate_user_api_token(
         raise HTTPException(status_code=400, detail="Bad request")
 
     token = generate_urlsafe()
-    print("token:", token)
     setattr(db_user, "api_token", token)
     session.add(db_user)
     session.commit()

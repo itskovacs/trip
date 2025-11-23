@@ -17,7 +17,7 @@ router = APIRouter(prefix="/api/categories", tags=["categories"])
 @router.get("", response_model=list[CategoryRead])
 def read_categories(
     session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]
-) -> list[Category]:
+) -> list[CategoryRead]:
     db_categories = session.exec(
         select(Category).options(selectinload(Category.image)).where(Category.user == current_user)
     ).all()

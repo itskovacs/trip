@@ -28,7 +28,7 @@ async def result_to_place(place, api_key: str) -> GooglePlaceResult:
         lng=loc.get("longitude", None),
         price=_compute_avg_price(place.get("priceRange")),
         types=place.get("types", []),
-        allowdog=place.get("allowDogs"),
+        allowdog=place.get("allowsDogs"),
         description=_compute_description(place),
     )
     if photos := place.get("photos"):
