@@ -7,13 +7,13 @@ from fastapi import HTTPException
 from ..models.models import GooglePlaceResult
 
 GMAPS_TYPES_MAPPER: dict[str, list] = {
-    "Nature & Outdoor": ["natural_feature", "landmark"],
     "Entertainment & Leisure": ["amusement", "aquarium"],
-    "Culture": ["museum", "historical", "art_", "church"],
+    "Culture": ["monument", "historical_place", "museum", "historical", "art_", "church"],
     "Food & Drink": ["food", "bar", "bakery", "coffee_shop", "restaurant"],
     "Adventure & Sports": ["adventure_sports_center"],
     "Wellness": ["wellness"],
     "Accommodation": ["hotel", "camping"],
+    "Nature & Outdoor": ["natural_feature", "landmark"],
 }
 
 CID_PATTERN: re.Pattern[str] = re.compile(r"(0x[0-9a-fA-F]+):(0x[0-9a-fA-F]+)")
