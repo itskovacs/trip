@@ -283,6 +283,7 @@ export class PlaceCreateModalComponent {
 
   toggleCheckbox(k: string) {
     this.placeForm.get(k)?.setValue(!this.placeForm.get(k)?.value);
+    this.placeForm.markAsDirty();
   }
 
   onCancel() {
