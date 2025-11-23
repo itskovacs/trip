@@ -107,6 +107,11 @@ class PendingTOTP(BaseModel):
     username: str
 
 
+class TokenGoogleSearch(BaseModel):
+    q: str
+    category: str | None = None
+
+
 class GooglePlaceResult(BaseModel):
     name: str | None = None
     place: str | None = None
