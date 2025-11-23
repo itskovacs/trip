@@ -4,19 +4,58 @@
   </div>
 
   @if (trip()?.archived) {
-  <div class="fixed top-14 sm:top-16 left-0 right-0 z-40 print:hidden">
-    <div
-      class="mx-4 mt-2 bg-orange-500/90 backdrop-blur-lg rounded-xl border border-orange-400/50 shadow-2xl pointer-events-auto">
-      <div class="px-4 py-2.5 flex items-center gap-3">
-        <i class="pi pi-info-circle text-white text-sm"></i>
-        <p class="text-xs sm:text-sm text-white flex-1 font-medium">
-          Archived. <button (click)="openUnarchiveTripModal()"
-            class="underline hover:no-underline font-bold">Restore</button>
-        </p>
+    <div class="fixed inset-x-0 top-4 z-40 flex justify-center px-3 print:hidden">
+      <div
+        class="w-full max-w-xl rounded-2xl border border-orange-400/40 bg-orange-500/90 px-4 py-3 shadow-sm backdrop-blur-md dark:border-orange-400/30 dark:bg-orange-500/85">
+        <div class="flex items-center gap-3">
+          <div class="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white">
+            <i class="pi pi-box text-sm"></i>
+          </div>
+  
+          <div class="min-w-0 flex-1">
+            <div class="flex flex-1 items-center justify-between gap-3">
+              <div class="min-w-0">
+                <p class="truncate text-sm font-semibold text-white">
+                  Trip is archived
+                </p>
+                <p class="mt-0.5 text-xs text-orange-100/90">
+                  This trip is read-only.
+                </p>
+              </div>
+  
+              <div class="hidden shrink-0 items-center gap-2 sm:flex">
+                <p-button size="small" label="Restore" text [outlined]="true" styleClass="text-white/90!"
+                  (click)="openUnarchiveTripModal()" />
+                <p-button size="small" [text]="true" [outlined]="true"
+                  [icon]="isArchivalReviewDisplayed ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" label="Notes"
+                  (click)="isArchivalReviewDisplayed = !isArchivalReviewDisplayed" />
+              </div>
+            </div>
+  
+            <div class="mt-3 flex flex-wrap gap-2 sm:hidden">
+              <p-button size="small" label="Restore" text [outlined]="true" severity="secondary" class="flex-1"
+                (click)="openUnarchiveTripModal()" />
+              <p-button size="small" [text]="true" [outlined]="true" class="flex-1"
+                [icon]="isArchivalReviewDisplayed ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" label="Notes"
+                (click)="isArchivalReviewDisplayed = !isArchivalReviewDisplayed" />
+            </div>
+          </div>
+        </div>
+  
+        @if (isArchivalReviewDisplayed && trip()?.archival_review) {
+        <div
+          class="mt-3 max-h-64 overflow-y-auto rounded-xl border border-orange-100/40 bg-orange-50/95 px-3 py-2.5 text-xs leading-relaxed text-orange-900 shadow-sm dark:border-orange-100/15 dark:bg-orange-950/60 dark:text-orange-50">
+          <p class="mb-1 text-[11px] font-semibold uppercase tracking-wide text-orange-700/90 dark:text-orange-200/90">
+            Archival notes
+          </p>
+          <p class="whitespace-pre-line">
+            {{ trip()!.archival_review }}
+          </p>
+        </div>
+        }
       </div>
     </div>
-  </div>
-  }
+    }
 
   <section [class]="isPlansPanelCollapsed() ? '-translate-x-full left-0!' : 'translate-x-0'" class="fixed top-4 bottom-4
     left-4 w-[calc(100%-4rem)] md:w-[24rem] lg:w-[28rem] xl:w-[32rem] md:max-w-1/3
