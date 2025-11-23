@@ -1500,6 +1500,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .subscribe({
         next: (boundaries) => {
           this.boundariesFiltering = boundaries;
+          this.gmapsGeocodeFilterInput.disable();
           this.setVisiblePlaces();
         },
       });
@@ -1507,6 +1508,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   resetGeocodeFilters() {
     this.boundariesFiltering = undefined;
+    this.gmapsGeocodeFilterInput.enable();
     this.gmapsGeocodeFilterInput.setValue('');
     this.setVisiblePlaces();
   }

@@ -98,6 +98,7 @@ export class TripPlaceSelectModalComponent {
 
   resetGeocodeFilters() {
     this.boundariesFiltering = undefined;
+    this.googleGeocodeInput.enable();
     this.googleGeocodeInput.setValue('');
     this.filterPlaces();
   }
@@ -138,6 +139,7 @@ export class TripPlaceSelectModalComponent {
       .subscribe({
         next: (boundaries) => {
           this.boundariesFiltering = boundaries;
+          this.googleGeocodeInput.disable();
           this.filterPlaces();
         },
       });
