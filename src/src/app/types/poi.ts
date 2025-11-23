@@ -32,9 +32,9 @@ export interface GooglePlaceResult {
   category?: string;
   lat: number;
   lng: number;
-  price: number;
+  price?: number;
   types: string[];
-  allowdog: boolean;
+  allowdog?: boolean;
   description: string;
   image: string;
 }
