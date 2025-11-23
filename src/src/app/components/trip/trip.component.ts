@@ -1017,7 +1017,7 @@ export class TripComponent implements AfterViewInit {
       closable: true,
       dismissableMask: true,
       width: '50vw',
-      data: day,
+      data: { day, days: this.trip.days },
       breakpoints: {
         '640px': '80vw',
       },

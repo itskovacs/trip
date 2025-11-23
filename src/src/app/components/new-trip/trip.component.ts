@@ -617,7 +617,7 @@ export class NewTripComponent implements AfterViewInit, OnDestroy {
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
-      data: day,
+      data: { day, days: this.trip()!.days },
       breakpoints: {
         '640px': '80vw',
       },

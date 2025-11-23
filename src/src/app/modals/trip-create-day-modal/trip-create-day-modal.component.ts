@@ -5,6 +5,8 @@ import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { InputTextModule } from 'primeng/inputtext';
 import { DatePickerModule } from 'primeng/datepicker';
+import { TripDay } from '../../types/trip';
+import { UtilsService } from '../../services/utils.service';
 
 @Component({
   selector: 'app-trip-create-day-modal',
@@ -15,11 +17,13 @@ import { DatePickerModule } from 'primeng/datepicker';
 })
 export class TripCreateDayModalComponent {
   dayForm: FormGroup;
+  dayNames: string[] = [];
 
   constructor(
     private ref: DynamicDialogRef,
     private fb: FormBuilder,
     private config: DynamicDialogConfig,
+    private utilsService: UtilsService,
   ) {
     this.dayForm = this.fb.group({
       id: -1,
@@ -28,10 +32,13 @@ export class TripCreateDayModalComponent {
     });
 
     if (this.config.data) {
-      this.dayForm.patchValue({
-        ...this.config.data,
-        dt: this.config.data.dt ? new Date(this.config.data.dt) : null,
-      });
+      if (this.config.data.day) {
+        this.dayForm.patchValue({
+          ...this.config.data.day,
+          dt: this.config.data.day.dt ? new Date(this.config.data.day.dt) : null,
+        });
+      }
+      this.dayNames = (this.config.data.days || []).map((d: TripDay) => d.label);
     }
   }
 
@@ -45,6 +52,11 @@ export class TripCreateDayModalComponent {
   closeDialog() {
     // Normalize data for API POST
     let ret = this.dayForm.value;
+    if (this.dayNames.includes(ret['label'])) {
+      this.utilsService.toast('error', 'Error', 'Day label is already in use');
+      return;
+    }
+
     if (!ret['label']) return;
     if (ret['dt']) ret['dt'] = this.formatDateWithoutTimezone(ret['dt']);
     this.ref.close(ret);
