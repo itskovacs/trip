@@ -286,10 +286,6 @@ export class PlaceCreateModalComponent {
     this.placeForm.markAsDirty();
   }
 
-  onCancel() {
-    this.ref.close(null);
-  }
-
   setImageFromUrl() {
     if (!this.imageUrl) return;
     this.placeForm.patchValue({ image: this.imageUrl });
