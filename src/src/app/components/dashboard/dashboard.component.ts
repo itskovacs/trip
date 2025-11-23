@@ -382,9 +382,31 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
     if (!this.filter_display_visited && this.isVisitedDisplayedMode)
       this.visitedFilteredPlaces.forEach((place) => {
-        const marker = placeToDotMarker(place);
+        const marker = this._placeToDot(place);
         this.markerClusterGroup?.addLayer(marker);
       });
+  }
+  
+  _placeToDot(place: Place): L.Marker {
+    const marker = placeToDotMarker(place);
+    marker
+      .on('click', (e) => {
+        this.selectedPlace = { ...place };
+
+        let toView = { ...e.latlng };
+        if ('ontouchstart' in window) {
+          const pixelPoint = this.map!.latLngToContainerPoint(e.latlng);
+          pixelPoint.y += 75;
+          toView = this.map!.containerPointToLatLng(pixelPoint);
+        }
+
+        marker.closeTooltip();
+        this.map?.setView(toView);
+      })
+      .on('contextmenu', () => {
+        if (this.map && (this.map as any).contextmenu) (this.map as any).contextmenu.hide();
+      });
+    return marker;
   }
 
   _placeToMarker(place: Place): L.Marker {
