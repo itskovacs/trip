@@ -60,6 +60,7 @@ import { MultiPlacesCreateModalComponent } from '../../modals/multi-places-creat
 import { GmapsMultilineCreateModalComponent } from '../../modals/gmaps-multiline-create-modal/gmaps-multiline-create-modal.component';
 import { UpdatePasswordModalComponent } from '../../modals/update-password-modal/update-password-modal.component';
 import { SettingsViewTokenComponent } from '../../modals/settings-view-token/settings-view-token.component';
+import { Trip } from '../../types/trip';
 
 export interface ContextMenuItem {
   text: string;
@@ -1434,9 +1435,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     })!;
 
     modal.onClose.pipe(take(1)).subscribe({
-      next: (places: Place[] | null) => {
-        if (!places) return;
-        const obs$ = places.map((p) => this.apiService.postPlace(p));
+      next: (data: { places: Place[]; trip: Trip | null } | null) => {
+        if (!data) return;
+        const obs$ = data.places.map((p) => this.apiService.postPlace(p));
         this.utilsService.setLoading('Creating places...');
         forkJoin(obs$)
           .pipe(take(1))
@@ -1447,6 +1448,18 @@ export class DashboardComponent implements OnInit, AfterViewInit {
                 this.updateMarkersAndClusters();
               }, 10);
               this.utilsService.setLoading('');
+
+              if (data.trip) {
+                this.apiService
+                  .putTrip(
+                    { place_ids: [...data.trip.places.map((p) => p.id), ...places.map((p) => p.id)] },
+                    data.trip.id,
+                  )
+                  .pipe(take(1))
+                  .subscribe({
+                    next: (trip) => this.utilsService.toast('success', 'Success', `Added places to ${trip.name}`),
+                  });
+              }
             },
             error: () => {
               this.utilsService.setLoading('');

@@ -10,9 +10,10 @@ import { UtilsService } from '../../services/utils.service';
 import { TooltipModule } from 'primeng/tooltip';
 import { Category, Place } from '../../types/poi';
 import { PlaceCreateModalComponent } from '../place-create-modal/place-create-modal.component';
-import { take } from 'rxjs';
+import { map, Observable, take, tap } from 'rxjs';
 import { CommonModule } from '@angular/common';
-import { YesNoModalComponent } from '../yes-no-modal/yes-no-modal.component';
+import { DialogModule } from 'primeng/dialog';
+import { TripBase } from '../../types/trip';
 
 @Component({
   selector: 'app-multi-places-create-modal',
@@ -24,6 +25,7 @@ import { YesNoModalComponent } from '../yes-no-modal/yes-no-modal.component';
     ReactiveFormsModule,
     SkeletonModule,
     TooltipModule,
+    DialogModule,
   ],
   standalone: true,
   templateUrl: './multi-places-create-modal.component.html',
@@ -32,6 +34,9 @@ import { YesNoModalComponent } from '../yes-no-modal/yes-no-modal.component';
 export class MultiPlacesCreateModalComponent {
   places: Place[] = [];
   categories: Category[] = [];
+  linkToTripID: number | null = null;
+  isTripsDialogVisible = false;
+  trips$!: Observable<TripBase[]>;
 
   constructor(
     private apiService: ApiService,
@@ -108,15 +113,38 @@ export class MultiPlacesCreateModalComponent {
     );
   }
 
-  closeDialog() {
-    this.ref.close(null);
+  openTripsModal() {
+    this.trips$ = this.apiService.getTrips().pipe(
+      tap(() => (this.isTripsDialogVisible = true)),
+      map((trips) => trips.filter((t) => !t.archived)),
+    );
   }
 
-  confirmDialog() {
+  cancelLinkToTrip() {
+    this.linkToTripID = null;
+  }
+
+  linkToTrip(trip: TripBase) {
+    this.linkToTripID = trip.id;
+    this.isTripsDialogVisible = false;
+  }
+
+  closeDialog() {
     if (this.places.some((p) => !this.isPlaceValid(p))) {
       this.utilsService.toast('warn', 'Incomplete place(s)', 'You have incomplete place(s)');
       return;
     }
-    this.ref.close(this.places);
+    if (this.linkToTripID) {
+      this.apiService
+        .getTrip(this.linkToTripID)
+        .pipe(take(1))
+        .subscribe({
+          next: (trip) => {
+            this.ref.close({ places: this.places, trip: trip });
+          },
+        });
+    } else {
+      this.ref.close({ places: this.places, trip: null });
+    }
   }
 }
