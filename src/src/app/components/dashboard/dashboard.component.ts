@@ -362,6 +362,16 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     );
   }
 
+  get visitedFilteredPlaces(): Place[] {
+    return this.places.filter(
+      (p) =>
+        p.visited &&
+        (!this.filter_display_favorite_only || p.favorite) &&
+        (!this.filter_dog_only || p.allowdog) &&
+        this.activeCategories.has(p.category.name),
+    );
+  }
+
   updateMarkersAndClusters(): void {
     this.markerClusterGroup?.clearLayers();
 
@@ -371,12 +381,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     });
 
     if (!this.filter_display_visited && this.isVisitedDisplayedMode)
-      this.places
-        .filter((p) => p.visited)
-        .forEach((place) => {
-          const marker = placeToDotMarker(place);
-          this.markerClusterGroup?.addLayer(marker);
-        });
+      this.visitedFilteredPlaces.forEach((place) => {
+        const marker = placeToDotMarker(place);
+        this.markerClusterGroup?.addLayer(marker);
+      });
   }
 
   _placeToMarker(place: Place): L.Marker {
