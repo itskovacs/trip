@@ -297,10 +297,17 @@
 
       <div class="mt-6 flex items-center justify-between mb-4">
         <h3 class="text-base font-bold text-gray-900 dark:text-white">Categories</h3>
-        <span [class.bg-red-400]="!activeCategories.size"
-          class="px-2.5 py-1 bg-gray-100 dark:bg-gray-900 rounded-lg text-xs font-bold text-gray-900 dark:text-white">
-          {{ activeCategories.size }}/{{ categories.length }}
-        </span>
+
+        <div class="flex items-center justify-end gap-1">
+          <p-button icon="pi pi-minus-circle" pTooltip="Deselect all categories" (click)="deselectAllCategories()"
+            severity="danger" size="small" text />
+          <p-button icon="pi pi-check-circle" pTooltip="Select all categories" (click)="selectAllCategories()"
+            severity="success" size="small" text />
+          <span [class.bg-red-400]="!activeCategories.size"
+            class="px-2.5 py-1 bg-gray-100 dark:bg-gray-900 rounded-lg text-xs font-bold text-gray-900 dark:text-white">
+            {{ activeCategories.size }}/{{ categories.length }}
+          </span>
+        </div>
       </div>
 
       <div class="max-h-[50vh] overflow-y-auto overscroll-contain grid md:grid-cols-2 gap-2">

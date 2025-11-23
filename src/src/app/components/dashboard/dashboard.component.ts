@@ -339,6 +339,18 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     if (this.viewPlacesList) this.setVisiblePlaces();
   }
 
+  selectAllCategories() {
+    this.categories.forEach((c) => this.activeCategories.add(c.name));
+    this.updateMarkersAndClusters();
+    if (this.viewPlacesList) this.setVisiblePlaces();
+  }
+
+  deselectAllCategories() {
+    this.activeCategories.clear();
+    this.updateMarkersAndClusters();
+    if (this.viewPlacesList) this.setVisiblePlaces();
+  }
+
   get filteredPlaces(): Place[] {
     return this.places.filter(
       (p) =>
