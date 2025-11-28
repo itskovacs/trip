@@ -41,7 +41,7 @@ import {
   placeToDotMarker,
   openNavigation,
 } from '../../shared/map';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { SelectModule } from 'primeng/select';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { TooltipModule } from 'primeng/tooltip';
@@ -52,7 +52,7 @@ import { CategoryCreateModalComponent } from '../../modals/category-create-modal
 import { AuthService } from '../../services/auth.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PlaceGPXComponent } from '../../shared/place-gpx/place-gpx.component';
-import { CommonModule } from '@angular/common';
+import { CommonModule, Location } from '@angular/common';
 import { FileSizePipe } from '../../shared/filesize.pipe';
 import { TotpVerifyModalComponent } from '../../modals/totp-verify-modal/totp-verify-modal.component';
 import { MenuModule } from 'primeng/menu';
@@ -111,6 +111,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   isLowNetMode = false;
   isGpxInPlaceMode = false;
   isVisitedDisplayedMode = false;
+  isMapPositionMode = false;
   loadingMessage? = '';
 
   viewSettings = false;
@@ -208,6 +209,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     private dialogService: DialogService,
     private router: Router,
     private fb: FormBuilder,
+    private location: Location,
+    private activatedRoute: ActivatedRoute,
   ) {
     this.settingsForm = this.fb.group({
       map_lat: [
@@ -265,11 +268,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           this.isLowNetMode = !!settings.mode_low_network;
           this.isGpxInPlaceMode = !!settings.mode_gpx_in_place;
           this.isVisitedDisplayedMode = !!settings.mode_display_visited;
-          if (settings.mode_dark) this.utilsService.enableDarkMode();
-          this.resetFilters();
+          this.isMapPositionMode = !!settings.mode_map_position;
 
           this.places = [...places];
-          this.updateMarkersAndClusters(); //Not optimized as I could do it on the forEach, but it allows me to modify only one function instead of multiple places
+          this.resetFilters();
         }),
       )
       .subscribe();
@@ -298,11 +300,33 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         this.addPlaceModal(e);
       });
     }
-    this.map.setView(L.latLng(this.settings.map_lat, this.settings.map_lng));
+    const mapPosition = this.getMapPosition();
+    this.map.setView(L.latLng(mapPosition.lat, mapPosition.lng), mapPosition.zoom);
     this.map.on('moveend zoomend', () => {
       if (this.hideOutOfBoundsPlaces) this.setVisiblePlaces();
+      if (this.isMapPositionMode) this.updateUrlWithMapPosition();
     });
     this.markerClusterGroup = createClusterGroup().addTo(this.map);
+  }
+
+  getMapPosition(): { lat: number; lng: number; zoom: number } {
+    const queryParams = this.activatedRoute.snapshot.queryParams;
+    const lat = this.isMapPositionMode && queryParams['lat'] ? parseFloat(queryParams['lat']) : this.settings!.map_lat;
+    const lng = this.isMapPositionMode && queryParams['lng'] ? parseFloat(queryParams['lng']) : this.settings!.map_lng;
+    const zoom =
+      this.isMapPositionMode && queryParams['z'] ? parseInt(queryParams['z'], 10) : this.map?.getZoom() || 13;
+    return { lat, lng, zoom };
+  }
+
+  updateUrlWithMapPosition(): void {
+    if (!this.map) return;
+    const center = this.map.getCenter();
+    const lat = center.lat.toFixed(4);
+    const lng = center.lng.toFixed(4);
+    const zoom = this.map.getZoom();
+    const queryString = `lat=${lat}&lng=${lng}&z=${zoom}`;
+    const path = this.location.path().split('?')[0];
+    this.location.replaceState(path, queryString);
   }
 
   setVisiblePlaces() {
@@ -794,7 +818,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           this.isLowNetMode = !!resp.settings.mode_low_network;
           this.isGpxInPlaceMode = !!resp.settings.mode_gpx_in_place;
           this.isVisitedDisplayedMode = !!resp.settings.mode_display_visited;
-          if (resp.settings.mode_dark) this.utilsService.enableDarkMode();
+          this.isMapPositionMode = !!resp.settings.mode_map_position;
           this.resetFilters();
 
           this.map?.remove();
@@ -1115,6 +1139,15 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         next: (_) => {
           this.updateMarkersAndClusters();
         },
+      });
+  }
+
+  toggleMapPositionMode() {
+    this.apiService
+      .putSettings({ mode_map_position: this.isMapPositionMode })
+      .pipe(take(1))
+      .subscribe({
+        next: () => this.utilsService.toast('success', 'Success', 'Preference saved'),
       });
   }
 

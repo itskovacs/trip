@@ -203,6 +203,7 @@ class UserBase(SQLModel):
     mode_dark: bool | None = False
     mode_gpx_in_place: bool | None = False
     mode_display_visited: bool | None = False
+    mode_map_position: bool | None = False
     api_token: str | None = None
 
 
@@ -242,6 +243,7 @@ class UserRead(UserBase):
             mode_dark=obj.mode_dark,
             mode_gpx_in_place=obj.mode_gpx_in_place,
             mode_display_visited=obj.mode_display_visited,
+            mode_map_position=obj.mode_map_position,
             totp_enabled=obj.totp_enabled,
             google_apikey=True if obj.google_apikey else False,
             api_token=True if obj.api_token else False,

@@ -693,6 +693,21 @@
                     <p-toggleswitch [(ngModel)]="isVisitedDisplayedMode" (onChange)="toggleVisitedDisplayed()"
                       class="flex-shrink-0 ml-4" />
                   </div>
+
+                  <div
+                    class="flex items-center justify-between py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                      <i class="pi pi-map text-yellow-500 dark:text-yellow-300 flex-shrink-0"></i>
+                      <div class="min-w-0">
+                        <span class="font-medium text-sm text-gray-900 dark:text-gray-100 block">Store Map
+                          Position</span>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Encode map position in the
+                          URL to restore the same view on refresh</p>
+                      </div>
+                    </div>
+                    <p-toggleswitch [(ngModel)]="isMapPositionMode" (onChange)="toggleMapPositionMode()"
+                      class="flex-shrink-0 ml-4" />
+                  </div>
                 </div>
                 }
               </section>
