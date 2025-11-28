@@ -7,11 +7,12 @@ import { UtilsService } from '../../services/utils.service';
 import { Observable } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 import { LinkifyPipe } from '../linkify.pipe';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-place-box',
   standalone: true,
-  imports: [ButtonModule, MenuModule, AsyncPipe, LinkifyPipe],
+  imports: [ButtonModule, MenuModule, AsyncPipe, LinkifyPipe, TooltipModule],
   templateUrl: './place-box.component.html',
   styleUrls: ['./place-box.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,6 +27,7 @@ export class PlaceBoxComponent implements OnInit {
   @Output() gpxEmitter = new EventEmitter<void>();
   @Output() closeEmitter = new EventEmitter<void>();
   @Output() openNavigationEmitter = new EventEmitter<void>();
+  @Output() flyToEmitter = new EventEmitter<void>();
 
   menuItems: MenuItem[] = [];
   readonly currency$: Observable<string>;
@@ -53,6 +55,11 @@ export class PlaceBoxComponent implements OnInit {
         icon: 'pi pi-check',
         iconClass: 'text-green-500!',
         command: () => this.visitPlace(),
+      },
+      {
+        label: 'Fly To',
+        icon: 'pi pi-expand',
+        command: () => this.flyToPlace(),
       },
       {
         label: 'Navigation',
@@ -108,6 +115,10 @@ export class PlaceBoxComponent implements OnInit {
 
   openNavigationToPlace() {
     this.openNavigationEmitter.emit();
+  }
+
+  flyToPlace() {
+    this.flyToEmitter.emit();
   }
 
   close() {

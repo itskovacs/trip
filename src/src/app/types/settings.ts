@@ -13,6 +13,7 @@ export interface Settings {
   totp_enabled?: boolean;
   google_apikey?: boolean | null;
   mode_display_visited?: boolean;
+  mode_map_position?: boolean;
   api_token?: boolean;
 }
 

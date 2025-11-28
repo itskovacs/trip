@@ -144,11 +144,8 @@
             <label for="description">Description</label>
           </p-floatlabel>
           @if (descriptionInput.value) {
-          <button type="button"
-            class="absolute right-2 top-2 size-8 flex items-center justify-center text-surface-400 hover:text-red-500 rounded-lg transition"
-            (click)="placeForm.get('description')?.setValue('')" pTooltip="Clear">
-            <i class="pi pi-times"></i>
-          </button>
+          <p-button text icon="pi pi-times" severity="danger" class="absolute right-2 top-2"
+            (click)="placeForm.get('description')?.setValue('')" pTooltip="Clear" />
           }
         </div>
       </div>

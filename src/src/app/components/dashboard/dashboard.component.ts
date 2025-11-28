@@ -259,17 +259,14 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         take(1),
         tap(({ categories, places, settings }) => {
           this.settings = settings;
-          this.initMap();
-
-          this.categories = categories;
-          this.sortCategories();
-          this.activeCategories = new Set(categories.map((c) => c.name));
-
           this.isLowNetMode = !!settings.mode_low_network;
           this.isGpxInPlaceMode = !!settings.mode_gpx_in_place;
           this.isVisitedDisplayedMode = !!settings.mode_display_visited;
           this.isMapPositionMode = !!settings.mode_map_position;
-
+          this.utilsService.toggleDarkMode(!!settings.mode_dark);
+          this.categories = categories;
+          this.sortCategories();
+          this.initMap();
           this.places = [...places];
           this.resetFilters();
         }),
@@ -354,26 +351,22 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.activeCategories = new Set(this.categories.map((c) => c.name));
     this.settings?.do_not_display.forEach((c) => this.activeCategories.delete(c));
     this.updateMarkersAndClusters();
-    if (this.viewPlacesList) this.setVisiblePlaces();
   }
 
   updateActiveCategories(c: string) {
     if (this.activeCategories.has(c)) this.activeCategories.delete(c);
     else this.activeCategories.add(c);
     this.updateMarkersAndClusters();
-    if (this.viewPlacesList) this.setVisiblePlaces();
   }
 
   selectAllCategories() {
     this.categories.forEach((c) => this.activeCategories.add(c.name));
     this.updateMarkersAndClusters();
-    if (this.viewPlacesList) this.setVisiblePlaces();
   }
 
   deselectAllCategories() {
     this.activeCategories.clear();
     this.updateMarkersAndClusters();
-    if (this.viewPlacesList) this.setVisiblePlaces();
   }
 
   get filteredPlaces(): Place[] {
@@ -409,8 +402,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         const marker = this._placeToDot(place);
         this.markerClusterGroup?.addLayer(marker);
       });
+    this.setVisiblePlaces();
   }
-  
+
   _placeToDot(place: Place): L.Marker {
     const marker = placeToDotMarker(place);
     marker
@@ -658,7 +652,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
               this.places = this.places.filter((p) => p.id !== this.selectedPlace!.id);
               this.closePlaceBox();
               this.updateMarkersAndClusters();
-              if (this.viewPlacesList) this.setVisiblePlaces();
             },
           });
       },
@@ -706,7 +699,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
               setTimeout(() => {
                 this.updateMarkersAndClusters();
               }, 10);
-              if (this.viewPlacesList) this.setVisiblePlaces();
             },
           });
       },
@@ -819,6 +811,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           this.isGpxInPlaceMode = !!resp.settings.mode_gpx_in_place;
           this.isVisitedDisplayedMode = !!resp.settings.mode_display_visited;
           this.isMapPositionMode = !!resp.settings.mode_map_position;
+          this.utilsService.toggleDarkMode(!!resp.settings.mode_dark);
           this.resetFilters();
 
           this.map?.remove();
@@ -1108,7 +1101,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .pipe(take(1))
       .subscribe({
         next: (settings) => {
-          this.utilsService.toggleDarkMode();
+          this.utilsService.toggleDarkMode(!!settings.mode_dark);
           const refreshMap = this.settings?.tile_layer != settings.tile_layer;
           this.settings = settings;
           if (refreshMap) {
@@ -1140,6 +1133,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           this.updateMarkersAndClusters();
         },
       });
+  }
+
+  flyTo(latlng?: [number, number]) {
+    if (!this.map && !latlng && !this.selectedPlace) return;
+    const lat: number = latlng ? latlng[0] : this.selectedPlace!.lat;
+    const lng: number = latlng ? latlng[1] : this.selectedPlace!.lng;
+    this.map!.flyTo([lat, lng], this.map?.getZoom() || 9, { duration: 2 });
   }
 
   toggleMapPositionMode() {

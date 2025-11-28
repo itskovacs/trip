@@ -40,14 +40,18 @@
 
                 <div class="flex items-center justify-end gap-2">
                     <div class="hidden md:flex">
-                        @if(selectedPlace.gpx) {<p-button (click)="displayGPX()" text icon="pi pi-compass" />}
-                        <p-button (click)="openNavigationToPlace()" text icon="pi pi-car" />
-                        <p-button (click)="visitPlace()" styleClass="text-green-500!" text
+                        @if(selectedPlace.gpx) {
+                        <p-button (click)="displayGPX()" pTooltip="Display GPX" text icon="pi pi-compass" />}
+                        <p-button (click)="openNavigationToPlace()" pTooltip="Open in Navigation" text
+                            icon="pi pi-car" />
+                        <p-button (click)="flyToPlace()" pTooltip="Fly to Place" text icon="pi pi-expand" />
+                        <p-button (click)="visitPlace()" pTooltip="Mark as visited" styleClass="text-green-500!" text
                             [icon]="selectedPlace.visited ? 'pi pi-check-circle': 'pi pi-check'" />
-                        <p-button (click)="favoritePlace()" styleClass="text-rose-500!" text
+                        <p-button (click)="favoritePlace()" pTooltip="Mark as favorite" styleClass="text-rose-500!" text
                             [icon]="selectedPlace.favorite ? 'pi pi-heart-fill' : 'pi pi-heart'" />
-                        <p-button (click)="deletePlace()" severity="danger" text icon="pi pi-trash" />
-                        <p-button styleClass="text-blue-500!" (click)="editPlace()" text icon="pi pi-pencil" />
+                        <p-button (click)="deletePlace()" pTooltip="Delete" severity="danger" text icon="pi pi-trash" />
+                        <p-button styleClass="text-blue-500!" pTooltip="Edit" (click)="editPlace()" text
+                            icon="pi pi-pencil" />
                     </div>
 
                     <div class="flex md:hidden">

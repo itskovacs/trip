@@ -35,11 +35,16 @@
         </p-floatlabel>
       </div>
 
-      <div class="md:col-span-7">
+      <div class="relative md:col-span-7">
         <p-floatlabel variant="in">
-          <input id="text" formControlName="text" pInputText fluid />
+          <input id="text" formControlName="text" #textInput pInputText fluid />
           <label for="text">Plan Text</label>
         </p-floatlabel>
+
+        @if (textInput.value) {
+        <p-button text icon="pi pi-times" size="small" severity="danger"
+          class="absolute right-2 top-1/2 -translate-y-1/2" (click)="itemForm.get('text')?.setValue('')" />
+        }
       </div>
     </div>
   </div>
@@ -108,8 +113,8 @@
         </p-floatlabel>
         @if (members.length > 1) {
         <p-inputgroup-addon>
-          <p-button [icon]="itemForm.get('paid_by')?.value ? 'pi pi-user-check' : 'pi pi-user'"
-            [severity]="itemForm.get('paid_by')?.value ? 'primary' : 'secondary'"
+          <p-button [icon]="itemForm.get('paid_by')?.value ? 'pi pi-user-plus' : 'pi pi-users'"
+            [severity]="itemForm.get('paid_by')?.value ? 'primary' : 'secondary'" class="h-full"
             [text]="!itemForm.get('paid_by')?.value" (onClick)="togglePriceMembersPopover($event)" />
         </p-inputgroup-addon>
         }
@@ -186,11 +191,8 @@
             <label for="comment">Comment</label>
           </p-floatlabel>
           @if (descriptionInput.value) {
-          <button type="button"
-            class="absolute right-2 top-2 size-8 flex items-center justify-center text-surface-400 hover:text-red-500 rounded-lg transition"
-            (click)="itemForm.get('comment')?.setValue('')" pTooltip="Clear">
-            <i class="pi pi-times"></i>
-          </button>
+          <p-button text icon="pi pi-times" severity="danger" class="absolute right-2 top-2"
+            (click)="itemForm.get('comment')?.setValue('')" />
           }
         </div>
       </div>
