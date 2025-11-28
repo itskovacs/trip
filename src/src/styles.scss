@@ -146,6 +146,14 @@ html {
   }
 }
 
+.slide-y-centered-x {
+  animation: slide-y-centered-x 0.3s both normal;
+}
+
+.a-slide-y-centered-x {
+  animation: slide-y-centered-x 0.3s both reverse;
+}
+
 .place-box-dialog {
   animation: slide-y-centered-x 0.3s both;
   z-index: 999;
