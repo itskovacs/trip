@@ -22,6 +22,13 @@ from ..utils.zip import parse_mymaps_kmz
 router = APIRouter(prefix="/api/places", tags=["places"])
 
 
+def _get_user_api_key(session: SessionDep, current_user: str) -> str:
+    db_user = session.get(User, current_user)
+    if not db_user or not db_user.google_apikey:
+        raise HTTPException(status_code=400, detail="Google Maps API key not configured")
+    return db_user.google_apikey
+
+
 async def _process_gmaps_batch(
     items: list[str | dict], api_key: str, processor_func
 ) -> list[GooglePlaceResult]:
@@ -150,9 +157,7 @@ async def create_places(
 async def google_links_to_places(
     links: list[str], session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]
 ) -> list[GooglePlaceResult]:
-    db_user = session.get(User, current_user)
-    if not links:
-        return []
+    api_key = _get_user_api_key(session, current_user)
 
     async def _process_url(url: str, api_key: str) -> GooglePlaceResult | None:
         if result := await gmaps_url_to_search(url, api_key):
@@ -161,7 +166,7 @@ async def google_links_to_places(
 
     return await _process_gmaps_batch(
         links,
-        db_user.google_apikey,
+        api_key,
         _process_url,
     )
 
@@ -172,9 +177,7 @@ async def google_kmz_import(
     current_user: Annotated[str, Depends(get_current_username)],
     file: UploadFile = File(...),
 ) -> list[GooglePlaceResult]:
-    db_user = session.get(User, current_user)
-    if not db_user or not db_user.google_apikey:
-        raise HTTPException(status_code=400, detail="Google Maps API key not configured")
+    api_key = _get_user_api_key(session, current_user)
     if not file.filename or not file.filename.lower().endswith((".kmz")):
         raise HTTPException(status_code=400, detail="Invalid KMZ file")
 
@@ -183,14 +186,14 @@ async def google_kmz_import(
     async def _process_kml_place(place: dict, api_key: str) -> GooglePlaceResult | None:
         try:
             location = {"latitude": float(place.get("lat")), "longitude": float(place.get("lng"))}
-            results = await gmaps_textsearch(place.get("name"), db_user.google_apikey, location)
+            results = await gmaps_textsearch(place.get("name"), api_key, location)
             return await result_to_place(results[0], api_key)
         except Exception:
             return None
 
     return await _process_gmaps_batch(
         places,
-        db_user.google_apikey,
+        api_key,
         _process_kml_place,
     )
 
@@ -202,10 +205,7 @@ async def google_takeout_import(
     file: UploadFile = File(...),
 ) -> list[GooglePlaceResult]:
     # TODO: chunk.decode?
-    db_user = session.get(User, current_user)
-    if not db_user or not db_user.google_apikey:
-        raise HTTPException(status_code=400, detail="Google Maps API key not configured")
-
+    api_key = _get_user_api_key(session, current_user)
     if file.content_type != "text/csv":
         raise HTTPException(status_code=400, detail="Bad request, expected CSV file")
 
@@ -224,7 +224,7 @@ async def google_takeout_import(
 
     return await _process_gmaps_batch(
         urls,
-        db_user.google_apikey,
+        api_key,
         _process_url,
     )
 
@@ -236,11 +236,8 @@ async def google_search_text(
     if not q or not q.strip():
         raise HTTPException(status_code=400, detail="Bad Request")
 
-    db_user = session.get(User, current_user)
-    if not db_user or not db_user.google_apikey:
-        raise HTTPException(status_code=400, detail="Google Maps API key not configured")
-
-    results = await gmaps_textsearch(q.strip(), db_user.google_apikey)
+    api_key = _get_user_api_key(session, current_user)
+    results = await gmaps_textsearch(q.strip(), api_key)
     if not results:
         return []
 
@@ -255,7 +252,7 @@ async def google_search_text(
 
     return await _process_gmaps_batch(
         results,
-        db_user.google_apikey,
+        api_key,
         _process_result,
     )
 
@@ -267,11 +264,8 @@ async def google_geocode_search(
     if not q or not q.strip():
         raise HTTPException(status_code=400, detail="Bad Request")
 
-    db_user = session.get(User, current_user)
-    if not db_user or not db_user.google_apikey:
-        raise HTTPException(status_code=400, detail="Google Maps API key not configured")
-
-    if not (bounds := await gmaps_get_boundaries(q.strip(), db_user.google_apikey)):
+    api_key = _get_user_api_key(session, current_user)
+    if not (bounds := await gmaps_get_boundaries(q.strip(), api_key)):
         raise HTTPException(status_code=400, detail="Location not resolved by GMaps")
     return bounds
 
@@ -280,12 +274,9 @@ async def google_geocode_search(
 async def google_nearby_search(
     data: LatitudeLongitude, session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]
 ) -> list[GooglePlaceResult]:
-    db_user = session.get(User, current_user)
-    if not db_user or not db_user.google_apikey:
-        raise HTTPException(status_code=400, detail="Google Maps API key not configured")
-
+    api_key = _get_user_api_key(session, current_user)
     location = {"latitude": data.latitude, "longitude": data.longitude}
-    results = await gmaps_nearbysearch(location, db_user.google_apikey)
+    results = await gmaps_nearbysearch(location, api_key)
     if not results:
         return []
 
@@ -300,7 +291,7 @@ async def google_nearby_search(
 
     return await _process_gmaps_batch(
         results,
-        db_user.google_apikey,
+        api_key,
         _process_result,
     )
 
@@ -311,17 +302,13 @@ async def google_resolve_shortlink(
 ) -> GooglePlaceResult:
     if not id:
         raise HTTPException(status_code=400, detail="Bad Request")
-
-    db_user = session.get(User, current_user)
-    if not db_user or not db_user.google_apikey:
-        raise HTTPException(status_code=400, detail="Google Maps API key not configured")
-
+    api_key = _get_user_api_key(session, current_user)
     url = await gmaps_resolve_shortlink(id)
     if not url:
         raise HTTPException(status_code=400, detail="Bad Request")
 
-    if place_data := await gmaps_url_to_search(url, db_user.google_apikey):
-        return await result_to_place(place_data, db_user.google_apikey)
+    if place_data := await gmaps_url_to_search(url, api_key):
+        return await result_to_place(place_data, api_key)
     raise HTTPException(status_code=400, detail="Bad Request")
 
 
