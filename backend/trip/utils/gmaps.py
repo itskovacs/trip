@@ -19,7 +19,7 @@ GMAPS_TYPES_MAPPER: dict[str, list] = {
 CID_PATTERN: re.Pattern[str] = re.compile(r"(0x[0-9a-fA-F]+):(0x[0-9a-fA-F]+)")
 
 
-async def result_to_place(place, api_key: str) -> GooglePlaceResult:
+async def result_to_place(place: dict[str, Any], api_key: str) -> GooglePlaceResult:
     loc = place.get("location", {})
     result = GooglePlaceResult(
         name=place.get("displayName", {}).get("text"),
