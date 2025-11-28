@@ -3,7 +3,7 @@
 @if (selectedPlace) {
 <app-place-box [selectedPlace]="selectedPlace" (deleteEmitter)="deletePlace()" (editEmitter)="editPlace()"
   (favoriteEmitter)="favoritePlace()" (gpxEmitter)="getPlaceGPX()" (visitEmitter)="visitPlace()"
-  (closeEmitter)="closePlaceBox()" (openNavigationEmitter)="toNavigation()"></app-place-box>
+  (closeEmitter)="closePlaceBox()" (openNavigationEmitter)="toNavigation()" (flyToEmitter)="flyTo()"></app-place-box>
 }
 
 @if (selectedGPX) {
@@ -13,7 +13,7 @@
 
 <div class="fixed top-0 left-0 z-40 pointer-events-none">
   <div class="mx-4 mt-4 sm:mx-6 sm:mt-6 pointer-events-auto">
-    <div class="w-fit h-12 p-2 bg-white/95 dark:bg-black/95 rounded-lg shadow-lg shadow-black/5">
+    <div class="w-fit h-12 p-2 bg-white/70 dark:bg-surface-900/70 backdrop-blur-xl rounded-lg shadow-lg shadow-black/5">
       <div (click)="navigateToTrips()"
         class="cursor-pointer flex items-center gap-2.5 h-8 px-4 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg">
         <div class="w-6 h-6 rounded-lg flex items-center justify-center flex-none">
@@ -28,7 +28,7 @@
 <div class="fixed top-0 right-0 z-40 pointer-events-none">
   <div class="mr-4 mt-4 sm:mr-6 sm:mt-6 pointer-events-auto">
     <div
-      class="inline-flex items-center gap-2 p-1.5 bg-white/70 dark:bg-black/70 backdrop-blur-xl rounded-lg shadow-lg shadow-black/5">
+      class="inline-flex items-center gap-2 p-1.5 bg-white/70 dark:bg-surface-900/70 backdrop-blur-xl rounded-lg shadow-lg shadow-black/5">
 
       <div (click)="togglePlacesList()"
         class="cursor-pointer flex items-center justify-center gap-2 h-9 md:w-28 px-2.5 rounded-lg transition-all"
@@ -45,7 +45,7 @@
 
       <div class="w-px h-5 bg-gray-200 dark:bg-gray-800"></div>
 
-      <button (click)="toggleFilters()"
+      <div (click)="toggleFilters()"
         class="cursor-pointer flex items-center justify-center gap-2 h-9 md:w-24 px-2.5 rounded-lg transition-all"
         [class]="viewFilters ? 'bg-blue-50 dark:bg-blue-950' : 'hover:bg-gray-100 dark:hover:bg-gray-900'">
         <div class="w-7 h-7 flex items-center justify-center">
@@ -56,15 +56,15 @@
           [class]="viewFilters ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'">
           {{ viewFilters ? 'Close' : 'Filter' }}
         </span>
-      </button>
+      </div>
 
       <div class="w-px h-5 bg-gray-200 dark:bg-gray-800"></div>
 
-      <button (click)="toggleSettings()"
+      <div (click)="toggleSettings()"
         class="cursor-pointer flex items-center justify-center w-9 h-9 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-all">
         <i class="pi pi-cog text-gray-700 dark:text-gray-300 text-sm transition-transform duration-300"
           [class.rotate-90]="viewSettings"></i>
-      </button>
+      </div>
     </div>
   </div>
 </div>
@@ -72,7 +72,7 @@
 <div class="fixed bottom-0 right-0 z-40 pointer-events-none">
   <div class="mx-4 mb-4 sm:mx-6 sm:mb-6 pointer-events-auto">
     <div
-      class="inline-flex items-center gap-2 p-1.5 bg-white/70 dark:bg-black/70 backdrop-blur-xl rounded-lg shadow-lg shadow-black/5">
+      class="inline-flex items-center gap-2 p-1.5 bg-white/70 dark:bg-surface-900/70 backdrop-blur-xl rounded-lg shadow-lg shadow-black/5">
       <button (click)="menuCreatePlace.toggle($event)"
         class="cursor-pointer flex items-center justify-center w-9 h-9 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-all">
         <i class="pi pi-ellipsis-h text-gray-700 dark:text-gray-300 text-sm"></i>
@@ -100,7 +100,7 @@
     class="ml-4 my-4 sm:ml-6 sm:my-6 h-[calc(100vh-2rem)] md:h-[calc(100vh-3rem)] pointer-events-auto transition-all duration-300"
     [class]="expandedPlacesList ? 'lg:w-[800px]' : 'w-[calc(100vw-2rem)] sm:w-96'">
     <div
-      class="w-full h-full flex flex-col bg-white/50 dark:bg-black/50 backdrop-blur-xl rounded-lg shadow-lg shadow-black/5">
+      class="w-full h-full flex flex-col bg-white/50 dark:bg-surface-900/50 backdrop-blur-xl rounded-lg shadow-lg shadow-black/5">
       <div class="p-4 border-b border-gray-200 dark:border-gray-800">
         <div class="flex items-center justify-between gap-4">
           <div class="flex items-center gap-2 min-w-0">
@@ -230,7 +230,7 @@
     </div>
 
     <button (click)="toggleExpandPlacesList()"
-      class="hidden lg:flex absolute top-1/2 -translate-y-1/2 -right-3 items-center justify-center w-6 h-16 bg-white/70 dark:bg-black/70 backdrop-blur-xl hover:bg-white/90 dark:hover:bg-black/90 rounded-r-lg shadow-lg shadow-black/5 border border-l-0 border-gray-200 dark:border-gray-800 transition-all group z-50">
+      class="hidden lg:flex absolute top-1/2 -translate-y-1/2 -right-3 items-center justify-center w-6 h-16 bg-white/70 dark:bg-surface-900/70 backdrop-blur-xl hover:bg-white/90 dark:hover:bg-surface-900/90 rounded-r-lg shadow-lg shadow-black/5 border border-l-0 border-gray-200 dark:border-gray-800 transition-all group z-50">
       <i class="cursor-pointer pi text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-all"
         [class]="expandedPlacesList ? 'pi-chevron-left' : 'pi-chevron-right'"></i>
     </button>
@@ -241,7 +241,8 @@
 @if (viewFilters) {
 <section class="fixed top-0 right-0 z-40 pointer-events-none">
   <div animate.enter="slide-y-no-opacity" animate.leave="a-slide-y" class="mr-4 mt-20 sm:mr-6 pointer-events-auto">
-    <div class="bg-white/50 dark:bg-black/50 backdrop-blur-xl z-40 rounded-lg shadow p-8 max-w-screen md:max-w-md">
+    <div
+      class="bg-white/50 dark:bg-surface-900/50 backdrop-blur-xl z-40 rounded-lg shadow p-8 max-w-screen md:max-w-md">
       <div class="mt-1 flex justify-between items-center">
         <div>
           <h1 class="font-semibold tracking-tight text-xl">Filters</h1>
@@ -259,7 +260,8 @@
         </div>
 
         <div class="flex flex-wrap gap-2">
-          <button (click)="filter_display_visited = !filter_display_visited; updateMarkersAndClusters()"
+          <button
+            (click)="filter_display_visited = !filter_display_visited; updateMarkersAndClusters(); setVisiblePlaces()"
             class="cursor-pointer inline-flex items-center gap-2 h-8 w-24 max-w-[25vw] px-3 rounded-lg text-sm font-medium transition-all"
             [class]="filter_display_visited ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
             @if (filter_display_visited) {
@@ -270,7 +272,7 @@
             <span class="truncate">Visited</span>
           </button>
 
-          <button (click)="filter_dog_only = !filter_dog_only; updateMarkersAndClusters()"
+          <button (click)="filter_dog_only = !filter_dog_only; updateMarkersAndClusters(); setVisiblePlaces()"
             class="cursor-pointer inline-flex items-center gap-2 h-8 w-36 max-w-[25vw] px-3 rounded-lg text-sm font-medium transition-all"
             [class]="filter_dog_only ? 'bg-emerald-600 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
             @if (filter_dog_only) {
@@ -281,7 +283,8 @@
             <span class="truncate">Dog-friendly</span>
           </button>
 
-          <button (click)="filter_display_favorite_only = !filter_display_favorite_only; updateMarkersAndClusters()"
+          <button
+            (click)="filter_display_favorite_only = !filter_display_favorite_only; updateMarkersAndClusters(); setVisiblePlaces()"
             class="cursor-pointer inline-flex items-center gap-2 h-8 w-28 max-w-[25vw] px-3 rounded-lg text-sm font-medium transition-all"
             [class]="filter_display_favorite_only ? 'bg-rose-400 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
             @if (filter_display_favorite_only) {
@@ -342,7 +345,7 @@
 }
 
 @if (viewSettings) {
-<section class="absolute inset-0 flex items-center justify-center z-40 bg-black/30 backdrop-blur-xl">
+<section class="absolute inset-0 flex items-center justify-center z-40 bg-surface-900/30 backdrop-blur-xl">
   <div
     class="w-10/12 max-w-screen md:max-w-3xl h-fit max-h-screen bg-white rounded-xl shadow-2xl p-4 md:p-8 z-50 dark:bg-surface-900">
     <div class="flex-none flex items-center justify-between gap-4 p-4 border-b border-gray-200 dark:border-gray-800">

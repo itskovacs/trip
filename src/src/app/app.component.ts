@@ -12,5 +12,10 @@ import { UtilsService } from './services/utils.service';
   styleUrl: './app.component.scss',
 })
 export class AppComponent {
-  loadingMessage = inject(UtilsService).loadingMessage;
+  private utilsService = inject(UtilsService);
+  loadingMessage = this.utilsService.loadingMessage;
+
+  constructor() {
+    this.utilsService.initDarkMode();
+  }
 }

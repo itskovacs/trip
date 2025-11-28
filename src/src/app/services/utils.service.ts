@@ -6,6 +6,7 @@ import { map } from 'rxjs';
 
 type ToastSeverity = 'info' | 'warn' | 'error' | 'success';
 const JWT_USER = 'TRIP_USER';
+const DARK_MODE = 'TRIP_DARK_MODE';
 
 @Injectable({
   providedIn: 'root',
@@ -15,7 +16,6 @@ export class UtilsService {
   currency$ = this.apiService.settings$.pipe(map((s) => s?.currency ?? '€'));
   packingListToCopy: Partial<PackingItem>[] = [];
   readonly loadingMessage = signal<string>('');
-
   readonly statuses: TripStatus[] = [
     { label: 'pending', color: '#3258A8' },
     { label: 'booked', color: '#00A341' },
@@ -33,14 +33,15 @@ export class UtilsService {
     window.open('https://github.com/itskovacs/trip', '_blank');
   }
 
-  toggleDarkMode() {
-    const element = document.querySelector('html');
-    element?.classList.toggle('dark');
+  initDarkMode(): void {
+    const isDarkMode = localStorage.getItem(DARK_MODE) === 'true';
+    if (isDarkMode) this.toggleDarkMode(true);
   }
 
-  enableDarkMode() {
+  toggleDarkMode(enabled: boolean) {
+    localStorage.setItem(DARK_MODE, String(enabled));
     const element = document.querySelector('html');
-    element?.classList.toggle('dark', true);
+    element?.classList.toggle('dark', enabled);
   }
 
   toast(severity: ToastSeverity = 'info', summary = 'Info', detail = '', life = 3000): void {
