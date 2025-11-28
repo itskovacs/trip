@@ -49,7 +49,17 @@ export class AuthComponent implements OnInit {
     this.redirectURL = this.route.snapshot.queryParams['redirectURL'] || '/home';
 
     this.authForm = this.fb.group({
-      username: ['', { validators: Validators.required }],
+      username: [
+        '',
+        {
+          validators: [
+            Validators.required,
+            Validators.minLength(1),
+            Validators.maxLength(19),
+            Validators.pattern(/^[a-zA-Z0-9_-]+$/),
+          ],
+        },
+      ],
       password: ['', { validators: Validators.required }],
     });
   }
