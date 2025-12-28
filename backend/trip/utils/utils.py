@@ -177,6 +177,7 @@ def patch_image(fp: str, size: int = 400) -> bool:
 
 
 def save_image_to_file(content: bytes, size: int = 600) -> str:
+    filepath = None
     try:
         with Image.open(BytesIO(content)) as im:
             if im.mode not in ("RGB", "RGBA"):
@@ -218,7 +219,7 @@ def save_image_to_file(content: bytes, size: int = 600) -> str:
             return filename
 
     except Exception:
-        if filepath.exists():
+        if filepath and filepath.exists():
             filepath.unlink()
     return ""
 
