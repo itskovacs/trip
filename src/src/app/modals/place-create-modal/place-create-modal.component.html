@@ -89,7 +89,6 @@
       </div>
 
       <div class="space-y-4">
-
         <div
           class="flex flex-wrap gap-4 p-3 bg-surface-50 dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700">
           <button (click)="toggleCheckbox('allowdog')"
@@ -138,11 +137,8 @@
         </div>
 
         <div class="relative">
-          <p-floatlabel variant="in">
-            <textarea pTextarea id="description" formControlName="description" rows="4" #descriptionInput autoResize
-              fluid class="!pr-10"></textarea>
-            <label for="description">Description</label>
-          </p-floatlabel>
+          <textarea pTextarea id="description" placeholder="Description" formControlName="description" rows="4"
+            #descriptionInput fluid class="!pr-10"></textarea>
           @if (descriptionInput.value) {
           <p-button text icon="pi pi-times" severity="danger" class="absolute right-2 top-2"
             (click)="placeForm.get('description')?.setValue('')" pTooltip="Clear" />
