@@ -38,7 +38,10 @@ export class TripCreateDayModalComponent {
           dt: this.config.data.day.dt ? new Date(this.config.data.day.dt) : null,
         });
       }
-      this.dayNames = (this.config.data.days || []).map((d: TripDay) => d.label);
+
+      this.dayNames = (this.config.data.days || [])
+        .filter((d: TripDay) => d.id !== this.config.data.day?.id)
+        .map((d: TripDay) => d.label);
     }
   }
 
