@@ -1011,7 +1011,7 @@ export class TripComponent implements AfterViewInit {
     if (!this.trip) return;
 
     const modal: DynamicDialogRef = this.dialogService.open(TripCreateDayModalComponent, {
-      header: 'Create Day',
+      header: 'Edit Day',
       modal: true,
       appendTo: 'body',
       closable: true,
