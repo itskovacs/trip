@@ -24,6 +24,7 @@ export interface Place {
   allowdog?: boolean;
   visited?: boolean;
   favorite?: boolean;
+  restroom?: boolean;
 }
 
 export interface GooglePlaceResult {
@@ -37,6 +38,7 @@ export interface GooglePlaceResult {
   allowdog?: boolean;
   description: string;
   image: string;
+  restroom?: boolean;
 }
 
 export interface GoogleBoundaries {

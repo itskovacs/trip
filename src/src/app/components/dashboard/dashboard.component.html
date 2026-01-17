@@ -192,6 +192,11 @@
                   🐶
                 </span>
 
+                <span class="pi flex items-center px-1.5 py-0.5 rounded text-xs" style="font-size: 12px;"
+                  [class]="place.restroom ? 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-500'">
+                  🚽
+                </span>
+
                 <span class="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium"
                   [class]="place.visited ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-500'">
                   <i class="pi" style="font-size: 12px;" [class]="place.visited ? 'pi-eye' : 'pi-eye-slash'"></i>
@@ -293,6 +298,18 @@
             <i class="pi pi-heart-fill text-xs"></i>
             }
             <span class="truncate">Favorites</span>
+          </button>
+
+          <button
+            (click)="filter_display_restroom = !filter_display_restroom; updateMarkersAndClusters(); setVisiblePlaces()"
+            class="cursor-pointer inline-flex items-center gap-2 h-8 w-24 max-w-[25vw] px-3 rounded-lg text-sm font-medium transition-all"
+            [class]="filter_display_restroom ? 'bg-sky-400 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
+            @if (filter_display_restroom) {
+            <i class="pi pi-check text-xs"></i>
+            } @else {
+            <span>🚽</span>
+            }
+            <span class="truncate">Toilets</span>
           </button>
         </div>
       </div>

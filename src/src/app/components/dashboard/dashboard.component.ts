@@ -146,6 +146,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   filter_display_visited = false;
   filter_display_favorite_only = false;
+  filter_display_restroom = false;
   filter_dog_only = false;
   activeCategories = new Set<string>();
   collator = new Intl.Collator(undefined, { sensitivity: 'base' });
@@ -348,6 +349,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.filter_display_visited = false;
     this.filter_dog_only = false;
     this.filter_display_favorite_only = false;
+    this.filter_display_restroom = false;
     this.activeCategories = new Set(this.categories.map((c) => c.name));
     this.settings?.do_not_display.forEach((c) => this.activeCategories.delete(c));
     this.updateMarkersAndClusters();
@@ -374,6 +376,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       (p) =>
         (this.filter_display_visited || !p.visited) &&
         (!this.filter_display_favorite_only || p.favorite) &&
+        (!this.filter_display_restroom || p.restroom) &&
         (!this.filter_dog_only || p.allowdog) &&
         this.activeCategories.has(p.category.name),
     );
@@ -384,6 +387,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       (p) =>
         p.visited &&
         (!this.filter_display_favorite_only || p.favorite) &&
+        (!this.filter_display_restroom || p.restroom) &&
         (!this.filter_dog_only || p.allowdog) &&
         this.activeCategories.has(p.category.name),
     );
@@ -402,6 +406,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         const marker = this._placeToDot(place);
         this.markerClusterGroup?.addLayer(marker);
       });
+
     this.setVisiblePlaces();
   }
 

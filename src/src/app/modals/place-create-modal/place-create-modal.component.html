@@ -89,6 +89,7 @@
       </div>
 
       <div class="space-y-4">
+
         <div
           class="flex flex-wrap gap-4 p-3 bg-surface-50 dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700">
           <button (click)="toggleCheckbox('allowdog')"
@@ -100,6 +101,17 @@
             <span>🐶</span>
             }
             <span class="truncate">Dog-friendly</span>
+          </button>
+
+          <button (click)="toggleCheckbox('restroom')"
+            class="select-none cursor-pointer inline-flex items-center gap-2 h-8 w-24 max-w-[25vw] px-3 rounded-lg text-sm font-medium transition-all"
+            [class]="placeForm.get('restroom')?.value ? 'bg-sky-400 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
+            @if (placeForm.get('restroom')?.value) {
+            <i class="pi pi-check text-xs"></i>
+            } @else {
+            <span>🚽</span>
+            }
+            <span class="truncate">Toilets</span>
           </button>
 
           <button (click)="toggleCheckbox('visited')"

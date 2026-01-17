@@ -29,6 +29,7 @@ async def result_to_place(place: dict[str, Any], api_key: str) -> GooglePlaceRes
         price=_compute_avg_price(place.get("priceRange")),
         types=place.get("types", []),
         allowdog=place.get("allowsDogs"),
+        restroom=place.get("restroom"),
         description=_compute_description(place),
     )
     if photos := place.get("photos"):
@@ -98,7 +99,7 @@ async def gmaps_pid_search(pid: str, api_key: str) -> dict[str, Any]:
     headers = {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": api_key,
-        "X-Goog-FieldMask": "id,types,location,priceRange,formattedAddress,websiteUri,internationalPhoneNumber,displayName,allowsDogs,photos",
+        "X-Goog-FieldMask": "id,types,location,priceRange,formattedAddress,websiteUri,internationalPhoneNumber,displayName,allowsDogs,photos,restroom",
     }
 
     try:
@@ -129,7 +130,7 @@ async def gmaps_textsearch(
     headers = {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": api_key,
-        "X-Goog-FieldMask": "places.id,places.types,places.location,places.priceRange,places.formattedAddress,places.websiteUri,places.internationalPhoneNumber,places.displayName,places.allowsDogs,places.photos",
+        "X-Goog-FieldMask": "places.id,places.types,places.location,places.priceRange,places.formattedAddress,places.websiteUri,places.internationalPhoneNumber,places.displayName,places.allowsDogs,places.photos,places.restroom",
     }
     if location:
         body["locationBias"] = {"circle": {"center": location, "radius": 400.0}}
@@ -186,7 +187,7 @@ async def gmaps_nearbysearch(location: dict[str, Any], api_key: str) -> list[dic
     headers = {
         "Content-Type": "application/json",
         "X-Goog-Api-Key": api_key,
-        "X-Goog-FieldMask": "places.id,places.types,places.location,places.priceRange,places.formattedAddress,places.websiteUri,places.internationalPhoneNumber,places.displayName,places.allowsDogs,places.photos",
+        "X-Goog-FieldMask": "places.id,places.types,places.location,places.priceRange,places.formattedAddress,places.websiteUri,places.internationalPhoneNumber,places.displayName,places.allowsDogs,places.photos,places.restroom",
     }
 
     try:

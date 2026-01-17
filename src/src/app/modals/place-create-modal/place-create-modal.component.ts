@@ -89,6 +89,7 @@ export class PlaceCreateModalComponent {
       duration: [null, Validators.pattern('\\d+')],
       price: null,
       allowdog: false,
+      restroom: false,
       visited: false,
       image: null,
       image_id: null,

@@ -123,6 +123,7 @@ class GooglePlaceResult(BaseModel):
     description: str | None = None
     types: list[str] = []
     image: str | None = None
+    restroom: bool | None
 
 
 class ImageBase(SQLModel):
@@ -309,6 +310,7 @@ class PlaceBase(SQLModel):
     favorite: bool | None = None
     visited: bool | None = None
     gpx: str | None = None
+    restroom: bool | None = None
 
 
 class Place(PlaceBase, table=True):
@@ -376,6 +378,7 @@ class PlaceRead(PlaceBase):
             gpx=("1" if obj.gpx else None)
             if exclude_gpx
             else obj.gpx,  # Generic PlaceRead. Avoid large resp.
+            restroom=obj.restroom,
         )
 
 
