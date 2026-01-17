@@ -60,6 +60,14 @@
 
       <div class="w-px h-5 bg-gray-200 dark:bg-gray-800"></div>
 
+      <div (click)="centerOnMe()" pTooltip="Center on my location"
+        class="cursor-pointer flex items-center justify-center w-9 h-9 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-all">
+        <i class="pi pi-bullseye text-gray-700 dark:text-gray-300 text-sm transition-transform duration-300"
+          [class.rotate-90]="viewSettings"></i>
+      </div>
+
+      <div class="w-px h-5 bg-gray-200 dark:bg-gray-800"></div>
+
       <div (click)="toggleSettings()"
         class="cursor-pointer flex items-center justify-center w-9 h-9 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-all">
         <i class="pi pi-cog text-gray-700 dark:text-gray-300 text-sm transition-transform duration-300"

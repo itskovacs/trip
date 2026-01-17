@@ -107,6 +107,17 @@ export function placeToDotMarker(place: Place) {
   return marker;
 }
 
+export function toDotMarker(coords: L.LatLngTuple) {
+  const marker = new L.Marker(coords, {
+    icon: L.divIcon({
+      className: 'rounded-full',
+      iconSize: [11, 11],
+      html: `<div class="border-0 h-[11px] w-[11px] rounded-full bg-blue-500"></div>`,
+    }),
+  });
+  return marker;
+}
+
 export function placeToMarker(
   place: Place,
   isLowNet: boolean = true,

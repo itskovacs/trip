@@ -40,6 +40,7 @@ import {
   isPointInBounds,
   placeToDotMarker,
   openNavigation,
+  toDotMarker,
 } from '../../shared/map';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SelectModule } from 'primeng/select';
@@ -1635,5 +1636,33 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         },
         error: () => this.utilsService.setLoading(''),
       });
+  }
+
+  centerOnMe() {
+    if (!navigator.geolocation) {
+      this.utilsService.toast('error', 'Error', 'Geolocation not supported in your browser');
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position: GeolocationPosition) => {
+        const coords: L.LatLngTuple = [position.coords.latitude, position.coords.longitude];
+        this.map?.flyTo(coords);
+        const marker = toDotMarker(coords);
+        marker.addTo(this.map!);
+
+        setTimeout(() => {
+          marker.remove();
+        }, 4000);
+      },
+      (error) => {
+        this.utilsService.toast(
+          'error',
+          'Error',
+          `Error resolving your geolocation: ${error.message || 'check console for details'}`,
+        );
+        console.error('geolocation error: ', error);
+      },
+    );
   }
 }
