@@ -340,3 +340,24 @@ html {
 .p-datatable-table-container {
   overscroll-behavior: auto;
 }
+
+.animated-path {
+  animation: dash 20s linear infinite;
+  stroke-dasharray: 3 20;
+}
+
+@keyframes dash {
+  to {
+    stroke-dashoffset: -1000;
+  }
+}
+
+.leaflet-overlay-pane svg {
+  will-change: transform;
+  transform: translateZ(0);
+}
+
+// https://github.com/primefaces/primeng/issues/17089...
+.p-inputgroup .p-floatlabel p-inputmask input {
+  width: 100%;
+}
