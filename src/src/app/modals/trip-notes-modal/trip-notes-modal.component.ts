@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
@@ -13,6 +13,13 @@ import { TextareaModule } from 'primeng/textarea';
   styleUrl: './trip-notes-modal.component.scss',
 })
 export class TripNotesModalComponent {
+  @HostListener('keydown.control.enter', ['$event'])
+  @HostListener('keydown.meta.enter', ['$event'])
+  onCtrlEnter(event: KeyboardEvent) {
+    event.preventDefault();
+    this.closeDialog();
+  }
+
   notes = new FormControl('');
   isArchived = false;
   isEditing: boolean = false;
@@ -38,7 +45,6 @@ export class TripNotesModalComponent {
   }
 
   closeDialog() {
-    // Normalize data for API POST
     this.ref.close(this.notes.value);
   }
 }

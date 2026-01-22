@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
@@ -13,10 +13,18 @@ import { TextareaModule } from 'primeng/textarea';
   styleUrl: './gmaps-multiline-create-modal.component.scss',
 })
 export class GmapsMultilineCreateModalComponent {
+  @HostListener('keydown.control.enter', ['$event'])
+  @HostListener('keydown.meta.enter', ['$event'])
+  onCtrlEnter(event: KeyboardEvent) {
+    event.preventDefault();
+    this.closeDialog();
+  }
+
   batchInput = new FormControl('');
   constructor(private ref: DynamicDialogRef) {}
 
   closeDialog() {
+    if (!this.batchInput.value) return;
     this.ref.close(this.batchInput.value?.split('\n'));
   }
 }

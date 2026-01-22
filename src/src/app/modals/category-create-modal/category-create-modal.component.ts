@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
@@ -16,6 +16,13 @@ import { Category } from '../../types/poi';
   styleUrl: './category-create-modal.component.scss',
 })
 export class CategoryCreateModalComponent {
+  @HostListener('keydown.control.enter', ['$event'])
+  @HostListener('keydown.meta.enter', ['$event'])
+  onCtrlEnter(event: KeyboardEvent) {
+    event.preventDefault();
+    this.closeDialog();
+  }
+
   categoryForm: FormGroup;
   updatedImage = false;
 
@@ -41,9 +48,8 @@ export class CategoryCreateModalComponent {
   }
 
   closeDialog() {
-    // Normalize data for API POST
+    if (!this.categoryForm.valid) return;
     let ret = this.categoryForm.value;
-    if (!ret['name']) return;
     if (!this.updatedImage) delete ret['image'];
     this.ref.close(ret);
   }

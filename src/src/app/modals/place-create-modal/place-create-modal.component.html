@@ -6,11 +6,12 @@
       <div class="relative col-span-2">
         <p-floatlabel variant="in">
           <input id="name" formControlName="name" pInputText autofocus fluid class="!pr-12"
-            (keydown.shift.enter)="gmapsSearchText()" (keydown.control.enter)="closeDialog()" />
+            (keydown.enter)="gmapsSearchText()" />
           <label for="name">Name</label>
         </p-floatlabel>
         <div class="absolute right-3 top-1/2 -translate-y-1/2">
-          <p-button [disabled]="!placeForm.get('name')!.value" text icon="pi pi-sparkles"
+          <p-button [disabled]="!placeForm.get('name')!.value" text label="Query GMaps" icon="pi pi-sparkles"
+            size="small"
             class="cursor-pointer text-surface-400 hover:text-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             pTooltip="Complete using GMaps API" (click)="gmapsSearchText()" />
         </div>
@@ -153,7 +154,7 @@
             #descriptionInput fluid class="!pr-10"></textarea>
           @if (descriptionInput.value) {
           <p-button text icon="pi pi-times" severity="danger" class="absolute right-2 top-2"
-            (click)="placeForm.get('description')?.setValue('')" pTooltip="Clear" />
+            (click)="placeForm.get('description')?.setValue(''); placeForm.markAsDirty()" pTooltip="Clear" />
           }
         </div>
       </div>

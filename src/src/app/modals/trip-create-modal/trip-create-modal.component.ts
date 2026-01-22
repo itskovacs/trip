@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
@@ -17,6 +17,13 @@ import { take } from 'rxjs';
   styleUrl: './trip-create-modal.component.scss',
 })
 export class TripCreateModalComponent {
+  @HostListener('keydown.control.enter', ['$event'])
+  @HostListener('keydown.meta.enter', ['$event'])
+  onCtrlEnter(event: KeyboardEvent) {
+    event.preventDefault();
+    this.closeDialog();
+  }
+
   tripForm: FormGroup;
   previous_image_id: number | null = null;
   previous_image: string | null = null;
@@ -51,7 +58,7 @@ export class TripCreateModalComponent {
   }
 
   closeDialog() {
-    // Normalize data for API POST
+    if (!this.tripForm.valid) return;
     let ret = this.tripForm.value;
     if (!ret['name']) return;
     if (ret['image_id']) {

@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
@@ -11,12 +11,19 @@ import { TextareaModule } from 'primeng/textarea';
 
 @Component({
   selector: 'app-trip-create-day-modal',
-  imports: [FloatLabelModule, InputTextModule, DatePickerModule, ButtonModule, ReactiveFormsModule],
+  imports: [FloatLabelModule, InputTextModule, DatePickerModule, ButtonModule, ReactiveFormsModule, TextareaModule],
   standalone: true,
   templateUrl: './trip-create-day-modal.component.html',
   styleUrl: './trip-create-day-modal.component.scss',
 })
 export class TripCreateDayModalComponent {
+  @HostListener('keydown.control.enter', ['$event'])
+  @HostListener('keydown.meta.enter', ['$event'])
+  onCtrlEnter(event: KeyboardEvent) {
+    event.preventDefault();
+    this.closeDialog();
+  }
+
   dayForm: FormGroup;
   dayNames: string[] = [];
 
@@ -55,7 +62,7 @@ export class TripCreateDayModalComponent {
   }
 
   closeDialog() {
-    // Normalize data for API POST
+    if (!this.dayForm.valid) return;
     let ret = this.dayForm.value;
     if (this.dayNames.includes(ret['label'])) {
       this.utilsService.toast('error', 'Error', 'Day label is already in use');

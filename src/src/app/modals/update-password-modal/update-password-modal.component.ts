@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { InputOtpModule } from 'primeng/inputotp';
@@ -14,6 +14,13 @@ import { InputTextModule } from 'primeng/inputtext';
   styleUrl: './update-password-modal.component.scss',
 })
 export class UpdatePasswordModalComponent {
+  @HostListener('keydown.control.enter', ['$event'])
+  @HostListener('keydown.meta.enter', ['$event'])
+  onCtrlEnter(event: KeyboardEvent) {
+    event.preventDefault();
+    this.closeDialog();
+  }
+
   otpEnabled: boolean = false;
   otp: string = '';
   current = new FormControl('');
@@ -26,7 +33,7 @@ export class UpdatePasswordModalComponent {
     this.otpEnabled = this.config.data;
   }
 
-  close() {
+  closeDialog() {
     if (!this.current.value || !this.updated.value) return;
     if (this.otpEnabled && !this.otp) return;
 

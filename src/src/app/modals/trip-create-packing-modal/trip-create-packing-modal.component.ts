@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
@@ -24,6 +24,13 @@ import { InputNumberModule } from 'primeng/inputnumber';
   styleUrl: './trip-create-packing-modal.component.scss',
 })
 export class TripCreatePackingModalComponent {
+  @HostListener('keydown.control.enter', ['$event'])
+  @HostListener('keydown.meta.enter', ['$event'])
+  onCtrlEnter(event: KeyboardEvent) {
+    event.preventDefault();
+    this.closeDialog();
+  }
+
   packingForm: FormGroup;
   readonly packingCategories = [
     { value: 'clothes', dispValue: 'Clothes' },
@@ -46,7 +53,7 @@ export class TripCreatePackingModalComponent {
 
   closeDialog() {
     if (!this.packingForm.valid) return;
-    // Normalize data for API POST
+
     let ret = this.packingForm.value;
     this.ref.close(ret);
   }

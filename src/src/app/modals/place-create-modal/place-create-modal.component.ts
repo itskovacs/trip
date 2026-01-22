@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, HostListener } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -47,6 +47,13 @@ import { DialogModule } from 'primeng/dialog';
   styleUrl: './place-create-modal.component.scss',
 })
 export class PlaceCreateModalComponent {
+  @HostListener('keydown.control.enter', ['$event'])
+  @HostListener('keydown.meta.enter', ['$event'])
+  onCtrlEnter(event: KeyboardEvent) {
+    event.preventDefault();
+    this.closeDialog();
+  }
+
   placeForm: FormGroup;
   categories$?: Observable<Category[]>;
   previous_image_id: number | null = null;
@@ -132,7 +139,7 @@ export class PlaceCreateModalComponent {
   }
 
   closeDialog() {
-    // Normalize data for API POST
+    if (!this.placeForm.valid) return;
     let ret = this.placeForm.value;
     ret['category_id'] = ret['category'];
     delete ret['category'];
