@@ -191,7 +191,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           },
         },
         {
-          label: 'Google Maps links',
+          label: 'Google Maps Bulk',
           icon: 'pi pi-google',
           command: () => {
             if (!this.settings?.google_apikey) {
@@ -1594,11 +1594,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     })!;
 
     modal.onClose.pipe(take(1)).subscribe({
-      next: (links: string[] | null) => {
-        if (!links) return;
+      next: (content: string[] | null) => {
+        if (!content) return;
         this.utilsService.setLoading('Querying Google Maps API...');
         this.apiService
-          .postGmapsMultiline(links)
+          .postGmapsMultiline(content)
           .pipe(take(1))
           .subscribe({
             next: (places) => {
@@ -1647,19 +1647,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.map?.flyTo(coords);
     const marker = toDotMarker(coords);
     marker.addTo(this.map!);
-
     setTimeout(() => {
       marker.remove();
     }, 4000);
-      },
-      (error) => {
-        this.utilsService.toast(
-          'error',
-          'Error',
-          `Error resolving your geolocation: ${error.message || 'check console for details'}`,
-        );
-        console.error('geolocation error: ', error);
-      },
-    );
   }
 }
