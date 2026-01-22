@@ -41,6 +41,7 @@ import {
   placeToDotMarker,
   openNavigation,
   toDotMarker,
+  getGeolocationLatLng,
 } from '../../shared/map';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SelectModule } from 'primeng/select';
@@ -1638,22 +1639,18 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       });
   }
 
-  centerOnMe() {
-    if (!navigator.geolocation) {
-      this.utilsService.toast('error', 'Error', 'Geolocation not supported in your browser');
-      return;
-    }
+  async centerOnMe() {
+    const position = await getGeolocationLatLng();
+    if (position.err) this.utilsService.toast('error', 'Error', position.err);
 
-    navigator.geolocation.getCurrentPosition(
-      (position: GeolocationPosition) => {
-        const coords: L.LatLngTuple = [position.coords.latitude, position.coords.longitude];
-        this.map?.flyTo(coords);
-        const marker = toDotMarker(coords);
-        marker.addTo(this.map!);
+    const coords: any = [position.lat!, position.lng!];
+    this.map?.flyTo(coords);
+    const marker = toDotMarker(coords);
+    marker.addTo(this.map!);
 
-        setTimeout(() => {
-          marker.remove();
-        }, 4000);
+    setTimeout(() => {
+      marker.remove();
+    }, 4000);
       },
       (error) => {
         this.utilsService.toast(

@@ -197,3 +197,28 @@ export function openNavigation(coordinates: L.LatLngLiteral[]) {
   url += `${waypoints}`;
   window.open(url, '_blank');
 }
+
+export function getGeolocationLatLng(): Promise<{ lat?: number; lng?: number; err?: string }> {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) {
+      resolve({ err: 'Geolocation not supported in your browser' });
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position: GeolocationPosition) => {
+        resolve({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        });
+      },
+      (error) => {
+        console.error(error);
+        resolve({
+          err: `Error resolving your geolocation: ${error.message || 'check console for details'}`,
+        });
+      },
+      { enableHighAccuracy: true, timeout: 5000 },
+    );
+  });
+}
