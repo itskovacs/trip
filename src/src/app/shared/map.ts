@@ -76,7 +76,7 @@ export function tripDayMarker(item: Partial<TripItem>): L.Marker {
   const touchDevice = 'ontouchstart' in window;
   if (!touchDevice) {
     marker.bindTooltip(
-      `<div class="text-xs text-gray-500">${item.time}</div><div class="font-semibold mb-1 truncate text-base">${item.text}</div>`,
+      `<div class="flex flex-col gap-1 items-center"><div class="w-fit px-2.5 py-1 text-xs font-mono font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded">${item.time}</div><div class="font-semibold mb-1 text-base">${item.text}</div></div>`,
       {
         direction: 'right',
         offset: [10, 0],
@@ -127,7 +127,6 @@ export function placeToMarker(
   const options: Partial<L.MarkerOptions> = {
     riseOnHover: true,
     title: place.name,
-    alt: '',
   };
 
   const markerImage = isLowNet ? place.category.image : (place.image ?? place.category.image);
