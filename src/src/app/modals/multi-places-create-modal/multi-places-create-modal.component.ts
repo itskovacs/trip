@@ -131,7 +131,11 @@ export class MultiPlacesCreateModalComponent {
 
   closeDialog() {
     if (this.places.some((p) => !this.isPlaceValid(p))) {
-      this.utilsService.toast('warn', 'Incomplete place(s)', 'You have incomplete place(s)');
+      this.utilsService.toast(
+        'warn',
+        'Incomplete place(s)',
+        'You have incomplete place(s). Look for the red text with asterisk (*) to spot incomplete places.',
+      );
       return;
     }
     if (this.linkToTripID) {
