@@ -153,21 +153,25 @@ async def create_places(
     return [PlaceRead.serialize(p) for p in new_places]
 
 
-@router.post("/google-multilinks")
-async def google_links_to_places(
-    links: list[str], session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]
+@router.post("/google-bulk")
+async def google_bulk_to_places(
+    data: list[str], session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]
 ) -> list[GooglePlaceResult]:
     api_key = _get_user_api_key(session, current_user)
 
-    async def _process_url(url: str, api_key: str) -> GooglePlaceResult | None:
-        if result := await gmaps_url_to_search(url, api_key):
-            return await result_to_place(result, api_key)
+    async def _process_content(content: str, api_key: str) -> GooglePlaceResult | None:
+        if "google.com/maps/place/" in content:
+            if result := await gmaps_url_to_search(content, api_key):
+                return await result_to_place(result, api_key)
+        else:
+            if result := await gmaps_textsearch(content, api_key):
+                return await result_to_place(result[0], api_key)
         return None
 
     return await _process_gmaps_batch(
-        links,
+        data,
         api_key,
-        _process_url,
+        _process_content,
     )
 
 

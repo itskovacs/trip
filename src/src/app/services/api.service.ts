@@ -334,8 +334,8 @@ export class ApiService {
     return this.httpClient.post<GooglePlaceResult[]>(`${this.apiBaseUrl}/places/google-takeout-import`, formdata);
   }
 
-  postGmapsMultiline(links: string[]): Observable<GooglePlaceResult[]> {
-    return this.httpClient.post<GooglePlaceResult[]>(`${this.apiBaseUrl}/places/google-multilinks`, links);
+  postGmapsMultiline(data: string[]): Observable<GooglePlaceResult[]> {
+    return this.httpClient.post<GooglePlaceResult[]>(`${this.apiBaseUrl}/places/google-bulk`, data);
   }
 
   postKmzFile(formdata: FormData): Observable<GooglePlaceResult[]> {

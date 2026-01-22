@@ -10,7 +10,7 @@ from ..models.models import (Category, CategoryRead, Image, Place, PlaceCreate,
 from ..security import api_token_to_user
 from ..utils.utils import (b64img_decode, download_file, patch_image,
                            save_image_to_file)
-from .places import (create_place, google_links_to_places,
+from .places import (create_place, google_bulk_to_places,
                      google_resolve_shortlink, google_search_text)
 
 router = APIRouter(prefix="/api/by_token", tags=["by_token"])
@@ -94,7 +94,7 @@ async def token_google_search(
         if "maps.app.goo.gl" in query:
             result = await google_resolve_shortlink(query.split("/")[-1], session, current_user)
         elif "google.com/maps/place/" in query:
-            results = await google_links_to_places([query], session, current_user)
+            results = await google_bulk_to_places([query], session, current_user)
             result = results[0]
         else:
             results = await google_search_text(data.q, session, current_user)
