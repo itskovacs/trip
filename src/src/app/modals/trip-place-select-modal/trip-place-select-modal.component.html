@@ -1,177 +1,219 @@
 <section>
-  <div
-    class="rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-200">
-    <div (click)="showSelectedPlaces = !showSelectedPlaces"
-      class="select-none w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer">
-      <div class="flex items-center gap-3">
-        <div class="flex items-center justify-center min-w-10 min-h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-          <i class="pi pi-check text-blue-600 dark:text-blue-400"></i>
+
+  <p-tabs value="0">
+    <p-tablist>
+      <p-tab value="0">
+        <div class="flex items-center gap-2">
+          <i class="pi pi-list"></i>
+          <span>Available</span>
+          <span
+            class="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-1 text-xs font-medium rounded-md">{{
+            displayedPlaces.length }}</span>
         </div>
-        <div class="flex flex-col items-start">
-          <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100 line-clamp-1">Selected</h2>
-          <p class="text-xs text-gray-500 dark:text-gray-400">{{ selectedPlaces.length }} place{{
-            selectedPlaces.length > 1 ? 's' : '' }} associated</p>
+      </p-tab>
+      <p-tab value="1">
+        <div class="flex items-center gap-2">
+          <i class="pi pi-check"></i>
+          <span>Selected</span>
+          <span
+            class="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-1 text-xs font-medium rounded-md">{{
+            selectedPlaces.length }}</span>
         </div>
-      </div>
-      <i [class]="showSelectedPlaces ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
-        class="text-gray-400 transition-transform duration-200"></i>
-    </div>
+      </p-tab>
+    </p-tablist>
 
-    @if (showSelectedPlaces) {
-    <div class="flex justify-end px-4">
-      <p-button icon="pi pi-minus-circle" severity="danger" text label="Deselect All" (click)="deselectAll()" />
-    </div>
+    <p-tabpanels>
+      <p-tabpanel value="0">
+        <div class="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+          <div class="p-4">
+            <div class="grid gap-3 md:grid-cols-3">
+              <div class="relative md:col-span-2">
+                <input pInputText [formControl]="searchInput" placeholder="Search..." class="h-full" pSize="small"
+                  fluid />
+                @if (searchInput.value) {
+                <p-button icon="pi pi-times" text severity="danger" size="small"
+                  class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Clear search"
+                  (click)="searchInput.setValue('')" />
+                }
+              </div>
 
-    <div class="grid grid-cols-1 gap-2 px-4 py-2 md:grid-cols-2 lg:grid-cols-3">
-      @for (p of selectedPlaces; track p.id) {
-      <div (click)="togglePlace(p)"
-        class="group relative cursor-pointer rounded-xl border border-transparent p-3 transition-colors hover:border-surface-200 hover:bg-surface-50 dark:hover:border-surface-700 dark:hover:bg-surface-900">
-        <div class="flex items-center gap-3 min-w-0">
-          <div class="relative h-14 w-14 shrink-0">
-            <img [src]="p.image || p.category.image" loading="lazy" class="h-full w-full rounded object-cover" />
+              <div class="relative">
+                <input id="geocodeInput" pSize="small" (keydown.enter)="gmapsGeocodeFilter()"
+                  placeholder="Country, City..." class="h-full" [formControl]="googleGeocodeInput" pInputText fluid />
+                @if (boundariesFiltering) {
+                <p-button icon="pi pi-times" text severity="danger" size="small"
+                  class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Clear location filter"
+                  (click)="resetGeocodeFilters()" />
+                } @else {
+                <p-button icon="pi pi-sparkles" label="Query GMaps" text [disabled]="!googleGeocodeInput.value"
+                  size="small" class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Apply location filter"
+                  (click)="gmapsGeocodeFilter()" />
+                }
+              </div>
+            </div>
+          </div>
 
+          @if (boundariesFiltering || searchInput.value) {
+          <div class="px-4 pb-3 flex flex-wrap items-center gap-2">
+            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Active filters:</span>
+
+            @if (searchInput.value) {
             <div
-              class="absolute inset-0 hidden items-center justify-center rounded bg-black/40 text-white group-hover:flex">
-              <i class="pi pi-times text-2xl"></i>
+              class="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-0.5 text-xs font-medium rounded-md">
+              <i class="pi pi-search"></i>{{ searchInput.value }}<p-button text icon="pi pi-times" size="small"
+                (click)="searchInput.setValue('')" />
+            </div>
+            }
+
+            @if (boundariesFiltering) {
+            <div
+              class="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-0.5 text-xs font-medium rounded-md">
+              <i class="pi pi-map-marker"></i>{{ googleGeocodeInput.value }}<p-button text icon="pi pi-times"
+                size="small" (click)="resetGeocodeFilters()" />
+            </div>
+            }
+
+            <div class="ml-auto">
+              <p-button icon="pi pi-check-circle" severity="success" text label="Select All Filtered" size="small"
+                (click)="selectAll()" />
             </div>
           </div>
+          } @else {
+          <div class="px-4 pb-3 flex justify-end">
+            <p-button icon="pi pi-check-circle" severity="success" text label="Select All" size="small"
+              (click)="selectAll()" />
+          </div>
+          }
+        </div>
 
-          <div class="min-w-0 flex-1">
-            <h3 class="mb-0.5 truncate text-sm font-semibold text-gray-900 dark:text-white">
-              {{ p.name }}
-            </h3>
-            <p class="mb-1.5 truncate text-xs text-gray-500 dark:text-gray-400">
-              {{ p.place }}
-            </p>
+        @defer {
+        <div class="p-4">
+          <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+            @for (p of displayedPlaces; track p.id) {
+            <div (click)="togglePlace(p)"
+              class="group relative cursor-pointer rounded-xl border border-gray-200 dark:border-gray-700 p-3 transition-all duration-200 hover:border-gray-400 hover:bg-gray-50 dark:hover:border-gray-600 dark:hover:bg-gray-950/30"
+              [class]="selectedPlacesID.includes(p.id) ? 'ring ring-gray-500 bg-gray-50 dark:bg-gray-950' : ''">
+              <div class="flex items-center gap-3">
+                <div class="relative h-14 w-14 shrink-0">
+                  <img [src]="p.image || p.category.image" loading="lazy"
+                    class="h-full w-full rounded-lg object-cover" />
+                  <div
+                    [class]="selectedPlacesID.includes(p.id) ? 'flex bg-gray-600/80' : 'hidden group-hover:flex bg-green-700/80'"
+                    class="absolute inset-0 items-center justify-center rounded-lg  text-white transition-all">
+                    <i [class]="selectedPlacesID.includes(p.id) ? 'pi pi-check text-xl' : 'pi pi-plus text-xl'"></i>
+                  </div>
+                </div>
 
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-medium"
-                [style.background]="p.category.color + '1A'" [style.color]="p.category.color">
-                {{ p.category.name }}
-              </span>
+                <div class="min-w-0 flex-1">
+                  <h3 class="mb-1 truncate text-sm font-semibold text-gray-900 dark:text-white">
+                    {{ p.name }}
+                  </h3>
+                  <p class="mb-2 truncate text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                    <i class="pi pi-map-marker text-[10px]"></i>
+                    {{ p.place }}
+                  </p>
+                  <span class="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium"
+                    [style.background]="p.category.color + '1A'" [style.color]="p.category.color">
+                    {{ p.category.name }}
+                  </span>
+                </div>
+              </div>
             </div>
+            } @empty {
+            <div class="col-span-full py-12 text-center">
+              <i class="pi pi-inbox text-4xl text-gray-300 dark:text-gray-600 mb-3"></i>
+              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">No places found</p>
+              <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Try adjusting your filters</p>
+            </div>
+            }
           </div>
         </div>
-      </div>
-      }
-    </div>
-    }
-  </div>
-
-  <div class="mt-8 mb-16">
-    <div class="mb-3 flex flex-col gap-1">
-      <h1 class="text-base font-semibold tracking-tight">
-        List
-      </h1>
-      <span class="text-xs text-surface-500 dark:text-surface-400">
-        Available places
-      </span>
-    </div>
-    @defer {
-    <div
-      class="grid gap-2 rounded-xl border border-surface-200/70 bg-surface-0/80 p-3 backdrop-blur-sm dark:border-surface-700/70 dark:bg-surface-900/80 md:grid-cols-3">
-      <div class="relative md:col-span-2">
-        <p-floatlabel variant="in">
-          <input id="search" pSize="small" [formControl]="searchInput" pInputText fluid />
-          <label for="search">Search...</label>
-        </p-floatlabel>
-
-        @if (searchInput.value) {
-        <p-button icon="pi pi-times" text severity="danger" size="small"
-          class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Clear and Cancel"
-          (click)="searchInput.setValue('')" />
+        } @placeholder (minimum 400ms) {
+        <div class="grid gap-3 p-4 md:grid-cols-2 lg:grid-cols-3">
+          @for (_ of [1,2,3,4,5,6]; track _) {
+          <p-skeleton height="5.5rem" borderRadius="0.75rem" />
+          }
+        </div>
         }
-      </div>
-
-      <div class="relative">
-        <p-floatlabel variant="in">
-          <input id="geocodeInput" pSize="small" (keydown.enter)="gmapsGeocodeFilter()"
-            [formControl]="googleGeocodeInput" pInputText autofocus fluid />
-          <label for="geocodeInput">Filter by Country / City </label>
-        </p-floatlabel>
-
-        @if (boundariesFiltering) {<p-button icon="pi pi-times" text severity="danger" size="small"
-          class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Clear and Cancel"
-          (click)="resetGeocodeFilters()" />}
-        @else {<p-button icon="pi pi-sparkles" text [disabled]="!googleGeocodeInput.value" size="small"
-          class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Filter using location (GMaps API)"
-          (click)="gmapsGeocodeFilter()" />}
-      </div>
-    </div>
-
-    @if (boundariesFiltering) {
-    <div class="px-4 pt-1 flex flex-col md:flex-row justify-center md:justify-between items-center gap-1">
-      <div class="flex items-center gap-2">
-        <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Filtering for location: <b>{{
-            googleGeocodeInput.value }}</b></p>
-        <p-button icon="pi pi-times" text severity="danger" pTooltip="Clear" (click)="resetGeocodeFilters()" />
-      </div>
-      <p-button icon="pi pi-check-circle" severity="success" text label="Select All" (click)="selectAll()" />
-    </div>
-    } @else {
-    <div class="flex justify-end px-4 pt-1">
-      <p-button icon="pi pi-check-circle" severity="success" text label="Select All" (click)="selectAll()" />
-    </div>
-    }
-
-    <div class="grid grid-cols-1 gap-2 px-4 py-2 md:grid-cols-2 lg:grid-cols-3">
-      @for (p of displayedPlaces; track p.id) {
-      <div (click)="togglePlace(p)" class="group relative cursor-pointer rounded-xl border border-transparent p-3 transition-colors hover:border-surface-200
-          hover:bg-surface-50 dark:hover:border-surface-700 dark:hover:bg-surface-900">
-        <div class="flex items-center gap-3">
-          <div class="relative h-14 w-14 shrink-0">
-            <img [src]="p.image || p.category.image" loading="lazy" class="h-full w-full rounded object-cover" />
-            <div [class]="selectedPlacesID.includes(p.id) ? 'flex': 'hidden'"
-              class="absolute inset-0 items-center justify-center rounded bg-black/40 text-white">
-              <i class="pi pi-check"></i>
-            </div>
+      </p-tabpanel>
+      <p-tabpanel value="1">
+        @if (selectedPlaces.length > 0) {
+        <div
+          class="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+              {{ selectedPlaces.length }} place{{ selectedPlaces.length === 1 ? '' : 's' }} selected
+            </span>
           </div>
+          <p-button icon="pi pi-trash" severity="danger" text label="Remove All" size="small" (click)="deselectAll()" />
+        </div>
 
-          <div class="min-w-0 flex-1">
-            <h3 class="mb-0.5 truncate text-sm font-semibold text-gray-900 dark:text-white">
-              {{ p.name }}
-            </h3>
-            <p class="mb-1.5 truncate text-xs text-gray-500 dark:text-gray-400">
-              {{ p.place }}
-            </p>
+        <div class="p-4">
+          <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
+            @for (p of selectedPlaces; track p.id) {
+            <div (click)="togglePlace(p)"
+              class="group relative cursor-pointer rounded-xl border border-gray-200 dark:border-gray-700 p-3 transition-all duration-200 hover:border-gray-400 hover:bg-gray-50 dark:hover:border-gray-600 dark:hover:bg-gray-950/30 hover:shadow-md">
+              <div class="flex items-center gap-3">
+                <div class="relative h-14 w-14 shrink-0">
+                  <img [src]="p.image || p.category.image" loading="lazy"
+                    class="h-full w-full rounded-lg object-cover" />
+                  <div
+                    class="absolute inset-0 hidden items-center justify-center rounded-lg bg-red-700/80 text-white transition-all group-hover:flex">
+                    <i class="pi pi-times text-xl"></i>
+                  </div>
+                </div>
 
-            <div class="flex flex-wrap items-center gap-2">
-              <span class="inline-flex items-center gap-1 rounded px-2 py-0.5 text-[10px] font-medium"
-                [style.background]="p.category.color + '1A'" [style.color]="p.category.color">
-                {{ p.category.name }}
-              </span>
+                <div class="min-w-0 flex-1">
+                  <h3 class="mb-1 truncate text-sm font-semibold text-gray-900 dark:text-white">
+                    {{ p.name }}
+                  </h3>
+                  <p class="mb-2 truncate text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                    <i class="pi pi-map-marker text-[10px]"></i>
+                    {{ p.place }}
+                  </p>
+                  <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-medium"
+                    [style.background]="p.category.color + '1A'" [style.color]="p.category.color">
+                    {{ p.category.name }}
+                  </span>
+                </div>
+              </div>
             </div>
+            }
           </div>
         </div>
-      </div>
-      } @empty {
-      <div class="col-span-full mt-8 text-center">
-        <p class="font-medium text-gray-500 dark:text-gray-400">Nothing to see</p>
-      </div>
-      }
-    </div>
+        } @else {
+        <div class="flex flex-col items-center justify-center py-16 px-4">
+          <div class="rounded-full bg-gray-100 dark:bg-gray-800 p-6 mb-4">
+            <i class="pi pi-map text-5xl text-gray-400 dark:text-gray-600"></i>
+          </div>
+          <h3 class="text-base font-semibold text-gray-700 dark:text-gray-300 mb-2">No places selected yet</h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400 text-center max-w-sm">
+            Switch to the Available tab to browse and select places for your trip
+          </p>
+        </div>
+        }
+      </p-tabpanel>
+    </p-tabpanels>
+  </p-tabs>
 
-    <div class="fixed inset-x-0 bottom-0 z-20 flex justify-center p-4">
-      <div
-        class="flex w-full max-w-md items-center justify-between gap-3 rounded-lg border border-surface-200/70 bg-surface-0/90 px-4 py-2.5 shadow-sm backdrop-blur-md dark:border-surface-700/70 dark:bg-surface-900/90">
+  <div class="fixed inset-x-0 bottom-0 z-20 flex justify-center p-4 pointer-events-none">
+    <div class="pointer-events-auto flex w-full max-w-lg items-center justify-between gap-4 rounded-lg border bg-gray-50
+      border-gray-200/70 dark:border-gray-700/70 px-5 py-3.5 shadow-lg backdrop-blur-md">
+      <div class="flex items-center gap-3">
+        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-500/20">
+          <i class="pi pi-check-circle text-xl text-gray-700"></i>
+        </div>
         <div class="flex flex-col">
-          <span class="text-xs font-semibold text-surface-700 dark:text-surface-200">
+          <span class="text-sm font-semibold text-gray-700">
             {{ selectedPlaces.length }} place{{ selectedPlaces.length === 1 ? '' : 's' }} selected
           </span>
-          <span class="text-[11px] text-surface-500 dark:text-surface-400">
-            Confirm to apply your selection
+          <span class="text-xs text-gray-400">
+            Confirm your selection
           </span>
         </div>
-
-        <p-button (click)="closeDialog()" label="Confirm" size="small" severity="secondary" />
       </div>
+
+      <p-button (click)="closeDialog()" label="Confirm" size="small" />
     </div>
-    } @placeholder (minimum 0.4s) {
-    <div class="grid gap-2 px-4 py-2 md:grid-cols-2 lg:grid-cols-3">
-      @for (_ of [1,2,3,4]; track _) {
-      <p-skeleton height="5rem" />
-      }
-    </div>
-    }
   </div>
 </section>

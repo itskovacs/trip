@@ -11,10 +11,19 @@ import { UtilsService } from '../../services/utils.service';
 import { take } from 'rxjs';
 import { isPointInBounds } from '../../shared/map';
 import { TooltipModule } from 'primeng/tooltip';
+import { TabsModule } from 'primeng/tabs';
 
 @Component({
   selector: 'app-trip-place-select-modal',
-  imports: [FloatLabelModule, InputTextModule, ButtonModule, ReactiveFormsModule, SkeletonModule, TooltipModule],
+  imports: [
+    FloatLabelModule,
+    InputTextModule,
+    ButtonModule,
+    ReactiveFormsModule,
+    SkeletonModule,
+    TooltipModule,
+    TabsModule,
+  ],
   standalone: true,
   templateUrl: './trip-place-select-modal.component.html',
   styleUrl: './trip-place-select-modal.component.scss',
