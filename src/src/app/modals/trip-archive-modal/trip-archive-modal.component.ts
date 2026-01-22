@@ -40,7 +40,6 @@ export class TripArchiveModalComponent {
   }
 
   closeDialog() {
-    // Normalize data for API POST
     this.ref.close(this.review.value);
   }
 }

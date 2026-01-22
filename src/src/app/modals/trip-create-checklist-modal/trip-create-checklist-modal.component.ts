@@ -34,7 +34,6 @@ export class TripCreateChecklistModalComponent {
   closeDialog() {
     if (!this.checklistForm.valid) return;
 
-    // Normalize data for API POST
     let ret = this.checklistForm.value;
     this.ref.close(ret);
   }

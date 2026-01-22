@@ -20,7 +20,6 @@ export class TripInviteMemberModalComponent {
   closeDialog() {
     if (!this.memberForm.value) return;
 
-    // Normalize data for API POST
     this.ref.close(this.memberForm.value);
   }
 }
