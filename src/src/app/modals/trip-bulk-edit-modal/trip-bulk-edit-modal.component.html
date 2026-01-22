@@ -1,0 +1,150 @@
+<section class="w-full max-w-xl space-y-4" [formGroup]="editForm">
+  <div class="space-y-4">
+    <h2 class="text-sm font-semibold text-gray-900 dark:text-surface-50">
+      Select fields to update
+    </h2>
+    <p class="text-xs text-gray-500 -mt-3 mb-4">
+      Check the box to update a field. Leave empty to clear the value.
+    </p>
+
+    <p-inputgroup>
+      <p-inputgroup-addon>
+        <p-checkbox [binary]="true" formControlName="enable_day_id" />
+      </p-inputgroup-addon>
+      <p-floatlabel variant="in">
+        <p-select [options]="trip?.days" optionLabel="label" optionValue="id" formControlName="day_id" inputId="day"
+          [showClear]="true" appendTo="body" fluid class="capitalize" />
+        <label for="day">Day</label>
+      </p-floatlabel>
+    </p-inputgroup>
+
+    <p-inputgroup>
+      <p-inputgroup-addon>
+        <p-checkbox [binary]="true" formControlName="enable_time" />
+      </p-inputgroup-addon>
+      <p-floatlabel variant="in">
+        <p-inputmask id="time" formControlName="time" mask="99?:99" />
+        <label for="time">Time</label>
+      </p-floatlabel>
+    </p-inputgroup>
+
+    <p-inputgroup>
+      <p-inputgroup-addon>
+        <p-checkbox [binary]="true" formControlName="enable_text" />
+      </p-inputgroup-addon>
+      <p-floatlabel variant="in">
+        <input id="text" pInputText formControlName="text" fluid />
+        <label for="text">Text</label>
+      </p-floatlabel>
+    </p-inputgroup>
+
+    <p-inputgroup>
+      <p-inputgroup-addon>
+        <p-checkbox [binary]="true" formControlName="enable_place" />
+      </p-inputgroup-addon>
+      <p-floatlabel variant="in">
+        <p-select [options]="trip?.places" optionValue="id" optionLabel="name" formControlName="place" inputId="place"
+          [filter]="true" [showClear]="true" appendTo="body" fluid class="capitalize">
+          <ng-template let-place #item>
+            <div class="flex items-center gap-2" [class.text-gray-500]="place.placeUsage">
+              <img [src]="place.image || place.category.image" class="rounded-md size-6 object-cover" />
+              <div>{{ place.name }}</div>
+            </div>
+          </ng-template>
+          <ng-template let-selected #selectedItem>
+            @if (selected) {
+            <div class="flex items-center gap-2">
+              <img [src]="selected.image || selected.category.image" class="rounded-md size-5 object-cover" />
+              <div>{{ selected.name }}</div>
+            </div>
+            }
+          </ng-template>
+        </p-select>
+        <label for="place">Place</label>
+      </p-floatlabel>
+    </p-inputgroup>
+
+    <p-inputgroup>
+      <p-inputgroup-addon>
+        <p-checkbox [binary]="true" formControlName="enable_status" />
+      </p-inputgroup-addon>
+      <p-floatlabel variant="in">
+        <p-select [options]="statuses" optionLabel="label" optionValue="label" formControlName="status" inputId="status"
+          [showClear]="true" appendTo="body" fluid class="capitalize">
+          <ng-template let-option #item>
+            <div class="flex items-center gap-2">
+              <div class="size-3 rounded-full" [style.background]="option.color"></div>
+              <div>{{ option.label }}</div>
+            </div>
+          </ng-template>
+          <ng-template let-selected #selectedItem>
+            @if (selected) {
+            <div class="flex items-center gap-2">
+              <div class="size-3 rounded-full" [style.background]="selected.color"></div>
+              <div>{{ selected.label }}</div>
+            </div>
+            }
+          </ng-template>
+        </p-select>
+        <label for="status">Status</label>
+      </p-floatlabel>
+    </p-inputgroup>
+
+    <p-inputgroup>
+      <p-inputgroup-addon>
+        <p-checkbox [binary]="true" formControlName="enable_lat" />
+      </p-inputgroup-addon>
+      <p-floatlabel variant="in">
+        <input id="lat" pInputText formControlName="lat" fluid />
+        <label for="lat">Latitude</label>
+      </p-floatlabel>
+    </p-inputgroup>
+
+    <p-inputgroup>
+      <p-inputgroup-addon>
+        <p-checkbox [binary]="true" formControlName="enable_lng" />
+      </p-inputgroup-addon>
+      <p-floatlabel variant="in">
+        <input id="lng" pInputText formControlName="lng" fluid />
+        <label for="lng">Longitude</label>
+      </p-floatlabel>
+    </p-inputgroup>
+
+    <p-inputgroup>
+      <p-inputgroup-addon>
+        <p-checkbox [binary]="true" formControlName="enable_price" />
+      </p-inputgroup-addon>
+      <p-floatlabel variant="in">
+        <p-inputnumber id="price" formControlName="price" mode="decimal" [minFractionDigits]="0" [maxFractionDigits]="2"
+          currency="EUR" locale="fr-FR" fluid />
+        <label for="price">Price</label>
+      </p-floatlabel>
+    </p-inputgroup>
+
+    <p-inputgroup>
+      <p-inputgroup-addon>
+        <p-checkbox [binary]="true" formControlName="enable_comment" />
+      </p-inputgroup-addon>
+      <p-floatlabel variant="in">
+        <textarea pTextarea id="comment" formControlName="comment" rows="2" autoResize fluid></textarea>
+        <label for="comment">Comment</label>
+      </p-floatlabel>
+    </p-inputgroup>
+
+    <p-inputgroup>
+      <p-inputgroup-addon>
+        <p-checkbox [binary]="true" formControlName="enable_attachment_ids" />
+      </p-inputgroup-addon>
+      <p-floatlabel variant="in">
+        <p-multiselect [options]="trip?.attachments ?? []" optionValue="id" optionLabel="filename" id="attachment_ids"
+          formControlName="attachment_ids" [showToggleAll]="false" display="chip" scrollHeight="320px" appendTo="body"
+          fluid />
+        <label for="attachment_ids">Attachments</label>
+      </p-floatlabel>
+    </p-inputgroup>
+  </div>
+
+  <div class="flex justify-center pt-4 border-t border-surface-200 dark:border-surface-700">
+    <p-button label="Confirm" text (click)="closeDialog()" [disabled]="!editForm.dirty || !editForm.valid" />
+  </div>
+</section>
