@@ -510,6 +510,7 @@ class TripInvitationRead(TripReadBase):
 class TripDayBase(SQLModel):
     label: str
     dt: date | None = None
+    notes: str | None = None
 
 
 class TripDay(TripDayBase, table=True):
@@ -532,6 +533,7 @@ class TripDayRead(TripDayBase):
             dt=obj.dt,
             label=obj.label,
             items=[TripItemRead.serialize(item) for item in obj.items],
+            notes=obj.notes,
         )
 
 

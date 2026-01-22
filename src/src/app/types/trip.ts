@@ -42,6 +42,7 @@ export interface TripDay {
   dt?: string;
   label: string;
   items: TripItem[];
+  notes?: string;
 }
 
 export interface TripItem {

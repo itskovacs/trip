@@ -10,6 +10,15 @@
         (keyup.enter)="closeDialog()" />
       <label for="date">Date</label>
     </p-floatlabel>
+
+    <div class="relative col-span-full">
+      <textarea pTextarea id="notes" placeholder="Day notes" formControlName="notes" rows="4" #notesInput fluid
+        class="!pr-10"></textarea>
+      @if (notesInput.value) {
+      <p-button text icon="pi pi-times" severity="danger" class="absolute right-2 top-2"
+        (click)="notesInput.value = ''; dayForm.markAsDirty()" pTooltip="Clear" />
+      }
+    </div>
   </div>
 
   <div class="mt-4 text-right">

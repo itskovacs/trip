@@ -7,6 +7,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { DatePickerModule } from 'primeng/datepicker';
 import { TripDay } from '../../types/trip';
 import { UtilsService } from '../../services/utils.service';
+import { TextareaModule } from 'primeng/textarea';
 
 @Component({
   selector: 'app-trip-create-day-modal',
@@ -29,6 +30,7 @@ export class TripCreateDayModalComponent {
       id: -1,
       dt: null,
       label: ['', Validators.required],
+      notes: null,
     });
 
     if (this.config.data) {
