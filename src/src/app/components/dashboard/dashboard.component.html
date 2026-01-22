@@ -37,10 +37,8 @@
           <i class="pi text-sm transition-transform duration-200"
             [class]="viewPlacesList ? 'pi-times text-blue-600 dark:text-blue-400 rotate-90' : 'pi-map-marker text-gray-700 dark:text-gray-300'"></i>
         </div>
-        <span class="hidden md:inline text-sm font-medium"
-          [class]="viewPlacesList ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'">
-          {{ viewPlacesList ? 'Close' : 'Places' }}
-        </span>
+        <span class="select-none hidden md:inline text-sm font-medium"
+          [class]="viewPlacesList ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'">Places</span>
       </div>
 
       <div class="w-px h-5 bg-gray-200 dark:bg-gray-800"></div>
@@ -52,18 +50,15 @@
           <i class="pi text-sm transition-transform duration-200"
             [class]="viewFilters ? 'pi-times text-blue-600 dark:text-blue-400 rotate-90' : 'pi-filter text-gray-700 dark:text-gray-300'"></i>
         </div>
-        <span class="hidden md:inline text-sm font-medium"
-          [class]="viewFilters ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'">
-          {{ viewFilters ? 'Close' : 'Filter' }}
-        </span>
+        <span class="select-none hidden md:inline text-sm font-medium"
+          [class]="viewFilters ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'">Filters</span>
       </div>
 
       <div class="w-px h-5 bg-gray-200 dark:bg-gray-800"></div>
 
       <div (click)="centerOnMe()" pTooltip="Center on my location"
         class="cursor-pointer flex items-center justify-center w-9 h-9 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-all">
-        <i class="pi pi-bullseye text-gray-700 dark:text-gray-300 text-sm transition-transform duration-300"
-          [class.rotate-90]="viewSettings"></i>
+        <i class="pi pi-bullseye text-gray-700 dark:text-gray-300 text-sm"></i>
       </div>
 
       <div class="w-px h-5 bg-gray-200 dark:bg-gray-800"></div>
