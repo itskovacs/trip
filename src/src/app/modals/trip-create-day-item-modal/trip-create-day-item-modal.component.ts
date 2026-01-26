@@ -104,28 +104,6 @@ export class TripCreateDayItemModalComponent {
       attachments: [],
     });
 
-    this.itemForm
-      .get('place')
-      ?.valueChanges.pipe(takeUntilDestroyed())
-      .subscribe({
-        next: (value?: number) => {
-          if (!value) {
-            this.itemForm.get('lat')?.setValue('');
-            this.itemForm.get('lng')?.setValue('');
-            return;
-          }
-
-          const p: Place = this.places.find((p) => p.id === value) as Place;
-          if (!p) return;
-          this.itemForm.get('lat')?.setValue(p.lat);
-          this.itemForm.get('lng')?.setValue(p.lng);
-          this.itemForm.get('price')?.setValue(p.price || 0);
-          if (!this.itemForm.get('text')?.value) this.itemForm.get('text')?.setValue(p.name);
-          if (p.description && !this.itemForm.get('comment')?.value)
-            this.itemForm.get('comment')?.setValue(p.description);
-        },
-      });
-
     const data = this.config.data;
     if (data) {
       this.members = data.members ?? [];
@@ -140,8 +118,25 @@ export class TripCreateDayItemModalComponent {
         });
 
       if (data.selectedDay) this.itemForm.get('day_id')?.setValue([data.selectedDay]);
-      if (data.selectedPlaceId) this.itemForm.get('place')?.setValue(data.selectedPlaceId);
+      if (data.selectedPlaceId) {
+        this.itemForm.get('place')?.setValue(data.selectedPlaceId);
+        this.placeUpdatedTrigger(data.selectedPlaceId);
+      }
     }
+
+    this.itemForm
+      .get('place')
+      ?.valueChanges.pipe(takeUntilDestroyed())
+      .subscribe({
+        next: (newPlace?: number) => {
+          if (!newPlace) {
+            this.itemForm.get('lat')?.setValue('');
+            this.itemForm.get('lng')?.setValue('');
+            return;
+          }
+          this.placeUpdatedTrigger(newPlace);
+        },
+      });
 
     this.itemForm
       .get('lat')
@@ -182,6 +177,16 @@ export class TripCreateDayItemModalComponent {
       delete ret['attachments'];
     }
     this.ref.close(ret);
+  }
+
+  placeUpdatedTrigger(pid: number) {
+    const p: Place = this.places.find((p) => p.id === pid) as Place;
+    if (!p) return;
+    this.itemForm.get('lat')?.setValue(p.lat);
+    this.itemForm.get('lng')?.setValue(p.lng);
+    this.itemForm.get('price')?.setValue(p.price || 0);
+    if (!this.itemForm.get('text')?.value) this.itemForm.get('text')?.setValue(p.name);
+    if (p.description && !this.itemForm.get('comment')?.value) this.itemForm.get('comment')?.setValue(p.description);
   }
 
   togglePriceMembersPopover(e: any) {
