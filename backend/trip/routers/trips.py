@@ -141,7 +141,7 @@ def read_trip(
 def create_trip(
     trip: TripCreate, session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]
 ) -> TripReadBase:
-    new_trip = Trip(name=trip.name, user=current_user)
+    new_trip = Trip(name=trip.name, currency=trip.currency, user=current_user)
 
     if trip.image:
         image_bytes = b64img_decode(trip.image)
