@@ -1,5 +1,5 @@
-import Aura from '@primeng/themes/aura';
-import { definePreset } from '@primeng/themes';
+import Aura from '@primeuix/themes/aura';
+import { definePreset } from '@primeuix/themes';
 
 export const TripThemePreset = definePreset(Aura, {
   primitive: {

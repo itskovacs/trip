@@ -19,7 +19,7 @@
     "@angular/platform-browser-dynamic": "^21.1.1",
     "@angular/router": "^21.1.1",
     "@angular/service-worker": "^21.1.1",
-    "@primeng/themes": "^21.0.4",
+    "@primeuix/themes": "^2.0.3",
     "@tailwindcss/postcss": "^4.1.18",
     "@types/leaflet": "^1.9.21",
     "@types/leaflet.markercluster": "^1.5.6",
