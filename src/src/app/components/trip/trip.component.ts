@@ -939,7 +939,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     setTimeout(() => {
       window.print();
       this.isPrinting.update((v) => !v);
-    }, 100);
+    }, 400); //increased after primeng21 migration
   }
 
   toggleFiltering() {
