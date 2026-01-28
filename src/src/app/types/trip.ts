@@ -11,6 +11,10 @@ export interface TripBase {
   currency: string;
 }
 
+export interface TripBaseWithDates extends TripBase {
+  daterange?: Date[];
+}
+
 export interface Trip {
   id: number;
   name: string;

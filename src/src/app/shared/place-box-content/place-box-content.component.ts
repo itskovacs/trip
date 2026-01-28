@@ -6,10 +6,10 @@ import { MenuItem } from 'primeng/api';
 import { UtilsService } from '../../services/utils.service';
 import { Observable } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
-import { LinkifyPipe } from '../linkify.pipe';
+import { LinkifyPipe } from '../pipes/linkify.pipe';
 import { TooltipModule } from 'primeng/tooltip';
 import { ClipboardModule } from '@angular/cdk/clipboard';
-import { NaturalDurationPipe } from '../naturalduration.pipe';
+import { NaturalDurationPipe } from '../pipes/naturalduration.pipe';
 
 @Component({
   selector: 'app-place-box-content',
