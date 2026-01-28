@@ -2,17 +2,14 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from '../../services/api.service';
 import { ButtonModule } from 'primeng/button';
 import { SkeletonModule } from 'primeng/skeleton';
-import { TripBase, TripInvitation, TripDay } from '../../types/trip';
+import { TripBase, TripInvitation, TripDay, TripBaseWithDates } from '../../types/trip';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { TripCreateModalComponent } from '../../modals/trip-create-modal/trip-create-modal.component';
 import { Router } from '@angular/router';
 import { forkJoin, take } from 'rxjs';
 import { DatePipe } from '@angular/common';
 import { DialogModule } from 'primeng/dialog';
-
-interface TripBaseWithDates extends TripBase {
-  daterange?: Date[];
-}
+import { daterangeToTripDays } from '../../shared/utils';
 
 @Component({
   selector: 'app-trips',
@@ -72,27 +69,25 @@ export class TripsComponent implements OnInit {
       },
     })!;
 
-    modal.onClose.pipe(take(1)).subscribe({
-      next: (trip: TripBaseWithDates | null) => {
-        if (!trip) return;
+    modal.onClose.pipe(take(1)).subscribe((trip: TripBaseWithDates | null) => {
+      if (!trip) return;
 
-        this.apiService.postTrip(trip).subscribe({
-          next: (new_trip: TripBase) => {
-            let dayCount = 0;
+      this.apiService.postTrip(trip).subscribe({
+        next: (new_trip: TripBase) => {
+          let dayCount = 0;
 
-            if (trip.daterange && trip.daterange.length === 2) {
-              const obs$ = this.generateTripDays(trip.daterange).map((td) =>
-                this.apiService.postTripDay({ id: -1, label: td.label!, dt: td.dt, items: [] }, new_trip.id),
-              );
-              dayCount = obs$.length;
-              forkJoin(obs$).pipe(take(1)).subscribe();
-            }
+          if (trip.daterange && trip.daterange.length === 2) {
+            const obs$ = daterangeToTripDays(trip.daterange).map((td) =>
+              this.apiService.postTripDay({ id: -1, label: td.label!, dt: td.dt, items: [] }, new_trip.id),
+            );
+            dayCount = obs$.length;
+            forkJoin(obs$).pipe(take(1)).subscribe();
+          }
 
-            this.trips.push({ ...new_trip, days: dayCount });
-            this.sortTrips();
-          },
-        });
-      },
+          this.trips.push({ ...new_trip, days: dayCount });
+          this.sortTrips();
+        },
+      });
     });
   }
 
@@ -104,23 +99,6 @@ export class TripsComponent implements OnInit {
 
       return a.name < b.name ? -1 : a.name > b.name ? 1 : 0;
     });
-  }
-
-  generateTripDays(daterange: Date[]): Partial<TripDay>[] {
-    const [from, to] = daterange;
-    const months = ['Jan.', 'Feb.', 'Mar.', 'Apr.', 'May.', 'Jun.', 'Jul.', 'Aug.', 'Sep.', 'Oct.', 'Nov.', 'Dec.'];
-
-    const tripDays: Partial<TripDay>[] = [];
-    const current = new Date(from);
-    while (current <= to) {
-      const year = current.getFullYear();
-      const month = String(current.getMonth() + 1).padStart(2, '0');
-      const day = String(current.getDate()).padStart(2, '0');
-      const label = `${day} ${months[current.getMonth()]}`;
-      tripDays.push({ label, dt: `${year}-${month}-${day}` });
-      current.setDate(current.getDate() + 1);
-    }
-    return tripDays;
   }
 
   toggleInvitations() {
