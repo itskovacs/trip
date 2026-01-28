@@ -13,7 +13,6 @@ export function generateTripICSFile(trip: Trip, utilsService: UtilsService): voi
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
     `X-WR-CALNAME:${escapeICSText(tripName)}`,
-    'X-WR-TIMEZONE:UTC',
   ].join('\r\n');
 
   if (trip.days.some((d) => !d.dt)) {
@@ -34,9 +33,7 @@ export function generateTripICSFile(trip: Trip, utilsService: UtilsService): voi
 
   allEvents.forEach(({ item, date, nextItem }) => {
     const time = item.time || '00:00';
-
     const dtStart = formatICSDate(date, time);
-
     let dtEnd: string;
     if (nextItem && nextItem.time) {
       dtEnd = formatICSDate(date, nextItem.time);
@@ -103,7 +100,8 @@ export function generateTripICSFile(trip: Trip, utilsService: UtilsService): voi
 function formatICSDate(dateStr: string, timeStr: string): string {
   const [y, m, d] = dateStr.split('-');
   const [hh, mm] = timeStr.split(':');
-  return `${y}${m}${d}T${hh.padStart(2, '0')}${mm.padStart(2, '0')}00`;
+  const local = new Date(+y, +m - 1, +d, +hh, +mm, 0);
+  return local.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
 }
 
 function escapeICSText(text: string): string {
