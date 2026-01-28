@@ -11,7 +11,7 @@ import { Place } from '../../types/poi';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PlaceGPXComponent {
-  @Input() selectedPlace: Place | undefined = undefined;
+  @Input() selectedPlace: Place | null = null;
   @Output() closeEmitter = new EventEmitter<void>();
   @Output() removeEmitter = new EventEmitter<void>();
   @Output() downloadEmitter = new EventEmitter<void>();

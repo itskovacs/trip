@@ -11,7 +11,7 @@ import { PlaceBoxContentComponent } from '../place-box-content/place-box-content
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PlaceBoxComponent {
-  @Input() selectedPlace: Place | undefined = undefined;
+  @Input() selectedPlace: Place | null = null;
 
   @Output() editEmitter = new EventEmitter<void>();
   @Output() deleteEmitter = new EventEmitter<void>();

@@ -20,7 +20,7 @@ import { NaturalDurationPipe } from '../naturalduration.pipe';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PlaceBoxContentComponent {
-  @Input() selectedPlace: Place | undefined = undefined;
+  @Input() selectedPlace: Place | null = null;
   @Input() showButtons: boolean = true;
   @Input() showMeta: boolean = true;
   tooltipCopied = signal(false);
