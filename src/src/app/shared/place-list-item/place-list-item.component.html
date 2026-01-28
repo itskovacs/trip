@@ -1,7 +1,7 @@
 @if (place) {
 <div (click)="onPlaceClick()" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()"
     class="group relative mb-2 p-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-all cursor-pointer border border-transparent hover:border-gray-200 dark:hover:border-gray-700">
-    <div class="flex items-center gap-3">
+    <div class="pointer-events-none flex items-center gap-3">
         <img [src]="place.image || place.category.image" loading="lazy" [class.grayscale]="grayscale"
             class="w-14 h-14 rounded object-cover flex-shrink-0">
 
