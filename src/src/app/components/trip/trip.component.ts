@@ -1,4 +1,16 @@
-import { AfterViewInit, Component, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  OnDestroy,
+  signal,
+  ViewChild,
+  untracked,
+  ElementRef,
+} from '@angular/core';
 import { ApiService } from '../../services/api.service';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
@@ -6,11 +18,9 @@ import { InputTextModule } from 'primeng/inputtext';
 import { SkeletonModule } from 'primeng/skeleton';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import * as L from 'leaflet';
-import { antPath } from 'leaflet-ant-path';
 import { TableModule } from 'primeng/table';
 import {
   Trip,
-  FlattenedTripItem,
   TripDay,
   TripItem,
   TripStatus,
@@ -19,47 +29,89 @@ import {
   TripMember,
   TripAttachment,
 } from '../../types/trip';
-import { Place } from '../../types/poi';
+import { Category, Place } from '../../types/poi';
 import {
   createMap,
   placeToMarker,
   createClusterGroup,
+  openNavigation,
   tripDayMarker,
   gpxToPolyline,
-  openNavigation,
+  toDotMarker,
+  getGeolocationLatLng,
 } from '../../shared/map';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { TripPlaceSelectModalComponent } from '../../modals/trip-place-select-modal/trip-place-select-modal.component';
 import { TripCreateDayModalComponent } from '../../modals/trip-create-day-modal/trip-create-day-modal.component';
 import { TripCreateDayItemModalComponent } from '../../modals/trip-create-day-item-modal/trip-create-day-item-modal.component';
-import { TripCreateItemsModalComponent } from '../../modals/trip-create-items-modal/trip-create-items-modal.component';
-import { combineLatest, debounceTime, forkJoin, Observable, of, switchMap, take, tap } from 'rxjs';
+import { debounceTime, distinctUntilChanged, forkJoin, Observable, of, switchMap, take } from 'rxjs';
 import { YesNoModalComponent } from '../../modals/yes-no-modal/yes-no-modal.component';
 import { UtilsService } from '../../services/utils.service';
 import { TripCreateModalComponent } from '../../modals/trip-create-modal/trip-create-modal.component';
-import { AsyncPipe, CommonModule, DecimalPipe } from '@angular/common';
+import { CommonModule, DecimalPipe } from '@angular/common';
 import { MenuItem } from 'primeng/api';
 import { Menu, MenuModule } from 'primeng/menu';
-import { LinkifyPipe } from '../../shared/linkify.pipe';
+import { LinkifyPipe } from '../../shared/pipes/linkify.pipe';
 import { PlaceCreateModalComponent } from '../../modals/place-create-modal/place-create-modal.component';
 import { Settings } from '../../types/settings';
 import { DialogModule } from 'primeng/dialog';
 import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
 import { TooltipModule } from 'primeng/tooltip';
 import { MultiSelectModule } from 'primeng/multiselect';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { CheckboxChangeEvent, CheckboxModule } from 'primeng/checkbox';
 import { TripCreatePackingModalComponent } from '../../modals/trip-create-packing-modal/trip-create-packing-modal.component';
 import { TripCreateChecklistModalComponent } from '../../modals/trip-create-checklist-modal/trip-create-checklist-modal.component';
 import { TripInviteMemberModalComponent } from '../../modals/trip-invite-member-modal/trip-invite-member-modal.component';
-import { calculateDistanceBetween } from '../../shared/haversine';
-import { orderByPipe } from '../../shared/order-by.pipe';
 import { TripNotesModalComponent } from '../../modals/trip-notes-modal/trip-notes-modal.component';
 import { TripArchiveModalComponent } from '../../modals/trip-archive-modal/trip-archive-modal.component';
-import { FileSizePipe } from '../../shared/filesize.pipe';
-import { generateTripICSFile } from './ics';
-import { generateTripCSVFile } from './csv';
+import { generateTripICSFile } from '../../shared/trip-base/ics';
+import { generateTripCSVFile } from '../../shared/trip-base/csv';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FileSizePipe } from '../../shared/pipes/filesize.pipe';
+import { calculateDistanceBetween, daterangeToTripDays } from '../../shared/utils';
+import { TabsModule } from 'primeng/tabs';
+import { PlaceBoxContentComponent } from '../../shared/place-box-content/place-box-content.component';
+import { TripBulkEditModalComponent } from '../../modals/trip-bulk-edit-modal/trip-bulk-edit-modal.component';
+import { PlaceListItemComponent } from '../../shared/place-list-item/place-list-item.component';
+
+interface ViewTripItem extends TripItem {
+  status?: TripStatus;
+  distance?: number;
+}
+
+interface DayViewModel {
+  day: TripDay;
+  items: ViewTripItem[];
+  stats: {
+    count: number;
+    cost: number;
+    hasPlaces: boolean;
+  };
+}
+
+interface HighlightData {
+  paths: { coords: [number, number][]; options: any }[];
+  markers: any[];
+  gpxData: string[];
+  bounds: [number, number][];
+}
+
+const HIGHLIGHT_COLORS = [
+  '#e6194b',
+  '#3cb44b',
+  '#4363d8',
+  '#9a6324',
+  '#f58231',
+  '#911eb4',
+  '#46f0f0',
+  '#f032e6',
+  '#bcf60c',
+  '#fabebe',
+  '#008080',
+  '#e6beff',
+  '#808000',
+];
 
 @Component({
   selector: 'app-trip',
@@ -71,7 +123,6 @@ import { generateTripCSVFile } from './csv';
     SkeletonModule,
     MenuModule,
     InputTextModule,
-    AsyncPipe,
     LinkifyPipe,
     FloatLabelModule,
     TableModule,
@@ -82,1809 +133,667 @@ import { generateTripCSVFile } from './csv';
     ClipboardModule,
     MultiSelectModule,
     CheckboxModule,
-    orderByPipe,
     FileSizePipe,
+    TabsModule,
+    PlaceBoxContentComponent,
+    PlaceListItemComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './trip.component.html',
   styleUrls: ['./trip.component.scss'],
 })
-export class TripComponent implements AfterViewInit {
+export class TripComponent implements AfterViewInit, OnDestroy {
+  @ViewChild('resizeHandle') resizeHandle?: ElementRef<HTMLDivElement>;
   @ViewChild('menuTripActions') menuTripActions!: Menu;
-  username: string;
-  tripSharedURL$?: Observable<string>;
-  statuses: TripStatus[] = [];
-  trip?: Trip;
-  places: Place[] = [];
-  flattenedTripItems: FlattenedTripItem[] = [];
-  selectedItem?: TripItem & { status?: TripStatus };
-  tableExpandableMode = false;
-  isPrinting = false;
-  isArchivalReviewDisplayed = false;
+  @ViewChild('menuPlanDayActions') menuPlanDayActions!: Menu;
+  @ViewChild('menuSelectedItemActions') menuSelectedItemActions!: Menu;
+  @ViewChild('menuTripDayActions') menuTripDayActions!: Menu;
+  @ViewChild('menuSelectedDayActions') menuSelectedDayActions!: Menu;
+  @ViewChild('selectedPanel', { read: ElementRef }) selectedPanelRef?: ElementRef;
 
-  totalPrice = 0;
-  isMapFullscreen = false;
-  isMapFullscreenDays = false;
-  isCollapsedTripDays = false;
-  isCollapsedTripPlaces = false;
+  selectedPanelHeight = signal<number>(0);
+  plansSearchInput = new FormControl<string>('');
+  apiService: ApiService;
+  route: ActivatedRoute;
+  router: Router;
+  dialogService: DialogService;
+  utilsService: UtilsService;
+  clipboard: Clipboard;
+
+  trip = signal<Trip | null>(null);
+  tripMembers = signal<TripMember[]>([]);
+  packingList = signal<PackingItem[]>([]);
+  checklistItems = signal<ChecklistItem[]>([]);
+
+  searchQuery = signal<string>('');
+  isPlansPanelCollapsed = signal<boolean>(false);
+  isFilteringMode = signal<boolean>(false);
+  selectedPlace = signal<Place | null>(null);
+  selectedItem = signal<ViewTripItem | null>(null);
+  selectedPlaceActiveTabIndex = signal<number>(0);
+  highlightedDayId = signal<number | null>(null);
+  isPlacesPanelVisible = signal<boolean>(false);
+  isDaysPanelVisible = signal<boolean>(false);
+  showOnlyUnplannedPlaces = signal<boolean>(false);
+  isPrinting = signal<boolean>(false);
+  isArchivalReviewDisplayed = signal<boolean>(false);
+  isArchiveWarningVisible = signal<boolean>(true);
+  tooltipCopied = signal(false);
+  isMultiSelectMode = signal<boolean>(false);
+  selectedItemIds = signal<Set<number>>(new Set());
+  selectedDay = signal<TripDay | null>(null);
+
+  panelWidth = signal<number | null>(null);
+  panelDeltaX = 0;
+  panelDeltaWidth = 0;
+
   isShareDialogVisible = false;
   isPackingDialogVisible = false;
   isMembersDialogVisible = false;
   isAttachmentsDialogVisible = false;
   isChecklistDialogVisible = false;
-  isExpanded = false;
-  isFilteringMode = false;
-  packingList: PackingItem[] = [];
-  dispPackingList: Record<string, PackingItem[]> = {};
-  checklistItems: ChecklistItem[] = [];
-  dispchecklist: ChecklistItem[] = [];
-  tripMembers: TripMember[] = [];
+  isBetaDialogVisible = true;
+  selectedItemProps = signal<string[]>(['place', 'comment', 'price', 'status']);
 
-  map?: L.Map;
-  markerClusterGroup?: L.MarkerClusterGroup;
-  tripMapTemporaryMarker?: L.Marker;
-  tripMapGpxLayer?: L.Layer;
-  tripMapHoveredElement?: HTMLElement;
-  tripMapAntLayer?: L.FeatureGroup;
-  tripMapAntLayerDayID?: number;
+  tripSharedURL$?: Observable<string>;
+  username: string;
 
-  menuTripActionsItems: MenuItem[] = [];
-  readonly menuTripTableActionsItems: MenuItem[] = [
-    {
-      label: 'Actions',
-      items: [
-        {
-          label: 'Pretty Print',
-          icon: 'pi pi-print',
-          command: () => {
-            this.togglePrint();
+  places = computed(() => this.trip()?.places ?? []);
+  usedPlaceIds = computed(() => {
+    const trip = this.trip();
+    if (!trip?.days) return new Set<number>();
+    const ids = new Set<number>();
+    for (const day of trip.days) {
+      for (const item of day.items) {
+        if (item.place?.id) ids.add(item.place.id);
+      }
+    }
+    return ids;
+  });
+  selectedItemsCount = computed(() => this.selectedItemIds().size);
+  selectedPlaceItems = computed<ViewTripItem[]>(() => {
+    const place = this.selectedPlace();
+    if (!place) return [];
+
+    return this.tripViewModel()
+      .flatMap((vm) => vm.items)
+      .filter((item) => item.place?.id === place.id);
+  });
+  selectedItems = computed(() => {
+    const ids = this.selectedItemIds();
+    return this.tripViewModel()
+      .flatMap((vm) => vm.items)
+      .filter((item) => ids.has(item.id));
+  });
+  dispSelectedPlace = computed(() => {
+    const place = this.selectedPlace();
+    if (!place) return null;
+    const items = this.selectedPlaceItems();
+    return {
+      place,
+      items,
+      count: items.length,
+      isUsed: items.length > 0,
+    };
+  });
+  dispSelectedItem = computed(() => {
+    const item = this.selectedItem();
+    if (!item) return null;
+
+    const trip = this.trip();
+    const dayId = item.day_id;
+    const dayLabel = dayId && trip?.days?.length ? (trip.days.find((d) => d.id === dayId)?.label ?? '') : '';
+
+    return { ...item, day: dayLabel };
+  });
+  hasSelection = computed(() => this.selectedPlace() !== null || this.selectedItem() !== null);
+  tripViewModel = computed(() => {
+    const currentTrip = this.trip();
+    if (!currentTrip?.days) return [];
+
+    const query = this.searchQuery().toLowerCase().trim();
+    const hasQuery = query.length > 0;
+    const statusesMap = new Map(this.utilsService.statuses.map((s) => [s.label, s]));
+
+    return currentTrip.days
+      .map((day) => {
+        let filteredItems = day.items;
+
+        if (hasQuery) {
+          filteredItems = filteredItems.filter(
+            (item) =>
+              item.text?.toLowerCase().includes(query) ||
+              item.place?.name.toLowerCase().includes(query) ||
+              item.comment?.toLowerCase().includes(query),
+          );
+        }
+
+        if (filteredItems.length === 0 && hasQuery) {
+          return null;
+        }
+        filteredItems.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+
+        let prevLat: number | null = null;
+        let prevLng: number | null = null;
+        let totalCost = 0;
+        let hasPlaces = false;
+
+        const items = filteredItems.map((item) => {
+          const statusObj =
+            typeof item.status === 'string' ? statusesMap.get(item.status) : (item.status as TripStatus | undefined);
+
+          const lat = item.lat ?? item.place?.lat;
+          const lng = item.lng ?? item.place?.lng;
+
+          let distance: number | undefined;
+          if (lat != null && lng != null) {
+            if (prevLat != null && prevLng != null) {
+              distance = Math.round(calculateDistanceBetween(prevLat, prevLng, lat, lng) * 10) / 10;
+            }
+            prevLat = lat;
+            prevLng = lng;
+          }
+
+          if (item.price) totalCost += item.price;
+          if (item.place) hasPlaces = true;
+
+          return { ...item, status: statusObj, distance };
+        });
+
+        return {
+          day,
+          items,
+          stats: {
+            count: items.length,
+            cost: totalCost,
+            hasPlaces,
           },
-        },
-      ],
-    },
-    {
-      label: 'Table',
-      items: [
-        {
-          label: 'Filter',
-          icon: 'pi pi-filter',
-          command: () => {
-            this.toggleFiltering();
+        };
+      })
+      .filter((vm) => vm !== null);
+  });
+  totalPrice = computed(() => {
+    const trip = this.trip();
+    if (!trip?.days) return 0;
+
+    return trip.days.reduce((total, day) => {
+      return (
+        total +
+        day.items.reduce((dayTotal, item) => {
+          return dayTotal + (item.price || 0);
+        }, 0)
+      );
+    }, 0);
+  });
+  displayedPlaces = computed(() => {
+    const allPlaces = this.places();
+    if (!this.showOnlyUnplannedPlaces()) return allPlaces;
+
+    const usedIds = this.usedPlaceIds();
+    return allPlaces.filter((place) => !usedIds.has(place.id));
+  });
+  dispPackingList = computed(() => {
+    const list = this.packingList();
+    const sorted = [...list].sort((a, b) =>
+      a.packed !== b.packed ? (a.packed ? 1 : -1) : a.text.localeCompare(b.text),
+    );
+
+    return sorted.reduce<Record<string, PackingItem[]>>((acc, item) => {
+      (acc[item.category] ??= []).push(item);
+      return acc;
+    }, {});
+  });
+  dispChecklist = computed(() => {
+    const items = this.checklistItems();
+    return [...items].sort((a, b) => (a.checked !== b.checked ? (a.checked ? 1 : -1) : b.id - a.id));
+  });
+  watchlistItems = computed(() => {
+    return this.tripViewModel()
+      .flatMap((day) => day.items)
+      .filter((item) => item.status && ['pending', 'constraint'].includes(item.status.label));
+  });
+  itemsToPasteCount = computed(() => this.utilsService.packingListToCopy.length);
+  highlightLayerData = computed<HighlightData | null>(() => {
+    const dayId = this.highlightedDayId();
+    const trip = this.trip();
+    if (dayId === null || !trip?.days) return null;
+
+    const paths: { coords: [number, number][]; options: any }[] = [];
+    const markers: any[] = [];
+    const gpxData: string[] = [];
+    const bounds: [number, number][] = [];
+
+    const processItems = (items: TripItem[], color: string, isSingleDay: boolean) => {
+      const coords: [number, number][] = [];
+
+      for (const item of items) {
+        const lat = item.lat || item.place?.lat;
+        const lng = item.lng || item.place?.lng;
+
+        if (!lat || !lng) continue;
+
+        if (!item.place) markers.push(item);
+        if (item.gpx) gpxData.push(item.gpx);
+        bounds.push([lat, lng]);
+        coords.push([lat, lng]);
+      }
+
+      if (items.length > 2 && coords.length > 0) {
+        paths.push({
+          coords,
+          options: {
+            delay: isSingleDay ? 400 : 600,
+            weight: 5,
+            color,
           },
-        },
-        {
-          label: 'Group',
-          icon: 'pi pi-arrow-down-left-and-arrow-up-right-to-center',
-          command: () => {
-            this.tableExpandableMode = !this.tableExpandableMode;
-          },
-        },
-      ],
-    },
-    {
-      label: 'Directions',
-      items: [
-        {
-          label: 'Highlight',
-          icon: 'pi pi-directions',
-          command: () => {
-            this.toggleTripDaysHighlight();
-          },
-        },
-        {
-          label: 'GMaps itinerary',
-          icon: 'pi pi-car',
-          command: () => {
-            this.tripToNavigation();
-          },
-        },
-      ],
-    },
-  ];
-  readonly menuTripDayActionsItems: MenuItem[] = [
-    {
-      label: 'Actions',
-      items: [
-        {
-          label: 'Item',
-          icon: 'pi pi-plus',
-          iconClass: 'text-blue-500!',
-          command: () => {
-            this.addItem();
-          },
-        },
-        {
-          label: 'Edit',
-          icon: 'pi pi-pencil',
-          command: () => {
-            if (!this.selectedTripDayForMenu) return;
-            this.editDay(this.selectedTripDayForMenu);
-          },
-        },
-        {
-          label: 'Delete',
-          icon: 'pi pi-trash',
-          iconClass: 'text-red-500!',
-          command: () => {
-            if (!this.selectedTripDayForMenu) return;
-            this.deleteDay(this.selectedTripDayForMenu);
-          },
-        },
-      ],
-    },
-  ];
-  readonly menuTripExportItems: MenuItem[] = [
+        });
+      }
+    };
+
+    if (dayId === -1) {
+      trip.days.forEach((day, idx) => {
+        const color = HIGHLIGHT_COLORS[idx % HIGHLIGHT_COLORS.length];
+        processItems(day.items, color, false);
+      });
+    } else {
+      const day = trip.days.find((d) => d.id === dayId);
+      if (day) processItems(day.items, '#0000FF', true);
+    }
+
+    return bounds.length >= 2 || paths.length > 0 ? { paths, markers, gpxData, bounds } : null;
+  });
+  selectedItemPropsSet = computed(() => new Set(this.selectedItemProps()));
+
+  menuTripExportItems: MenuItem[] = [
     {
       label: 'Export',
       items: [
         {
           label: 'Calendar (.ics)',
           icon: 'pi pi-calendar',
-          command: () => generateTripICSFile(this.flattenedTripItems, this.trip?.name, this.utilsService),
+          command: () => generateTripICSFile(this.trip()!, this.utilsService),
         },
         {
           label: 'CSV',
           icon: 'pi pi-file',
-          command: () => generateTripCSVFile(this.flattenedTripItems, this.trip?.name),
+          command: () => generateTripCSVFile(this.trip()!),
         },
         {
           label: 'Pretty Print',
           icon: 'pi pi-print',
-          command: () => {
-            this.togglePrint();
-          },
+          command: () => this.togglePrint(),
         },
       ],
     },
   ];
-  readonly tripTableColumns: string[] = [
-    'day',
-    'time',
-    'text',
-    'place',
-    'comment',
-    'LatLng',
-    'price',
-    'status',
-    'distance',
-  ];
+  menuTripActionsItems: MenuItem[] = [];
   menuTripPackingItems: MenuItem[] = [];
-  tripTableSelectedColumns: string[] = ['day', 'time', 'text', 'place', 'comment'];
-  tripTableSearchInput = new FormControl('');
+  menuTripDayActionsItems: MenuItem[] = [];
+  menuPlanDayActionsItems: MenuItem[] = [];
+  menuSelectedItemActionsItems: MenuItem[] = [];
+  menuSelectedDayActionsItems: MenuItem[] = [];
   selectedTripDayForMenu?: TripDay;
+  statuses: TripStatus[];
+  availableItemProps = ['place', 'comment', 'latlng', 'price', 'status', 'distance'];
 
-  dayStatsCache = new Map<number, { price: number; places: number }>();
-  placesUsedInTable = new Set<number>();
+  map?: L.Map;
+  markerClusterGroup?: L.MarkerClusterGroup;
+  tripMapAntLayer?: L.FeatureGroup;
+  markers = new Map<number, L.Marker>();
+  selectedItemMarker?: L.Marker;
+  highlightedMarkerElement?: HTMLElement;
 
-  constructor(
-    private apiService: ApiService,
-    private router: Router,
-    private dialogService: DialogService,
-    private utilsService: UtilsService,
-    private route: ActivatedRoute,
-    private clipboard: Clipboard,
-  ) {
-    this.username = this.utilsService.loggedUser;
+  constructor() {
+    this.apiService = inject(ApiService);
+    this.route = inject(ActivatedRoute);
+    this.router = inject(Router);
+    this.dialogService = inject(DialogService);
+    this.utilsService = inject(UtilsService);
+    this.clipboard = inject(Clipboard);
+
     this.statuses = this.utilsService.statuses;
-    this.tripTableSearchInput.valueChanges.pipe(debounceTime(300), takeUntilDestroyed()).subscribe({
-      next: (value) => {
-        if (value) this.flattenTripDayItems(value.toLowerCase());
-        else this.flattenTripDayItems();
-      },
+    this.username = this.utilsService.loggedUser;
+
+    this.plansSearchInput.valueChanges
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed())
+      .subscribe((value) => this.searchQuery.set(value || ''));
+
+    effect(() => {
+      const vm = this.tripViewModel();
+      untracked(() => {
+        if (this.map && this.trip()) this.updateMapVisualization(vm);
+      });
+    });
+
+    effect(() => {
+      const data = this.highlightLayerData();
+
+      untracked(() => {
+        if (this.tripMapAntLayer) {
+          this.map?.removeLayer(this.tripMapAntLayer);
+          this.tripMapAntLayer = undefined;
+        }
+
+        if (!data || !this.map) return;
+
+        const layerGroup = L.featureGroup();
+        data.paths.forEach((p) => {
+          const polyline = L.polyline(p.coords, {
+            color: p.options.color,
+            weight: p.options.weight,
+            className: 'animated-path',
+            smoothFactor: 1.5,
+          });
+          layerGroup.addLayer(polyline);
+        });
+        data.markers.forEach((item) => {
+          const marker = tripDayMarker(item);
+          marker.on('click', () => {
+            if (this.selectedItem()?.id === item.id) {
+              this.selectedItem.set(null);
+              this.selectedPlace.set(null);
+              this.selectedDay.set(null);
+              return;
+            }
+            this.selectedItem.set(this.normalizeItem(item));
+            this.selectedPlace.set(null);
+            this.selectedDay.set(null);
+          });
+          layerGroup.addLayer(marker);
+        });
+        data.gpxData.forEach((gpx) => layerGroup.addLayer(gpxToPolyline(gpx)));
+
+        this.tripMapAntLayer = layerGroup;
+
+        requestAnimationFrame(() => {
+          if (this.tripMapAntLayer && this.map) {
+            this.tripMapAntLayer.addTo(this.map);
+            this.map.fitBounds(data.bounds, { padding: [30, 30], maxZoom: 16 });
+          }
+        });
+      });
+    });
+
+    effect(() => {
+      const place = this.selectedPlace();
+      const item = this.selectedItem();
+      const _ = this.selectedDay(); //Force recompute height on day toggle
+      const __ = this.selectedPlaceActiveTabIndex(); //Force recompute height on tab change
+
+      //RAF for angular CD
+      requestAnimationFrame(() => {
+        if (this.selectedPanelRef?.nativeElement) {
+          const height = this.selectedPanelRef.nativeElement.offsetHeight;
+          this.selectedPanelHeight.set(height);
+        } else this.selectedPanelHeight.set(0);
+      });
+
+      untracked(() => {
+        this.clearSelectedItemHighlight();
+        if (!this.map) return;
+        if (place) {
+          const existingMarker = this.markers.get(place.id);
+          if (existingMarker) this.highlightExistingMarker(existingMarker);
+          return;
+        } else if (item) {
+          const lat = item.lat;
+          const lng = item.lng;
+          if (lat && lng) {
+            this.selectedItemMarker = tripDayMarker(item);
+            this.selectedItemMarker.addTo(this.map);
+          }
+        }
+      });
+    });
+
+    const plansPanelWidth = localStorage.getItem('plansPanelWidth');
+    if (plansPanelWidth) this.panelWidth.set(parseInt(plansPanelWidth));
+  }
+
+  ngAfterViewInit() {
+    this.route.paramMap.pipe(take(1)).subscribe((params) => {
+      const id = params.get('id');
+      if (id) {
+        this.loadTripData(+id);
+        this.tripSharedURL$ = this.apiService.getSharedTripURL(+id);
+      } else {
+        this.router.navigate(['/trips']);
+      }
     });
   }
 
-  ngAfterViewInit(): void {
-    this.route.paramMap
-      .pipe(
-        take(1),
-        tap((params) => {
-          const id = params.get('id');
-          if (id) {
-            this.loadTripData(+id);
-            this.tripSharedURL$ = this.apiService.getSharedTripURL(+id);
-          }
-        }),
-      )
-      .subscribe();
+  ngOnDestroy() {
+    this.cleanupMap();
   }
 
-  loadTripData(id: number): void {
-    combineLatest({
+  cleanupMap() {
+    if (this.tripMapAntLayer) {
+      this.map?.removeLayer(this.tripMapAntLayer);
+      this.tripMapAntLayer = undefined;
+    }
+
+    this.markers.forEach((marker) => marker.remove());
+    this.markers.clear();
+
+    if (this.markerClusterGroup) {
+      this.markerClusterGroup.clearLayers();
+      this.markerClusterGroup = undefined;
+    }
+
+    if (this.map) {
+      this.map.remove();
+      this.map = undefined;
+    }
+  }
+
+  getItemDayLabel(item: ViewTripItem): string {
+    const trip = this.trip();
+    if (!trip?.days) return '';
+    const day = trip.days.find((d) => d.id === item.day_id);
+    return day?.label || '';
+  }
+
+  loadTripData(id: number) {
+    forkJoin({
       trip: this.apiService.getTrip(id),
       settings: this.apiService.getSettings(),
-      members: this.apiService.getTripMembers(+id),
+      members: this.apiService.getTripMembers(id),
     })
-      .pipe(
-        take(1),
-        tap(({ trip, settings, members }) => {
-          this.trip = trip;
-          this.flattenTripDayItems();
-          this.updateTotalPrice();
-          this.initMap(settings);
-          this.tripMembers = members;
-        }),
-      )
+      .pipe(take(1))
       .subscribe({
-        error: () => this.router.navigateByUrl('/trips'),
+        next: ({ trip, settings, members }) => {
+          this.trip.set(trip);
+          this.tripMembers.set(members);
+          if (!this.map) this.initMap(settings);
+        },
+        error: () => {
+          this.utilsService.toast('error', 'Error', 'Could not load trip');
+          this.router.navigate(['/trips']);
+        },
       });
   }
 
-  toBeta() {
-    this.router.navigate([`/trips/n/${this.trip?.id}`]);
-  }
+  initMap(settings: Settings) {
+    this.cleanupMap();
 
-  initMap(settings: Settings): void {
-    const contentMenuItems = [
+    const contextMenuItems = [
       {
         text: 'Copy coordinates',
         callback: (e: any) => {
-          const latlng = e.latlng;
-          navigator.clipboard.writeText(`${parseFloat(latlng.lat).toFixed(5)}, ${parseFloat(latlng.lng).toFixed(5)}`);
+          const { lat, lng } = e.latlng;
+          navigator.clipboard.writeText(`${parseFloat(lat).toFixed(5)}, ${parseFloat(lng).toFixed(5)}`);
         },
       },
     ];
-    this.map = createMap(contentMenuItems, settings.tile_layer);
-    this.markerClusterGroup = createClusterGroup().addTo(this.map);
-    this.setPlacesAndMarkers();
 
+    this.map = createMap(contextMenuItems, settings.tile_layer);
+    this.markerClusterGroup = createClusterGroup().addTo(this.map);
     this.map.setView([settings.map_lat, settings.map_lng]);
+    this.updateMapVisualization(this.tripViewModel());
     this.resetMapBounds();
   }
 
-  back() {
-    this.router.navigateByUrl('/trips');
-  }
+  updateMapVisualization(viewModels: DayViewModel[]) {
+    if (!this.map || !this.markerClusterGroup) return;
 
-  togglePrint() {
-    this.isPrinting = true;
-    setTimeout(() => {
-      window.print();
-      this.isPrinting = false;
-    }, 100);
-  }
+    this.markerClusterGroup.clearLayers();
+    this.markers.clear();
 
-  toggleFiltering() {
-    this.isFilteringMode = !this.isFilteringMode;
-    if (!this.isFilteringMode) this.flattenTripDayItems();
-  }
+    if (this.tripMapAntLayer) {
+      this.map.removeLayer(this.tripMapAntLayer);
+      this.tripMapAntLayer = undefined;
+    }
 
-  getDayStats(day: TripDay): { price: number; places: number } {
-    if (this.dayStatsCache.has(day.id)) return this.dayStatsCache.get(day.id)!;
+    const usedIds = this.usedPlaceIds();
+    const allPlaces = this.places();
+    const markersToAdd: L.Marker[] = [];
 
-    const stats = day.items.reduce(
-      (acc, item) => {
-        acc.price += item.price || 0;
-        if (item.place) acc.places += 1;
-        return acc;
-      },
-      { price: 0, places: 0 },
-    );
-    this.dayStatsCache.set(day.id, stats);
-    return stats;
-  }
-
-  get getWatchlistData(): (TripItem & { status: TripStatus })[] {
-    if (!this.trip?.days) return [];
-
-    return this.trip.days
-      .flatMap((day) => day.items.filter((item) => ['constraint', 'pending'].includes(item.status as string)))
-      .map((item) => ({
-        ...item,
-        status: this.statusToTripStatus(item.status as string),
-      })) as (TripItem & { status: TripStatus })[];
-  }
-
-  isPlaceUsed(id: number): boolean {
-    return this.placesUsedInTable.has(id);
-  }
-
-  statusToTripStatus(status?: string): TripStatus | undefined {
-    if (!status) return undefined;
-    return this.statuses.find((s) => s.label == status);
-  }
-
-  flattenTripDayItems(searchValue?: string) {
-    const searchLower = (searchValue || '').toLowerCase();
-    let prevLat: number, prevLng: number;
-    this.flattenedTripItems = this.trip!.days.flatMap((day) => day.items.map((item) => ({ item, day })))
-      .filter(
-        ({ item }) =>
-          !searchLower ||
-          item.text.toLowerCase().includes(searchLower) ||
-          item.place?.name.toLowerCase().includes(searchLower) ||
-          item.comment?.toLowerCase().includes(searchLower),
-      )
-      .sort((a, b) => {
-        const dateA = a.day.dt;
-        const dateB = b.day.dt;
-        if (dateA !== dateB) {
-          if (!dateA) return 1;
-          if (!dateB) return -1;
-          const dateCompare = dateA.localeCompare(dateB);
-          if (dateCompare !== 0) return dateCompare;
-        }
-        const labelCompare = (a.day.label || '').localeCompare(b.day.label || '');
-        if (labelCompare !== 0) return labelCompare;
-        return (a.item.time || '').localeCompare(b.item.time || '');
-      })
-      .map(({ item, day }) => {
-        const lat = item.lat ?? item.place?.lat;
-        const lng = item.lng ?? item.place?.lng;
-
-        let distance: number | undefined;
-        if (lat && lng) {
-          if (prevLat && prevLng) {
-            const d = calculateDistanceBetween(prevLat, prevLng, lat, lng);
-            distance = +(Math.round(d * 1000) / 1000).toFixed(2);
+    const itemsByPlaceId = new Map<number, ViewTripItem[]>();
+    viewModels.forEach((vm) => {
+      vm.items.forEach((item) => {
+        if (item.place?.id) {
+          if (!itemsByPlaceId.has(item.place.id)) {
+            itemsByPlaceId.set(item.place.id, []);
           }
-          prevLat = lat;
-          prevLng = lng;
+          itemsByPlaceId.get(item.place.id)!.push(item);
         }
-
-        return {
-          td_id: day.id,
-          td_label: day.label,
-          td_date: day.dt,
-          id: item.id,
-          time: item.time,
-          text: item.text,
-          status: this.statusToTripStatus(item.status as string),
-          comment: item.comment,
-          price: item.price || undefined,
-          day_id: item.day_id,
-          place: item.place,
-          image: item.image,
-          image_id: item.image_id,
-          gpx: item.gpx,
-          lat,
-          lng,
-          distance,
-          paid_by: item.paid_by,
-          attachments: item.attachments,
-        };
       });
-  }
-
-  computePlacesUsedInTable() {
-    this.placesUsedInTable.clear();
-    this.flattenedTripItems.forEach((item) => {
-      if (item.place?.id) this.placesUsedInTable.add(item.place.id);
     });
-  }
 
-  setPlacesAndMarkers() {
-    this.computePlacesUsedInTable();
-    this.places = [...(this.trip?.places ?? [])].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
-    this.markerClusterGroup?.clearLayers();
-    this.places.forEach((p) => {
-      const marker = this._placeToMarker(p);
-      this.markerClusterGroup?.addLayer(marker);
-    });
-  }
+    allPlaces.forEach((place) => {
+      const isUsed = usedIds.has(place.id);
+      const marker = placeToMarker(place, false, !isUsed);
+      const itemsUsingPlace = itemsByPlaceId.get(place.id) || [];
 
-  _placeToMarker(place: Place): L.Marker {
-    const marker = placeToMarker(place, false, !this.placesUsedInTable.has(place.id));
-    marker.on('click', () => {
-      this.onMapMarkerClick(place.id);
-      marker.closeTooltip();
+      marker.on('click', () => {
+        this.selectedPlace.set(place);
+        this.selectedItem.set(null);
+        this.selectedDay.set(null);
+        this.selectedPlaceActiveTabIndex.set(itemsUsingPlace.length > 0 ? itemsUsingPlace.length : 0);
+      });
+
+      this.markers.set(place.id, marker);
+      markersToAdd.push(marker);
     });
-    return marker;
+
+    if (markersToAdd.length) {
+      this.markerClusterGroup.addLayers(markersToAdd);
+    }
   }
 
   resetMapBounds() {
-    if (!this.places.length) {
-      if (!this.trip?.days.length) return;
-      const itemsWithCoordinates = this.flattenedTripItems.filter((i) => i.lat != null && i.lng != null);
-      if (!itemsWithCoordinates.length) return;
+    const allPlaces = this.places();
 
+    if (!allPlaces.length) {
+      const trip = this.trip();
+      if (!trip?.days.length) return;
+
+      const itemsWithCoordinates = this.tripViewModel()
+        .flatMap((dayVM) => dayVM.items)
+        .filter((i) => i.lat != null && i.lng != null);
+
+      if (!itemsWithCoordinates.length) return;
       this.map?.fitBounds(
         itemsWithCoordinates.map((i) => [i.lat!, i.lng!]),
-        { padding: [30, 30] },
+        { padding: [15, 15] },
       );
       return;
     }
 
     this.map?.fitBounds(
-      this.places.map((p) => [p.lat, p.lng]),
-      { padding: [30, 30] },
+      allPlaces.map((p) => [p.lat, p.lng]),
+      { padding: [15, 15] },
     );
   }
 
-  toggleMapFullscreen() {
-    this.isMapFullscreen = !this.isMapFullscreen;
-    document.body.classList.toggle('overflow-hidden');
+  normalizeItem(item: TripItem): ViewTripItem {
+    const statusObj =
+      typeof item.status === 'string'
+        ? this.utilsService.statuses.find((s) => s.label === item.status)
+        : (item.status as TripStatus | undefined);
 
-    setTimeout(() => {
-      this.map?.invalidateSize();
-      if (!this.tripMapAntLayer) this.resetMapBounds();
-      else this.map?.fitBounds(this.tripMapAntLayer.getBounds());
-    }, 10);
+    return { ...item, status: statusObj };
   }
 
-  toggleMapFullscreenDays() {
-    this.isMapFullscreenDays = !this.isMapFullscreenDays;
-  }
-
-  updateTotalPrice(n?: number) {
-    if (n) {
-      this.totalPrice += n;
-      return;
-    }
-    this.totalPrice =
-      this.trip?.days.flatMap((d) => d.items).reduce((price, item) => price + (item.price ?? 0), 0) ?? 0;
-  }
-
-  resetPlaceHighlightMarker() {
-    if (this.tripMapHoveredElement) {
-      this.tripMapHoveredElement.classList.remove('list-hover');
-      this.tripMapHoveredElement = undefined;
-    }
-
-    if (this.tripMapTemporaryMarker) {
-      this.map?.removeLayer(this.tripMapTemporaryMarker);
-      this.tripMapTemporaryMarker = undefined;
-    }
-
-    if (this.tripMapGpxLayer) {
-      this.map?.removeLayer(this.tripMapGpxLayer);
-      this.tripMapGpxLayer = undefined;
-    }
-    this.resetMapBounds();
-  }
-
-  placeHighlightMarker(item: any) {
-    if (this.tripMapHoveredElement || this.tripMapTemporaryMarker) this.resetPlaceHighlightMarker();
-
-    let marker: L.Marker | undefined;
-    this.markerClusterGroup?.eachLayer((layer: any) => {
-      if (layer.getLatLng && layer.getLatLng().equals([item.lat, item.lng])) {
-        marker = layer;
-      }
-    });
-
-    if (item.gpx) {
-      this.tripMapGpxLayer = gpxToPolyline(item.gpx);
-      this.tripMapGpxLayer.addTo(this.map!);
-    }
-
-    if (!marker) {
-      // TripItem without place, but latlng
-      this.tripMapTemporaryMarker = tripDayMarker(item).addTo(this.map!);
-      if (this.tripMapGpxLayer) {
-        this.map?.fitBounds([[item.lat, item.lng], (this.tripMapGpxLayer as any).getBounds()], { padding: [30, 30] });
-      } else this.map?.fitBounds([[item.lat, item.lng]], { padding: [60, 60] });
-      return;
-    }
-
-    let targetLatLng: L.LatLng | null = null;
-    const markerElement = marker.getElement() as HTMLElement; // search for Marker. If 'null', is inside Cluster
-    if (markerElement) {
-      // marker, not clustered
-      markerElement.classList.add('list-hover');
-      this.tripMapHoveredElement = markerElement;
-      targetLatLng = marker.getLatLng();
-    } else {
-      // marker is clustered
-      const parentCluster = (this.markerClusterGroup as any).getVisibleParent(marker);
-      if (parentCluster) {
-        const clusterEl = parentCluster.getElement();
-        if (clusterEl) {
-          clusterEl.classList.add('list-hover');
-          this.tripMapHoveredElement = clusterEl;
-        }
-        targetLatLng = parentCluster.getLatLng();
-      }
-    }
-
-    if (targetLatLng && this.map) {
-      const currentBounds = this.map.getBounds();
-
-      // If point is not inside map bounsd, move map w/o touching zoom
-      if (!currentBounds.contains(targetLatLng)) {
-        setTimeout(() => {
-          this.map!.setView(targetLatLng, this.map!.getZoom());
-        }, 50);
-      }
-    }
-  }
-
-  resetDayHighlight() {
-    this.map?.removeLayer(this.tripMapAntLayer!);
-    this.tripMapAntLayerDayID = undefined;
-    this.tripMapAntLayer = undefined;
-    this.resetMapBounds();
-  }
-
-  toggleTripDaysHighlight() {
-    if (this.tripMapAntLayerDayID == -1) {
-      this.resetDayHighlight();
-      return;
-    }
-    if (!this.trip) return;
-
-    const items = this.trip.days
-      .flatMap((day, idx) =>
-        day.items
-          .sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0))
-          .map((item) => {
-            let data = {
-              text: item.text,
-              isPlace: !!item.place,
-              idx: idx,
-              time: item.time,
-              gpx: item.gpx,
-            };
-
-            if (item.lat && item.lng)
-              return {
-                ...data,
-                lat: item.lat,
-                lng: item.lng,
-              };
-            if (item.place)
-              return {
-                ...data,
-                lat: item.place.lat,
-                lng: item.place.lng,
-              };
-            return undefined;
-          }),
-      )
-      .filter((n) => n !== undefined);
-
-    if (items.length < 2) {
-      this.utilsService.toast('info', 'Info', 'Not enough values to map an itinerary');
-      return;
-    }
-
-    const dayGroups: { [idx: number]: any } = {};
-    items.forEach((item) => {
-      if (!dayGroups[item.idx]) dayGroups[item.idx] = [];
-      dayGroups[item.idx].push(item);
-    });
-
-    const layGroup = L.featureGroup();
-    const COLORS: string[] = [
-      '#e6194b',
-      '#3cb44b',
-      '#ffe119',
-      '#4363d8',
-      '#9a6324',
-      '#f58231',
-      '#911eb4',
-      '#46f0f0',
-      '#f032e6',
-      '#bcf60c',
-      '#fabebe',
-      '#008080',
-      '#e6beff',
-      '#808000',
-    ];
-    let prevPoint: [number, number] | null = null;
-
-    Object.values(dayGroups).forEach((group, idx) => {
-      const coords = group.map((day: any) => [day.lat, day.lng]);
-      const pathOptions = {
-        delay: 600,
-        dashArray: [10, 20],
-        weight: 5,
-        color: COLORS[idx % COLORS.length],
-        pulseColor: '#FFFFFF',
-        paused: false,
-        reverse: false,
-        hardwareAccelerated: true,
-      };
-
-      if (coords.length >= 2) {
-        const path = antPath(coords, pathOptions);
-        layGroup.addLayer(path);
-        prevPoint = coords[coords.length - 1];
-      } else if (coords.length === 1 && prevPoint) {
-        const path = antPath([prevPoint, coords[0]], pathOptions);
-        layGroup.addLayer(path);
-        prevPoint = coords[0];
-      } else if (coords.length === 1) {
-        prevPoint = coords[0];
-      }
-
-      group.forEach((data: any) => {
-        if (!data.isPlace) layGroup.addLayer(tripDayMarker(data));
-        if (data.gpx) layGroup.addLayer(gpxToPolyline(data.gpx));
-      });
-    });
-
-    this.map?.fitBounds(
-      items.map((c) => [c.lat, c.lng]),
-      { padding: [30, 30] },
-    );
-
-    if (this.tripMapAntLayer) {
-      this.map?.removeLayer(this.tripMapAntLayer);
-      this.tripMapAntLayerDayID = undefined;
-    }
-
-    setTimeout(() => {
-      layGroup.addTo(this.map!);
-    }, 200);
-
-    this.tripMapAntLayer = layGroup;
-    this.tripMapAntLayerDayID = -1; //Hardcoded value for global trace
-  }
-
-  toggleTripDayHighlight(day_id: number) {
-    // Click on the currently displayed day: remove
-    if (this.tripMapAntLayerDayID == day_id) {
-      this.resetDayHighlight();
-      return;
-    }
-
-    const idx = this.trip?.days.findIndex((d) => d.id === day_id);
-    if (!this.trip || idx === undefined || idx == -1) return;
-    const data = this.trip.days[idx].items.sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
-    const items = data
-      .map((item) => {
-        if (item.lat && item.lng)
-          return {
-            text: item.text,
-            lat: item.lat,
-            lng: item.lng,
-            isPlace: !!item.place,
-            time: item.time,
-            gpx: item.gpx,
-          };
-        if (item.place)
-          return {
-            text: item.text,
-            lat: item.place.lat,
-            lng: item.place.lng,
-            isPlace: true,
-            time: item.time,
-            gpx: item.gpx,
-          };
-        return undefined;
-      })
-      .filter((n) => n !== undefined);
-
-    if (items.length < 2) {
-      this.utilsService.toast('info', 'Info', 'Not enough values to map an itinerary');
-      return;
-    }
-
-    this.map?.fitBounds(
-      items.map((c) => [c.lat, c.lng]),
-      { padding: [30, 30] },
-    );
-
-    const path = antPath(
-      items.map((c) => [c.lat, c.lng]),
-      {
-        delay: 400,
-        dashArray: [10, 20],
-        weight: 5,
-        color: '#0000FF',
-        pulseColor: '#FFFFFF',
-        paused: false,
-        reverse: false,
-        hardwareAccelerated: true,
-      },
-    );
-
-    const layGroup = L.featureGroup();
-    layGroup.addLayer(path);
-    items.forEach((item) => {
-      if (!item.isPlace) layGroup.addLayer(tripDayMarker(item));
-      if (item.gpx) layGroup.addLayer(gpxToPolyline(item.gpx));
-    });
-
-    if (this.tripMapAntLayer) {
-      this.map?.removeLayer(this.tripMapAntLayer);
-      this.tripMapAntLayerDayID = undefined;
-    }
-
-    setTimeout(() => {
-      layGroup.addTo(this.map!);
-    }, 200);
-
-    this.tripMapAntLayer = layGroup;
-    this.tripMapAntLayerDayID = day_id;
-  }
-
-  onRowClick(item: FlattenedTripItem) {
-    if (this.selectedItem && this.selectedItem.id === item.id) {
-      this.selectedItem = undefined;
-      this.resetPlaceHighlightMarker();
-    } else {
-      this.selectedItem = item;
-      if (item.lat && item.lng) this.placeHighlightMarker(item);
-    }
-  }
-
-  onMapMarkerClick(place_id: number) {
-    const item = this.flattenedTripItems.find((i) => i.place && i.place.id == place_id);
-    if (!item) {
-      this.utilsService.toast('info', 'Place not used', 'The place is not used in the table');
-      return;
-    }
-
-    this.resetPlaceHighlightMarker();
-    this.selectedItem = item;
-    this.placeHighlightMarker(item);
-  }
-
-  deleteTrip() {
-    const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Confirm deletion',
-      modal: true,
-      closable: true,
-      dismissableMask: true,
-      breakpoints: {
-        '640px': '90vw',
-      },
-      data: `Delete ${this.trip?.name} ? This will delete everything.`,
-    })!;
-
-    modal.onClose.pipe(take(1)).subscribe({
-      next: (bool) => {
-        if (bool)
-          this.apiService
-            .deleteTrip(this.trip?.id!)
-            .pipe(take(1))
-            .subscribe({
-              next: () => {
-                this.router.navigateByUrl('/trips');
-              },
-            });
-      },
-    });
-  }
-
-  editTrip() {
-    const modal: DynamicDialogRef = this.dialogService.open(TripCreateModalComponent, {
-      header: 'Update Trip',
-      modal: true,
-      appendTo: 'body',
-      closable: true,
-      dismissableMask: true,
-      width: '35vw',
-      breakpoints: {
-        '1280px': '50vw',
-        '960px': '60vw',
-        '640px': '90vw',
-      },
-      data: { trip: this.trip },
-    })!;
-
-    modal.onClose.pipe(take(1)).subscribe({
-      next: (new_trip: Trip | null) => {
-        if (!new_trip) return;
-
-        this.apiService
-          .putTrip(new_trip, this.trip?.id!)
-          .pipe(take(1))
-          .subscribe({
-            next: (trip: Trip) => (this.trip = trip),
-          });
-      },
-    });
-  }
-
-  openUnarchiveTripModal() {
-    const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Restore Trip',
-      modal: true,
-      closable: true,
-      dismissableMask: true,
-      breakpoints: {
-        '640px': '90vw',
-      },
-      data: `Restore ${this.trip?.name} ?`,
-    })!;
-
-    modal.onClose.pipe(take(1)).subscribe({
-      next: (bool) => {
-        if (!bool) return;
-        this.apiService
-          .putTrip({ archived: false }, this.trip?.id!)
-          .pipe(take(1))
-          .subscribe({
-            next: (trip) => (this.trip = trip),
-          });
-      },
-    });
-  }
-
-  toggleArchiveTrip() {
-    if (!this.trip) return;
-    if (this.trip.archived) this.openUnarchiveTripModal();
-    else this.openArchiveTripModal();
-  }
-
-  openArchiveTripModal() {
-    if (!this.trip) return;
-    const currentArchiveStatus = this.trip?.archived;
-    const modal = this.dialogService.open(TripArchiveModalComponent, {
-      header: `Archive ${this.trip.name}`,
-      modal: true,
-      closable: true,
-      dismissableMask: true,
-      width: '30vw',
-      breakpoints: {
-        '1024px': '60vw',
-        '640px': '90vw',
-      },
-      data: this.trip,
-    })!;
-
-    modal.onClose.pipe(take(1)).subscribe({
-      next: (review: string) => {
-        if (review === undefined) return;
-        this.apiService
-          .putTrip({ archived: !currentArchiveStatus, archival_review: review }, this.trip?.id!)
-          .pipe(take(1))
-          .subscribe({
-            next: (trip) => (this.trip = trip),
-          });
-      },
-    });
-  }
-
-  sortDays() {
-    this.trip?.days?.sort((a, b) => {
-      const hasDateA = !!a.dt;
-      const hasDateB = !!b.dt;
-
-      if (hasDateA && !hasDateB) return -1;
-      if (!hasDateA && hasDateB) return 1;
-
-      return (a.dt || '').localeCompare(b.dt || '') || (a.label || '').localeCompare(b.label || '');
-    });
-  }
-
-  addDay() {
-    if (!this.trip) return;
-
-    const modal: DynamicDialogRef = this.dialogService.open(TripCreateDayModalComponent, {
-      header: 'Create Day',
-      modal: true,
-      appendTo: 'body',
-      closable: true,
-      dismissableMask: true,
-      width: '50vw',
-      data: { days: this.trip.days },
-      breakpoints: {
-        '640px': '80vw',
-      },
-    })!;
-
-    modal.onClose.pipe(take(1)).subscribe({
-      next: (day: TripDay | null) => {
-        if (!day) return;
-
-        this.apiService
-          .postTripDay(day, this.trip?.id!)
-          .pipe(take(1))
-          .subscribe({
-            next: (day) => {
-              this.trip!.days.push(day);
-              this.sortDays();
-              this.flattenTripDayItems();
-            },
-          });
-      },
-    });
-  }
-
-  itemToNavigation() {
-    if (!this.selectedItem || !this.selectedItem.lat || !this.selectedItem.lng) return;
-    openNavigation([{ lat: this.selectedItem.lat, lng: this.selectedItem.lng }]);
-  }
-
-  downloadItemGPX() {
-    if (!this.selectedItem?.gpx) return;
-    const dataBlob = new Blob([this.selectedItem.gpx]);
-    const downloadURL = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = downloadURL;
-    link.download = `TRIP_${this.trip?.name}_${this.selectedItem.text}.gpx`;
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(downloadURL);
-  }
-
-  tripDayToNavigation(day_id: number) {
-    const idx = this.trip?.days.findIndex((d) => d.id === day_id);
-    if (!this.trip || idx === undefined || idx == -1) return;
-    const data = this.trip.days[idx].items.sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
-    const items = data.filter((item) => item.lat && item.lng);
-    if (!items.length) return;
-
-    openNavigation(items.map((item) => ({ lat: item.lat!, lng: item.lng! })));
-  }
-
-  tripToNavigation() {
-    const items = this.flattenedTripItems.filter((item) => item.lat && item.lng);
-    if (!items.length) return;
-    openNavigation(items.map((item) => ({ lat: item.lat!, lng: item.lng! })));
-  }
-
-  editDay(day: TripDay) {
-    if (!this.trip) return;
-
-    const modal: DynamicDialogRef = this.dialogService.open(TripCreateDayModalComponent, {
-      header: 'Edit Day',
-      modal: true,
-      appendTo: 'body',
-      closable: true,
-      dismissableMask: true,
-      width: '50vw',
-      data: { day, days: this.trip.days },
-      breakpoints: {
-        '640px': '80vw',
-      },
-    })!;
-
-    modal.onClose.pipe(take(1)).subscribe({
-      next: (day: TripDay | null) => {
-        if (!day) return;
-
-        this.apiService
-          .putTripDay(day, this.trip?.id!)
-          .pipe(take(1))
-          .subscribe({
-            next: (day) => {
-              const idx = this.trip!.days.findIndex((d) => d.id == day.id);
-              if (idx != -1) {
-                this.trip?.days.splice(idx, 1, day);
-                this.sortDays();
-                this.flattenTripDayItems();
-              }
-            },
-          });
-      },
-    });
-  }
-
-  deleteDay(day: TripDay) {
-    if (!this.trip) return;
-
-    const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Confirm deletion',
-      modal: true,
-      closable: true,
-      dismissableMask: true,
-      breakpoints: {
-        '640px': '90vw',
-      },
-      data: `Delete ${day.label} ? This will delete everything for this day.`,
-    })!;
-
-    modal.onClose.pipe(take(1)).subscribe({
-      next: (bool) => {
-        if (bool)
-          this.apiService
-            .deleteTripDay(this.trip?.id!, day.id)
-            .pipe(take(1))
-            .subscribe({
-              next: () => {
-                const idx = this.trip!.days.findIndex((d) => d.id == day.id);
-                if (idx != -1) {
-                  this.trip!.days.splice(idx, 1);
-                  this.flattenTripDayItems();
-                  this.setPlacesAndMarkers();
-                }
-              },
-            });
-      },
-    });
-  }
-
-  manageTripPlaces() {
-    if (!this.trip) return;
-
-    const modal: DynamicDialogRef = this.dialogService.open(TripPlaceSelectModalComponent, {
-      header: 'Select Place(s)',
-      modal: true,
-      appendTo: 'body',
-      closable: true,
-      width: '50vw',
-      data: {
-        places: this.places,
-        usedPlaces: this.placesUsedInTable,
-      },
-      breakpoints: {
-        '960px': '80vw',
-        '640px': '90vw',
-      },
-    })!;
-
-    modal.onClose.pipe(take(1)).subscribe({
-      next: (places: Place[] | null) => {
-        if (!places) return;
-
-        this.apiService
-          .putTrip({ place_ids: places.map((p) => p.id) }, this.trip!.id)
-          .pipe(take(1))
-          .subscribe({
-            next: (trip) => {
-              this.trip = trip;
-              this.setPlacesAndMarkers();
-              this.resetMapBounds();
-            },
-          });
-      },
-    });
-  }
-
-  addItem(day_id?: number) {
-    if (!this.trip) return;
-
-    const modal: DynamicDialogRef = this.dialogService.open(TripCreateDayItemModalComponent, {
-      header: 'Create Item',
-      modal: true,
-      appendTo: 'body',
-      closable: true,
-      dismissableMask: true,
-      width: '75vw',
-      breakpoints: {
-        '1260px': '90vw',
-      },
-      data: {
-        places: this.places,
-        days: this.trip.days,
-        selectedDay: day_id,
-        members: this.tripMembers,
-        trip: this.trip,
-      },
-    })!;
-
-    modal.onClose.pipe(take(1)).subscribe({
-      next: (item: (TripItem & { day_id: number[] }) | null) => {
-        if (!item) return;
-
-        const obs$ = item.day_id.map((day_id) =>
-          this.apiService.postTripDayItem({ ...item, day_id }, this.trip!.id!, day_id),
-        );
-
-        forkJoin(obs$)
-          .pipe(take(1))
-          .subscribe({
-            next: (items: TripItem[]) => {
-              items.forEach((item) => {
-                const idx = this.trip!.days.findIndex((d) => d.id == item.day_id);
-                if (idx === -1) return;
-
-                const td: TripDay = this.trip!.days[idx];
-                td.items.push(item);
-
-                this.dayStatsCache.delete(item.day_id);
-                if (item.price) this.updateTotalPrice(item.price);
-                if (item.place?.id) {
-                  this.placesUsedInTable.add(item.place.id);
-                  this.setPlacesAndMarkers();
-                }
-              });
-
-              this.flattenTripDayItems();
-              this.setPlacesAndMarkers();
-            },
-          });
-      },
-    });
-  }
-
-  editItem(item: TripItem) {
-    if (!this.trip) return;
-
-    const modal: DynamicDialogRef = this.dialogService.open(TripCreateDayItemModalComponent, {
-      header: 'Update Item',
-      modal: true,
-      appendTo: 'body',
-      closable: true,
-      dismissableMask: true,
-      width: '75vw',
-      breakpoints: {
-        '1260px': '90vw',
-      },
-      data: {
-        places: this.places,
-        days: this.trip?.days,
-        item: {
-          ...item,
-          status: item.status ? (item.status as TripStatus).label : null,
-        },
-        members: this.tripMembers,
-        trip: this.trip,
-      },
-    })!;
-
-    modal.onClose.pipe(take(1)).subscribe({
-      next: (updated: TripItem | null) => {
-        if (!updated) return;
-        if (item.place?.id) this.placesUsedInTable.delete(item.place.id);
-
-        this.apiService
-          .putTripDayItem(updated, this.trip!.id, item.day_id, item.id)
-          .pipe(take(1))
-          .subscribe({
-            next: (new_item) => this.updateItemFromTrip(item, new_item),
-          });
-      },
-    });
-  }
-
-  deleteItem(item: TripItem) {
-    const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Confirm deletion',
-      modal: true,
-      closable: true,
-      dismissableMask: true,
-      breakpoints: {
-        '640px': '90vw',
-      },
-      data: `Delete ${item.text.substring(0, 50)} ? This will delete everything for this day.`,
-    })!;
-
-    modal.onClose.pipe(take(1)).subscribe({
-      next: (bool) => {
-        if (!bool) return;
-        this.apiService
-          .deleteTripDayItem(this.trip?.id!, item.day_id, item.id)
-          .pipe(take(1))
-          .subscribe({
-            next: () => {
-              this.removeItemFromTrip(item);
-            },
-          });
-      },
-    });
-  }
-
-  addItems() {
-    if (!this.trip) return;
-
-    const modal: DynamicDialogRef = this.dialogService.open(TripCreateItemsModalComponent, {
-      header: 'Create Items',
-      modal: true,
-      appendTo: 'body',
-      closable: true,
-      dismissableMask: true,
-      width: '75vw',
-      breakpoints: {
-        '1260px': '90vw',
-      },
-      data: { days: this.trip.days },
-    })!;
-
-    modal.onClose.pipe(take(1)).subscribe({
-      next: (items: TripItem[] | null) => {
-        if (!items?.length) return;
-        const day_id = items[0].day_id;
-        const obs$ = items.map((item) => this.apiService.postTripDayItem(item, this.trip!.id!, item.day_id));
-
-        forkJoin(obs$)
-          .pipe(take(1))
-          .subscribe({
-            next: (items: TripItem[]) => {
-              const index = this.trip!.days.findIndex((d) => d.id == day_id);
-              if (index === -1) return;
-
-              const td: TripDay = this.trip!.days[index]!;
-              td.items.push(...items);
-              this.flattenTripDayItems();
-            },
-          });
-      },
-    });
-  }
-
-  addPlace() {
-    const modal: DynamicDialogRef = this.dialogService.open(PlaceCreateModalComponent, {
-      header: 'Create Place',
-      modal: true,
-      appendTo: 'body',
-      closable: true,
-      dismissableMask: true,
-      width: '55vw',
-      breakpoints: {
-        '1920px': '70vw',
-        '1260px': '90vw',
-      },
-    })!;
-
-    modal.onClose.pipe(take(1)).subscribe({
-      next: (place: Place | null) => {
-        if (!place) return;
-
-        this.apiService
-          .postPlace(place)
-          .pipe(
-            switchMap((createdPlace: Place) =>
-              this.apiService.putTrip({ place_ids: [createdPlace, ...this.places].map((p) => p.id) }, this.trip?.id!),
-            ),
-            take(1),
-          )
-          .subscribe({
-            next: (trip) => {
-              this.trip = trip;
-              this.setPlacesAndMarkers();
-              this.resetMapBounds();
-            },
-          });
-      },
-    });
-  }
-
-  editPlace(pEdit: Place) {
-    const modal: DynamicDialogRef = this.dialogService.open(PlaceCreateModalComponent, {
-      header: 'Edit Place',
-      modal: true,
-      appendTo: 'body',
-      closable: true,
-      dismissableMask: true,
-      width: '55vw',
-      breakpoints: {
-        '1920px': '70vw',
-        '1260px': '90vw',
-      },
-      data: {
-        place: { ...pEdit, category: pEdit.category.id },
-      },
-    })!;
-
-    modal.onClose.pipe(take(1)).subscribe({
-      next: (p: Place | null) => {
-        if (!p) return;
-
-        this.apiService
-          .putPlace(p.id, p)
-          .pipe(take(1))
-          .subscribe({
-            next: (place: Place) => {
-              const places = [...this.places];
-              const idx = places.findIndex((p) => p.id == place.id);
-              if (idx > -1) places.splice(idx, 1, place);
-              else places.push(place);
-              places.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
-              if (this.selectedItem?.place) this.selectedItem.place = place;
-              this.places = places;
-            },
-          });
-      },
-    });
-  }
-
-  updateItemFromTrip(old: TripItem, updated: TripItem): void {
-    if (!this.trip) return;
-
-    if (old.day_id !== updated.day_id) {
-      const oldDay = this.trip.days.find((d) => d.id === old.day_id);
-      if (oldDay) {
-        oldDay.items = oldDay.items.filter((i) => i.id !== old.id);
-        this.dayStatsCache.delete(old.day_id);
-      }
-    }
-
-    const newDay = this.trip.days.find((d) => d.id === updated.day_id);
-    if (newDay) {
-      const itemIdx = newDay.items.findIndex((i) => i.id === updated.id);
-      if (itemIdx !== -1) {
-        newDay.items[itemIdx] = updated;
-      } else {
-        newDay.items.push(updated);
-      }
-      this.dayStatsCache.delete(updated.day_id);
-    }
-    this.flattenTripDayItems();
-    this.computePlacesUsedInTable();
-    const updatedPrice = (updated.price || 0) - (old.price || 0);
-    this.updateTotalPrice(updatedPrice);
-    if (this.tripMapAntLayerDayID) this.resetDayHighlight();
-    if (updated.place?.id || old.place?.id) this.setPlacesAndMarkers();
-
-    if (this.selectedItem && this.selectedItem.id === old.id) {
-      this.selectedItem = {
-        ...updated,
-        status: updated.status ? this.statusToTripStatus(updated.status as string) : undefined,
-      };
-    }
-  }
-
-  removeItemFromTrip(item: TripItem): void {
-    if (!this.trip) return;
-    const dayIndex = this.trip.days.findIndex((d) => d.id === item.day_id);
-    if (dayIndex === -1) return;
-
-    const day = this.trip.days[dayIndex];
-    const itemIndex = day.items.findIndex((i) => i.id === item.id);
-    if (itemIndex != -1) {
-      day.items.splice(itemIndex, 1);
-      this.flattenTripDayItems();
-    }
-
-    if (item.price) this.updateTotalPrice(-item.price);
-    if (item.place?.id) {
-      this.placesUsedInTable.delete(item.place.id);
-      this.setPlacesAndMarkers();
-    }
-    this.dayStatsCache.delete(item.day_id);
-    this.selectedItem = undefined;
-    this.resetPlaceHighlightMarker();
-  }
-
-  getSharedTripURL() {
-    if (!this.trip) return;
-    this.apiService.getSharedTripURL(this.trip?.id!).pipe(take(1)).subscribe();
-  }
-
-  shareTrip() {
-    if (!this.trip) return;
-    this.apiService
-      .createSharedTrip(this.trip?.id!)
-      .pipe(take(1))
-      .subscribe({
-        next: (url) => {
-          this.trip!.shared = true;
-          this.tripSharedURL$ = of(url);
-        },
-      });
-  }
-
-  unshareTrip() {
-    if (!this.trip) return;
-
-    const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Confirm deletion',
-      modal: true,
-      closable: true,
-      dismissableMask: true,
-      breakpoints: {
-        '640px': '90vw',
-      },
-      data: `Stop sharing ${this.trip.name} ?`,
-    })!;
-
-    modal.onClose.pipe(take(1)).subscribe({
-      next: (bool) => {
-        if (!bool) return;
-        this.apiService
-          .deleteSharedTrip(this.trip?.id!)
-          .pipe(take(1))
-          .subscribe({
-            next: () => {
-              this.trip!.shared = false;
-              this.isShareDialogVisible = false;
-            },
-          });
-      },
-    });
-  }
-
-  computeMenuTripPackingItems() {
-    this.menuTripPackingItems = [
+  openMenuTripDayActions(event: any, day: TripDay) {
+    this.menuTripDayActionsItems = [
       {
         label: 'Actions',
         items: [
           {
-            label: 'Copy to clipboard (text)',
-            icon: 'pi pi-clipboard',
-            command: () => this.copyPackingListToClipboard(),
+            label: 'Plan',
+            icon: 'pi pi-plus',
+            command: () => this.addItem(),
           },
           {
-            label: 'Quick Copy',
-            icon: 'pi pi-copy',
-            command: () => this.copyPackingListToService(),
+            label: 'Edit',
+            icon: 'pi pi-pencil',
+            command: () => this.editDay(day),
           },
           {
-            label: `Quick Paste (${this.utilsService.packingListToCopy.length})`,
-            icon: 'pi pi-copy',
-            command: () => this.pastePackingList(),
-            disabled: this.trip?.archived || !this.utilsService.packingListToCopy.length,
+            label: 'Delete',
+            icon: 'pi pi-trash',
+            iconClass: 'text-red-500!',
+            command: () => this.deleteDay(day),
           },
         ],
       },
     ];
+    this.menuTripDayActions.toggle(event);
   }
 
-  openPackingList() {
-    if (!this.trip) return;
-    this.computeMenuTripPackingItems();
-    if (!this.packingList.length)
-      this.apiService
-        .getPackingList(this.trip.id)
-        .pipe(take(1))
-        .subscribe({
-          next: (items) => {
-            this.packingList = [...items];
-            this.computeDispPackingList();
+  openMenuSelectedItemActions(event: any, item: any) {
+    this.menuSelectedItemActionsItems = [
+      {
+        label: 'Actions',
+        items: [
+          {
+            label: 'Open Navigation',
+            icon: 'pi pi-car',
+            command: () => this.itemToNavigation(),
           },
-        });
-    this.isPackingDialogVisible = true;
-  }
-
-  addPackingItem() {
-    if (!this.trip) return;
-
-    const modal: DynamicDialogRef = this.dialogService.open(TripCreatePackingModalComponent, {
-      header: 'Create packing item',
-      modal: true,
-      appendTo: 'body',
-      closable: true,
-      dismissableMask: true,
-      width: '40vw',
-      breakpoints: {
-        '1260px': '70vw',
-        '600px': '90vw',
-      },
-    })!;
-
-    modal.onClose.pipe(take(1)).subscribe({
-      next: (item: PackingItem | null) => {
-        if (!item) return;
-
-        this.apiService
-          .postPackingItem(this.trip!.id, item)
-          .pipe(take(1))
-          .subscribe({
-            next: (item) => {
-              this.packingList.push(item);
-              this.computeDispPackingList();
-            },
-          });
-      },
-    });
-  }
-
-  onCheckPackingItem(e: CheckboxChangeEvent, id: number) {
-    if (!this.trip) return;
-    this.apiService
-      .putPackingItem(this.trip.id, id, { packed: e.checked })
-      .pipe(take(1))
-      .subscribe({
-        next: (item) => {
-          const i = this.packingList.find((p) => p.id == item.id);
-          if (i) i.packed = item.packed;
-          this.computeDispPackingList();
-        },
-      });
-  }
-
-  deletePackingItem(item: PackingItem) {
-    const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Confirm deletion',
-      modal: true,
-      closable: true,
-      dismissableMask: true,
-      breakpoints: {
-        '640px': '90vw',
-      },
-      data: `Delete ${item.text.substring(0, 50)} ?`,
-    })!;
-
-    modal.onClose.pipe(take(1)).subscribe({
-      next: (bool) => {
-        if (!bool) return;
-        this.apiService
-          .deletePackingItem(this.trip!.id, item.id)
-          .pipe(take(1))
-          .subscribe({
-            next: () => {
-              const index = this.packingList.findIndex((p) => p.id == item.id);
-              if (index > -1) this.packingList.splice(index, 1);
-              this.computeDispPackingList();
-            },
-          });
-      },
-    });
-  }
-
-  computeDispPackingList() {
-    const sorted: PackingItem[] = [...this.packingList].sort((a, b) =>
-      a.packed !== b.packed ? (a.packed ? 1 : -1) : a.text < b.text ? -1 : a.text > b.text ? 1 : 0,
-    );
-
-    this.dispPackingList = sorted.reduce<Record<string, PackingItem[]>>((acc, item) => {
-      (acc[item.category] ??= []).push(item);
-      return acc;
-    }, {});
-  }
-
-  copyPackingListToClipboard() {
-    const content = this.packingList
-      .sort((a, b) =>
-        a.category !== b.category
-          ? a.category.localeCompare(b.category)
-          : a.text < b.text
-            ? -1
-            : a.text > b.text
-              ? 1
-              : 0,
-      )
-      .map((item) => `[${item.category}] ${item.qt ? item.qt + ' ' : ''}${item.text}`)
-      .join('\n');
-    const success = this.clipboard.copy(content);
-    if (success) this.utilsService.toast('success', 'Success', `Content copied to clipboard`);
-    else this.utilsService.toast('error', 'Error', 'Content could not be copied to clipboard');
-  }
-
-  copyPackingListToService() {
-    const content: Partial<PackingItem>[] = this.packingList.map((item) => ({
-      qt: item.qt,
-      text: item.text,
-      category: item.category,
-    }));
-    this.utilsService.packingListToCopy = content;
-    this.utilsService.toast(
-      'success',
-      'Ready to Paste',
-      `${content.length} item${content.length > 1 ? 's' : ''}  copied. Go to another Trip and use Quick Paste`,
-    );
-    this.computeMenuTripPackingItems();
-  }
-
-  pastePackingList() {
-    const content: Partial<PackingItem>[] = this.utilsService.packingListToCopy;
-    const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Confirm Paste',
-      modal: true,
-      closable: true,
-      dismissableMask: true,
-      breakpoints: {
-        '640px': '90vw',
-      },
-      data: `Paste ${content.length} packing item${content.length > 1 ? 's' : ''} in ${this.trip?.name} ?`,
-    })!;
-
-    modal.onClose.pipe(take(1)).subscribe({
-      next: (bool) => {
-        if (!bool) return;
-
-        const obs$ = content.map((packingItem) =>
-          this.apiService.postPackingItem(this.trip!.id, packingItem as PackingItem),
-        );
-
-        forkJoin(obs$)
-          .pipe(take(1))
-          .subscribe({
-            next: (items: PackingItem[]) => {
-              this.packingList = [...this.packingList, ...items];
-              this.computeDispPackingList();
-              this.utilsService.toast(
-                'success',
-                'Success',
-                `Added ${content.length} item${content.length > 1 ? 's' : ''}`,
-              );
-              this.utilsService.packingListToCopy = [];
-              this.computeMenuTripPackingItems();
-            },
-          });
-      },
-    });
-  }
-
-  openChecklist() {
-    if (!this.trip) return;
-
-    if (!this.checklistItems.length)
-      this.apiService
-        .getChecklist(this.trip.id)
-        .pipe(take(1))
-        .subscribe({
-          next: (items) => {
-            this.checklistItems = [...items];
-            this.computeDispChecklistList();
+          {
+            label: 'Edit',
+            icon: 'pi pi-pencil',
+            disabled: this.trip()!.archived,
+            command: () => this.editItem(item),
           },
-        });
-    this.isChecklistDialogVisible = true;
+          {
+            label: 'Delete',
+            icon: 'pi pi-trash',
+            disabled: this.trip()!.archived,
+            command: () => this.deleteItem(item),
+          },
+        ],
+      },
+    ];
+    this.menuSelectedItemActions.toggle(event);
   }
 
-  addChecklistItem() {
-    if (!this.trip) return;
-
-    const modal: DynamicDialogRef = this.dialogService.open(TripCreateChecklistModalComponent, {
-      header: 'Create checklist item',
-      modal: true,
-      appendTo: 'body',
-      closable: true,
-      dismissableMask: true,
-      width: '40vw',
-      breakpoints: {
-        '1260px': '70vw',
-        '600px': '90vw',
+  openMenuPlanDayActionsItems(event: any, d: TripDay) {
+    this.menuPlanDayActionsItems = [
+      {
+        label: 'Actions',
+        items: [
+          {
+            label: 'Summary',
+            icon: 'pi pi-minus',
+            command: () => this.onDayClick(d),
+          },
+          {
+            label: 'Highlight',
+            icon: 'pi pi-directions',
+            command: () => this.toggleTripDayHighlight(d.id),
+          },
+          {
+            label: 'Open Navigation',
+            icon: 'pi pi-car',
+            command: () => this.tripDayToNavigation(d.id),
+          },
+        ],
       },
-    })!;
-
-    modal.onClose.pipe(take(1)).subscribe({
-      next: (item: ChecklistItem | null) => {
-        if (!item) return;
-
-        this.apiService
-          .postChecklistItem(this.trip!.id, item)
-          .pipe(take(1))
-          .subscribe({
-            next: (item) => {
-              this.checklistItems = [...this.checklistItems, item];
-              this.computeDispChecklistList();
-            },
-          });
-      },
-    });
-  }
-
-  computeDispChecklistList() {
-    this.checklistItems = [...this.checklistItems].sort((a, b) =>
-      a.checked !== b.checked ? (a.checked ? 1 : -1) : b.id - a.id,
-    );
-  }
-
-  onCheckChecklistItem(e: CheckboxChangeEvent, id: number) {
-    if (!this.trip) return;
-    this.apiService
-      .putChecklistItem(this.trip.id, id, { checked: e.checked })
-      .pipe(take(1))
-      .subscribe({
-        next: (item) => {
-          const i = this.checklistItems.find((p) => p.id == item.id);
-          if (i) i.checked = item.checked;
-          this.computeDispChecklistList();
-        },
-      });
-  }
-
-  deleteChecklistItem(item: ChecklistItem) {
-    const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Confirm deletion',
-      modal: true,
-      closable: true,
-      dismissableMask: true,
-      breakpoints: {
-        '640px': '90vw',
-      },
-      data: `Delete ${item.text.substring(0, 50)} ?`,
-    })!;
-
-    modal.onClose.pipe(take(1)).subscribe({
-      next: (bool) => {
-        if (!bool) return;
-        this.apiService
-          .deleteChecklistItem(this.trip!.id, item.id)
-          .pipe(take(1))
-          .subscribe({
-            next: () => {
-              const index = this.checklistItems.findIndex((p) => p.id == item.id);
-              if (index > -1) this.checklistItems.splice(index, 1);
-            },
-          });
-      },
-    });
-  }
-
-  openMembersDialog() {
-    if (!this.trip) return;
-
-    this.apiService
-      .getTripMembers(this.trip.id)
-      .pipe(take(1))
-      .subscribe({
-        next: (items) => {
-          this.tripMembers = [...items];
-
-          if (items.length > 1) {
-            this.apiService.getTripBalance(this.trip!.id).subscribe({
-              next: (resp) => {
-                this.tripMembers = this.tripMembers.map((m) => ({
-                  ...m,
-                  balance: resp[m.user] ?? 0,
-                }));
-              },
-            });
-          }
-        },
-      });
-    setTimeout(() => {
-      this.isMembersDialogVisible = true;
-    }, 100);
-  }
-
-  addMember() {
-    if (!this.trip) return;
-
-    const modal: DynamicDialogRef = this.dialogService.open(TripInviteMemberModalComponent, {
-      header: 'Invite member',
-      modal: true,
-      appendTo: 'body',
-      closable: true,
-      dismissableMask: true,
-      width: '40vw',
-      breakpoints: {
-        '1260px': '70vw',
-        '600px': '90vw',
-      },
-    })!;
-
-    modal.onClose.pipe(take(1)).subscribe({
-      next: (user: string | null) => {
-        if (!user) return;
-
-        this.apiService
-          .inviteTripMember(this.trip!.id, user)
-          .pipe(take(1))
-          .subscribe({
-            next: (member) => {
-              this.tripMembers = [...this.tripMembers, member];
-            },
-          });
-      },
-    });
-  }
-
-  deleteMember(username: string) {
-    const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Confirm deletion',
-      modal: true,
-      closable: true,
-      dismissableMask: true,
-      breakpoints: {
-        '640px': '90vw',
-      },
-      data: `Delete ${username.substring(0, 50)} from Trip ?`,
-    })!;
-
-    modal.onClose.pipe(take(1)).subscribe({
-      next: (bool) => {
-        if (!bool) return;
-        this.apiService
-          .deleteTripMember(this.trip!.id, username)
-          .pipe(take(1))
-          .subscribe({
-            next: () => {
-              const index = this.tripMembers.findIndex((p) => p.user == username);
-              if (index > -1) this.tripMembers.splice(index, 1);
-
-              let updated_paidby = false;
-              this.trip?.days.forEach((d) =>
-                d.items.forEach((item) => {
-                  if (item.paid_by === username) {
-                    item.paid_by = undefined;
-                    updated_paidby = true;
-                  }
-                }),
-              );
-
-              if (updated_paidby) {
-                this.flattenTripDayItems();
-                if (this.selectedItem && this.selectedItem.paid_by === username) this.selectedItem.paid_by = undefined;
-              }
-            },
-          });
-      },
-    });
-  }
-
-  openTripNotesModal() {
-    const modal = this.dialogService.open(TripNotesModalComponent, {
-      header: 'Notes',
-      modal: true,
-      closable: true,
-      dismissableMask: true,
-      width: '40vw',
-      breakpoints: {
-        '1024px': '70vw',
-        '640px': '90vw',
-      },
-      data: this.trip,
-    })!;
-
-    modal.onClose.pipe(take(1)).subscribe({
-      next: (notes: string) => {
-        if (notes === undefined) return;
-        this.apiService
-          .putTrip({ notes: notes }, this.trip!.id)
-          .pipe(take(1))
-          .subscribe({
-            next: (trip) => (this.trip = trip),
-          });
-      },
-    });
+    ];
+    this.menuPlanDayActions.toggle(event);
   }
 
   openMenuTripActionsItems(event: any) {
@@ -1928,7 +837,7 @@ export class TripComponent implements AfterViewInit {
           label: 'Share',
           icon: 'pi pi-share-alt',
           command: () => {
-            this.isShareDialogVisible = true;
+            this.isShareDialogVisible = !this.isShareDialogVisible;
           },
         },
       ],
@@ -1951,7 +860,7 @@ export class TripComponent implements AfterViewInit {
           },
         },
         {
-          label: this.trip?.archived ? 'Unarchive' : 'Archive',
+          label: this.trip()!.archived ? 'Unarchive' : 'Archive',
           icon: 'pi pi-box',
           command: () => {
             this.toggleArchiveTrip();
@@ -1960,7 +869,7 @@ export class TripComponent implements AfterViewInit {
         {
           label: 'Edit',
           icon: 'pi pi-pencil',
-          disabled: this.trip?.archived,
+          disabled: this.trip()!.archived,
           command: () => {
             this.editTrip();
           },
@@ -1968,7 +877,7 @@ export class TripComponent implements AfterViewInit {
         {
           label: 'Delete',
           icon: 'pi pi-trash',
-          disabled: this.trip?.archived,
+          disabled: this.trip()!.archived,
           command: () => {
             this.deleteTrip();
           },
@@ -1980,13 +889,957 @@ export class TripComponent implements AfterViewInit {
     this.menuTripActions.toggle(event);
   }
 
+  openMenuSelectedDayActions(event: any, d: TripDay) {
+    this.menuSelectedDayActionsItems = [
+      {
+        label: 'Actions',
+        items: [
+          {
+            label: 'Open Navigation',
+            icon: 'pi pi-car',
+            command: () => this.tripDayToNavigation(d.id),
+          },
+          {
+            label: 'Highlight',
+            icon: 'pi pi-directions',
+            command: () => this.toggleTripDayHighlight(d.id),
+          },
+          {
+            label: 'Edit',
+            icon: 'pi pi-pencil',
+            disabled: this.trip()!.archived,
+            command: () => this.editDay(d),
+          },
+          {
+            label: 'Delete',
+            icon: 'pi pi-trash',
+            disabled: this.trip()!.archived,
+            command: () => this.deleteDay(d),
+          },
+        ],
+      },
+    ];
+    this.menuSelectedDayActions.toggle(event);
+  }
+
+  toggleTripDayHighlight(newValue: number | null) {
+    this.highlightedDayId.update((current) => (current === newValue ? null : newValue));
+  }
+
+  toggleTripDaysHighlight() {
+    this.highlightedDayId.update((current) => (current === -1 ? null : -1));
+  }
+
+  back() {
+    this.router.navigate(['/trips']);
+  }
+
+  togglePrint() {
+    this.isPrinting.update((v) => !v);
+    setTimeout(() => {
+      window.print();
+      this.isPrinting.update((v) => !v);
+    }, 100);
+  }
+
+  toggleFiltering() {
+    this.isFilteringMode.update((v) => !v);
+  }
+
+  togglePlansPanel() {
+    this.isPlansPanelCollapsed.update((v) => !v);
+  }
+
+  togglePlacesPanel() {
+    this.isPlacesPanelVisible.update((v) => !v);
+  }
+
+  toggleDaysPanel() {
+    this.isDaysPanelVisible.update((v) => !v);
+  }
+
+  toggleUnplannedPlacesFilter() {
+    this.showOnlyUnplannedPlaces.update((v) => !v);
+  }
+
+  toggleArchiveTrip() {
+    if (this.trip()!.archived) this.openUnarchiveTripModal();
+    else this.openArchiveTripModal();
+  }
+
+  toggleArchiveReview() {
+    this.isArchivalReviewDisplayed.update((v) => !v);
+  }
+
+  toggleMultiSelectMode() {
+    this.isMultiSelectMode.update((v) => !v);
+    if (!this.isMultiSelectMode()) this.clearMultiSelectSelection();
+    else {
+      this.selectedPlace.set(null);
+      this.selectedItem.set(null);
+    }
+  }
+
+  clearMultiSelectSelection() {
+    this.selectedItemIds.set(new Set());
+  }
+
+  toggleItemSelection(itemId: number) {
+    this.selectedItemIds.update((ids) => {
+      const newIds = new Set(ids);
+      if (newIds.has(itemId)) newIds.delete(itemId);
+      else newIds.add(itemId);
+      return newIds;
+    });
+  }
+
+  unlinkPlaceFromTrip(placeId: number) {
+    if (this.usedPlaceIds().has(placeId)) {
+      this.utilsService.toast('error', 'Place in use', 'This place is referenced by at least one plan');
+      return;
+    }
+
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: 'Unlink Place',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      data: 'Remove the place from this Trip?',
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe((bool) => {
+      if (!bool) return;
+      const new_places = this.trip()
+        ?.places.map((p) => p.id)
+        .filter((id) => id !== placeId);
+      this.apiService
+        .putTrip({ place_ids: new_places }, this.trip()!.id)
+        .pipe(take(1))
+        .subscribe({
+          next: (trip) => {
+            this.trip.set(trip);
+            this.selectedPlace.set(null);
+            this.selectedPlaceActiveTabIndex.set(0);
+          },
+        });
+    });
+  }
+
+  getDayAttachments(day: TripDay): TripAttachment[] {
+    const attachments = new Map<number, TripAttachment>();
+    day.items.forEach((item) => {
+      if (!item.attachments) return;
+      item.attachments.forEach((attachment) => {
+        attachments.set(attachment.id, attachment);
+      });
+    });
+    return Array.from(attachments.values());
+  }
+
+  getDayPlaces(day: TripDay): Place[] {
+    const places = new Map<number, Place>();
+    day.items.forEach((item) => {
+      if (item.place) {
+        places.set(item.place.id, item.place);
+      }
+    });
+    return Array.from(places.values());
+  }
+
+  getCategoriesFromPlaces(places: Place[]): Category[] {
+    const categories = new Map<number, Category>();
+    places.forEach((p) => categories.set(p.category.id, p.category));
+    return Array.from(categories.values());
+  }
+
+  resetPlansWidth() {
+    this.panelWidth.set(null);
+    localStorage.removeItem('plansPanelWidth');
+  }
+
+  onPlansResizeStart(event: PointerEvent): void {
+    event.preventDefault();
+
+    const section = (event.target as HTMLElement).closest('section');
+    this.panelDeltaX = event.clientX;
+    this.panelDeltaWidth = section?.offsetWidth || 512;
+
+    const handle = event.target as HTMLElement;
+    handle.setPointerCapture(event.pointerId);
+
+    const onMove = (e: PointerEvent) => {
+      const newWidth = Math.max(320, Math.min(800, this.panelDeltaWidth + (e.clientX - this.panelDeltaX)));
+      this.panelWidth.set(newWidth);
+    };
+
+    const onUp = (e: PointerEvent) => {
+      handle.releasePointerCapture(e.pointerId);
+      localStorage.setItem('plansPanelWidth', this.panelWidth()!.toString());
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  }
+
+  onCoordsCopied() {
+    this.tooltipCopied.set(true);
+    setTimeout(() => this.tooltipCopied.set(false), 1200);
+  }
+
+  onDayClick(day: TripDay) {
+    this.toggleTripDayHighlight(null);
+    if (this.selectedDay()?.id === day.id) {
+      this.selectedPlace.set(null);
+      this.selectedItem.set(null);
+      this.selectedDay.set(null);
+      return;
+    }
+
+    this.selectedDay.set(day);
+    this.selectedPlace.set(null);
+    this.selectedItem.set(null);
+    this.toggleTripDayHighlight(day.id);
+  }
+
+  onPlaceClick(place: Place) {
+    if (this.selectedPlace()?.id === place.id) {
+      this.selectedPlace.set(null);
+      this.selectedItem.set(null);
+      this.selectedDay.set(null);
+      this.selectedPlaceActiveTabIndex.set(0);
+      return;
+    }
+
+    this.selectedPlace.set(place);
+    this.selectedItem.set(null);
+    this.selectedDay.set(null);
+    const itemCount = this.selectedPlaceItems().length;
+    this.selectedPlaceActiveTabIndex.set(itemCount);
+  }
+
+  onRowClick(item: ViewTripItem) {
+    if (this.isMultiSelectMode()) {
+      this.toggleItemSelection(item.id);
+      return;
+    }
+
+    if (item.place) {
+      const currentSelection = this.selectedPlace();
+      // compute tab index for items
+      const placeItems = this.tripViewModel()
+        .flatMap((vm) => vm.items)
+        .filter((i) => i.place?.id === item.place?.id);
+
+      const newTabIndex = placeItems.findIndex((i) => i.id === item.id);
+      const targetTabIndex = newTabIndex >= 0 ? newTabIndex : 0;
+      if (currentSelection?.id === item.place.id) {
+        const currentTabIndex = this.selectedPlaceActiveTabIndex();
+
+        if (currentTabIndex === targetTabIndex) {
+          this.selectedPlace.set(null);
+          this.selectedItem.set(null);
+          this.selectedDay.set(null);
+          this.selectedPlaceActiveTabIndex.set(0);
+          return;
+        }
+
+        this.selectedPlaceActiveTabIndex.set(targetTabIndex);
+        this.selectedItem.set(null);
+        return;
+      }
+
+      this.selectedPlace.set(item.place);
+      this.selectedItem.set(null);
+      this.selectedDay.set(null);
+      this.selectedPlaceActiveTabIndex.set(targetTabIndex);
+      return;
+    }
+
+    const currentItem = this.selectedItem();
+    if (currentItem?.id === item.id) {
+      this.selectedItem.set(null);
+      this.selectedPlace.set(null);
+      this.selectedDay.set(null);
+      return;
+    }
+
+    this.selectedItem.set(item);
+    this.selectedPlace.set(null);
+    this.selectedDay.set(null);
+  }
+
+  async centerOnMe() {
+    const position = await getGeolocationLatLng();
+    if (position.err) {
+      this.utilsService.toast('error', 'Error', position.err);
+      return;
+    }
+
+    const coords: any = [position.lat!, position.lng!];
+    this.map?.flyTo(coords);
+    const marker = toDotMarker(coords);
+    marker.addTo(this.map!);
+    setTimeout(() => {
+      marker.remove();
+    }, 4000);
+  }
+
+  highlightExistingMarker(marker: L.Marker) {
+    if (!this.markerClusterGroup) return;
+    const markerElement = marker.getElement() as HTMLElement;
+    if (markerElement) {
+      markerElement.classList.add('list-hover');
+      this.highlightedMarkerElement = markerElement;
+    } else {
+      const parentCluster = (this.markerClusterGroup as any).getVisibleParent(marker);
+      if (parentCluster) {
+        const clusterEl = parentCluster.getElement();
+        if (clusterEl) {
+          clusterEl.classList.add('list-hover');
+          this.highlightedMarkerElement = clusterEl;
+        }
+      }
+    }
+  }
+
+  clearSelectedItemHighlight() {
+    if (this.selectedItemMarker) {
+      this.map?.removeLayer(this.selectedItemMarker);
+      this.selectedItemMarker = undefined;
+    }
+
+    if (this.highlightedMarkerElement) {
+      this.highlightedMarkerElement.classList.remove('list-hover');
+      this.highlightedMarkerElement = undefined;
+    }
+  }
+
+  addItem(dayId?: number, placeId?: number) {
+    const modal = this.dialogService.open(TripCreateDayItemModalComponent, {
+      header: 'Add Item',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      breakpoints: {
+        '640px': '90vw',
+      },
+      data: {
+        trip: this.trip(),
+        selectedDayId: dayId,
+        selectedPlaceId: placeId,
+        places: this.places(),
+        members: this.tripMembers(),
+      },
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe((newItem: (TripItem & { day_id: number[] }) | null) => {
+      if (!newItem) return;
+
+      const obs$ = newItem.day_id.map((day_id) =>
+        this.apiService.postTripDayItem({ ...newItem, day_id }, this.trip()!.id, day_id),
+      );
+
+      forkJoin(obs$)
+        .pipe(take(1))
+        .subscribe({
+          next: (items: TripItem[]) => {
+            this.trip.update((currentTrip) => {
+              if (!currentTrip) return null;
+
+              const newItemsByDay = items.reduce(
+                (acc, item) => {
+                  (acc[item.day_id] ??= []).push(item);
+                  return acc;
+                },
+                {} as Record<number, TripItem[]>,
+              );
+
+              const updatedDays = currentTrip.days.map((day) =>
+                newItemsByDay[day.id] ? { ...day, items: [...day.items, ...newItemsByDay[day.id]] } : day,
+              );
+
+              return { ...currentTrip, days: updatedDays };
+            });
+          },
+        });
+    });
+  }
+
+  editItem(item: TripItem) {
+    const modal = this.dialogService.open(TripCreateDayItemModalComponent, {
+      header: 'Update Item',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      data: {
+        trip: this.trip(),
+        item: { ...item, status: item.status ? (item.status as TripStatus)?.label : null },
+        places: this.places(),
+        members: this.tripMembers(),
+      },
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe((updated: TripItem | null) => {
+      if (!updated) return;
+
+      this.apiService.putTripDayItem(updated, this.trip()!.id, item.day_id, item.id).subscribe((newItem) => {
+        this.trip.update((current) => {
+          if (!current) return null;
+
+          let days = [...current.days];
+
+          if (item.day_id !== newItem.day_id) {
+            days = days.map((d) =>
+              d.id === item.day_id ? { ...d, items: d.items.filter((i) => i.id !== item.id) } : d,
+            );
+          }
+
+          days = days.map((d) => {
+            if (d.id === newItem.day_id) {
+              const exists = d.items.some((i) => i.id === newItem.id);
+              const newItems = exists ? d.items.map((i) => (i.id === newItem.id ? newItem : i)) : [...d.items, newItem];
+              return { ...d, items: newItems };
+            }
+            return d;
+          });
+
+          return { ...current, days };
+        });
+        const normalizedItem = this.normalizeItem(newItem);
+        if (this.selectedItem()?.id === item.id) this.selectedItem.set(normalizedItem);
+        if (this.selectedPlace()?.id === item.place?.id || this.selectedPlace()?.id === newItem.place?.id) {
+          const currentPlace = this.selectedPlace();
+          if (currentPlace) this.selectedPlace.set({ ...currentPlace });
+        }
+      });
+    });
+  }
+
+  deleteItem(item: TripItem) {
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: 'Delete Item',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      data: `Delete ${item.text.substring(0, 50)}?`,
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe((bool) => {
+      if (!bool) return;
+      this.apiService.deleteTripDayItem(this.trip()!.id, item.day_id, item.id).subscribe(() => {
+        this.trip.update((current) => {
+          if (!current) return null;
+          const days = current.days.map((d) =>
+            d.id === item.day_id ? { ...d, items: d.items.filter((i) => i.id !== item.id) } : d,
+          );
+          return { ...current, days };
+        });
+        if (this.selectedItem()?.id === item.id) this.selectedItem.set(null);
+        if (this.selectedPlace()?.id === item.place?.id) {
+          const remainingItems = this.selectedPlaceItems().filter((i) => i.id !== item.id);
+          if (remainingItems.length === 0) this.selectedPlaceActiveTabIndex.set(0);
+        }
+      });
+    });
+  }
+
+  addDay() {
+    const modal = this.dialogService.open(TripCreateDayModalComponent, {
+      header: 'Add Day(s)',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      data: { days: this.trip()!.days },
+      breakpoints: {
+        '640px': '80vw',
+      },
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe((data: TripDay | { daterange: Date[]; notes?: string[] } | null) => {
+      if (!data) return;
+
+      if ('daterange' in data && data.daterange && data.daterange.length === 2) {
+        const tripDays = daterangeToTripDays(data.daterange);
+        const obs$ = tripDays.map((td) =>
+          this.apiService.postTripDay({ id: -1, label: td.label!, dt: td.dt, items: [] }, this.trip()!.id),
+        );
+
+        forkJoin(obs$)
+          .pipe(take(1))
+          .subscribe((newDays: TripDay[]) => {
+            this.trip.update((t) => {
+              if (!t) return null;
+              const days = [...t.days, ...newDays].sort((a, b) => (a.dt || '').localeCompare(b.dt || ''));
+              return { ...t, days };
+            });
+          });
+      } else {
+        const newDay = data as TripDay;
+        this.apiService.postTripDay(newDay, this.trip()!.id).subscribe((createdDay) => {
+          this.trip.update((t) => {
+            if (!t) return null;
+            const days = [...t.days, createdDay].sort((a, b) => (a.dt || '').localeCompare(b.dt || ''));
+            return { ...t, days };
+          });
+        });
+      }
+    });
+  }
+
+  editDay(day: TripDay) {
+    const modal = this.dialogService.open(TripCreateDayModalComponent, {
+      header: 'Edit Day',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      data: { day, days: this.trip()!.days },
+      breakpoints: {
+        '640px': '80vw',
+      },
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe((newDay: TripDay | null) => {
+      if (!newDay) return;
+      this.apiService.putTripDay(newDay, this.trip()!.id).subscribe((updated) => {
+        this.trip.update((t) => {
+          if (!t) return null;
+          const days = t.days
+            .map((d) => (d.id === updated.id ? { ...d, ...updated } : d))
+            .sort((a, b) => (a.dt || '').localeCompare(b.dt || ''));
+          return { ...t, days };
+        });
+
+        if (this.selectedDay()?.id === updated.id) this.selectedDay.set(updated);
+      });
+    });
+  }
+
+  deleteDay(day: TripDay) {
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: 'Delete Day',
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      breakpoints: {
+        '640px': '90vw',
+      },
+      data: `Delete ${day.label} and associated plans?`,
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe((bool) => {
+      if (!bool) return;
+      this.apiService.deleteTripDay(this.trip()!.id, day.id).subscribe(() => {
+        this.trip.update((t) => {
+          if (!t) return null;
+          return { ...t, days: t.days.filter((d) => d.id !== day.id) };
+        });
+        if (this.selectedDay()?.id === day.id) this.selectedDay.set(null);
+      });
+    });
+  }
+
+  addPlace() {
+    const modal: DynamicDialogRef = this.dialogService.open(PlaceCreateModalComponent, {
+      header: 'Create Place',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      breakpoints: {
+        '640px': '90vw',
+      },
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (place: Place | null) => {
+        if (!place) return;
+
+        this.apiService
+          .postPlace(place)
+          .pipe(
+            switchMap((createdPlace: Place) =>
+              this.apiService.putTrip(
+                { place_ids: [createdPlace.id, ...this.places().map((p) => p.id)] },
+                this.trip()!.id,
+              ),
+            ),
+            take(1),
+          )
+          .subscribe({
+            next: (trip) => this.trip.set(trip),
+          });
+      },
+    });
+  }
+
+  editPlace(pEdit: Place) {
+    const modal: DynamicDialogRef = this.dialogService.open(PlaceCreateModalComponent, {
+      header: 'Edit Place',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      breakpoints: {
+        '640px': '90vw',
+      },
+      data: {
+        place: { ...pEdit, category: pEdit.category.id },
+      },
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (updatedPlace: Place | null) => {
+        if (!updatedPlace) return;
+
+        this.apiService
+          .putPlace(updatedPlace.id, updatedPlace)
+          .pipe(take(1))
+          .subscribe({
+            next: (place: Place) => {
+              this.trip.update((t) => {
+                if (!t) return null;
+                const places = t.places.map((p) => (p.id === place.id ? place : p));
+                const days = t.days.map((d) => ({
+                  ...d,
+                  items: d.items.map((i) => (i.place?.id === place.id ? { ...i, place: place } : i)),
+                }));
+
+                return { ...t, places, days };
+              });
+              if (this.selectedPlace()?.id === place.id) this.selectedPlace.set(place);
+              const selItem = this.selectedItem();
+              if (selItem?.place?.id === place.id)
+                this.selectedItem.update((curr) => (curr ? { ...curr, place } : null));
+            },
+          });
+      },
+    });
+  }
+
+  manageTripPlaces() {
+    const modal: DynamicDialogRef = this.dialogService.open(TripPlaceSelectModalComponent, {
+      header: 'Attached Places',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      width: '50vw',
+      data: {
+        places: this.places(),
+        usedPlaces: this.usedPlaceIds(),
+      },
+      breakpoints: {
+        '640px': '90vw',
+      },
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (places: Place[] | null) => {
+        if (!places) return;
+
+        this.apiService
+          .putTrip({ place_ids: places.map((p) => p.id) }, this.trip()!.id)
+          .pipe(take(1))
+          .subscribe({
+            next: (trip) => {
+              this.trip.set(trip);
+              if (this.selectedPlace() && !trip.places.some((p) => p.id == this.selectedPlace()!.id))
+                this.selectedPlace.set(null);
+            },
+          });
+      },
+    });
+  }
+
+  editTrip() {
+    const modal: DynamicDialogRef = this.dialogService.open(TripCreateModalComponent, {
+      header: 'Update Trip',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      width: '50vw',
+      breakpoints: {
+        '640px': '90vw',
+      },
+      data: { trip: this.trip() },
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (new_trip: Trip | null) => {
+        if (!new_trip) return;
+        this.apiService
+          .putTrip(new_trip, this.trip()!.id)
+          .pipe(take(1))
+          .subscribe((trip) => this.trip.set(trip));
+      },
+    });
+  }
+
+  deleteTrip() {
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: 'Delete Trip',
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      breakpoints: {
+        '640px': '90vw',
+      },
+      data: `Delete ${this.trip()!.name}?`,
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (bool) => {
+        if (bool)
+          this.apiService
+            .deleteTrip(this.trip()!.id)
+            .pipe(take(1))
+            .subscribe({
+              next: () => this.router.navigate(['/trips']),
+            });
+      },
+    });
+  }
+
+  openPackingList() {
+    this.apiService.getPackingList(this.trip()!.id).subscribe((items) => {
+      this.packingList.set(items);
+      this.isPackingDialogVisible = !this.isPackingDialogVisible;
+      this.computeMenuTripPackingItems();
+    });
+  }
+
+  computeMenuTripPackingItems() {
+    this.menuTripPackingItems = [
+      {
+        label: 'Actions',
+        items: [
+          {
+            label: 'Copy to clipboard (text)',
+            icon: 'pi pi-clipboard',
+            command: () => this.copyPackingListToClipboard(),
+          },
+          {
+            label: 'Quick Copy',
+            icon: 'pi pi-copy',
+            command: () => this.copyPackingListToService(),
+          },
+          {
+            label: `Quick Paste (${this.utilsService.packingListToCopy.length})`,
+            icon: 'pi pi-copy',
+            command: () => this.pastePackingList(),
+            disabled: this.trip()?.archived || !this.utilsService.packingListToCopy.length,
+          },
+        ],
+      },
+    ];
+  }
+
+  addPackingItem() {
+    const modal: DynamicDialogRef = this.dialogService.open(TripCreatePackingModalComponent, {
+      header: 'Add Packing',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      breakpoints: {
+        '640px': '90vw',
+      },
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (item: PackingItem | null) => {
+        if (!item) return;
+
+        this.apiService
+          .postPackingItem(this.trip()!.id, item)
+          .pipe(take(1))
+          .subscribe({
+            next: (item) => this.packingList.update((l) => [...l, item]),
+          });
+      },
+    });
+  }
+
+  onCheckPackingItem(e: CheckboxChangeEvent, id: number) {
+    this.apiService
+      .putPackingItem(this.trip()!.id, id, { packed: e.checked })
+      .pipe(take(1))
+      .subscribe({
+        next: (updated) => this.packingList.update((l) => l.map((i) => (i.id === id ? updated : i))),
+      });
+  }
+
+  deletePackingItem(item: PackingItem) {
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: 'Delete Item',
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      breakpoints: {
+        '640px': '90vw',
+      },
+      data: `Delete ${item.text.substring(0, 50)}?`,
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (bool) => {
+        if (!bool) return;
+        this.apiService
+          .deletePackingItem(this.trip()!.id, item.id)
+          .pipe(take(1))
+          .subscribe({
+            next: () => this.packingList.update((l) => l.filter((i) => i.id !== item.id)),
+          });
+      },
+    });
+  }
+
+  copyPackingListToClipboard() {
+    const content = this.packingList()
+      .sort((a, b) =>
+        a.category !== b.category
+          ? a.category.localeCompare(b.category)
+          : a.text < b.text
+            ? -1
+            : a.text > b.text
+              ? 1
+              : 0,
+      )
+      .map((item) => `[${item.category}] ${item.qt ? item.qt + ' ' : ''}${item.text}`)
+      .join('\n');
+    const success = this.clipboard.copy(content);
+    if (success) this.utilsService.toast('success', 'Success', `Content copied to clipboard`);
+    else this.utilsService.toast('error', 'Error', 'Content could not be copied to clipboard');
+  }
+
+  copyPackingListToService() {
+    const content: Partial<PackingItem>[] = this.packingList().map((item) => ({
+      qt: item.qt,
+      text: item.text,
+      category: item.category,
+    }));
+    this.utilsService.packingListToCopy = content;
+    this.utilsService.toast(
+      'success',
+      'Ready to Paste',
+      `${content.length} item${content.length > 1 ? 's' : ''}  copied. Go to another Trip and use Quick Paste`,
+    );
+  }
+
+  pastePackingList() {
+    const content: Partial<PackingItem>[] = this.utilsService.packingListToCopy;
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: 'Confirm Paste',
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      breakpoints: {
+        '640px': '90vw',
+      },
+      data: `Paste ${content.length} items?`,
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (bool) => {
+        if (!bool) return;
+
+        const obs$ = content.map((packingItem) =>
+          this.apiService.postPackingItem(this.trip()!.id, packingItem as PackingItem),
+        );
+
+        forkJoin(obs$)
+          .pipe(take(1))
+          .subscribe({
+            next: (newItems: PackingItem[]) => {
+              this.packingList.update((l) => [...l, ...newItems]);
+              this.utilsService.packingListToCopy = [];
+              this.utilsService.toast('success', 'Success', 'Items pasted');
+            },
+          });
+      },
+    });
+  }
+
+  openChecklist() {
+    this.apiService.getChecklist(this.trip()!.id).subscribe((items) => {
+      this.checklistItems.set(items);
+      this.isChecklistDialogVisible = !this.isChecklistDialogVisible;
+    });
+  }
+
+  addChecklistItem() {
+    const modal: DynamicDialogRef = this.dialogService.open(TripCreateChecklistModalComponent, {
+      header: 'Add Checklist',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      breakpoints: {
+        '640px': '90vw',
+      },
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (item: ChecklistItem | null) => {
+        if (!item) return;
+
+        this.apiService
+          .postChecklistItem(this.trip()!.id, item)
+          .pipe(take(1))
+          .subscribe({
+            next: (created) => this.checklistItems.update((l) => [...l, created]),
+          });
+      },
+    });
+  }
+
+  onCheckChecklistItem(e: CheckboxChangeEvent, id: number) {
+    this.apiService
+      .putChecklistItem(this.trip()!.id, id, { checked: e.checked })
+      .pipe(take(1))
+      .subscribe({
+        next: (updated) => this.checklistItems.update((l) => l.map((i) => (i.id === id ? updated : i))),
+      });
+  }
+
+  deleteChecklistItem(item: ChecklistItem) {
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: 'Delete Item',
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      breakpoints: {
+        '640px': '90vw',
+      },
+      data: `Delete ${item.text.substring(0, 50)}?`,
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (bool) => {
+        if (!bool) return;
+        this.apiService
+          .deleteChecklistItem(this.trip()!.id, item.id)
+          .pipe(take(1))
+          .subscribe({
+            next: () => this.checklistItems.update((l) => l.filter((i) => i.id !== item.id)),
+          });
+      },
+    });
+  }
+
   openAttachmentsModal() {
-    if (!this.trip) return;
-    this.isAttachmentsDialogVisible = true;
+    this.isAttachmentsDialogVisible = !this.isAttachmentsDialogVisible;
   }
 
   onFileUploadInputChange(event: Event) {
-    if (!this.trip) return;
     const input = event.target as HTMLInputElement;
     if (!input.files?.length) return;
 
@@ -1994,17 +1847,17 @@ export class TripComponent implements AfterViewInit {
     formdata.append('file', input.files[0]);
 
     this.apiService
-      .postTripAttachment(this.trip?.id, formdata)
+      .postTripAttachment(this.trip()!.id, formdata)
       .pipe(take(1))
       .subscribe({
-        next: (attachment) => (this.trip!.attachments = [...this.trip!.attachments!, attachment]),
+        next: (attachment) =>
+          this.trip.update((t) => ({ ...t!, attachments: [...(t!.attachments || []), attachment] })),
       });
   }
 
   downloadAttachment(attachment: TripAttachment) {
-    if (!this.trip) return;
     this.apiService
-      .downloadTripAttachment(this.trip.id, attachment.id)
+      .downloadTripAttachment(this.trip()!.id, attachment.id)
       .pipe(take(1))
       .subscribe({
         next: (data) => {
@@ -2024,26 +1877,428 @@ export class TripComponent implements AfterViewInit {
   }
 
   deleteAttachment(attachmentId: number) {
-    if (!this.trip) return;
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: 'Delete Attachment',
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      breakpoints: {
+        '640px': '90vw',
+      },
+      data: 'Delete attachment? This cannot be undone.',
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (bool) => {
+        if (!bool) return;
+
+        this.apiService
+          .deleteTripAttachment(this.trip()!.id, attachmentId)
+          .pipe(take(1))
+          .subscribe({
+            next: () => {
+              this.trip.update((t) => {
+                const attachments = t!.attachments?.filter((a) => a.id !== attachmentId);
+                const days = t!.days.map((day) => ({
+                  ...day,
+                  items: day.items.map((item) => ({
+                    ...item,
+                    attachments: item.attachments?.filter((a) => a.id !== attachmentId),
+                  })),
+                }));
+                return { ...t, attachments, days } as Trip;
+              });
+
+              if (this.selectedItem()?.attachments)
+                this.selectedItem.update((curr) =>
+                  curr ? { ...curr, attachments: curr.attachments?.filter((a) => a.id !== attachmentId) ?? [] } : null,
+                );
+            },
+          });
+      },
+    });
+  }
+
+  openUnarchiveTripModal() {
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: 'Restore Trip',
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      breakpoints: {
+        '640px': '90vw',
+      },
+      data: `Restore ${this.trip()!.name}?`,
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (bool) => {
+        if (!bool) return;
+        this.apiService
+          .putTrip({ archived: false }, this.trip()!.id!)
+          .pipe(take(1))
+          .subscribe({
+            next: (trip) => this.trip.set(trip),
+          });
+      },
+    });
+  }
+
+  openArchiveTripModal() {
+    const modal = this.dialogService.open(TripArchiveModalComponent, {
+      header: `Archive ${this.trip()!.name}`,
+      modal: true,
+      closable: true,
+      appendTo: 'body',
+      dismissableMask: true,
+      breakpoints: {
+        '640px': '90vw',
+      },
+      data: this.trip(),
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (review: string) => {
+        if (review === undefined) return;
+        this.apiService
+          .putTrip({ archived: true, archival_review: review }, this.trip()!.id!)
+          .pipe(take(1))
+          .subscribe({
+            next: (trip) => this.trip.set(trip),
+          });
+      },
+    });
+  }
+
+  downloadItemGPX() {
+    const item = this.selectedItem();
+    const placeItems = this.selectedPlaceItems();
+    const gpx = this.selectedItem()?.gpx || this.selectedPlaceItems()[this.selectedPlaceActiveTabIndex()]?.gpx;
+    if (!gpx) return;
+
+    const itemName = item?.text || placeItems[this.selectedPlaceActiveTabIndex()]?.text || 'item';
+    const dataBlob = new Blob([gpx]);
+    const downloadURL = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = downloadURL;
+    link.download = `TRIP_${this.trip()!.name}_${itemName}.gpx`;
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(downloadURL);
+  }
+
+  itemToNavigation() {
+    const item = this.selectedItem();
+    const placeItems = this.selectedPlaceItems();
+    const target = item || placeItems[this.selectedPlaceActiveTabIndex()];
+    if (!target?.lat || !target?.lng) return;
+
+    openNavigation([{ lat: target.lat, lng: target.lng }]);
+  }
+
+  tripDayToNavigation(dayId: number) {
+    const idx = this.trip()?.days.findIndex((d) => d.id === dayId);
+    if (!this.trip() || idx === undefined || idx == -1) return;
+    const data = this.trip()!.days[idx].items.sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
+    const items = data.filter((item) => item.lat && item.lng);
+    if (!items.length) return;
+    openNavigation(items.map((item) => ({ lat: item.lat!, lng: item.lng! })));
+  }
+
+  tripToNavigation() {
+    const items = this.tripViewModel()
+      .flatMap((d) => d.items)
+      .filter((item) => item.lat && item.lng);
+    if (!items.length) return;
+    openNavigation(items.map((item) => ({ lat: item.lat!, lng: item.lng! })));
+  }
+
+  getSharedTripURL() {
+    this.apiService.getSharedTripURL(this.trip()!.id).pipe(take(1)).subscribe();
+  }
+
+  shareTrip() {
     this.apiService
-      .deleteTripAttachment(this.trip.id, attachmentId)
+      .createSharedTrip(this.trip()!.id)
       .pipe(take(1))
       .subscribe({
-        next: () => {
-          this.trip!.attachments = this.trip?.attachments?.filter((att) => att.id != attachmentId);
-          let modifiedItem = false;
-          this.trip?.days.forEach((d) =>
-            d.items.forEach((i) => {
-              if (i.attachments?.length) {
-                i.attachments = i.attachments.filter((attachment) => attachment.id != attachmentId);
-                modifiedItem = true;
-              }
-            }),
-          );
-          if (this.selectedItem?.attachments?.length)
-            this.selectedItem.attachments = this.selectedItem.attachments.filter((a) => a.id != attachmentId);
-          if (modifiedItem) this.flattenTripDayItems();
+        next: (url) => {
+          this.trip.update((t) => (t ? { ...t, shared: true } : null));
+          this.tripSharedURL$ = of(url);
         },
       });
+  }
+
+  unshareTrip() {
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: 'Disable Share',
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      breakpoints: {
+        '640px': '90vw',
+      },
+      data: `Stop sharing ${this.trip()!.name}?`,
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (bool) => {
+        if (!bool) return;
+        this.apiService
+          .deleteSharedTrip(this.trip()!.id)
+          .pipe(take(1))
+          .subscribe({
+            next: () => {
+              this.trip.update((t) => (t ? { ...t, shared: false } : null));
+              this.isShareDialogVisible = !this.isShareDialogVisible;
+            },
+          });
+      },
+    });
+  }
+
+  openMembersDialog() {
+    this.apiService
+      .getTripMembers(this.trip()!.id)
+      .pipe(take(1))
+      .subscribe({
+        next: (members) => {
+          this.tripMembers.set(members);
+
+          if (members.length > 1) {
+            this.apiService.getTripBalance(this.trip()!.id).subscribe({
+              next: (balances) =>
+                this.tripMembers.update((current) => current.map((m) => ({ ...m, balance: balances[m.user] ?? 0 }))),
+            });
+          }
+          this.isMembersDialogVisible = !this.isMembersDialogVisible;
+        },
+      });
+  }
+
+  addMember() {
+    const modal: DynamicDialogRef = this.dialogService.open(TripInviteMemberModalComponent, {
+      header: 'Invite member',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      breakpoints: {
+        '640px': '90vw',
+      },
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (user: string | null) => {
+        if (!user) return;
+
+        this.apiService
+          .inviteTripMember(this.trip()!.id, user)
+          .pipe(take(1))
+          .subscribe({
+            next: (member) => this.tripMembers.update((list) => [...list, member]),
+          });
+      },
+    });
+  }
+
+  deleteMember(username: string) {
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: 'Remove Member',
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      breakpoints: {
+        '640px': '90vw',
+      },
+      data: `Delete ${username.substring(0, 50)} from Trip ?`,
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (bool) => {
+        if (!bool) return;
+        this.apiService
+          .deleteTripMember(this.trip()!.id, username)
+          .pipe(take(1))
+          .subscribe({
+            next: () => {
+              this.tripMembers.update((list) => list.filter((m) => m.user !== username));
+
+              this.trip.update((t) => {
+                if (!t) return null;
+                const days = t.days.map((d) => ({
+                  ...d,
+                  items: d.items.map((i) => (i.paid_by === username ? { ...i, paid_by: undefined } : i)),
+                }));
+                return { ...t, days };
+              });
+            },
+          });
+      },
+    });
+  }
+
+  openTripNotesModal() {
+    const modal = this.dialogService.open(TripNotesModalComponent, {
+      header: 'Notes',
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      width: '30vw',
+      breakpoints: {
+        '640px': '90vw',
+      },
+      data: this.trip(),
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (notes: string) => {
+        if (notes === undefined) return;
+        this.apiService
+          .putTrip({ notes }, this.trip()!.id)
+          .pipe(take(1))
+          .subscribe({
+            next: (trip) => this.trip.set(trip),
+          });
+      },
+    });
+  }
+
+  bulkDeleteItems() {
+    const items = this.selectedItems();
+    if (!items.length) return;
+
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: 'Delete Plans',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      data: `Delete ${items.length} plan${items.length > 1 ? 's' : ''}? This cannot be undone.`,
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe((bool) => {
+      if (!bool) return;
+
+      const obs$ = items.map((item) => this.apiService.deleteTripDayItem(this.trip()!.id, item.day_id, item.id));
+      forkJoin(obs$)
+        .pipe(take(1))
+        .subscribe({
+          next: () => {
+            const idsToDelete = new Set(items.map((i) => i.id));
+            this.trip.update((current) => {
+              if (!current) return null;
+              const days = current.days.map((day) => ({
+                ...day,
+                items: day.items.filter((item) => !idsToDelete.has(item.id)),
+              }));
+              return { ...current, days };
+            });
+            this.toggleMultiSelectMode();
+          },
+        });
+    });
+  }
+
+  bulkDuplicateItems() {
+    const items = this.selectedItems();
+    if (!items.length) return;
+
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: 'Duplicate Plans',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      data: `Duplicate ${items.length} plan${items.length > 1 ? 's' : ''}?`,
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe((bool) => {
+      if (!bool) return;
+      const obs$ = items.map((item) => {
+        const data: any = {
+          ...item,
+          status: item.status ? item.status.label : null,
+          attachments: item.attachments ? item.attachments.map((a) => a.id) : [],
+          place: item.place ? item.place.id : null,
+        };
+        return this.apiService.postTripDayItem(data, this.trip()!.id, item.day_id);
+      });
+
+      forkJoin(obs$)
+        .pipe(take(1))
+        .subscribe({
+          next: (items: TripItem[]) => {
+            this.trip.update((currentTrip) => {
+              if (!currentTrip) return null;
+
+              const newItemsByDay = items.reduce(
+                (acc, item) => {
+                  (acc[item.day_id] ??= []).push(item);
+                  return acc;
+                },
+                {} as Record<number, TripItem[]>,
+              );
+
+              const updatedDays = currentTrip.days.map((day) =>
+                newItemsByDay[day.id] ? { ...day, items: [...day.items, ...newItemsByDay[day.id]] } : day,
+              );
+
+              return { ...currentTrip, days: updatedDays };
+            });
+            this.toggleMultiSelectMode();
+          },
+        });
+    });
+  }
+
+  bulkEditItems() {
+    const items = this.selectedItems();
+    if (!items.length) return;
+
+    const modal = this.dialogService.open(TripBulkEditModalComponent, {
+      header: `Edit ${items.length} Plan${items.length > 1 ? 's' : ''}`,
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      data: {
+        trip: this.trip(),
+        members: this.tripMembers(),
+        statuses: this.utilsService.statuses,
+      },
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe((editData) => {
+      if (!editData) return;
+      const obs$ = items.map((item) =>
+        this.apiService.putTripDayItem({ ...editData }, this.trip()!.id, item.day_id, item.id),
+      );
+      forkJoin(obs$)
+        .pipe(take(1))
+        .subscribe({
+          next: (updatedItems: TripItem[]) => {
+            this.trip.update((currentTrip) => {
+              if (!currentTrip) return null;
+              const itemsById = Object.fromEntries(updatedItems.map((item) => [item.id, item]));
+              const updatedDays = currentTrip.days.map((day) => ({
+                ...day,
+                items: [
+                  ...day.items.filter((item) => !itemsById[item.id]),
+                  ...updatedItems.filter((item) => item.day_id === day.id),
+                ],
+              }));
+
+              return { ...currentTrip, days: updatedDays };
+            });
+            this.toggleMultiSelectMode();
+            this.utilsService.toast('success', 'Success', `${updatedItems.length} items updated`);
+          },
+          error: (err) => {
+            this.utilsService.toast('error', 'Error', 'Bulk edition failed, check console for details');
+            console.error('Bulk edit failed:', err);
+          },
+        });
+    });
   }
 }
