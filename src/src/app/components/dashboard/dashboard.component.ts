@@ -1,13 +1,27 @@
-import { AfterViewInit, Component, OnInit, ViewChild } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  ElementRef,
+  inject,
+  OnInit,
+  signal,
+  untracked,
+  viewChild,
+} from '@angular/core';
 import {
   catchError,
   combineLatest,
   concatMap,
   debounceTime,
   delay,
+  distinctUntilChanged,
   forkJoin,
   from,
   interval,
+  map,
   of,
   take,
   takeWhile,
@@ -29,7 +43,6 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { TabsModule } from 'primeng/tabs';
 import { ToggleSwitchModule } from 'primeng/toggleswitch';
 import { FloatLabelModule } from 'primeng/floatlabel';
-import { BatchCreateModalComponent } from '../../modals/batch-create-modal/batch-create-modal.component';
 import { UtilsService } from '../../services/utils.service';
 import { Info } from '../../types/info';
 import {
@@ -52,10 +65,10 @@ import { MenuItem, SelectItemGroup } from 'primeng/api';
 import { YesNoModalComponent } from '../../modals/yes-no-modal/yes-no-modal.component';
 import { CategoryCreateModalComponent } from '../../modals/category-create-modal/category-create-modal.component';
 import { AuthService } from '../../services/auth.service';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { PlaceGPXComponent } from '../../shared/place-gpx/place-gpx.component';
 import { CommonModule, Location } from '@angular/common';
-import { FileSizePipe } from '../../shared/filesize.pipe';
+import { FileSizePipe } from '../../shared/pipes/filesize.pipe';
 import { TotpVerifyModalComponent } from '../../modals/totp-verify-modal/totp-verify-modal.component';
 import { MenuModule } from 'primeng/menu';
 import { MultiPlacesCreateModalComponent } from '../../modals/multi-places-create-modal/multi-places-create-modal.component';
@@ -63,6 +76,8 @@ import { GmapsMultilineCreateModalComponent } from '../../modals/gmaps-multiline
 import { UpdatePasswordModalComponent } from '../../modals/update-password-modal/update-password-modal.component';
 import { SettingsViewTokenComponent } from '../../modals/settings-view-token/settings-view-token.component';
 import { Trip } from '../../types/trip';
+import { PlaceListItemComponent } from '../../shared/place-list-item/place-list-item.component';
+import { PopoverModule } from 'primeng/popover';
 
 export interface ContextMenuItem {
   text: string;
@@ -99,72 +114,127 @@ export interface MarkerOptions extends L.MarkerOptions {
     CommonModule,
     FileSizePipe,
     MenuModule,
+    PlaceListItemComponent,
+    PopoverModule,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })
 export class DashboardComponent implements OnInit, AfterViewInit {
-  @ViewChild('fileUploadTakeout') fileUploadTakeout!: any;
-  @ViewChild('fileUploadKmz') fileUploadKmz!: any;
+  fileUploadTakeout = viewChild<ElementRef>('fileUploadTakeout');
+  fileUploadKmz = viewChild<ElementRef>('fileUploadKmz');
+
+  apiService: ApiService;
+  authService: AuthService;
+  utilsService: UtilsService;
+  dialogService: DialogService;
+  router: Router;
+  fb: FormBuilder;
+  location: Location;
+  activatedRoute: ActivatedRoute;
+
+  info = signal<Info | null>(null);
+  places = signal<Place[]>([]);
+  categories = signal<Category[]>([]);
+  selectedPlaceId = signal<number | null>(null);
+  selectedPlaceGPX = signal<Place | null>(null);
+  settings = signal<Settings | null>(null);
+  backups = signal<Backup[]>([]);
+  mapBounds = signal<L.LatLngBounds | null>(null);
+
+  viewSettings = signal(false);
+  mapParamsExpanded = signal(false);
+  displaySettingsExpanded = signal(false);
+  dataFiltersExpanded = signal(false);
+  accountSecurityExpanded = signal(false);
+  accountIntegrationsExpanded = signal(false);
+  viewFilters = signal(false);
+  viewPlacesList = signal(false);
+  viewPlacesListFiltering = signal(false);
+  hideOutOfBoundsPlaces = signal(false);
+  tabsIndex = 0;
+  refreshBackups = signal(false);
+  activeCategories = signal<Set<string>>(new Set());
+  loadingMessage = signal<string | null>(null);
+
+  isLowNetMode = signal(false);
+  isGPXInPlaceMode = signal(false);
+  isVisitedMode = signal(false);
+  isMapPositionMode = signal(false);
+  filter_display_visited = signal(false);
+  filter_display_favorite_only = signal(false);
+  filter_display_restroom = signal(false);
+  filter_dog_only = signal(false);
+  boundariesFiltering = signal<GoogleBoundaries | null>(null);
+  hoveredElement = signal<HTMLElement | null>(null);
+
   gmapsGeocodeFilterInput = new FormControl('');
-  boundariesFiltering?: GoogleBoundaries;
   searchInput = new FormControl('');
-  info?: Info;
-  isLowNetMode = false;
-  isGpxInPlaceMode = false;
-  isVisitedDisplayedMode = false;
-  isMapPositionMode = false;
-  loadingMessage? = '';
-
-  viewSettings = false;
-  mapParamsExpanded = false;
-  displaySettingsExpanded = false;
-  dataFiltersExpanded = false;
-  accountSecurityExpanded = false;
-  accountIntegrationsExpanded = false;
-  viewFilters = false;
-  viewPlacesList = false;
-  expandedPlacesList = false;
-  viewPlacesListSearch = false;
-  hideOutOfBoundsPlaces = false;
-  tabsIndex: number = 0;
-  backups: Backup[] = [];
-  refreshBackups = false;
-
   settingsForm: FormGroup;
-  hoveredElement?: HTMLElement;
+  searchValue = toSignal(
+    this.searchInput.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      map((v) => (v || '').toLowerCase()),
+    ),
+    { initialValue: '' },
+  );
 
   map?: L.Map;
   markerClusterGroup?: L.MarkerClusterGroup;
   gpxLayerGroup?: L.LayerGroup;
-  settings?: Settings;
-  doNotDisplayOptions: SelectItemGroup[] = [];
 
-  places: Place[] = [];
-  visiblePlaces: Place[] = [];
-  selectedPlace?: Place;
-  categories: Category[] = [];
-  selectedGPX?: Place;
+  selectedPlace = computed(() => {
+    const id = this.selectedPlaceId();
+    return this.places().find((p) => p.id === id) || null;
+  });
+  filteredPlaces = computed(() => {
+    const places = this.places();
+    const activeCategories = this.activeCategories();
+    const isVisitedMode = this.isVisitedMode();
+    const filters = {
+      visited: this.filter_display_visited(),
+      favorite: this.filter_display_favorite_only(),
+      restroom: this.filter_display_restroom(),
+      dog: this.filter_dog_only(),
+    };
 
-  filter_display_visited = false;
-  filter_display_favorite_only = false;
-  filter_display_restroom = false;
-  filter_dog_only = false;
-  activeCategories = new Set<string>();
-  collator = new Intl.Collator(undefined, { sensitivity: 'base' });
-  readonly menuCreatePlaceItems: MenuItem[] = [
+    return places.filter(
+      (p) =>
+        (filters.visited || isVisitedMode || !p.visited) &&
+        (!filters.favorite || p.favorite) &&
+        (!filters.restroom || p.restroom) &&
+        (!filters.dog || p.allowdog) &&
+        activeCategories.has(p.category.name),
+    );
+  });
+  mapDisplayPlaces = computed(() => {
+    const places = this.filteredPlaces();
+    const search = this.searchValue();
+    const bounds = this.mapBounds();
+    const hideOutOfBounds = this.hideOutOfBoundsPlaces();
+    const geoFilter = this.boundariesFiltering();
+
+    return places.filter((p) => {
+      if (geoFilter && !isPointInBounds(p.lat, p.lng, geoFilter)) return false;
+      if (hideOutOfBounds && bounds && !bounds.contains({ lat: p.lat, lng: p.lng })) return false;
+      if (!search) return true;
+      return p.name.toLowerCase().includes(search) || p.description?.toLowerCase().includes(search);
+    });
+  });
+  visiblePlaces = computed(() => {
+    if (!this.viewPlacesList()) return [];
+    return [...this.mapDisplayPlaces()].sort((a, b) => this.collator.compare(a.name, b.name));
+  });
+  doNotDisplayOptions = computed<SelectItemGroup[]>(() => [
     {
-      label: 'Places',
-      items: [
-        {
-          label: 'Batch creation',
-          icon: 'pi pi-list',
-          command: () => {
-            this.batchAddModal();
-          },
-        },
-      ],
+      label: 'Categories',
+      items: this.categories().map((c) => ({ label: c.name, value: c.name })),
     },
+  ]);
+  collator = new Intl.Collator(undefined, { sensitivity: 'base' });
+  menuCreatePlaceItems: MenuItem[] = [
     {
       label: 'Google',
       items: [
@@ -172,29 +242,29 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           label: 'Google KMZ (My Maps)',
           icon: 'pi pi-google',
           command: () => {
-            if (!this.settings?.google_apikey) {
+            if (!this.settings()?.google_apikey) {
               this.utilsService.toast('error', 'Missing Key', 'Google Maps API key not configured');
               return;
             }
-            this.fileUploadKmz.nativeElement.click();
+            this.fileUploadKmz()?.nativeElement.click();
           },
         },
         {
           label: 'Google Takeout (Saved)',
           icon: 'pi pi-google',
           command: () => {
-            if (!this.settings?.google_apikey) {
+            if (!this.settings()?.google_apikey) {
               this.utilsService.toast('error', 'Missing Key', 'Google Maps API key not configured');
               return;
             }
-            this.fileUploadTakeout.nativeElement.click();
+            this.fileUploadTakeout()?.nativeElement.click();
           },
         },
         {
           label: 'Google Maps Bulk',
           icon: 'pi pi-google',
           command: () => {
-            if (!this.settings?.google_apikey) {
+            if (!this.settings()?.google_apikey) {
               this.utilsService.toast('error', 'Missing Key', 'Google Maps API key not configured');
               return;
             }
@@ -205,16 +275,16 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     },
   ];
 
-  constructor(
-    private apiService: ApiService,
-    private authService: AuthService,
-    private utilsService: UtilsService,
-    private dialogService: DialogService,
-    private router: Router,
-    private fb: FormBuilder,
-    private location: Location,
-    private activatedRoute: ActivatedRoute,
-  ) {
+  constructor() {
+    this.apiService = inject(ApiService);
+    this.authService = inject(AuthService);
+    this.utilsService = inject(UtilsService);
+    this.dialogService = inject(DialogService);
+    this.router = inject(Router);
+    this.fb = inject(FormBuilder);
+    this.location = inject(Location);
+    this.activatedRoute = inject(ActivatedRoute);
+
     this.settingsForm = this.fb.group({
       map_lat: [
         '',
@@ -237,9 +307,17 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       _google_apikey: [null, { validators: [Validators.pattern('AIza[0-9A-Za-z\\-_]{35}')] }],
     });
 
-    // HACK: Subscribe in constructor for takeUntilDestroyed
-    this.searchInput.valueChanges.pipe(debounceTime(200), takeUntilDestroyed()).subscribe({
-      next: () => this.setVisiblePlaces(),
+    effect(() => {
+      const placesToDisplay = this.mapDisplayPlaces();
+      const isVisitedMode = this.isVisitedMode();
+      const isVisitedFilter = this.filter_display_visited();
+      const isLowNetMode = this.isLowNetMode();
+      const isGPXInPlaceMode = this.isGPXInPlaceMode();
+
+      untracked(() => {
+        if (!this.map || !this.markerClusterGroup) return;
+        this.diffAndRenderMarkers(placesToDisplay);
+      });
     });
   }
 
@@ -248,7 +326,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .getInfo()
       .pipe(take(1))
       .subscribe({
-        next: (info) => (this.info = info),
+        next: (info) => this.info.set(info),
       });
   }
 
@@ -261,16 +339,16 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .pipe(
         take(1),
         tap(({ categories, places, settings }) => {
-          this.settings = settings;
-          this.isLowNetMode = !!settings.mode_low_network;
-          this.isGpxInPlaceMode = !!settings.mode_gpx_in_place;
-          this.isVisitedDisplayedMode = !!settings.mode_display_visited;
-          this.isMapPositionMode = !!settings.mode_map_position;
+          this.settings.set(settings);
+          this.isLowNetMode.set(!!settings.mode_low_network);
+          this.isGPXInPlaceMode.set(!!settings.mode_gpx_in_place);
+          this.isVisitedMode.set(!!settings.mode_display_visited);
+          this.isMapPositionMode.set(!!settings.mode_map_position);
           this.utilsService.toggleDarkMode(!!settings.mode_dark);
-          this.categories = categories;
-          this.sortCategories();
+
+          this.categories.set(this.sortCategoriesArray(categories));
           this.initMap();
-          this.places = [...places];
+          this.places.set(places);
           this.resetFilters();
         }),
       )
@@ -278,7 +356,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   initMap(): void {
-    if (!this.settings) return;
+    const settings = this.settings();
+    if (!settings) return;
+
     const isTouch = 'ontouchstart' in window;
     const contentMenuItems = [
       {
@@ -294,27 +374,70 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         },
       },
     ];
-    this.map = createMap(isTouch ? [] : contentMenuItems, this.settings?.tile_layer);
-    if (isTouch) {
-      this.map.on('contextmenu', (e: any) => {
-        this.addPlaceModal(e);
-      });
-    }
+    this.map = createMap(isTouch ? [] : contentMenuItems, settings.tile_layer);
+    if (isTouch) this.map.on('contextmenu', (e: any) => this.addPlaceModal(e));
+
     const mapPosition = this.getMapPosition();
     this.map.setView(L.latLng(mapPosition.lat, mapPosition.lng), mapPosition.zoom);
+
     this.map.on('moveend zoomend', () => {
-      if (this.hideOutOfBoundsPlaces) this.setVisiblePlaces();
-      if (this.isMapPositionMode) this.updateUrlWithMapPosition();
+      this.mapBounds.set(this.map!.getBounds());
+      if (this.isMapPositionMode()) this.updateUrlWithMapPosition();
     });
+    this.mapBounds.set(this.map.getBounds());
     this.markerClusterGroup = createClusterGroup().addTo(this.map);
+  }
+
+  diffAndRenderMarkers(newPlaces: Place[]) {
+    const group = this.markerClusterGroup!;
+    const currentLayers = group.getLayers() as any[];
+
+    const isLowNet = this.isLowNetMode();
+    const isGpxMode = this.isGPXInPlaceMode();
+
+    const shouldBeDot = (p: Place) => p.visited && this.isVisitedMode() && !this.filter_display_visited();
+
+    const newPlacesMap = new Map(newPlaces.map((p) => [p.id, p]));
+    const toRemove = currentLayers.filter((layer) => {
+      const p = newPlacesMap.get(layer.options.placeId);
+      if (!p) return true;
+      const targetIsDot = shouldBeDot(p);
+      const currentIsDot = layer.options.isDot;
+      if (targetIsDot !== currentIsDot) return true;
+      if (!targetIsDot) {
+        if (layer.options.createdLowNet !== isLowNet) return true;
+        if (layer.options.createdGpxMode !== isGpxMode) return true;
+      }
+      return false;
+    });
+    if (toRemove.length > 0) group.removeLayers(toRemove);
+
+    const existingIds = new Set(group.getLayers().map((l: any) => l.options.placeId));
+    const toAdd = newPlaces
+      .filter((p) => !existingIds.has(p.id))
+      .map((p) => {
+        const isSupposedToBeDot = shouldBeDot(p);
+        const marker = isSupposedToBeDot ? this.createDotMarker(p) : this.createPlaceMarker(p);
+        Object.assign(marker.options, {
+          placeId: p.id,
+          isDot: isSupposedToBeDot,
+          createdLowNet: isLowNet,
+          createdGpxMode: isGpxMode,
+        });
+        return marker;
+      });
+
+    if (toAdd.length > 0) group.addLayers(toAdd);
   }
 
   getMapPosition(): { lat: number; lng: number; zoom: number } {
     const queryParams = this.activatedRoute.snapshot.queryParams;
-    const lat = this.isMapPositionMode && queryParams['lat'] ? parseFloat(queryParams['lat']) : this.settings!.map_lat;
-    const lng = this.isMapPositionMode && queryParams['lng'] ? parseFloat(queryParams['lng']) : this.settings!.map_lng;
-    const zoom =
-      this.isMapPositionMode && queryParams['z'] ? parseInt(queryParams['z'], 10) : this.map?.getZoom() || 13;
+    const settings = this.settings()!;
+    const isMapPosMode = this.isMapPositionMode();
+
+    const lat = isMapPosMode && queryParams['lat'] ? parseFloat(queryParams['lat']) : settings.map_lat;
+    const lng = isMapPosMode && queryParams['lng'] ? parseFloat(queryParams['lng']) : settings.map_lng;
+    const zoom = isMapPosMode && queryParams['z'] ? parseInt(queryParams['z'], 10) : this.map?.getZoom() || 13;
     return { lat, lng, zoom };
   }
 
@@ -329,116 +452,50 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.location.replaceState(path, queryString);
   }
 
-  setVisiblePlaces() {
-    if (!this.viewPlacesList || !this.map) return;
-    if (!this.hideOutOfBoundsPlaces) {
-      this.visiblePlaces = [...this.filteredPlaces];
-    } else {
-      const bounds = this.map.getBounds();
-      this.visiblePlaces = this.filteredPlaces.filter((p) => bounds.contains([p.lat, p.lng]));
-    }
-
-    const searchValue = (this.searchInput.value || '').toLowerCase();
-    this.visiblePlaces = this.visiblePlaces.filter((place) => {
-      if (this.boundariesFiltering) if (!isPointInBounds(place.lat, place.lng, this.boundariesFiltering)) return false;
-      if (!searchValue) return true;
-      return place.name.toLowerCase().includes(searchValue) || place.description?.toLowerCase().includes(searchValue);
-    });
-    this.visiblePlaces.sort((a, b) => this.collator.compare(a.name, b.name));
-  }
-
   resetFilters() {
-    this.filter_display_visited = false;
-    this.filter_dog_only = false;
-    this.filter_display_favorite_only = false;
-    this.filter_display_restroom = false;
-    this.activeCategories = new Set(this.categories.map((c) => c.name));
-    this.settings?.do_not_display.forEach((c) => this.activeCategories.delete(c));
-    this.updateMarkersAndClusters();
+    this.filter_display_visited.set(false);
+    this.filter_dog_only.set(false);
+    this.filter_display_favorite_only.set(false);
+    this.filter_display_restroom.set(false);
+
+    const categoryNames = new Set(this.categories().map((c) => c.name));
+    this.settings()?.do_not_display.forEach((c) => categoryNames.delete(c));
+    this.activeCategories.set(categoryNames);
   }
 
   updateActiveCategories(c: string) {
-    if (this.activeCategories.has(c)) this.activeCategories.delete(c);
-    else this.activeCategories.add(c);
-    this.updateMarkersAndClusters();
+    this.activeCategories.update((current) => {
+      const updated = new Set(current);
+      if (updated.has(c)) updated.delete(c);
+      else updated.add(c);
+      return updated;
+    });
   }
 
   selectAllCategories() {
-    this.categories.forEach((c) => this.activeCategories.add(c.name));
-    this.updateMarkersAndClusters();
+    this.activeCategories.set(new Set(this.categories().map((c) => c.name)));
   }
 
   deselectAllCategories() {
-    this.activeCategories.clear();
-    this.updateMarkersAndClusters();
+    this.activeCategories.set(new Set());
   }
 
-  get filteredPlaces(): Place[] {
-    return this.places.filter(
-      (p) =>
-        (this.filter_display_visited || !p.visited) &&
-        (!this.filter_display_favorite_only || p.favorite) &&
-        (!this.filter_display_restroom || p.restroom) &&
-        (!this.filter_dog_only || p.allowdog) &&
-        this.activeCategories.has(p.category.name),
-    );
-  }
-
-  get visitedFilteredPlaces(): Place[] {
-    return this.places.filter(
-      (p) =>
-        p.visited &&
-        (!this.filter_display_favorite_only || p.favorite) &&
-        (!this.filter_display_restroom || p.restroom) &&
-        (!this.filter_dog_only || p.allowdog) &&
-        this.activeCategories.has(p.category.name),
-    );
-  }
-
-  updateMarkersAndClusters(): void {
-    this.markerClusterGroup?.clearLayers();
-
-    this.filteredPlaces.forEach((place) => {
-      const marker = this._placeToMarker(place);
-      this.markerClusterGroup?.addLayer(marker);
-    });
-
-    if (!this.filter_display_visited && this.isVisitedDisplayedMode)
-      this.visitedFilteredPlaces.forEach((place) => {
-        const marker = this._placeToDot(place);
-        this.markerClusterGroup?.addLayer(marker);
-      });
-
-    this.setVisiblePlaces();
-  }
-
-  _placeToDot(place: Place): L.Marker {
+  createDotMarker(place: Place): L.Marker {
     const marker = placeToDotMarker(place);
-    marker
-      .on('click', (e) => {
-        this.selectedPlace = { ...place };
-
-        let toView = { ...e.latlng };
-        if ('ontouchstart' in window) {
-          const pixelPoint = this.map!.latLngToContainerPoint(e.latlng);
-          pixelPoint.y += 75;
-          toView = this.map!.containerPointToLatLng(pixelPoint);
-        }
-
-        marker.closeTooltip();
-        this.map?.setView(toView);
-      })
-      .on('contextmenu', () => {
-        if (this.map && (this.map as any).contextmenu) (this.map as any).contextmenu.hide();
-      });
+    this.addEventsToMarker(marker, place);
     return marker;
   }
 
-  _placeToMarker(place: Place): L.Marker {
-    const marker = placeToMarker(place, this.isLowNetMode, place.visited, this.isGpxInPlaceMode);
+  createPlaceMarker(place: Place): L.Marker {
+    const marker = placeToMarker(place, this.isLowNetMode(), place.visited, this.isGPXInPlaceMode());
+    this.addEventsToMarker(marker, place);
+    return marker;
+  }
+
+  addEventsToMarker(marker: L.Marker, place: Place) {
     marker
       .on('click', (e) => {
-        this.selectedPlace = { ...place };
+        this.selectedPlaceId.set(place.id);
 
         let toView = { ...e.latlng };
         if ('ontouchstart' in window) {
@@ -453,7 +510,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .on('contextmenu', () => {
         if (this.map && (this.map as any).contextmenu) (this.map as any).contextmenu.hide();
       });
-    return marker;
   }
 
   addPlaceModal(e?: any): void {
@@ -493,90 +549,39 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
           confirmModal.onClose.pipe(take(1)).subscribe({
             next: (confirmed: boolean) => {
-              if (confirmed) {
-                this.apiService
-                  .postPlace(place)
-                  .pipe(take(1))
-                  .subscribe({
-                    next: (place: Place) => {
-                      this.places = [...this.places, place].sort((a, b) => this.collator.compare(a.name, b.name));
-                      setTimeout(() => {
-                        this.updateMarkersAndClusters();
-                      }, 10);
-                    },
-                  });
-              }
+              if (confirmed) this.createPlace(place);
             },
           });
-        } else {
-          this.apiService
-            .postPlace(place)
-            .pipe(take(1))
-            .subscribe({
-              next: (place: Place) => {
-                this.places = [...this.places, place].sort((a, b) => this.collator.compare(a.name, b.name));
-                setTimeout(() => {
-                  this.updateMarkersAndClusters();
-                }, 10);
-              },
-            });
-        }
+        } else this.createPlace(place);
       },
     });
   }
 
-  batchAddModal() {
-    const modal: DynamicDialogRef = this.dialogService.open(BatchCreateModalComponent, {
-      header: 'Create Places',
-      modal: true,
-      appendTo: 'body',
-      closable: true,
-      dismissableMask: true,
-      width: '40vw',
-      breakpoints: {
-        '960px': '75vw',
-        '640px': '90vw',
-      },
-    })!;
-
-    modal.onClose.pipe(take(1)).subscribe({
-      next: (places: string | null) => {
-        if (!places) return;
-
-        let parsedPlaces = [];
-        try {
-          parsedPlaces = JSON.parse(places);
-          if (!Array.isArray(parsedPlaces)) throw new Error();
-        } catch (err) {
-          this.utilsService.toast('error', 'Error', 'Content looks invalid');
-          return;
-        }
-
-        this.apiService
-          .postPlaces(parsedPlaces)
-          .pipe(take(1))
-          .subscribe((places) => {
-            this.places = [...this.places, ...places].sort((a, b) => this.collator.compare(a.name, b.name));
-            setTimeout(() => {
-              this.updateMarkersAndClusters();
-            }, 10);
+  createPlace(place: Place) {
+    this.apiService
+      .postPlace(place)
+      .pipe(take(1))
+      .subscribe({
+        next: (newPlace: Place) => {
+          this.places.update((places) => {
+            const updated = [...places, newPlace];
+            updated.sort((a, b) => this.collator.compare(a.name, b.name));
+            return updated;
           });
-      },
-    });
+        },
+      });
   }
 
   resetHoverPlace() {
-    if (!this.hoveredElement) return;
-    this.hoveredElement.classList.remove('list-hover');
-    this.hoveredElement = undefined;
+    if (!this.hoveredElement()) return;
+    this.hoveredElement()?.classList.remove('list-hover');
+    this.hoveredElement.set(null);
   }
 
   hoverPlace(p: Place) {
     let marker: L.Marker | undefined;
     this.markerClusterGroup?.eachLayer((layer: any) => {
-      if (layer.getLatLng && layer.getLatLng().equals([p.lat, p.lng])) {
-        marker = layer;
-      }
+      if (layer.getLatLng && layer.getLatLng().equals([p.lat, p.lng])) marker = layer;
     });
 
     if (!marker) return;
@@ -585,7 +590,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     if (markerElement) {
       // marker, not clustered
       markerElement.classList.add('list-hover');
-      this.hoveredElement = markerElement;
+      this.hoveredElement.set(markerElement);
     } else {
       // marker is clustered
       const parentCluster = (this.markerClusterGroup as any).getVisibleParent(marker);
@@ -593,48 +598,49 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         const clusterEl = parentCluster.getElement();
         if (clusterEl) {
           clusterEl.classList.add('list-hover');
-          this.hoveredElement = clusterEl;
+          this.hoveredElement.set(clusterEl);
         }
       }
     }
   }
 
   favoritePlace() {
-    if (!this.selectedPlace) return;
-    const favoriteBool = !this.selectedPlace.favorite;
+    const selected = this.selectedPlace();
+    if (!selected) return;
 
+    const favoriteBool = !selected.favorite;
     this.apiService
-      .putPlace(this.selectedPlace.id, { favorite: favoriteBool })
+      .putPlace(selected.id, { favorite: favoriteBool })
       .pipe(take(1))
       .subscribe({
         next: () => {
-          const idx = this.places.findIndex((p) => p.id === this.selectedPlace!.id);
-          if (idx !== -1) this.places[idx] = { ...this.places[idx], favorite: favoriteBool };
-          this.selectedPlace = { ...this.places[idx] };
-          this.updateMarkersAndClusters();
+          this.updatePlaceInList(selected.id, { favorite: favoriteBool });
         },
       });
   }
 
   visitPlace() {
-    if (!this.selectedPlace) return;
-    const visitedBool = !this.selectedPlace.visited;
+    const selected = this.selectedPlace();
+    if (!selected) return;
 
+    const visitedBool = !selected.visited;
     this.apiService
-      .putPlace(this.selectedPlace.id, { visited: visitedBool })
+      .putPlace(selected.id, { visited: visitedBool })
       .pipe(take(1))
       .subscribe({
         next: () => {
-          const idx = this.places.findIndex((p) => p.id === this.selectedPlace!.id);
-          if (idx !== -1) this.places[idx] = { ...this.places[idx], visited: visitedBool };
-          this.selectedPlace = { ...this.places[idx] };
-          this.updateMarkersAndClusters();
+          this.updatePlaceInList(selected.id, { visited: visitedBool });
         },
       });
   }
 
+  updatePlaceInList(id: number, updates: Partial<Place>): void {
+    this.places.update((places) => places.map((p) => (p.id === id ? { ...p, ...updates } : p)));
+  }
+
   deletePlace() {
-    if (!this.selectedPlace) return;
+    const selected = this.selectedPlace();
+    if (!selected) return;
 
     const modal = this.dialogService.open(YesNoModalComponent, {
       header: 'Confirm deletion',
@@ -645,20 +651,19 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         '960px': '75vw',
         '640px': '90vw',
       },
-      data: `Delete ${this.selectedPlace.name} ?`,
+      data: `Delete ${selected.name} ?`,
     })!;
 
     modal.onClose.subscribe({
       next: (bool) => {
         if (!bool) return;
         this.apiService
-          .deletePlace(this.selectedPlace!.id)
+          .deletePlace(selected.id)
           .pipe(take(1))
           .subscribe({
             next: () => {
-              this.places = this.places.filter((p) => p.id !== this.selectedPlace!.id);
+              this.places.update((places) => places.filter((p) => p.id !== selected.id));
               this.closePlaceBox();
-              this.updateMarkersAndClusters();
             },
           });
       },
@@ -666,8 +671,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   editPlace(p?: Place) {
-    if (!this.selectedPlace && !p) return;
-    const _placeToEdit: Place = { ...(this.selectedPlace ?? p)! };
+    const selected = this.selectedPlace();
+    const target = selected || p;
+    if (!target) return;
+    const _placeToEdit: Place = { ...target };
 
     const modal: DynamicDialogRef = this.dialogService.open(PlaceCreateModalComponent, {
       header: 'Edit Place',
@@ -696,16 +703,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           .putPlace(place.id, place)
           .pipe(take(1))
           .subscribe({
-            next: (place: Place) => {
-              const places = [...this.places];
-              const idx = places.findIndex((p) => p.id == place.id);
-              if (idx > -1) places.splice(idx, 1, place);
-              places.sort((a, b) => this.collator.compare(a.name, b.name));
-              this.places = places;
-              if (this.selectedPlace) this.selectedPlace = { ...place };
-              setTimeout(() => {
-                this.updateMarkersAndClusters();
-              }, 10);
+            next: (updatedPlace: Place) => {
+              this.places.update((places) => {
+                const updated = places.map((p) => (p.id === updatedPlace.id ? updatedPlace : p));
+                updated.sort((a, b) => this.collator.compare(a.name, b.name));
+                return updated;
+              });
             },
           });
       },
@@ -713,16 +716,20 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   displayGPXOnMap(gpx: string) {
-    if (!this.map || !this.selectedPlace) return;
-    if (!this.gpxLayerGroup) this.gpxLayerGroup = L.layerGroup().addTo(this.map);
+    const selected = this.selectedPlace();
+    if (!this.map || !selected) return;
+
+    if (!this.gpxLayerGroup) {
+      this.gpxLayerGroup = L.layerGroup().addTo(this.map);
+    }
     this.gpxLayerGroup.clearLayers();
 
     try {
       const gpxPolyline = gpxToPolyline(gpx);
-      const selectedPlaceWithGPX = { ...this.selectedPlace, gpx };
+      const selectedPlaceWithGPX = { ...selected, gpx };
 
       gpxPolyline.on('click', () => {
-        this.selectedGPX = selectedPlaceWithGPX;
+        this.selectedPlaceGPX.set(selectedPlaceWithGPX);
       });
       this.gpxLayerGroup?.addLayer(gpxPolyline);
       this.map.fitBounds(gpxPolyline.getBounds(), { padding: [20, 20] });
@@ -733,9 +740,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   getPlaceGPX() {
-    if (!this.selectedPlace) return;
+    const selected = this.selectedPlace();
+    if (!selected) return;
+
     this.apiService
-      .getPlaceGPX(this.selectedPlace.id)
+      .getPlaceGPX(selected.id)
       .pipe(take(1))
       .subscribe({
         next: (p) => {
@@ -749,43 +758,41 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   toggleSettings() {
-    this.viewSettings = !this.viewSettings;
-    if (!this.viewSettings || !this.settings) return;
+    const state = !this.viewSettings();
+    this.viewSettings.set(state);
+    if (!state || !this.settings()) return;
 
     this.apiService
       .getBackups()
       .pipe(take(1))
       .subscribe({
-        next: (backups) => (this.backups = backups),
+        next: (backups) => this.backups.set(backups),
       });
 
     this.tabsIndex = 0;
-    this.settingsForm.reset(this.settings);
-    this.doNotDisplayOptions = [
-      {
-        label: 'Categories',
-        items: this.categories.map((c) => ({ label: c.name, value: c.name })),
-      },
-    ];
-    this.mapParamsExpanded = false;
-    this.dataFiltersExpanded = false;
-    this.displaySettingsExpanded = false;
+    this.settingsForm.reset(this.settings());
+    this.mapParamsExpanded.set(false);
+    this.dataFiltersExpanded.set(false);
+    this.displaySettingsExpanded.set(false);
   }
 
   toggleFilters() {
-    this.viewFilters = !this.viewFilters;
+    this.viewFilters.update((v) => !v);
   }
 
   togglePlacesList() {
-    this.viewPlacesList = !this.viewPlacesList;
-    this.viewPlacesListSearch = false;
+    this.viewPlacesList.update((v) => !v);
+    this.viewPlacesListFiltering.set(false);
+    this.hideOutOfBoundsPlaces.set(false);
     this.searchInput.setValue('');
-    if (this.viewPlacesList) this.setVisiblePlaces();
   }
 
-  togglePlacesListSearch() {
-    this.viewPlacesListSearch = !this.viewPlacesListSearch;
-    if (this.viewPlacesListSearch) this.searchInput.setValue('');
+  togglePlacesListFiltering() {
+    this.viewPlacesListFiltering.update((v) => !v);
+    if (!this.viewPlacesListFiltering()) {
+      this.searchInput.setValue('');
+      this.resetGeocodeFilters();
+    }
   }
 
   setMapCenterToCurrent() {
@@ -795,7 +802,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.settingsForm.markAsDirty();
   }
 
-  importData(event: Event): void {
+  importData(event: Event) {
     const input = event.target as HTMLInputElement;
     if (!input.files?.length) return;
 
@@ -808,23 +815,27 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .pipe(take(1))
       .subscribe({
         next: (resp) => {
-          this.places = [...this.places, ...resp.places].sort((a, b) => this.collator.compare(a.name, b.name));
-          this.categories = resp.categories;
-          this.sortCategories();
-          this.activeCategories = new Set(resp.categories.map((c) => c.name));
+          this.places.update((places) => {
+            const updated = [...places, ...resp.places];
+            updated.sort((a, b) => this.collator.compare(a.name, b.name));
+            return updated;
+          });
 
-          this.settings = resp.settings;
-          this.isLowNetMode = !!resp.settings.mode_low_network;
-          this.isGpxInPlaceMode = !!resp.settings.mode_gpx_in_place;
-          this.isVisitedDisplayedMode = !!resp.settings.mode_display_visited;
-          this.isMapPositionMode = !!resp.settings.mode_map_position;
+          const sortedCategories = this.sortCategoriesArray(resp.categories);
+          this.categories.set(sortedCategories);
+          this.activeCategories.set(new Set(sortedCategories.map((c) => c.name)));
+
+          this.settings.set(resp.settings);
+          this.isLowNetMode.set(!!resp.settings.mode_low_network);
+          this.isGPXInPlaceMode.set(!!resp.settings.mode_gpx_in_place);
+          this.isVisitedMode.set(!!resp.settings.mode_display_visited);
+          this.isMapPositionMode.set(!!resp.settings.mode_map_position);
           this.utilsService.toggleDarkMode(!!resp.settings.mode_dark);
           this.resetFilters();
 
           this.map?.remove();
           this.initMap();
-          this.updateMarkersAndClusters();
-          this.viewSettings = false;
+          this.viewSettings.set(false);
           this.utilsService.setLoading('');
         },
         error: () => this.utilsService.setLoading(''),
@@ -837,8 +848,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .pipe(take(1))
       .subscribe({
         next: (backups) => {
-          this.backups = backups;
-          this.refreshBackups = backups.some((b) => b.status === 'pending' || b.status === 'processing');
+          this.backups.set(backups);
+          this.refreshBackups.set(backups.some((b) => b.status === 'pending' || b.status === 'processing'));
         },
       });
   }
@@ -848,12 +859,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .createBackup()
       .pipe(take(1))
       .subscribe((backup) => {
-        this.backups = [...this.backups, backup];
+        this.backups.update((backups) => [...backups, backup]);
       });
 
-    this.refreshBackups = true;
+    this.refreshBackups.set(true);
     interval(1000)
-      .pipe(takeWhile(() => this.refreshBackups))
+      .pipe(takeWhile(() => this.refreshBackups()))
       .subscribe(() => {
         this.getBackups();
       });
@@ -885,7 +896,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .deleteBackup(backup.id)
       .pipe(take(1))
       .subscribe({
-        next: () => (this.backups = this.backups.filter((b) => b.id != backup.id)),
+        next: () => this.backups.set(this.backups().filter((b) => b.id !== backup.id)),
       });
   }
 
@@ -895,12 +906,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .pipe(take(1))
       .subscribe({
         next: (settings) => {
-          const refreshMap = this.settings?.tile_layer != settings.tile_layer;
-          this.settings = settings;
+          const refreshMap = this.settings()?.tile_layer !== settings.tile_layer;
+          this.settings.set(settings);
+
           if (refreshMap) {
             this.map?.remove();
             this.initMap();
-            this.updateMarkersAndClusters();
           }
           this.resetFilters();
           this.utilsService.toast('success', 'Success', 'Preferences saved');
@@ -933,17 +944,16 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           .pipe(take(1))
           .subscribe({
             next: (updated) => {
-              this.categories = this.categories.map((cat) => (cat.id === updated.id ? updated : cat));
-              this.sortCategories();
-
-              this.activeCategories = new Set(this.categories.map((c) => c.name));
-              this.places = this.places.map((p) => {
-                if (p.category.id == updated.id) return { ...p, category: updated };
-                return p;
+              this.categories.update((categories) => {
+                const updatedCategories = categories.map((cat) => (cat.id === updated.id ? updated : cat));
+                return this.sortCategoriesArray(updatedCategories);
               });
-              setTimeout(() => {
-                this.updateMarkersAndClusters();
-              }, 100);
+
+              this.activeCategories.set(new Set(this.categories().map((c) => c.name)));
+
+              this.places.update((places) =>
+                places.map((p) => (p.category.id === updated.id ? { ...p, category: updated } : p)),
+              );
             },
           });
       },
@@ -972,10 +982,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           .postCategory(category)
           .pipe(take(1))
           .subscribe({
-            next: (category: Category) => {
-              this.categories.push(category);
-              this.categories.sort((a, b) => this.collator.compare(a.name, b.name));
-              this.activeCategories.add(category.name);
+            next: (newCategory: Category) => {
+              this.categories.update((categories) => {
+                const updated = [...categories, newCategory];
+                updated.sort((a, b) => this.collator.compare(a.name, b.name));
+                return updated;
+              });
+              this.activeCategories.update((cats) => new Set([...cats, newCategory.name]));
             },
           });
       },
@@ -996,31 +1009,32 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (bool) => {
-        if (bool)
-          this.apiService
-            .deleteCategory(c_id)
-            .pipe(take(1))
-            .subscribe({
-              next: () => {
-                this.categories = this.categories.filter((c) => c.id !== c_id);
+        if (!bool) return;
 
-                this.activeCategories = new Set(this.categories.map((c) => c.name));
-              },
-            });
+        this.apiService
+          .deleteCategory(c_id)
+          .pipe(take(1))
+          .subscribe({
+            next: () => {
+              this.categories.update((categories) => categories.filter((c) => c.id !== c_id));
+              this.activeCategories.set(new Set(this.categories().map((c) => c.name)));
+            },
+          });
       },
     });
   }
 
   togglePlaceSelection(p: Place) {
-    if (this.selectedPlace && this.selectedPlace.id === p.id) {
-      this.selectedPlace = undefined;
+    const current = this.selectedPlace();
+    if (current && current.id === p.id) {
+      this.selectedPlaceId.set(null);
       return;
     }
-    this.selectedPlace = { ...p };
+    this.selectedPlaceId.set(p.id);
   }
 
-  sortCategories() {
-    this.categories = [...this.categories].sort((a, b) => this.collator.compare(a.name, b.name));
+  sortCategoriesArray(categories: Category[]): Category[] {
+    return [...categories].sort((a, b) => this.collator.compare(a.name, b.name));
   }
 
   navigateToTrips() {
@@ -1032,26 +1046,28 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   closePlaceBox() {
-    this.selectedPlace = undefined;
+    this.selectedPlaceId.set(null);
   }
 
   closePlaceGPX() {
-    this.selectedGPX = undefined;
+    this.selectedPlaceGPX.set(null);
   }
 
-  downloadGPX() {
-    if (!this.selectedGPX?.gpx) return;
-    const dataBlob = new Blob([this.selectedGPX.gpx]);
+  downloadPlaceGPX() {
+    const selected = this.selectedPlaceGPX();
+    if (!selected?.gpx) return;
+
+    const dataBlob = new Blob([selected.gpx]);
     const downloadURL = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = downloadURL;
-    link.download = `TRIP_${this.selectedGPX.name}.gpx`;
+    link.download = `TRIP_${this.selectedPlaceGPX.name}.gpx`;
     link.click();
     link.remove();
     URL.revokeObjectURL(downloadURL);
   }
 
-  removeGPX() {
+  removePlaceGPX() {
     if (!this.gpxLayerGroup) return;
     this.gpxLayerGroup.clearLayers();
     this.closePlaceGPX();
@@ -1067,91 +1083,89 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .pipe(take(1))
       .subscribe({
         next: (remote_version) => {
+          const currentInfo = this.info();
           if (!remote_version)
             this.utilsService.toast('success', 'Latest version', "You're running the latest version of TRIP");
-          if (this.info && remote_version != this.info?.version) this.info.update = remote_version;
+          else if (currentInfo && remote_version !== currentInfo.version)
+            this.info.set({ ...currentInfo, update: remote_version });
         },
       });
   }
 
   toggleLowNet() {
     this.apiService
-      .putSettings({ mode_low_network: this.isLowNetMode })
+      .putSettings({ mode_low_network: this.isLowNetMode() })
       .pipe(take(1))
       .subscribe({
-        next: () => {
-          setTimeout(() => {
-            this.updateMarkersAndClusters();
-          }, 100);
-        },
+        next: () => this.utilsService.toast('success', 'Success', 'Preference saved'),
       });
   }
 
   toggleDarkMode() {
-    if (!this.settings) return;
+    const settings = this.settings();
+    if (!settings) return;
 
-    let data: Partial<Settings> = { mode_dark: !this.settings.mode_dark };
+    let data: Partial<Settings> = { mode_dark: !settings.mode_dark };
+
     // If user uses default tile, we also update tile_layer to dark/voyager
     if (
-      !this.settings.mode_dark &&
-      this.settings.tile_layer == 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
-    )
+      !settings.mode_dark &&
+      settings.tile_layer === 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
+    ) {
       data.tile_layer = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-    else if (
-      this.settings.mode_dark &&
-      this.settings.tile_layer == 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-    )
+    } else if (
+      settings.mode_dark &&
+      settings.tile_layer === 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
+    ) {
       data.tile_layer = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+    }
 
     this.apiService
       .putSettings(data)
       .pipe(take(1))
       .subscribe({
-        next: (settings) => {
-          this.utilsService.toggleDarkMode(!!settings.mode_dark);
-          const refreshMap = this.settings?.tile_layer != settings.tile_layer;
-          this.settings = settings;
-          if (refreshMap) {
-            this.map?.remove();
-            this.initMap();
-            this.updateMarkersAndClusters();
-          }
+        next: (updatedSettings) => {
+          this.utilsService.toggleDarkMode(!!updatedSettings.mode_dark);
+          const refreshMap = settings.tile_layer !== updatedSettings.tile_layer;
+          this.settings.set(updatedSettings);
+
+          if (!refreshMap) return;
+          this.map?.remove();
+          this.initMap();
         },
       });
   }
 
-  toggleGpxInPlace() {
+  toggleGPXInPlace() {
     this.apiService
-      .putSettings({ mode_gpx_in_place: this.isGpxInPlaceMode })
+      .putSettings({ mode_gpx_in_place: this.isGPXInPlaceMode() })
       .pipe(take(1))
       .subscribe({
-        next: (_) => {
-          this.updateMarkersAndClusters();
-        },
+        next: () => this.utilsService.toast('success', 'Success', 'Preference saved'),
       });
   }
 
   toggleVisitedDisplayed() {
     this.apiService
-      .putSettings({ mode_display_visited: this.isVisitedDisplayedMode })
+      .putSettings({ mode_display_visited: this.isVisitedMode() })
       .pipe(take(1))
       .subscribe({
-        next: (_) => {
-          this.updateMarkersAndClusters();
-        },
+        next: () => this.utilsService.toast('success', 'Success', 'Preference saved'),
       });
   }
 
   flyTo(latlng?: [number, number]) {
-    if (!this.map && !latlng && !this.selectedPlace) return;
-    const lat: number = latlng ? latlng[0] : this.selectedPlace!.lat;
-    const lng: number = latlng ? latlng[1] : this.selectedPlace!.lng;
-    this.map!.flyTo([lat, lng], this.map?.getZoom() || 9, { duration: 2 });
+    const selected = this.selectedPlace();
+    if (!this.map || (!latlng && !selected)) return;
+
+    const lat: number = latlng ? latlng[0] : selected!.lat;
+    const lng: number = latlng ? latlng[1] : selected!.lng;
+    this.map.flyTo([lat, lng], this.map.getZoom() || 9, { duration: 2 });
   }
 
   toggleMapPositionMode() {
     this.apiService
-      .putSettings({ mode_map_position: this.isMapPositionMode })
+      .putSettings({ mode_map_position: this.isMapPositionMode() })
       .pipe(take(1))
       .subscribe({
         next: () => this.utilsService.toast('success', 'Success', 'Preference saved'),
@@ -1159,7 +1173,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   toggleTOTP() {
-    if (this.settings?.totp_enabled) this.disableTOTP();
+    if (this.settings()?.totp_enabled) this.disableTOTP();
     else this.enableTOTP();
   }
 
@@ -1185,10 +1199,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
           modal.onClose.subscribe({
             next: (code: string) => {
-              if (code)
+              if (code) {
                 this.apiService.verifyTOTP(code).subscribe({
-                  next: () => (this.settings!.totp_enabled = true),
+                  next: () =>
+                    this.settings.update((settings) => (settings ? { ...settings, totp_enabled: true } : settings)),
                 });
+              }
             },
             error: () => this.utilsService.toast('error', 'Error', 'Error enabling TOTP'),
           });
@@ -1210,7 +1226,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       next: (code: string) => {
         if (!code) return;
 
-        const modal = this.dialogService.open(YesNoModalComponent, {
+        const confirmModal = this.dialogService.open(YesNoModalComponent, {
           header: 'Confirm',
           modal: true,
           closable: true,
@@ -1221,11 +1237,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           data: 'Are you sure you want to disable TOTP?',
         })!;
 
-        modal.onClose.subscribe({
+        confirmModal.onClose.subscribe({
           next: (bool: boolean) => {
             if (!bool) return;
+
             this.apiService.disableTOTP(code).subscribe({
-              next: () => (this.settings!.totp_enabled = false),
+              next: () =>
+                this.settings.update((settings) => (settings ? { ...settings, totp_enabled: false } : settings)),
               error: () => this.utilsService.toast('error', 'Error', 'Error disabling TOTP'),
             });
           },
@@ -1243,12 +1261,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       breakpoints: {
         '640px': '90vw',
       },
-      data: this.settings?.totp_enabled,
+      data: this.settings()?.totp_enabled,
     })!;
 
     modal.onClose.subscribe({
       next: (data: any | null) => {
         if (!data) return;
+
         this.authService
           .updatePassword(data)
           .pipe(take(1))
@@ -1266,7 +1285,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   toggleTripApiToken() {
-    if (!this.settings?.api_token) {
+    if (!this.settings()?.api_token) {
       this.enableTripApiToken();
       return;
     }
@@ -1276,8 +1295,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   enableTripApiToken() {
     this.apiService.enableTripApiToken().subscribe({
       next: (token) => {
-        if (!token || !this.settings) return;
-        this.settings.api_token = !!token;
+        const settings = this.settings();
+        if (!token || !settings) return;
+
+        this.settings.update((settings) => (settings ? { ...settings, api_token: !!token } : settings));
         this.dialogService.open(SettingsViewTokenComponent, {
           header: 'TRIP API Key',
           modal: true,
@@ -1293,7 +1314,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   disableTripApiToken() {
-    let modal = this.dialogService.open(YesNoModalComponent, {
+    const modal = this.dialogService.open(YesNoModalComponent, {
       header: 'TRIP API Key',
       modal: true,
       closable: true,
@@ -1306,10 +1327,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
     modal.onClose.subscribe({
       next: (bool) => {
-        if (bool)
+        if (bool) {
           this.apiService.disableTripApiToken().subscribe({
-            next: () => (this.settings!.api_token = false),
+            next: () => this.settings.update((settings) => (settings ? { ...settings, api_token: false } : settings)),
           });
+        }
       },
     });
   }
@@ -1329,8 +1351,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     modal.onClose.subscribe({
       next: (bool: boolean) => {
         if (!bool) return;
+
         this.apiService.putSettings({ google_apikey: null }).subscribe({
-          next: () => (this.settings!.google_apikey = false),
+          next: () => this.settings.update((settings) => (settings ? { ...settings, google_apikey: false } : settings)),
           error: () => this.utilsService.toast('error', 'Error', 'Error deleting GMaps API key'),
         });
       },
@@ -1363,11 +1386,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       from(batches)
         .pipe(
           concatMap((batch, batchIndex) => {
-            const batchText = [header, ...batch].join('\n');
-            const batchBlob = new Blob([batchText], { type: 'text/csv' });
-            const batchFile = new File([batchBlob], file.name, { type: 'text/csv' });
+            const text = [header, ...batch].join('\n');
+            const blob = new Blob([text], { type: 'text/csv' });
+            const fp = new File([blob], file.name, { type: 'text/csv' });
+
             const formdata = new FormData();
-            formdata.append('file', batchFile);
+            formdata.append('file', fp);
 
             processed += batch.length;
             this.utilsService.setLoading(`Querying Google Maps API... [${processed}/${lines.length}]`);
@@ -1391,16 +1415,20 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           next: (results) => {
             const places = results.flat();
             this.utilsService.setLoading('');
+
             if (!places.length) {
               this.utilsService.toast('warn', 'No result', 'Google API did not return any place');
               return;
             }
-            if (lines.length != places.length)
+
+            if (lines.length !== places.length) {
               this.utilsService.toast(
                 'warn',
                 'Missing a few results',
                 `[${places.length}]/[${lines.length}] Google did not return a result for every object`,
               );
+            }
+
             this.multiPlaceModal(places);
           },
           error: () => {
@@ -1441,19 +1469,23 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     modal.onClose.subscribe({
       next: (bool: boolean) => {
         if (!bool) return;
+
         this.utilsService.setLoading('Querying Google Maps API...');
         const formdata = new FormData();
         formdata.append('file', file);
+
         this.apiService
           .postKmzFile(formdata)
           .pipe(take(1))
           .subscribe({
             next: (places) => {
               this.utilsService.setLoading('');
+
               if (!places.length) {
                 this.utilsService.toast('warn', 'No result', 'Your KMZ does not contain any Google Maps places');
                 return;
               }
+
               this.multiPlaceModal(places);
             },
             error: () => this.utilsService.setLoading(''),
@@ -1462,31 +1494,40 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     });
   }
 
-  checkDuplicatePlace(newPlace: Place): Place | undefined {
-    return this.places.find((p) => {
-      const source = newPlace.name.toLowerCase();
-      const target = p.name.toLowerCase();
-      if (source === target) return true;
-      const sourceLength = source.length;
-      const targetLength = target.length;
-      if (sourceLength === 0) return targetLength;
-      if (targetLength === 0) return sourceLength;
-      let previousRow = Array.from({ length: targetLength + 1 }, (_, i) => i);
-      let currentRow = new Array<number>(targetLength + 1);
-      for (let i = 1; i <= sourceLength; i++) {
-        currentRow[0] = i;
-        for (let j = 1; j <= targetLength; j++) {
-          const substitutionCost = source[i - 1] === target[j - 1] ? 0 : 1;
-          currentRow[j] = Math.min(previousRow[j] + 1, currentRow[j - 1] + 1, previousRow[j - 1] + substitutionCost);
+  checkDuplicatePlace(newPlace: Place): Place | null {
+    return (
+      this.places().find((p) => {
+        const source = newPlace.name.toLowerCase();
+        const target = p.name.toLowerCase();
+
+        if (source === target) return true;
+
+        const sourceLength = source.length;
+        const targetLength = target.length;
+
+        if (sourceLength === 0) return targetLength === 0;
+        if (targetLength === 0) return false;
+
+        let previousRow = Array.from({ length: targetLength + 1 }, (_, i) => i);
+        let currentRow = new Array<number>(targetLength + 1);
+
+        for (let i = 1; i <= sourceLength; i++) {
+          currentRow[0] = i;
+          for (let j = 1; j <= targetLength; j++) {
+            const substitutionCost = source[i - 1] === target[j - 1] ? 0 : 1;
+            currentRow[j] = Math.min(previousRow[j] + 1, currentRow[j - 1] + 1, previousRow[j - 1] + substitutionCost);
+          }
+          [previousRow, currentRow] = [currentRow, previousRow];
         }
-        [previousRow, currentRow] = [currentRow, previousRow];
-      }
-      const closeName = previousRow[targetLength] < 5;
-      const latDiff = Math.abs(p.lat - newPlace.lat);
-      const lngDiff = Math.abs(p.lng - newPlace.lng);
-      const closeLocation = latDiff < 0.0001 && lngDiff < 0.0001;
-      return closeName || closeLocation;
-    });
+
+        const closeName = previousRow[targetLength] < 5;
+        const latDiff = Math.abs(p.lat - newPlace.lat);
+        const lngDiff = Math.abs(p.lng - newPlace.lng);
+        const closeLocation = latDiff < 0.0001 && lngDiff < 0.0001;
+
+        return closeName || closeLocation;
+      }) ?? null
+    );
   }
 
   multiPlaceModal(places: GooglePlaceResult[]) {
@@ -1507,22 +1548,25 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     modal.onClose.pipe(take(1)).subscribe({
       next: (data: { places: Place[]; trip: Trip | null } | null) => {
         if (!data) return;
+
         const obs$ = data.places.map((p) => this.apiService.postPlace(p));
         this.utilsService.setLoading('Creating places...');
+
         forkJoin(obs$)
           .pipe(take(1))
           .subscribe({
-            next: (places: Place[]) => {
-              this.places = [...this.places, ...places].sort((a, b) => this.collator.compare(a.name, b.name));
-              setTimeout(() => {
-                this.updateMarkersAndClusters();
-              }, 10);
+            next: (newPlaces: Place[]) => {
+              this.places.update((places) => {
+                const updated = [...places, ...newPlaces];
+                updated.sort((a, b) => this.collator.compare(a.name, b.name));
+                return updated;
+              });
               this.utilsService.setLoading('');
 
               if (data.trip) {
                 this.apiService
                   .putTrip(
-                    { place_ids: [...data.trip.places.map((p) => p.id), ...places.map((p) => p.id)] },
+                    { place_ids: [...data.trip.places.map((p) => p.id), ...newPlaces.map((p) => p.id)] },
                     data.trip.id,
                   )
                   .pipe(take(1))
@@ -1540,18 +1584,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   toggleOutOfBoundsPlaces() {
-    this.hideOutOfBoundsPlaces = !this.hideOutOfBoundsPlaces;
-    this.setVisiblePlaces();
+    this.hideOutOfBoundsPlaces.update((v) => !v);
   }
-
-  toggleExpandPlacesList(): void {
-    this.expandedPlacesList = !this.expandedPlacesList;
-  }
-
   gmapsGeocodeFilter() {
     const value = this.gmapsGeocodeFilterInput.value;
     if (!value) return;
-    if (!this.settings?.google_apikey) {
+
+    if (!this.settings()?.google_apikey) {
       this.utilsService.toast('error', 'Missing Key', 'Google Maps API key not configured');
       return;
     }
@@ -1561,22 +1600,20 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .pipe(take(1))
       .subscribe({
         next: (boundaries) => {
-          this.boundariesFiltering = boundaries;
+          this.boundariesFiltering.set(boundaries);
           this.gmapsGeocodeFilterInput.disable();
-          this.setVisiblePlaces();
         },
       });
   }
 
   resetGeocodeFilters() {
-    this.boundariesFiltering = undefined;
+    this.boundariesFiltering.set(null);
     this.gmapsGeocodeFilterInput.enable();
     this.gmapsGeocodeFilterInput.setValue('');
-    this.setVisiblePlaces();
   }
 
   getCategoryPlacesCount(category: string): number {
-    return this.places.filter((place) => place.category.name == category).length;
+    return this.places().filter((place) => place.category.name === category).length;
   }
 
   openGmapsMultilineModal() {
@@ -1596,6 +1633,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     modal.onClose.pipe(take(1)).subscribe({
       next: (content: string[] | null) => {
         if (!content) return;
+
         this.utilsService.setLoading('Querying Google Maps API...');
         this.apiService
           .postGmapsMultiline(content)
@@ -1607,6 +1645,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
                 this.utilsService.toast('warn', 'No result', 'Google API did not return any place');
                 return;
               }
+
               this.multiPlaceModal(places);
             },
             error: () => this.utilsService.setLoading(''),
@@ -1616,13 +1655,16 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   toNavigation() {
-    if (!this.selectedPlace) return;
-    openNavigation([{ lat: this.selectedPlace.lat, lng: this.selectedPlace.lng }]);
+    const selected = this.selectedPlace();
+    if (!selected) return;
+
+    openNavigation([{ lat: selected.lat, lng: selected.lng }]);
   }
 
   googleNearbyPlaces(data: L.LeafletMouseEvent) {
-    this.utilsService.setLoading(`Querying Google Maps API... `);
+    this.utilsService.setLoading('Querying Google Maps API... ');
     const latlng = { latitude: data.latlng.lat, longitude: data.latlng.lng };
+
     this.apiService
       .postGmapsNearbySearch(latlng)
       .pipe(take(1))
@@ -1633,6 +1675,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             this.utilsService.toast('warn', 'No result', 'Google API did not return any place');
             return;
           }
+
           this.multiPlaceModal(places);
         },
         error: () => this.utilsService.setLoading(''),
@@ -1641,12 +1684,16 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   async centerOnMe() {
     const position = await getGeolocationLatLng();
-    if (position.err) this.utilsService.toast('error', 'Error', position.err);
+    if (position.err) {
+      this.utilsService.toast('error', 'Error', position.err);
+      return;
+    }
 
-    const coords: any = [position.lat!, position.lng!];
+    const coords: [number, number] = [position.lat!, position.lng!];
     this.map?.flyTo(coords);
     const marker = toDotMarker(coords);
     marker.addTo(this.map!);
+
     setTimeout(() => {
       marker.remove();
     }, 4000);

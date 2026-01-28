@@ -1,14 +1,18 @@
 <div id="map" class="fixed inset-0"></div>
 
-@if (selectedPlace) {
-<app-place-box [selectedPlace]="selectedPlace" (deleteEmitter)="deletePlace()" (editEmitter)="editPlace()"
+<p-popover #menuCreatePlacePopover [pt]="{ content: 'p-0!' }">
+  <p-menu [model]="menuCreatePlaceItems" appendTo="body" [pt]="{ root: 'border-0!' }" />
+</p-popover>
+
+@if (selectedPlace()) {
+<app-place-box [selectedPlace]="selectedPlace()" (deleteEmitter)="deletePlace()" (editEmitter)="editPlace()"
   (favoriteEmitter)="favoritePlace()" (gpxEmitter)="getPlaceGPX()" (visitEmitter)="visitPlace()"
   (closeEmitter)="closePlaceBox()" (openNavigationEmitter)="toNavigation()" (flyToEmitter)="flyTo()"></app-place-box>
 }
 
-@if (selectedGPX) {
-<app-place-gpx [selectedPlace]="selectedGPX" (downloadEmitter)="downloadGPX()" (removeEmitter)="removeGPX()"
-  (closeEmitter)="closePlaceGPX()"></app-place-gpx>
+@if (selectedPlaceGPX()) {
+<app-place-gpx [selectedPlace]="selectedPlaceGPX()" (downloadEmitter)="downloadPlaceGPX()"
+  (removeEmitter)="removePlaceGPX()" (closeEmitter)="closePlaceGPX()"></app-place-gpx>
 }
 
 <div class="fixed top-0 left-0 z-40 pointer-events-none">
@@ -26,32 +30,32 @@
 </div>
 
 <div class="fixed top-0 right-0 z-40 pointer-events-none">
-  <div class="mr-4 mt-4 sm:mr-6 sm:mt-6 pointer-events-auto">
+  <div class="pointer-events-auto mr-4 mt-4 sm:mr-6 sm:mt-6 lg:w-88">
     <div
-      class="inline-flex items-center gap-2 p-1.5 bg-white/70 dark:bg-surface-900/70 backdrop-blur-xl rounded-lg shadow-lg shadow-black/5">
+      class="w-full inline-flex items-center gap-2 p-1.5 bg-white/70 dark:bg-surface-900/70 backdrop-blur-xl rounded-lg shadow-lg shadow-black/5">
 
       <div (click)="togglePlacesList()"
         class="cursor-pointer flex items-center justify-center gap-2 h-9 md:w-28 px-2.5 rounded-lg transition-all"
-        [class]="viewPlacesList ? 'bg-blue-50 dark:bg-blue-950' : 'hover:bg-gray-100 dark:hover:bg-gray-900'">
+        [class]="viewPlacesList() ? 'bg-blue-50 dark:bg-blue-950' : 'hover:bg-gray-100 dark:hover:bg-gray-900'">
         <div class="w-7 h-7 flex items-center justify-center">
           <i class="pi text-sm transition-transform duration-200"
-            [class]="viewPlacesList ? 'pi-times text-blue-600 dark:text-blue-400 rotate-90' : 'pi-map-marker text-gray-700 dark:text-gray-300'"></i>
+            [class]="viewPlacesList() ? 'pi-times text-blue-600 dark:text-blue-400 rotate-90' : 'pi-map-marker text-gray-700 dark:text-gray-300'"></i>
         </div>
         <span class="select-none hidden md:inline text-sm font-medium"
-          [class]="viewPlacesList ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'">Places</span>
+          [class]="viewPlacesList() ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'">Places</span>
       </div>
 
       <div class="w-px h-5 bg-gray-200 dark:bg-gray-800"></div>
 
       <div (click)="toggleFilters()"
         class="cursor-pointer flex items-center justify-center gap-2 h-9 md:w-24 px-2.5 rounded-lg transition-all"
-        [class]="viewFilters ? 'bg-blue-50 dark:bg-blue-950' : 'hover:bg-gray-100 dark:hover:bg-gray-900'">
+        [class]="viewFilters() ? 'bg-blue-50 dark:bg-blue-950' : 'hover:bg-gray-100 dark:hover:bg-gray-900'">
         <div class="w-7 h-7 flex items-center justify-center">
           <i class="pi text-sm transition-transform duration-200"
-            [class]="viewFilters ? 'pi-times text-blue-600 dark:text-blue-400 rotate-90' : 'pi-filter text-gray-700 dark:text-gray-300'"></i>
+            [class]="viewFilters() ? 'pi-times text-blue-600 dark:text-blue-400 rotate-90' : 'pi-filter text-gray-700 dark:text-gray-300'"></i>
         </div>
         <span class="select-none hidden md:inline text-sm font-medium"
-          [class]="viewFilters ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'">Filters</span>
+          [class]="viewFilters() ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'">Filters</span>
       </div>
 
       <div class="w-px h-5 bg-gray-200 dark:bg-gray-800"></div>
@@ -66,7 +70,7 @@
       <div (click)="toggleSettings()"
         class="cursor-pointer flex items-center justify-center w-9 h-9 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-all">
         <i class="pi pi-cog text-gray-700 dark:text-gray-300 text-sm transition-transform duration-300"
-          [class.rotate-90]="viewSettings"></i>
+          [class.rotate-90]="viewSettings()"></i>
       </div>
     </div>
   </div>
@@ -76,7 +80,7 @@
   <div class="mx-4 mb-4 sm:mx-6 sm:mb-6 pointer-events-auto">
     <div
       class="inline-flex items-center gap-2 p-1.5 bg-white/70 dark:bg-surface-900/70 backdrop-blur-xl rounded-lg shadow-lg shadow-black/5">
-      <button (click)="menuCreatePlace.toggle($event)"
+      <button (click)="menuCreatePlacePopover.toggle($event)"
         class="cursor-pointer flex items-center justify-center w-9 h-9 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-all">
         <i class="pi pi-ellipsis-h text-gray-700 dark:text-gray-300 text-sm"></i>
       </button>
@@ -90,54 +94,163 @@
         </div>
         <span class="text-sm font-medium text-gray-900 dark:text-white">Place</span>
       </button>
-      <p-menu #menuCreatePlace [model]="menuCreatePlaceItems" appendTo="body" [popup]="true" />
       <input type="file" style="display: none;" (change)="onGoogleTakeoutInputChange($event)" #fileUploadTakeout>
       <input type="file" style="display: none;" (change)="onGoogleKmzInputChange($event)" #fileUploadKmz>
     </div>
   </div>
 </div>
 
-@if (viewPlacesList) {
-<section class="fixed top-0 left-0 z-40 pointer-events-none">
-  <div animate.enter="slide-x-no-opacity" animate.leave="a-slide-x"
-    class="ml-4 my-4 sm:ml-6 sm:my-6 h-[calc(100vh-2rem)] md:h-[calc(100vh-3rem)] pointer-events-auto transition-all duration-300"
-    [class]="expandedPlacesList ? 'lg:w-[800px]' : 'w-[calc(100vw-2rem)] sm:w-96'">
-    <div
-      class="w-full h-full flex flex-col bg-white/50 dark:bg-surface-900/50 backdrop-blur-xl rounded-lg shadow-lg shadow-black/5">
+<section
+  class="pointer-events-none fixed top-20 md:top-22 bottom-20 md:bottom-22 right-4 md:right-6 z-30 flex w-[calc(100%-2rem)] flex-col gap-3 md:w-64 lg:w-88">
+  @if (viewFilters()) {
+  <div animate.enter="slide-y-no-opacity" animate.leave="a-slide-y" class="pointer-events-auto ring-1 ring-black/5 dark:ring-white/10 bg-white/70 dark:bg-surface-900/70 backdrop-blur-xl
+  rounded-lg w-full shadow-2xl overflow-hidden flex flex-col" [class.h-1/3]="viewPlacesList()">
+    <div class="flex items-center justify-between gap-4 p-4 border-b border-gray-200 dark:border-gray-800">
+      <h2 class="text-base font-semibold text-gray-900 dark:text-white">Filters</h2>
+      <div class="flex gap-2">
+        <p-button text icon="pi pi-refresh" severity="danger" (click)="resetFilters()" />
+        <p-button text icon="pi pi-times" severity="danger" (click)="toggleFilters()" />
+      </div>
+    </div>
+
+    <div class="flex-1 overflow-y-auto overscroll-contain px-4 space-y-3">
+      <h3 class="mt-6 text-sm font-bold text-gray-900 dark:text-white">Quick Filters</h3>
+
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+        <button (click)="filter_display_visited.set(!filter_display_visited())"
+          class="cursor-pointer inline-flex items-center gap-2 h-8 px-3 rounded-lg text-sm font-medium transition-all"
+          [class]="filter_display_visited() ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
+          @if (filter_display_visited()) {
+          <i class="pi pi-check text-xs"></i>
+          } @else {
+          <i class="pi pi-eye text-xs"></i>
+          }
+          <span class="truncate">Visited</span>
+        </button>
+
+        <button (click)="filter_dog_only.set(!filter_dog_only())"
+          class="cursor-pointer inline-flex items-center gap-2 h-8 px-3 rounded-lg text-sm font-medium transition-all"
+          [class]="filter_dog_only() ? 'bg-emerald-600 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
+          @if (filter_dog_only()) {
+          <i class="pi pi-check text-xs"></i>
+          } @else {
+          <span>🐶</span>
+          }
+          <span class="truncate">Dog-friendly</span>
+        </button>
+
+        <button (click)="filter_display_favorite_only.set(!filter_display_favorite_only())"
+          class="cursor-pointer inline-flex items-center gap-2 h-8 px-3 rounded-lg text-sm font-medium transition-all"
+          [class]="filter_display_favorite_only() ? 'bg-rose-400 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
+          @if (filter_display_favorite_only()) {
+          <i class="pi pi-check text-xs"></i>
+          } @else {
+          <i class="pi pi-heart-fill text-xs"></i>
+          }
+          <span class="truncate">Favorites</span>
+        </button>
+
+        <button (click)="filter_display_restroom.set(!filter_display_restroom())"
+          class="cursor-pointer inline-flex items-center gap-2 h-8 px-3 rounded-lg text-sm font-medium transition-all"
+          [class]="filter_display_restroom() ? 'bg-sky-400 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
+          @if (filter_display_restroom()) {
+          <i class="pi pi-check text-xs"></i>
+          } @else {
+          <span>🚽</span>
+          }
+          <span class="truncate">Toilets</span>
+        </button>
+      </div>
+
+      <div class="mt-6 flex items-center justify-between">
+        <h3 class="text-sm font-bold text-gray-900 dark:text-white">Categories</h3>
+
+        <div class="flex items-center justify-end gap-1">
+          <p-button icon="pi pi-minus-circle" pTooltip="Deselect all" (click)="deselectAllCategories()"
+            severity="danger" size="small" text />
+          <p-button icon="pi pi-check-circle" pTooltip="Select all" (click)="selectAllCategories()" severity="success"
+            size="small" text />
+          <span [class.bg-red-400]="!activeCategories().size"
+            class="px-2.5 py-1 bg-gray-100 dark:bg-gray-900 rounded-lg text-xs font-bold text-gray-900 dark:text-white">
+            {{ activeCategories().size }}/{{ categories().length }}
+          </span>
+        </div>
+      </div>
+
+      <div class="mb-4 max-h-[50vh] grid md:grid-cols-2 gap-2">
+        @for (category of categories(); track category.id) {
+        <div (click)="updateActiveCategories(category.name)" [class.col-span-2]="$index % 3 === 0"
+          [class]="activeCategories().has(category.name) ? 'bg-gray-900 dark:bg-white border-gray-900 dark:border-white shadow-lg': 'bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900'"
+          class="cursor-pointer h-12 group w-full flex items-center gap-3 py-3 px-4 rounded-xl transition-all active:scale-[0.98] border-2 min-w-0">
+
+          <div class="size-3 rounded-full flex-none shadow-sm"
+            [class]="activeCategories().has(category.name) ? 'ring-2 ring-white dark:ring-gray-900' : undefined"
+            [style.background-color]="category.color">
+          </div>
+
+          <span class="text-sm font-medium flex-1 text-left truncate"
+            [class]="activeCategories().has(category.name) ? 'text-white dark:text-gray-900' : 'text-gray-900 dark:text-white'">
+            {{ category.name }}
+          </span>
+
+          @if (activeCategories().has(category.name)) {
+          <div class="flex items-center justify-center w-6 h-6 rounded-full flex-none"
+            [class]="activeCategories().has(category.name) ? 'bg-white/20' : 'bg-gray-900/20'">
+            <i class="pi pi-check text-sm"
+              [class]="activeCategories().has(category.name) ? 'text-white dark:text-gray-900' : undefined"></i>
+          </div>
+          }
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+  }
+
+  @if (viewPlacesList()) {
+  <div animate.enter="slide-y-no-opacity" animate.leave="a-slide-y" class="pointer-events-auto rounded-lg overflow-hidden w-full shadow-2xl ring-1 ring-black/5 dark:ring-white/10 bg-white/70 dark:bg-surface-900/70 backdrop-blur-xl
+    flex flex-col transition-all duration-300 flex-1" [class]="viewFilters() ? 'h-2/3' : 'h-full'">
+    <div class="w-full h-full flex flex-col flex-1 rounded-lg shadow-lg shadow-black/5">
       <div class="p-4 border-b border-gray-200 dark:border-gray-800">
         <div class="flex items-center justify-between gap-4">
           <div class="flex items-center gap-2 min-w-0">
             <h2 class="text-base font-semibold text-gray-900 dark:text-white">Places</h2>
             <span
               class="px-2.5 py-1 bg-blue-100 dark:bg-blue-900 rounded-lg text-xs font-bold text-blue-900 dark:text-white border-dashed"
-              [class]="hideOutOfBoundsPlaces ? 'border-2 border-blue-400' : undefined">{{ visiblePlaces.length }}</span>
+              [class]="hideOutOfBoundsPlaces() ? 'border-2 border-blue-400' : undefined">{{ visiblePlaces().length
+              }}</span>
           </div>
 
           <div class="flex items-center gap-2">
-            <button (click)="toggleOutOfBoundsPlaces()" pTooltip="Show out-of-bounds places"
+            <button (click)="toggleOutOfBoundsPlaces()" pTooltip="Show out-of-bounds places" tooltipPosition="left"
               class="cursor-pointer flex items-center justify-center size-10 rounded-lg transition-all"
-              [class]="hideOutOfBoundsPlaces ? 'bg-blue-50 dark:bg-blue-950' : 'hover:bg-gray-100 dark:hover:bg-gray-900'">
+              [class]="hideOutOfBoundsPlaces() ? 'bg-blue-50 dark:bg-blue-950' : 'hover:bg-gray-100 dark:hover:bg-gray-900'">
               <i class="pi pi-expand text-sm"
-                [class]="hideOutOfBoundsPlaces ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'"></i>
+                [class]="hideOutOfBoundsPlaces() ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'"></i>
             </button>
 
-            <button (click)="togglePlacesListSearch()"
+            <button (click)="togglePlacesListFiltering()"
               class="cursor-pointer flex items-center justify-center size-10 rounded-lg transition-all"
-              [class]="viewPlacesListSearch ? 'bg-blue-50 dark:bg-blue-950' : 'hover:bg-gray-100 dark:hover:bg-gray-900'">
+              [class]="viewPlacesListFiltering() ? 'bg-blue-50 dark:bg-blue-950' : 'hover:bg-gray-100 dark:hover:bg-gray-900'">
               <i class="pi pi-search text-sm"
-                [class]="viewPlacesListSearch ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'"></i>
+                [class]="viewPlacesListFiltering() ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'"></i>
             </button>
 
             <p-button text icon="pi pi-times" severity="danger" (click)="togglePlacesList()" />
           </div>
         </div>
 
-        @if (viewPlacesListSearch) {
-        <div class="grid md:grid-cols-2 gap-2 mt-2 p-2">
+        @if (viewPlacesListFiltering()) {
+        <div class="grid md:grid-cols-2 gap-2 mt-3" animate.enter="slide-y" animate.leave="a-slide-y">
           <div class="relative">
             <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
             <input type="text" [formControl]="searchInput" placeholder="Search..."
               class="w-full h-9 pl-9 pr-3 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors" />
+            @if (searchInput.value) {
+            <div class="absolute right-2 top-1/2 -translate-y-1/2">
+              <p-button text icon="pi pi-times" severity="danger" size="small" (click)="searchInput.setValue('')" />
+            </div>
+            }
           </div>
 
           <div class="relative">
@@ -146,78 +259,44 @@
               placeholder="Country, City, ..."
               class="w-full h-9 pl-9 pr-3 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors" />
 
-            @if (boundariesFiltering) {<p-button icon="pi pi-times" text severity="danger" size="small"
+            @if (boundariesFiltering()) {<p-button icon="pi pi-times" text severity="danger" size="small"
               class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Clear and Cancel"
               (click)="resetGeocodeFilters()" />}
             @else {<p-button icon="pi pi-sparkles" text [disabled]="!gmapsGeocodeFilterInput.value" size="small"
               class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Filter using location (GMaps API)"
-              (click)="gmapsGeocodeFilter()" />}
+              tooltipPosition="left" (click)="gmapsGeocodeFilter()" />}
           </div>
         </div>
         }
       </div>
 
       <div class="flex-1 overflow-y-auto overscroll-contain p-3">
-        @if (boundariesFiltering) {
-        <div class="my-4 flex justify-center items-center gap-1">
-          <span
-            class="px-2.5 py-1 bg-gray-100 dark:bg-gray-900 rounded-lg text-xs font-bold text-gray-900 dark:text-white">
-            Filtering for <b>{{
-              gmapsGeocodeFilterInput.value }}</b>
-          </span>
+        @if (boundariesFiltering() || searchInput.value) {
+        <div class="pb-3 flex flex-wrap items-center gap-2">
+          @if (searchInput.value) {
+          <div
+            class="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-0.5 text-xs font-medium rounded-md">
+            <i class="pi pi-search"></i>{{ searchInput.value }}<p-button text icon="pi pi-times" size="small"
+              (click)="searchInput.setValue('')" />
+          </div>
+          }
 
-          <p-button icon="pi pi-times" text severity="danger" pTooltip="Clear" (click)="resetGeocodeFilters()" />
+          @if (boundariesFiltering()) {
+          <div
+            class="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-0.5 text-xs font-medium rounded-md">
+            <i class="pi pi-map-marker"></i>{{ gmapsGeocodeFilterInput.value }}<p-button text icon="pi pi-times"
+              size="small" (click)="resetGeocodeFilters()" />
+          </div>
+          }
         </div>
         }
 
-        <div class="transition-all duration-300"
-          [class]="expandedPlacesList ? 'grid gap-2 lg:grid-cols-2' :  'space-y-2'">
-          @defer () {
-          @for (place of visiblePlaces; track place.id) {
-          <div (click)="togglePlaceSelection(place)" (mouseenter)="hoverPlace(place)" (mouseleave)="resetHoverPlace()"
-            class="group w-full flex items-center gap-3 p-3 bg-white dark:bg-gray-950 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg cursor-pointer transition-all border border-gray-200 dark:border-gray-800 text-left">
-
-            <div class="w-12 h-12 rounded overflow-hidden bg-gray-100 dark:bg-gray-800">
-              <img [src]="place.image || place.category.image" loading="lazy" class="w-full h-full object-cover" />
-            </div>
-
-            <div class="flex-1 min-w-0">
-              <h3 class="text-sm font-semibold text-gray-900 dark:text-white truncate">
-                {{ place.name }}
-              </h3>
-              <p class="text-xs text-gray-600 dark:text-gray-400 truncate mt-0.5">
-                {{ place.place }}
-              </p>
-
-              <div class="flex flex-wrap gap-1 mt-1.5">
-                <span class="pi flex items-center px-1.5 py-0.5 rounded text-xs" style="font-size: 12px;"
-                  [class]="place.allowdog ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-500'">
-                  🐶
-                </span>
-
-                <span class="pi flex items-center px-1.5 py-0.5 rounded text-xs" style="font-size: 12px;"
-                  [class]="place.restroom ? 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-500'">
-                  🚽
-                </span>
-
-                <span class="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium"
-                  [class]="place.visited ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-500'">
-                  <i class="pi" style="font-size: 12px;" [class]="place.visited ? 'pi-eye' : 'pi-eye-slash'"></i>
-                </span>
-
-                <span class="flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium max-w-[90px]"
-                  [style.color]="place.category.color" [style.background-color]="place.category.color + '15'">
-                  <i class="pi pi-tag flex-none" style="font-size: 12px;"></i>
-                  <span class="truncate">{{ place.category.name }}</span>
-                </span>
-              </div>
-            </div>
-
-            <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 group-hover:-translate-x-2 ">
-              <p-button (click)="editPlace(place); $event.stopPropagation()" icon="pi pi-pencil" severity="secondary"
-                text />
-            </div>
-          </div>
+        <div class="transition-all duration-300 space-y-2">
+          @defer (on viewport) {
+          @for (place of visiblePlaces(); track place.id) {
+          <app-place-list-item [place]="place" [showMeta]="true" (clickEmitter)="togglePlaceSelection(place)"
+            (editEmitter)="editPlace(place)" (mouseEnterEmitter)="hoverPlace(place)"
+            (mouseLeaveEmitter)="resetHoverPlace()"></app-place-list-item>
           } @empty {
           <div class="flex flex-col items-center justify-center col-span-full py-12 text-center px-6">
             <i class="pi pi-map-marker text-gray-300 dark:text-gray-700 mb-3" style="font-size: 24px"></i>
@@ -225,147 +304,20 @@
           </div>
           }
           } @placeholder (minimum 0.4s) {
-          @for (_ of [1,2,3,4,5,6]; track _) {
-          <div
-            class="rounded-lg overflow-hidden backdrop-blur-md bg-white/50 dark:bg-gray-900/50 border border-white/20 dark:border-gray-700/30">
-            <p-skeleton height="5rem"
-              class="!bg-gradient-to-br !from-gray-200 !to-gray-300 dark:!from-gray-700 dark:!to-gray-800" />
+          <div class="space-y-2 p-2">
+            @for(_ of [1,2,3,4,5]; track _) {
+            <p-skeleton height="5rem" />
+            }
           </div>
-          }
           }
         </div>
       </div>
     </div>
-
-    <button (click)="toggleExpandPlacesList()"
-      class="hidden lg:flex absolute top-1/2 -translate-y-1/2 -right-3 items-center justify-center w-6 h-16 bg-white/70 dark:bg-surface-900/70 backdrop-blur-xl hover:bg-white/90 dark:hover:bg-surface-900/90 rounded-r-lg shadow-lg shadow-black/5 border border-l-0 border-gray-200 dark:border-gray-800 transition-all group z-50">
-      <i class="cursor-pointer pi text-sm text-gray-700 dark:text-gray-300 group-hover:text-gray-900 dark:group-hover:text-white transition-all"
-        [class]="expandedPlacesList ? 'pi-chevron-left' : 'pi-chevron-right'"></i>
-    </button>
   </div>
+  }
 </section>
-}
 
-@if (viewFilters) {
-<section class="fixed top-0 right-0 z-40 pointer-events-none">
-  <div animate.enter="slide-y-no-opacity" animate.leave="a-slide-y"
-    class="ml-4 mr-4 sm:ml-6 sm:mr-6 mt-20 pointer-events-auto">
-    <div
-      class="bg-white/50 dark:bg-surface-900/50 backdrop-blur-xl z-40 rounded-lg shadow p-8 max-w-screen md:max-w-md">
-      <div class="mt-1 flex justify-between items-center">
-        <div>
-          <h1 class="font-semibold tracking-tight text-xl">Filters</h1>
-          <span class="text-xs text-gray-500">Customize your view</span>
-        </div>
-        <div class="flex gap-1">
-          <p-button text icon="pi pi-refresh" severity="danger" (click)="resetFilters()" />
-          <p-button text icon="pi pi-times" severity="danger" (click)="toggleFilters()" />
-        </div>
-      </div>
-
-      <div class="space-y-3">
-        <div class="mt-6 flex items-center justify-between mb-4">
-          <h3 class="text-base font-bold text-gray-900 dark:text-white">Quick Filters</h3>
-        </div>
-
-        <div class="flex flex-wrap gap-2">
-          <button
-            (click)="filter_display_visited = !filter_display_visited; updateMarkersAndClusters(); setVisiblePlaces()"
-            class="cursor-pointer inline-flex items-center gap-2 h-8 w-24 max-w-[25vw] px-3 rounded-lg text-sm font-medium transition-all"
-            [class]="filter_display_visited ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
-            @if (filter_display_visited) {
-            <i class="pi pi-check text-xs"></i>
-            } @else {
-            <i class="pi pi-eye text-xs"></i>
-            }
-            <span class="truncate">Visited</span>
-          </button>
-
-          <button (click)="filter_dog_only = !filter_dog_only; updateMarkersAndClusters(); setVisiblePlaces()"
-            class="cursor-pointer inline-flex items-center gap-2 h-8 w-36 max-w-[25vw] px-3 rounded-lg text-sm font-medium transition-all"
-            [class]="filter_dog_only ? 'bg-emerald-600 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
-            @if (filter_dog_only) {
-            <i class="pi pi-check text-xs"></i>
-            } @else {
-            <span>🐶</span>
-            }
-            <span class="truncate">Dog-friendly</span>
-          </button>
-
-          <button
-            (click)="filter_display_favorite_only = !filter_display_favorite_only; updateMarkersAndClusters(); setVisiblePlaces()"
-            class="cursor-pointer inline-flex items-center gap-2 h-8 w-28 max-w-[25vw] px-3 rounded-lg text-sm font-medium transition-all"
-            [class]="filter_display_favorite_only ? 'bg-rose-400 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
-            @if (filter_display_favorite_only) {
-            <i class="pi pi-check text-xs"></i>
-            } @else {
-            <i class="pi pi-heart-fill text-xs"></i>
-            }
-            <span class="truncate">Favorites</span>
-          </button>
-
-          <button
-            (click)="filter_display_restroom = !filter_display_restroom; updateMarkersAndClusters(); setVisiblePlaces()"
-            class="cursor-pointer inline-flex items-center gap-2 h-8 w-24 max-w-[25vw] px-3 rounded-lg text-sm font-medium transition-all"
-            [class]="filter_display_restroom ? 'bg-sky-400 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
-            @if (filter_display_restroom) {
-            <i class="pi pi-check text-xs"></i>
-            } @else {
-            <span>🚽</span>
-            }
-            <span class="truncate">Toilets</span>
-          </button>
-        </div>
-      </div>
-
-
-      <div class="mt-6 flex items-center justify-between mb-4">
-        <h3 class="text-base font-bold text-gray-900 dark:text-white">Categories</h3>
-
-        <div class="flex items-center justify-end gap-1">
-          <p-button icon="pi pi-minus-circle" pTooltip="Deselect all categories" (click)="deselectAllCategories()"
-            severity="danger" size="small" text />
-          <p-button icon="pi pi-check-circle" pTooltip="Select all categories" (click)="selectAllCategories()"
-            severity="success" size="small" text />
-          <span [class.bg-red-400]="!activeCategories.size"
-            class="px-2.5 py-1 bg-gray-100 dark:bg-gray-900 rounded-lg text-xs font-bold text-gray-900 dark:text-white">
-            {{ activeCategories.size }}/{{ categories.length }}
-          </span>
-        </div>
-      </div>
-
-      <div class="max-h-[50vh] overflow-y-auto overscroll-contain grid md:grid-cols-2 gap-2">
-        @for (category of categories; track category.id) {
-        <div (click)="updateActiveCategories(category.name)"
-          [class]="activeCategories.has(category.name) ? 'bg-gray-900 dark:bg-white border-gray-900 dark:border-white shadow-lg': 'bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900'"
-          class="cursor-pointer group w-full flex items-center gap-3 py-3 px-4 rounded-xl transition-all active:scale-[0.98] border-2 min-w-0">
-
-          <div class="size-3 rounded-full flex-none shadow-sm"
-            [class]="activeCategories.has(category.name) ? 'ring-2 ring-white dark:ring-gray-900' : undefined"
-            [style.background-color]="category.color">
-          </div>
-
-          <span class="text-base font-semibold flex-1 text-left truncate"
-            [class]="activeCategories.has(category.name) ? 'text-white dark:text-gray-900' : 'text-gray-900 dark:text-white'">
-            {{ category.name }}
-          </span>
-
-          @if (activeCategories.has(category.name)) {
-          <div class="flex items-center justify-center w-6 h-6 rounded-full flex-none"
-            [class]="activeCategories.has(category.name) ? 'bg-white/20' : 'bg-gray-900/20'">
-            <i class="pi pi-check text-sm"
-              [class]="activeCategories.has(category.name) ? 'text-white dark:text-gray-900' : undefined"></i>
-          </div>
-          }
-        </div>
-        }
-      </div>
-    </div>
-  </div>
-</section>
-}
-
-@if (viewSettings) {
+@if (viewSettings()) {
 <section class="absolute inset-0 flex items-center justify-center z-40 bg-surface-900/30 backdrop-blur-xl">
   <div
     class="w-10/12 max-w-screen md:max-w-3xl h-fit max-h-screen bg-white rounded-xl shadow-2xl p-4 md:p-8 z-50 dark:bg-surface-900">
@@ -376,10 +328,11 @@
       </div>
 
       <div class="flex items-center gap-1">
-        <p-button (click)="toggleDarkMode()" text [icon]="settings?.mode_dark ? 'pi pi-sun' : 'pi pi-moon'" />
-        <p-button (click)="toGithub()" text severity="primary" icon="pi pi-github" />
-        <p-button (click)="logout()" text severity="primary" icon="pi pi-sign-out" />
-        <p-button (click)="toggleSettings()" severity="danger" text icon="pi pi-times" />
+        <p-button (click)="toggleDarkMode()" pTooltip="Dark mode" text
+          [icon]="settings()?.mode_dark ? 'pi pi-sun' : 'pi pi-moon'" />
+        <p-button (click)="toGithub()" pTooltip="Open Github" text severity="primary" icon="pi pi-github" />
+        <p-button (click)="logout()" pTooltip="Logout" text severity="primary" icon="pi pi-sign-out" />
+        <p-button (click)="toggleSettings()" text severity="danger" icon="pi pi-times" />
       </div>
     </div>
 
@@ -432,13 +385,13 @@
               </div>
             </a>
 
-            @if (this.info?.update) {
+            @if (info()?.update) {
             <div (click)="toGithub()"
               class="cursor-pointer group relative p-6 bg-gradient-to-br from-red-50 to-red-200 dark:from-red-900/20 dark:to-red-900/40 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-hidden">
               <div class="flex gap-4 items-center relative z-10">
                 <div class="text-4xl">🚀</div>
                 <div>
-                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">TRIP {{ this.info?.update }}</h3>
+                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">TRIP {{ info()?.update }}</h3>
                   <p class="text-sm text-gray-600 dark:text-gray-400">New version available</p>
                 </div>
               </div>
@@ -453,7 +406,7 @@
                 <div class="text-4xl">👀</div>
                 <div>
                   <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">Check update</h3>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">Current: TRIP {{ info?.version }}</p>
+                  <p class="text-sm text-gray-600 dark:text-gray-400">Current: TRIP {{ info()?.version }}</p>
                 </div>
               </div>
               <div
@@ -477,7 +430,7 @@
             </div>
           </div>
 
-          <div class="mt-8 text-center text-xs text-gray-500 dark:text-gray-400">TRIP {{ info?.version }}</div>
+          <div class="mt-8 text-center text-xs text-gray-500 dark:text-gray-400">TRIP {{ info()?.version }}</div>
           <div class="text-center text-sm text-gray-500 dark:text-gray-400">Made with ❤️ in BZH</div>
         </p-tabpanel>
         <p-tabpanel [value]="1">
@@ -485,7 +438,7 @@
             <div class="select-none mx-auto pt-4 space-y-4">
               <section
                 class="rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-200">
-                <div (click)="accountSecurityExpanded = !accountSecurityExpanded"
+                <div (click)="accountSecurityExpanded.set(!accountSecurityExpanded())"
                   class="select-none w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer">
                   <div class="flex items-center gap-3">
                     <div
@@ -497,11 +450,11 @@
                       <p class="text-xs text-gray-500 dark:text-gray-400">Update your password, manage 2FA</p>
                     </div>
                   </div>
-                  <i [class]="accountSecurityExpanded ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                  <i [class]="accountSecurityExpanded() ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
                     class="text-gray-400 transition-transform duration-200"></i>
                 </div>
 
-                @if (accountSecurityExpanded) {
+                @if (accountSecurityExpanded()) {
                 <div class="flex flex-col gap-3 p-4 pt-0 border-t border-gray-200 dark:border-gray-700">
                   <div
                     class="mt-4 flex items-center justify-between py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
@@ -521,17 +474,18 @@
                     class="flex items-center justify-between py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
                     <div class="flex items-center gap-3 min-w-0 flex-1">
                       <i class="pi pi-lock flex-shrink-0"
-                        [class]="settings?.totp_enabled ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"></i>
+                        [class]="settings()?.totp_enabled ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"></i>
                       <div class="min-w-0">
                         <span class="font-medium text-sm text-gray-900 dark:text-gray-100 block">Two-Factor Auth
                           (2FA)</span>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Add extra security layer</p>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Add extra security layer
+                        </p>
                       </div>
                     </div>
 
-                    <p-button [icon]="settings?.totp_enabled ? 'pi pi-times-circle' : 'pi pi-check-circle'"
-                      (click)="toggleTOTP()" [severity]="settings?.totp_enabled ? 'danger' : 'success'" size="small"
-                      [label]="settings?.totp_enabled ? 'Disable' : 'Enable'" text />
+                    <p-button [icon]="settings()?.totp_enabled ? 'pi pi-times-circle' : 'pi pi-check-circle'"
+                      (click)="toggleTOTP()" [severity]="settings()?.totp_enabled ? 'danger' : 'success'" size="small"
+                      [label]="settings()?.totp_enabled ? 'Disable' : 'Enable'" text />
                   </div>
                 </div>
                 }
@@ -539,7 +493,7 @@
 
               <section
                 class="rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-200">
-                <div (click)="accountIntegrationsExpanded = !accountIntegrationsExpanded"
+                <div (click)="accountIntegrationsExpanded.set(!accountIntegrationsExpanded())"
                   class="select-none w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer">
                   <div class="flex items-center gap-3">
                     <div
@@ -552,25 +506,26 @@
                       <p class="text-xs text-gray-500 dark:text-gray-400">Manage API keys</p>
                     </div>
                   </div>
-                  <i [class]="accountIntegrationsExpanded ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                  <i [class]="accountIntegrationsExpanded() ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
                     class="text-gray-400 transition-transform duration-200"></i>
                 </div>
 
-                @if (accountIntegrationsExpanded) {
+                @if (accountIntegrationsExpanded()) {
                 <div class="flex flex-col gap-3 p-4 pt-0 border-t border-gray-200 dark:border-gray-700">
                   <div
                     class="mt-4 flex items-center justify-between py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
                     <div class="flex items-center gap-3 min-w-0 flex-1">
                       <i class="pi pi-link flex-shrink-0"
-                        [class]="settings?.google_apikey ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"></i>
+                        [class]="settings()?.google_apikey ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"></i>
                       <div class="min-w-0">
                         <span class="font-medium text-sm text-gray-900 dark:text-gray-100 block">Google API Key</span>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Connect your Google API key
+                        <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Connect your Google API
+                          key
                           for enhanced location services</p>
                       </div>
                     </div>
 
-                    @if (settings?.google_apikey) {
+                    @if (settings()?.google_apikey) {
                     <p-button (click)="deleteGoogleApiKey()" icon="pi pi-trash" label="Remove" severity="danger" text
                       size="small" />
                     } @else {
@@ -588,7 +543,7 @@
                     class="flex items-center justify-between py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
                     <div class="flex items-center gap-3 min-w-0 flex-1">
                       <i class="pi pi-link flex-shrink-0"
-                        [class]="settings?.api_token ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"></i>
+                        [class]="settings()?.api_token ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"></i>
                       <div class="min-w-0">
                         <span class="font-medium text-sm text-gray-900 dark:text-gray-100 block">TRIP API Key</span>
                         <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Use it to authenticate in
@@ -596,9 +551,9 @@
                       </div>
                     </div>
 
-                    <p-button [icon]="settings?.api_token ? 'pi pi-times-circle' : 'pi pi-check-circle'"
-                      (click)="toggleTripApiToken()" [severity]="settings?.api_token ? 'danger' : 'success'"
-                      size="small" [label]="settings?.api_token ? 'Disable' : 'Enable'" text />
+                    <p-button [icon]="settings()?.api_token ? 'pi pi-times-circle' : 'pi pi-check-circle'"
+                      (click)="toggleTripApiToken()" [severity]="settings()?.api_token ? 'danger' : 'success'"
+                      size="small" [label]="settings()?.api_token ? 'Disable' : 'Enable'" text />
                   </div>
                 </div>
                 }
@@ -608,10 +563,10 @@
         </p-tabpanel>
         <p-tabpanel [value]="2">
           <div class="max-h-[60vh] overflow-y-auto overscroll-contain">
-            <div class="space-y-4 pt-4 max-w-5xl mx-auto">
+            <div class="flex flex-col gap-4 pt-4 max-w-5xl mx-auto">
               <section [formGroup]="settingsForm"
-                class="rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                <div (click)="mapParamsExpanded = !mapParamsExpanded"
+                class="rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
+                <div (click)="mapParamsExpanded.set(!mapParamsExpanded())"
                   class="select-none w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer">
                   <div class="flex items-center gap-3">
                     <div
@@ -624,11 +579,11 @@
                       </p>
                     </div>
                   </div>
-                  <i [class]="mapParamsExpanded ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                  <i [class]="mapParamsExpanded() ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
                     class="text-gray-400 transition-transform"></i>
                 </div>
 
-                @if (mapParamsExpanded) {
+                @if (mapParamsExpanded()) {
                 <div class="flex flex-col gap-4 p-4 border-t border-gray-200 dark:border-gray-700">
                   <div class="flex justify-end">
                     <p-button icon="pi pi-compass" label="Set Current" [outlined]="true"
@@ -656,8 +611,8 @@
               </section>
 
               <section
-                class="rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-200">
-                <div (click)="displaySettingsExpanded = !displaySettingsExpanded"
+                class="rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-200">
+                <div (click)="displaySettingsExpanded.set(!displaySettingsExpanded())"
                   class="select-none w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer">
                   <div class="flex items-center gap-3">
                     <div
@@ -670,18 +625,19 @@
                       <p class="text-xs text-gray-500 dark:text-gray-400">Visual and performance options</p>
                     </div>
                   </div>
-                  <i [class]="displaySettingsExpanded ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                  <i [class]="displaySettingsExpanded() ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
                     class="text-gray-400 transition-transform duration-200"></i>
                 </div>
 
-                @if (displaySettingsExpanded) {
+                @if (displaySettingsExpanded()) {
                 <div class="flex flex-col gap-3 p-4 pt-0 border-t border-gray-200 dark:border-gray-700">
                   <div
                     class="mt-4 flex items-center justify-between py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
                     <div class="flex items-center gap-3 min-w-0 flex-1">
                       <i class="pi pi-wifi text-orange-600 dark:text-orange-400 flex-shrink-0"></i>
                       <div class="min-w-0">
-                        <span class="font-medium text-sm text-gray-900 dark:text-gray-100 block">Low Network Mode</span>
+                        <span class="font-medium text-sm text-gray-900 dark:text-gray-100 block">Low Network
+                          Mode</span>
                         <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Use category images to
                           reduce bandwidth</p>
                       </div>
@@ -699,7 +655,7 @@
                           available</p>
                       </div>
                     </div>
-                    <p-toggleswitch [(ngModel)]="isGpxInPlaceMode" (onChange)="toggleGpxInPlace()"
+                    <p-toggleswitch [(ngModel)]="isGPXInPlaceMode" (onChange)="toggleGPXInPlace()"
                       class="flex-shrink-0 ml-4" />
                   </div>
 
@@ -714,7 +670,7 @@
                           places as small dots</p>
                       </div>
                     </div>
-                    <p-toggleswitch [(ngModel)]="isVisitedDisplayedMode" (onChange)="toggleVisitedDisplayed()"
+                    <p-toggleswitch [(ngModel)]="isVisitedMode" (onChange)="toggleVisitedDisplayed()"
                       class="flex-shrink-0 ml-4" />
                   </div>
 
@@ -737,8 +693,8 @@
               </section>
 
               <section [formGroup]="settingsForm"
-                class="rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
-                <div (click)="dataFiltersExpanded = !dataFiltersExpanded"
+                class="rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
+                <div (click)="dataFiltersExpanded.set(!dataFiltersExpanded())"
                   class="select-none w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer">
                   <div class="flex items-center gap-3">
                     <div
@@ -751,11 +707,11 @@
                       </p>
                     </div>
                   </div>
-                  <i [class]="dataFiltersExpanded ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                  <i [class]="dataFiltersExpanded() ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
                     class="text-gray-400 transition-transform"></i>
                 </div>
 
-                @if (dataFiltersExpanded) {
+                @if (dataFiltersExpanded()) {
                 <div class="flex flex-col gap-3 p-4 pt-0 border-t border-gray-200 dark:border-gray-700">
                   <div
                     class="mt-4 flex flex-col gap-2 md:flex-row items-center justify-between py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
@@ -763,7 +719,8 @@
                       <i class="pi pi-wallet text-gray-600 dark:text-gray-400 flex-shrink-0"></i>
                       <div class="min-w-0">
                         <span class="font-medium text-sm text-gray-900 dark:text-gray-100 block">Currency</span>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Update the default currency
+                        <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Update the default
+                          currency
                         </p>
                       </div>
                     </div>
@@ -785,9 +742,10 @@
                       </div>
                     </div>
                     <div class="w-full md:w-68">
-                      <p-multiselect id="do_not_display" [options]="doNotDisplayOptions" [group]="true" [filter]="false"
-                        [showToggleAll]="false" formControlName="do_not_display" placeholder="Select..."
-                        [showClear]="true" appendTo="body" pSize="small" class="capitalize" fluid />
+                      <p-multiselect id="do_not_display" [options]="doNotDisplayOptions()" [group]="true"
+                        [filter]="false" [showToggleAll]="false" formControlName="do_not_display"
+                        placeholder="Select..." [showClear]="true" appendTo="body" pSize="small" class="capitalize"
+                        fluid />
                     </div>
                   </div>
                 </div>
@@ -837,14 +795,14 @@
                   </div>
                 </div>
 
-                @for (category of categories; track category.id) {
+                @for (category of categories(); track category.id) {
                 <div
                   class="group relative flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-600 transition-all duration-200">
                   <div class="relative flex-shrink-0">
                     <img [src]="category.image" style="border: 3px solid" loading="lazy"
                       [style.border-color]="category.color" class="select-none size-12 rounded-full object-cover" />
                     <div class="absolute -bottom-1 -right-1 px-2 py-1 bg-gray-100 dark:bg-gray-900 rounded-lg text-xs font-bold text-gray-900
-                      dark:text-white">{{ getCategoryPlacesCount(category.name) }}
+                        dark:text-white">{{ getCategoryPlacesCount(category.name) }}
                     </div>
                   </div>
 
@@ -895,7 +853,7 @@
               </div>
 
               <div class="flex flex-col gap-2.5">
-                @for (backup of backups; track backup.id) {
+                @for (backup of backups(); track backup.id) {
                 <div
                   class="group flex items-center gap-4 py-4 md:p-4 rounded-lg bg-white dark:bg-gray-800 hover:shadow-sm transition-all duration-200">
                   <div class="flex-shrink-0">
