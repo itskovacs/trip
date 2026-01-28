@@ -241,12 +241,12 @@
                         [style.background]="item.place.category.color + '1A'" [style.color]="item.place.category.color">
                         <img [src]="item.place.image || item.place.category.image"
                           class="shrink-0 w-5 h-5 rounded-full object-cover">
-                        <span class="text-sm font-medium truncate">
+                        <span class="pointer-events-none text-sm font-medium truncate">
                           {{ item.place.name }}
                         </span>
                       </div>
                       } @else {
-                      <span class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                      <span class="pointer-events-none text-sm font-medium text-gray-900 dark:text-white truncate">
                         {{ item.text }}
                       </span>
                       }
@@ -257,7 +257,7 @@
                     </div>
 
                     @if (item.comment && visibleProps.has('comment')) {
-                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
+                    <p class="pointer-events-none mt-1 text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
                       {{ item.comment }}
                     </p>
                     }
@@ -472,7 +472,8 @@
           }
 
           <div class="flex flex-1 flex-col min-w-0">
-            <div class="text-lg font-bold text-gray-900 dark:text-white truncate">{{ item.text }}</div>
+            <div class="pointer-events-none text-lg font-bold text-gray-900 dark:text-white truncate">{{ item.text }}
+            </div>
 
             <div class="flex items-center gap-2 mt-1">
               <span class="text-sm font-medium truncate max-w-[50%]">{{ getItemDayLabel(item) }}</span>
@@ -528,7 +529,8 @@
                 <div class="flex flex-col min-w-0">
                   <span
                     class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Text</span>
-                  <div class="line-clamp-2 text-gray-900 dark:text-gray-100 break-words">{{ item.text }}</div>
+                  <div class="pointer-events-none line-clamp-2 text-gray-900 dark:text-gray-100 break-words">{{
+                    item.text }}</div>
                 </div>
 
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 min-w-0">
@@ -669,7 +671,8 @@
             }
 
             <div class="flex flex-1 flex-col min-w-0">
-              <div class="text-lg font-bold text-gray-900 dark:text-white truncate">{{ item.text }}</div>
+              <div class="pointer-events-none text-lg font-bold text-gray-900 dark:text-white truncate">{{ item.text }}
+              </div>
 
               <div class="flex items-center gap-2 mt-1">
                 <span class="text-sm font-medium truncate max-w-[50%]">{{ item.day }}</span>
@@ -699,7 +702,8 @@
           <div class="flex flex-1 flex-col min-w-0">
             <span
               class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Text</span>
-            <div class="line-clamp-2 text-gray-900 dark:text-gray-100 break-words">{{ item.text }}</div>
+            <div class="pointer-events-none line-clamp-2 text-gray-900 dark:text-gray-100 break-words">{{ item.text }}
+            </div>
           </div>
 
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 min-w-0">
@@ -957,7 +961,7 @@
         <label [for]="item.id" [pTooltip]="item.text" [class.line-through]="item.checked"
           class="flex items-center gap-2 w-full cursor-pointer">
           <p-checkbox [binary]="true" [disabled]="true" [inputId]="item.id.toString()" [(ngModel)]="item.checked" />
-          <div class="truncate select-none">
+          <div class="pointer-events-none truncate select-none">
             <span>{{ item.text }}</span>
           </div>
         </label>
@@ -985,7 +989,7 @@
     </div>
     <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-2 mt-2 pb-4">
       @for (item of watchlistItems(); track item.id) {
-      <div class="rounded-md py-1 min-w-0 hover:bg-gray-100 dark:hover:bg-white/5">
+      <div class="pointer-events-none rounded-md py-1 min-w-0 hover:bg-gray-100 dark:hover:bg-white/5">
         <label [for]="item.id" [pTooltip]="item.text" class="flex items-center gap-2 w-full">
           <div class="relative">
             @if (item.status) {
@@ -994,7 +998,7 @@
             }
             <p-checkbox disabled />
           </div>
-          <div class="truncate select-none">
+          <div class="pointer-events-none truncate select-none">
             <span>{{ item.text }}</span>
           </div>
         </label>
@@ -1071,7 +1075,7 @@
                   @if (item.qt && item.qt > 1) {
                   <span class="text-xs font-bold bg-primary-100 text-primary-700 px-1.5 rounded">{{ item.qt }}x</span>
                   }
-                  <span class="truncate select-none" [class.line-through]="item.packed"
+                  <span class="pointer-events-none truncate select-none" [class.line-through]="item.packed"
                     [class.text-gray-400]="item.packed">
                     {{ item.text }}
                   </span>
@@ -1222,7 +1226,7 @@
               </span>
             </div>
             } @else {
-            <h4 class="font-semibold text-gray-900">{{ item.text }}</h4>
+            <h4 class="pointer-events-none font-semibold text-gray-900">{{ item.text }}</h4>
             }
 
             @if (item.comment) {

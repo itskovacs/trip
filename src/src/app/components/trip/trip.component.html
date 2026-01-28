@@ -223,7 +223,7 @@
             <div class="z-20 sticky top-0 flex items-center justify-between gap-2 p-4 min-w-0 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 border-b border-gray-200
             dark:hover:bg-surface-900 transition-colors border-l-primary-500 dark:border-l-primary-400 cursor-pointer"
               [class]="selectedDay()?.id == group.day.id ? 'border-l-4' : 'border-l-0'" (click)="onDayClick(group.day)">
-              <div class="flex items-center gap-3 min-w-0 flex-1">
+              <div class="pointer-events-none flex items-center gap-3 min-w-0 flex-1">
                 <div
                   class="shrink-0 flex items-center justify-center w-10 h-10 rounded-lg bg-primary-100 dark:bg-primary-900/30"
                   [class]="highlightedDayId() === group.day.id ? 'ring-2 ring-primary-500 bg-primary-200' : ''">
@@ -280,12 +280,12 @@
                         [style.background]="item.place.category.color + '1A'" [style.color]="item.place.category.color">
                         <img [src]="item.place.image || item.place.category.image"
                           class="shrink-0 w-5 h-5 rounded-full object-cover">
-                        <span class="text-sm font-medium truncate">
+                        <span class="pointer-events-none text-sm font-medium truncate">
                           {{ item.place.name }}
                         </span>
                       </div>
                       } @else {
-                      <span class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                      <span class="pointer-events-none text-sm font-medium text-gray-900 dark:text-white truncate">
                         {{ item.text }}
                       </span>
                       }
@@ -296,7 +296,7 @@
                     </div>
 
                     @if (item.comment && visibleProps.has('comment')) {
-                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
+                    <p class="pointer-events-none mt-1 text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
                       {{ item.comment }}
                     </p>
                     }
@@ -311,13 +311,13 @@
                     }
 
                     @if (item.price && visibleProps.has('price')) {
-                      @let width = panelWidth();
-                      <span
-                        class="flex items-center bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-1 text-xs font-medium rounded-md whitespace-nowrap">
-                        {{ item.price | number:'1.0-0' }} {{ trip()?.currency }} @if (width != null && +width > 550 &&
-                        item.paid_by) {<span class="ml-px text-[10px] opacity-75">({{ item.paid_by }})</span>}
-                      </span>
-                      }
+                    @let width = panelWidth();
+                    <span
+                      class="flex items-center bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-1 text-xs font-medium rounded-md whitespace-nowrap">
+                      {{ item.price | number:'1.0-0' }} {{ trip()?.currency }} @if (width != null && +width > 550 &&
+                      item.paid_by) {<span class="ml-px text-[10px] opacity-75">({{ item.paid_by }})</span>}
+                    </span>
+                    }
 
                     @if (item.distance && visibleProps.has('distance')) {
                     <span
@@ -388,7 +388,7 @@
         @defer {
         @if (!trip()?.archived) {
         <div (click)="addDay()"
-          class="cursor-pointer group relative flex items-center gap-4 p-4 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:border-indigo-400 dark:hover:border-indigo-500 transition-all duration-200 cursor-pointer">
+          class="cursor-pointer group relative flex items-center gap-4 p-4 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:border-indigo-400 dark:hover:border-indigo-500 transition-all duration-200">
           <div
             class="flex items-center justify-center w-10 h-10 rounded-lg bg-white dark:bg-gray-700 border-2 border-dashed border-gray-300 dark:border-gray-600 group-hover:border-indigo-400 dark:group-hover:border-indigo-500 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/30 transition-all duration-200 group-hover:scale-110">
             <i
@@ -554,7 +554,8 @@
           }
 
           <div class="flex flex-1 flex-col min-w-0">
-            <div class="text-lg font-bold text-gray-900 dark:text-white truncate">{{ item.text }}</div>
+            <div class="pointer-events-none text-lg font-bold text-gray-900 dark:text-white truncate">{{ item.text }}
+            </div>
 
             <div class="flex items-center gap-2 mt-1">
               <span class="text-sm font-medium truncate max-w-[50%]">{{ getItemDayLabel(item) }}</span>
@@ -614,7 +615,8 @@
                 <div class="flex flex-col min-w-0">
                   <span
                     class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Text</span>
-                  <div class="line-clamp-2 text-gray-900 dark:text-gray-100 break-words">{{ item.text }}</div>
+                  <div class="pointer-events-none line-clamp-2 text-gray-900 dark:text-gray-100 break-words">{{
+                    item.text }}</div>
                 </div>
 
                 <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 min-w-0">
@@ -758,7 +760,8 @@
             }
 
             <div class="flex flex-1 flex-col min-w-0">
-              <div class="text-lg font-bold text-gray-900 dark:text-white truncate">{{ item.text }}</div>
+              <div class="pointer-events-none text-lg font-bold text-gray-900 dark:text-white truncate">{{ item.text }}
+              </div>
 
               <div class="flex items-center gap-2 mt-1">
                 <span class="text-sm font-medium truncate max-w-[50%]">{{ item.day }}</span>
@@ -791,7 +794,8 @@
           <div class="flex flex-1 flex-col min-w-0">
             <span
               class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Text</span>
-            <div class="line-clamp-2 text-gray-900 dark:text-gray-100 break-words">{{ item.text }}</div>
+            <div class="pointer-events-none line-clamp-2 text-gray-900 dark:text-gray-100 break-words">{{ item.text }}
+            </div>
           </div>
 
           <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 min-w-0">
@@ -1297,7 +1301,7 @@
 
     <div class="grid gap-3 md:grid-cols-2">
       <div class="space-y-1.5">
-        <h3 class="text-red-500 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+        <h3 class="text-red-500 text-xs font-semibold uppercase tracking-wide dark:text-red-400">
           Found a bug?
         </h3>
         <p class="text-xs md:text-sm text-gray-600 dark:text-gray-300">
@@ -1308,7 +1312,7 @@
       </div>
 
       <div class="space-y-1.5">
-        <h3 class="text-green-500 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+        <h3 class="text-green-500 text-xs font-semibold uppercase tracking-wide dark:text-green-400">
           Have an idea?
         </h3>
         <p class="text-xs md:text-sm text-gray-600 dark:text-gray-300">
