@@ -107,6 +107,15 @@ async def gmaps_pid_search(pid: str, api_key: str) -> dict[str, Any]:
             response = await client.get(url, headers=headers)
             response.raise_for_status()
             return response.json()
+
+    except httpx.HTTPStatusError as exc:
+        error_msg = "Bad Request"
+        try:
+            error_msg = exc.response.json().get("error", {}).get("message", error_msg)
+        except Exception:
+            pass
+        raise HTTPException(status_code=400, detail=error_msg)
+
     except Exception:
         raise HTTPException(status_code=400, detail="Bad Request")
 
@@ -141,6 +150,15 @@ async def gmaps_textsearch(
             response.raise_for_status()
             data = response.json()
             return data.get("places", [])
+
+    except httpx.HTTPStatusError as exc:
+        error_msg = "Bad Request"
+        try:
+            error_msg = exc.response.json().get("error", {}).get("message", error_msg)
+        except Exception:
+            pass
+        raise HTTPException(status_code=400, detail=error_msg)
+
     except Exception:
         raise HTTPException(status_code=400, detail="Bad Request")
 
@@ -154,6 +172,15 @@ async def gmaps_photo(name: str, api_key: str) -> str | None:
             response = await client.get(url, params=params, follow_redirects=True)
             response.raise_for_status()
             return str(response.url) if response.url else None
+
+    except httpx.HTTPStatusError as exc:
+        error_msg = "Bad Request"
+        try:
+            error_msg = exc.response.json().get("error", {}).get("message", error_msg)
+        except Exception:
+            pass
+        raise HTTPException(status_code=400, detail=error_msg)
+
     except Exception:
         raise HTTPException(status_code=400, detail="Bad Request")
 
@@ -174,6 +201,15 @@ async def gmaps_get_boundaries(name: str, api_key: str) -> dict[str, Any] | None
             geometry = result.get("geometry", {})
 
             return geometry.get("bounds") or geometry.get("viewport")
+
+    except httpx.HTTPStatusError as exc:
+        error_msg = "Bad Request"
+        try:
+            error_msg = exc.response.json().get("error", {}).get("message", error_msg)
+        except Exception:
+            pass
+        raise HTTPException(status_code=400, detail=error_msg)
+
     except Exception:
         raise HTTPException(status_code=400, detail="Bad Request")
 
@@ -196,6 +232,15 @@ async def gmaps_nearbysearch(location: dict[str, Any], api_key: str) -> list[dic
             response.raise_for_status()
             data = response.json()
             return data.get("places", [])
+
+    except httpx.HTTPStatusError as exc:
+        error_msg = "Bad Request"
+        try:
+            error_msg = exc.response.json().get("error", {}).get("message", error_msg)
+        except Exception:
+            pass
+        raise HTTPException(status_code=400, detail=error_msg)
+
     except Exception:
         raise HTTPException(status_code=400, detail="Bad Request")
 
@@ -207,5 +252,14 @@ async def gmaps_resolve_shortlink(id: str) -> str:
             response = await client.get(url, follow_redirects=True)
             response.raise_for_status()
             return str(response.url)
+
+    except httpx.HTTPStatusError as exc:
+        error_msg = "Bad Request"
+        try:
+            error_msg = exc.response.json().get("error", {}).get("message", error_msg)
+        except Exception:
+            pass
+        raise HTTPException(status_code=400, detail=error_msg)
+
     except Exception:
         raise HTTPException(status_code=400, detail="Bad Request")
