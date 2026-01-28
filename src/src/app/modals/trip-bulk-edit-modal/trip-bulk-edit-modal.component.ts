@@ -103,7 +103,6 @@ export class TripBulkEditModalComponent {
       ?.valueChanges.pipe(takeUntilDestroyed())
       .subscribe((enabled) => {
         const enableLngControl = this.editForm.get('enable_lng');
-        console.log('lat :', enabled, enableLngControl?.value);
         if (enabled !== enableLngControl?.value) enableLngControl?.setValue(enabled);
       });
 
