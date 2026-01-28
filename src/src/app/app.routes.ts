@@ -7,7 +7,6 @@ import { AuthGuard } from './services/auth.guard';
 import { TripComponent } from './components/trip/trip.component';
 import { TripsComponent } from './components/trips/trips.component';
 import { SharedTripComponent } from './components/shared-trip/shared-trip.component';
-import { NewTripComponent } from './components/new-trip/trip.component';
 
 export const routes: Routes = [
   {
@@ -50,11 +49,6 @@ export const routes: Routes = [
           {
             path: ':id',
             component: TripComponent,
-            title: 'TRIP - Trip',
-          },
-          {
-            path: 'n/:id',
-            component: NewTripComponent,
             title: 'TRIP - Trip',
           },
         ],
