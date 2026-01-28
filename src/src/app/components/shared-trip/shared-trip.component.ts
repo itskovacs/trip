@@ -1,111 +1,754 @@
-import { AfterViewInit, Component } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  effect,
+  inject,
+  OnDestroy,
+  signal,
+  ViewChild,
+  untracked,
+  ElementRef,
+} from '@angular/core';
 import { ApiService } from '../../services/api.service';
+import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
+import { InputTextModule } from 'primeng/inputtext';
 import { SkeletonModule } from 'primeng/skeleton';
+import { FloatLabelModule } from 'primeng/floatlabel';
 import * as L from 'leaflet';
-import { antPath } from 'leaflet-ant-path';
 import { TableModule } from 'primeng/table';
-import { Trip, FlattenedTripItem, TripDay, TripItem, TripStatus, PackingItem, ChecklistItem } from '../../types/trip';
-import { Place } from '../../types/poi';
-import { createMap, placeToMarker, createClusterGroup, tripDayMarker, gpxToPolyline } from '../../shared/map';
-import { ActivatedRoute } from '@angular/router';
-import { debounceTime, take, tap } from 'rxjs';
+import { Trip, TripDay, TripItem, TripStatus, PackingItem, ChecklistItem, TripAttachment } from '../../types/trip';
+import { Category, Place } from '../../types/poi';
+import {
+  createMap,
+  placeToMarker,
+  createClusterGroup,
+  openNavigation,
+  tripDayMarker,
+  gpxToPolyline,
+  toDotMarker,
+  getGeolocationLatLng,
+} from '../../shared/map';
+import { ActivatedRoute, Router } from '@angular/router';
+import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
+import { debounceTime, distinctUntilChanged, forkJoin, Observable, of, switchMap, take } from 'rxjs';
 import { UtilsService } from '../../services/utils.service';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { MenuItem } from 'primeng/api';
-import { MenuModule } from 'primeng/menu';
-import { LinkifyPipe } from '../../shared/linkify.pipe';
-import { TooltipModule } from 'primeng/tooltip';
-import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { MultiSelectModule } from 'primeng/multiselect';
+import { Menu, MenuModule } from 'primeng/menu';
+import { LinkifyPipe } from '../../shared/pipes/linkify.pipe';
 import { DialogModule } from 'primeng/dialog';
+import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
+import { TooltipModule } from 'primeng/tooltip';
+import { MultiSelectModule } from 'primeng/multiselect';
 import { CheckboxModule } from 'primeng/checkbox';
-import { InputTextModule } from 'primeng/inputtext';
-import { ClipboardModule } from '@angular/cdk/clipboard';
-import { calculateDistanceBetween } from '../../shared/haversine';
-import { orderByPipe } from '../../shared/order-by.pipe';
-import { generateTripICSFile } from '../trip/ics';
-import { generateTripCSVFile } from '../trip/csv';
+import { generateTripICSFile } from '../../shared/trip-base/ics';
+import { generateTripCSVFile } from '../../shared/trip-base/csv';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { FileSizePipe } from '../../shared/pipes/filesize.pipe';
+import { calculateDistanceBetween } from '../../shared/utils';
+import { TabsModule } from 'primeng/tabs';
+import { PlaceBoxContentComponent } from '../../shared/place-box-content/place-box-content.component';
+import { PlaceListItemComponent } from '../../shared/place-list-item/place-list-item.component';
+
+interface ViewTripItem extends TripItem {
+  status?: TripStatus;
+  distance?: number;
+}
+
+interface DayViewModel {
+  day: TripDay;
+  items: ViewTripItem[];
+  stats: {
+    count: number;
+    cost: number;
+    hasPlaces: boolean;
+  };
+}
+
+interface HighlightData {
+  paths: { coords: [number, number][]; options: any }[];
+  markers: any[];
+  gpxData: string[];
+  bounds: [number, number][];
+}
+
+const HIGHLIGHT_COLORS = [
+  '#e6194b',
+  '#3cb44b',
+  '#4363d8',
+  '#9a6324',
+  '#f58231',
+  '#911eb4',
+  '#46f0f0',
+  '#f032e6',
+  '#bcf60c',
+  '#fabebe',
+  '#008080',
+  '#e6beff',
+  '#808000',
+];
 
 @Component({
   selector: 'app-shared-trip',
   standalone: true,
   imports: [
     CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
     SkeletonModule,
     MenuModule,
+    InputTextModule,
     LinkifyPipe,
+    FloatLabelModule,
     TableModule,
     ButtonModule,
     DecimalPipe,
-    TooltipModule,
     DialogModule,
-    ReactiveFormsModule,
-    InputTextModule,
-    FormsModule,
+    TooltipModule,
+    ClipboardModule,
     MultiSelectModule,
     CheckboxModule,
-    ClipboardModule,
-    orderByPipe,
+    FileSizePipe,
+    TabsModule,
+    PlaceBoxContentComponent,
+    PlaceListItemComponent,
   ],
+  changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './shared-trip.component.html',
   styleUrls: ['./shared-trip.component.scss'],
 })
-export class SharedTripComponent implements AfterViewInit {
-  token?: string;
-  statuses: TripStatus[] = [];
-  trip?: Trip;
-  places: Place[] = [];
-  flattenedTripItems: FlattenedTripItem[] = [];
-  selectedItem?: TripItem & { status?: TripStatus };
-  tableExpandableMode = false;
-  isPrinting = false;
-  isArchivalReviewDisplayed = false;
+export class SharedTripComponent implements AfterViewInit, OnDestroy {
+  @ViewChild('resizeHandle') resizeHandle?: ElementRef<HTMLDivElement>;
+  @ViewChild('menuTripActions') menuTripActions!: Menu;
+  @ViewChild('menuPlanDayActions') menuPlanDayActions!: Menu;
+  @ViewChild('menuSelectedItemActions') menuSelectedItemActions!: Menu;
+  @ViewChild('menuTripDayActions') menuTripDayActions!: Menu;
+  @ViewChild('menuSelectedDayActions') menuSelectedDayActions!: Menu;
+  @ViewChild('selectedPanel', { read: ElementRef }) selectedPanelRef?: ElementRef;
 
-  isMapFullscreen = false;
-  isMapFullscreenDays = false;
-  totalPrice = 0;
-  collapsedTripDays = false;
-  collapsedTripPlaces = false;
-  packingDialogVisible = false;
-  isExpanded = false;
-  isFilteringMode = false;
-  packingList: PackingItem[] = [];
-  dispPackingList: Record<string, PackingItem[]> = {};
-  checklistDialogVisible = false;
-  checklistItems: ChecklistItem[] = [];
-  dispchecklist: ChecklistItem[] = [];
+  selectedPanelHeight = signal<number>(0);
+  plansSearchInput = new FormControl<string>('');
+  apiService: ApiService;
+  route: ActivatedRoute;
+  router: Router;
+  dialogService: DialogService;
+  utilsService: UtilsService;
+  clipboard: Clipboard;
+
+  trip = signal<Trip | null>(null);
+  packingList = signal<PackingItem[]>([]);
+  checklistItems = signal<ChecklistItem[]>([]);
+
+  searchQuery = signal<string>('');
+  isPlansPanelCollapsed = signal<boolean>(false);
+  isFilteringMode = signal<boolean>(false);
+  selectedPlace = signal<Place | null>(null);
+  selectedItem = signal<ViewTripItem | null>(null);
+  selectedPlaceActiveTabIndex = signal<number>(0);
+  highlightedDayId = signal<number | null>(null);
+  isPlacesPanelVisible = signal<boolean>(false);
+  isDaysPanelVisible = signal<boolean>(false);
+  showOnlyUnplannedPlaces = signal<boolean>(false);
+  isPrinting = signal<boolean>(false);
+  isArchivalReviewDisplayed = signal<boolean>(false);
+  isArchiveWarningVisible = signal<boolean>(true);
+  tooltipCopied = signal(false);
+  selectedDay = signal<TripDay | null>(null);
+
+  panelWidth = signal<number | null>(null);
+  panelDeltaX = 0;
+  panelDeltaWidth = 0;
+
+  token?: string;
+  isShareDialogVisible = false;
+  isPackingDialogVisible = false;
+  isAttachmentsDialogVisible = false;
+  isChecklistDialogVisible = false;
+  isBetaDialogVisible = true;
+  selectedItemProps = signal<string[]>(['place', 'comment', 'price', 'status']);
+
+  tripSharedURL$?: Observable<string>;
+  username: string;
+
+  places = computed(() => this.trip()?.places ?? []);
+  usedPlaceIds = computed(() => {
+    const trip = this.trip();
+    if (!trip?.days) return new Set<number>();
+    const ids = new Set<number>();
+    for (const day of trip.days) {
+      for (const item of day.items) {
+        if (item.place?.id) ids.add(item.place.id);
+      }
+    }
+    return ids;
+  });
+  selectedPlaceItems = computed<ViewTripItem[]>(() => {
+    const place = this.selectedPlace();
+    if (!place) return [];
+
+    return this.tripViewModel()
+      .flatMap((vm) => vm.items)
+      .filter((item) => item.place?.id === place.id);
+  });
+  dispSelectedPlace = computed(() => {
+    const place = this.selectedPlace();
+    if (!place) return null;
+    const items = this.selectedPlaceItems();
+    return {
+      place,
+      items,
+      count: items.length,
+      isUsed: items.length > 0,
+    };
+  });
+  dispSelectedItem = computed(() => {
+    const item = this.selectedItem();
+    if (!item) return null;
+
+    const trip = this.trip();
+    const dayId = item.day_id;
+    const dayLabel = dayId && trip?.days?.length ? (trip.days.find((d) => d.id === dayId)?.label ?? '') : '';
+
+    return { ...item, day: dayLabel };
+  });
+  hasSelection = computed(() => this.selectedPlace() !== null || this.selectedItem() !== null);
+  tripViewModel = computed(() => {
+    const currentTrip = this.trip();
+    if (!currentTrip?.days) return [];
+
+    const query = this.searchQuery().toLowerCase().trim();
+    const hasQuery = query.length > 0;
+    const statusesMap = new Map(this.utilsService.statuses.map((s) => [s.label, s]));
+
+    return currentTrip.days
+      .map((day) => {
+        let filteredItems = day.items;
+
+        if (hasQuery) {
+          filteredItems = filteredItems.filter(
+            (item) =>
+              item.text?.toLowerCase().includes(query) ||
+              item.place?.name.toLowerCase().includes(query) ||
+              item.comment?.toLowerCase().includes(query),
+          );
+        }
+
+        if (filteredItems.length === 0 && hasQuery) {
+          return null;
+        }
+        filteredItems.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+
+        let prevLat: number | null = null;
+        let prevLng: number | null = null;
+        let totalCost = 0;
+        let hasPlaces = false;
+
+        const items = filteredItems.map((item) => {
+          const statusObj =
+            typeof item.status === 'string' ? statusesMap.get(item.status) : (item.status as TripStatus | undefined);
+
+          const lat = item.lat ?? item.place?.lat;
+          const lng = item.lng ?? item.place?.lng;
+
+          let distance: number | undefined;
+          if (lat != null && lng != null) {
+            if (prevLat != null && prevLng != null) {
+              distance = Math.round(calculateDistanceBetween(prevLat, prevLng, lat, lng) * 10) / 10;
+            }
+            prevLat = lat;
+            prevLng = lng;
+          }
+
+          if (item.price) totalCost += item.price;
+          if (item.place) hasPlaces = true;
+
+          return { ...item, status: statusObj, distance };
+        });
+
+        return {
+          day,
+          items,
+          stats: {
+            count: items.length,
+            cost: totalCost,
+            hasPlaces,
+          },
+        };
+      })
+      .filter((vm) => vm !== null);
+  });
+  totalPrice = computed(() => {
+    const trip = this.trip();
+    if (!trip?.days) return 0;
+
+    return trip.days.reduce((total, day) => {
+      return (
+        total +
+        day.items.reduce((dayTotal, item) => {
+          return dayTotal + (item.price || 0);
+        }, 0)
+      );
+    }, 0);
+  });
+  displayedPlaces = computed(() => {
+    const allPlaces = this.places();
+    if (!this.showOnlyUnplannedPlaces()) return allPlaces;
+
+    const usedIds = this.usedPlaceIds();
+    return allPlaces.filter((place) => !usedIds.has(place.id));
+  });
+  dispPackingList = computed(() => {
+    const list = this.packingList();
+    const sorted = [...list].sort((a, b) =>
+      a.packed !== b.packed ? (a.packed ? 1 : -1) : a.text.localeCompare(b.text),
+    );
+
+    return sorted.reduce<Record<string, PackingItem[]>>((acc, item) => {
+      (acc[item.category] ??= []).push(item);
+      return acc;
+    }, {});
+  });
+  dispChecklist = computed(() => {
+    const items = this.checklistItems();
+    return [...items].sort((a, b) => (a.checked !== b.checked ? (a.checked ? 1 : -1) : b.id - a.id));
+  });
+  watchlistItems = computed(() => {
+    return this.tripViewModel()
+      .flatMap((day) => day.items)
+      .filter((item) => item.status && ['pending', 'constraint'].includes(item.status.label));
+  });
+  itemsToPasteCount = computed(() => this.utilsService.packingListToCopy.length);
+  highlightLayerData = computed<HighlightData | null>(() => {
+    const dayId = this.highlightedDayId();
+    const trip = this.trip();
+    if (dayId === null || !trip?.days) return null;
+
+    const paths: { coords: [number, number][]; options: any }[] = [];
+    const markers: any[] = [];
+    const gpxData: string[] = [];
+    const bounds: [number, number][] = [];
+
+    const processItems = (items: TripItem[], color: string, isSingleDay: boolean) => {
+      const coords: [number, number][] = [];
+
+      for (const item of items) {
+        const lat = item.lat || item.place?.lat;
+        const lng = item.lng || item.place?.lng;
+
+        if (!lat || !lng) continue;
+
+        if (!item.place) markers.push(item);
+        if (item.gpx) gpxData.push(item.gpx);
+        bounds.push([lat, lng]);
+        coords.push([lat, lng]);
+      }
+
+      if (items.length > 2 && coords.length > 0) {
+        paths.push({
+          coords,
+          options: {
+            delay: isSingleDay ? 400 : 600,
+            weight: 5,
+            color,
+          },
+        });
+      }
+    };
+
+    if (dayId === -1) {
+      trip.days.forEach((day, idx) => {
+        const color = HIGHLIGHT_COLORS[idx % HIGHLIGHT_COLORS.length];
+        processItems(day.items, color, false);
+      });
+    } else {
+      const day = trip.days.find((d) => d.id === dayId);
+      if (day) processItems(day.items, '#0000FF', true);
+    }
+
+    return bounds.length >= 2 || paths.length > 0 ? { paths, markers, gpxData, bounds } : null;
+  });
+  selectedItemPropsSet = computed(() => new Set(this.selectedItemProps()));
+
+  menuTripExportItems: MenuItem[] = [
+    {
+      label: 'Export',
+      items: [
+        {
+          label: 'Calendar (.ics)',
+          icon: 'pi pi-calendar',
+          command: () => generateTripICSFile(this.trip()!, this.utilsService),
+        },
+        {
+          label: 'CSV',
+          icon: 'pi pi-file',
+          command: () => generateTripCSVFile(this.trip()!),
+        },
+        {
+          label: 'Pretty Print',
+          icon: 'pi pi-print',
+          command: () => this.togglePrint(),
+        },
+      ],
+    },
+  ];
+  menuTripActionsItems: MenuItem[] = [];
+  menuTripPackingItems: MenuItem[] = [];
+  menuTripDayActionsItems: MenuItem[] = [];
+  menuPlanDayActionsItems: MenuItem[] = [];
+  menuSelectedItemActionsItems: MenuItem[] = [];
+  menuSelectedDayActionsItems: MenuItem[] = [];
+  selectedTripDayForMenu?: TripDay;
+  statuses: TripStatus[];
+  availableItemProps = ['place', 'comment', 'latlng', 'price', 'status', 'distance'];
 
   map?: L.Map;
   markerClusterGroup?: L.MarkerClusterGroup;
-  tripMapTemporaryMarker?: L.Marker;
-  tripMapGpxLayer?: L.Layer;
-  tripMapHoveredElement?: HTMLElement;
   tripMapAntLayer?: L.FeatureGroup;
-  tripMapAntLayerDayID?: number;
+  markers = new Map<number, L.Marker>();
+  selectedItemMarker?: L.Marker;
+  highlightedMarkerElement?: HTMLElement;
 
-  readonly menuTripActionsItems: MenuItem[] = [
-    {
+  constructor() {
+    this.apiService = inject(ApiService);
+    this.route = inject(ActivatedRoute);
+    this.router = inject(Router);
+    this.dialogService = inject(DialogService);
+    this.utilsService = inject(UtilsService);
+    this.clipboard = inject(Clipboard);
+
+    this.statuses = this.utilsService.statuses;
+    this.username = this.utilsService.loggedUser;
+
+    this.plansSearchInput.valueChanges
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed())
+      .subscribe((value) => this.searchQuery.set(value || ''));
+
+    effect(() => {
+      const vm = this.tripViewModel();
+      untracked(() => {
+        if (this.map && this.trip()) this.updateMapVisualization(vm);
+      });
+    });
+
+    effect(() => {
+      const data = this.highlightLayerData();
+
+      untracked(() => {
+        if (this.tripMapAntLayer) {
+          this.map?.removeLayer(this.tripMapAntLayer);
+          this.tripMapAntLayer = undefined;
+        }
+
+        if (!data || !this.map) return;
+
+        const layerGroup = L.featureGroup();
+        data.paths.forEach((p) => {
+          const polyline = L.polyline(p.coords, {
+            color: p.options.color,
+            weight: p.options.weight,
+            className: 'animated-path',
+            smoothFactor: 1.5,
+          });
+          layerGroup.addLayer(polyline);
+        });
+        data.markers.forEach((item) => {
+          const marker = tripDayMarker(item);
+          marker.on('click', () => {
+            if (this.selectedItem()?.id === item.id) {
+              this.selectedItem.set(null);
+              this.selectedPlace.set(null);
+              this.selectedDay.set(null);
+              return;
+            }
+            this.selectedItem.set(this.normalizeItem(item));
+            this.selectedPlace.set(null);
+            this.selectedDay.set(null);
+          });
+          layerGroup.addLayer(marker);
+        });
+        data.gpxData.forEach((gpx) => layerGroup.addLayer(gpxToPolyline(gpx)));
+
+        this.tripMapAntLayer = layerGroup;
+
+        requestAnimationFrame(() => {
+          if (this.tripMapAntLayer && this.map) {
+            this.tripMapAntLayer.addTo(this.map);
+            this.map.fitBounds(data.bounds, { padding: [30, 30], maxZoom: 16 });
+          }
+        });
+      });
+    });
+
+    effect(() => {
+      const place = this.selectedPlace();
+      const item = this.selectedItem();
+      const _ = this.selectedDay(); //Force recompute height on day toggle
+      const __ = this.selectedPlaceActiveTabIndex(); //Force recompute height on tab change
+
+      //RAF for angular CD
+      requestAnimationFrame(() => {
+        if (this.selectedPanelRef?.nativeElement) {
+          const height = this.selectedPanelRef.nativeElement.offsetHeight;
+          this.selectedPanelHeight.set(height);
+        } else this.selectedPanelHeight.set(0);
+      });
+
+      untracked(() => {
+        this.clearSelectedItemHighlight();
+        if (!this.map) return;
+        if (place) {
+          const existingMarker = this.markers.get(place.id);
+          if (existingMarker) this.highlightExistingMarker(existingMarker);
+          return;
+        } else if (item) {
+          const lat = item.lat;
+          const lng = item.lng;
+          if (lat && lng) {
+            this.selectedItemMarker = tripDayMarker(item);
+            this.selectedItemMarker.addTo(this.map);
+          }
+        }
+      });
+    });
+
+    const plansPanelWidth = localStorage.getItem('plansPanelWidth');
+    if (plansPanelWidth) this.panelWidth.set(parseInt(plansPanelWidth));
+
+    effect(() => {
+      const currentTrip = this.trip();
+
+      untracked(() => {
+        if (!this.map && currentTrip) requestAnimationFrame(() => this.initMap());
+      });
+    });
+  }
+
+  ngAfterViewInit() {
+    this.route.paramMap.pipe(take(1)).subscribe((params) => {
+      const token = params.get('token');
+      if (!token) return;
+      this.token = token;
+      this.loadTripData(token);
+    });
+  }
+
+  ngOnDestroy() {
+    this.cleanupMap();
+  }
+
+  cleanupMap() {
+    if (this.tripMapAntLayer) {
+      this.map?.removeLayer(this.tripMapAntLayer);
+      this.tripMapAntLayer = undefined;
+    }
+
+    this.markers.forEach((marker) => marker.remove());
+    this.markers.clear();
+
+    if (this.markerClusterGroup) {
+      this.markerClusterGroup.clearLayers();
+      this.markerClusterGroup = undefined;
+    }
+
+    if (this.map) {
+      this.map.remove();
+      this.map = undefined;
+    }
+  }
+
+  getItemDayLabel(item: ViewTripItem): string {
+    const trip = this.trip();
+    if (!trip?.days) return '';
+    const day = trip.days.find((d) => d.id === item.day_id);
+    return day?.label || '';
+  }
+
+  loadTripData(token: string) {
+    this.apiService
+      .getSharedTrip(token)
+      .pipe(take(1))
+      .subscribe({
+        next: (trip) => this.trip.set(trip),
+      });
+  }
+
+  initMap() {
+    this.cleanupMap();
+    const contextMenuItems = [
+      {
+        text: 'Copy coordinates',
+        callback: (e: any) => {
+          const { lat, lng } = e.latlng;
+          navigator.clipboard.writeText(`${parseFloat(lat).toFixed(5)}, ${parseFloat(lng).toFixed(5)}`);
+        },
+      },
+    ];
+
+    this.map = createMap(contextMenuItems);
+    this.markerClusterGroup = createClusterGroup().addTo(this.map);
+    this.updateMapVisualization(this.tripViewModel());
+    this.resetMapBounds();
+  }
+
+  updateMapVisualization(viewModels: DayViewModel[]) {
+    if (!this.map || !this.markerClusterGroup) return;
+
+    this.markerClusterGroup.clearLayers();
+    this.markers.clear();
+
+    if (this.tripMapAntLayer) {
+      this.map.removeLayer(this.tripMapAntLayer);
+      this.tripMapAntLayer = undefined;
+    }
+
+    const usedIds = this.usedPlaceIds();
+    const allPlaces = this.places();
+    const markersToAdd: L.Marker[] = [];
+
+    const itemsByPlaceId = new Map<number, ViewTripItem[]>();
+    viewModels.forEach((vm) => {
+      vm.items.forEach((item) => {
+        if (item.place?.id) {
+          if (!itemsByPlaceId.has(item.place.id)) {
+            itemsByPlaceId.set(item.place.id, []);
+          }
+          itemsByPlaceId.get(item.place.id)!.push(item);
+        }
+      });
+    });
+
+    allPlaces.forEach((place) => {
+      const isUsed = usedIds.has(place.id);
+      const marker = placeToMarker(place, false, !isUsed);
+      const itemsUsingPlace = itemsByPlaceId.get(place.id) || [];
+
+      marker.on('click', () => {
+        this.selectedPlace.set(place);
+        this.selectedItem.set(null);
+        this.selectedDay.set(null);
+        this.selectedPlaceActiveTabIndex.set(itemsUsingPlace.length > 0 ? itemsUsingPlace.length : 0);
+      });
+
+      this.markers.set(place.id, marker);
+      markersToAdd.push(marker);
+    });
+
+    if (markersToAdd.length) {
+      this.markerClusterGroup.addLayers(markersToAdd);
+    }
+  }
+
+  resetMapBounds() {
+    const allPlaces = this.places();
+
+    if (!allPlaces.length) {
+      const trip = this.trip();
+      if (!trip?.days.length) return;
+
+      const itemsWithCoordinates = this.tripViewModel()
+        .flatMap((dayVM) => dayVM.items)
+        .filter((i) => i.lat != null && i.lng != null);
+
+      if (!itemsWithCoordinates.length) return;
+      this.map?.fitBounds(
+        itemsWithCoordinates.map((i) => [i.lat!, i.lng!]),
+        { padding: [15, 15] },
+      );
+      return;
+    }
+
+    this.map?.fitBounds(
+      allPlaces.map((p) => [p.lat, p.lng]),
+      { padding: [15, 15] },
+    );
+  }
+
+  normalizeItem(item: TripItem): ViewTripItem {
+    const statusObj =
+      typeof item.status === 'string'
+        ? this.utilsService.statuses.find((s) => s.label === item.status)
+        : (item.status as TripStatus | undefined);
+
+    return { ...item, status: statusObj };
+  }
+
+  toGithub() {
+    this.utilsService.toGithubTRIP();
+  }
+
+  openMenuSelectedItemActions(event: any, item: any) {
+    this.menuSelectedItemActionsItems = [
+      {
+        label: 'Actions',
+        items: [
+          {
+            label: 'Open Navigation',
+            icon: 'pi pi-car',
+            command: () => this.itemToNavigation(),
+          },
+        ],
+      },
+    ];
+    this.menuSelectedItemActions.toggle(event);
+  }
+
+  openMenuPlanDayActionsItems(event: any, d: TripDay) {
+    this.menuPlanDayActionsItems = [
+      {
+        label: 'Actions',
+        items: [
+          {
+            label: 'Summary',
+            icon: 'pi pi-minus',
+            command: () => this.onDayClick(d),
+          },
+          {
+            label: 'Highlight',
+            icon: 'pi pi-directions',
+            command: () => this.toggleTripDayHighlight(d.id),
+          },
+          {
+            label: 'Open Navigation',
+            icon: 'pi pi-car',
+            command: () => this.tripDayToNavigation(d.id),
+          },
+        ],
+      },
+    ];
+    this.menuPlanDayActions.toggle(event);
+  }
+
+  openMenuTripActionsItems(event: any) {
+    const lists = {
       label: 'Lists',
       items: [
         {
+          label: 'Attachments',
+          icon: 'pi pi-paperclip',
+          command: () => {
+            this.openAttachmentsModal();
+          },
+        },
+        {
           label: 'Checklist',
-          icon: 'pi pi-check-square',
+          icon: 'pi pi-list-check',
           command: () => {
             this.openChecklist();
           },
         },
         {
-          label: 'Packing',
+          label: 'Packing list',
           icon: 'pi pi-briefcase',
           command: () => {
             this.openPackingList();
           },
         },
       ],
-    },
-    {
+    };
+    const actions = {
       label: 'Trip',
       items: [
         {
@@ -116,716 +759,379 @@ export class SharedTripComponent implements AfterViewInit {
           },
         },
       ],
-    },
-  ];
-  readonly menuTripTableActionsItems: MenuItem[] = [
-    {
-      label: 'Actions',
-      items: [
-        {
-          label: 'Pretty Print',
-          icon: 'pi pi-print',
-          command: () => {
-            this.togglePrint();
-          },
-        },
-      ],
-    },
-    {
-      label: 'Table',
-      items: [
-        {
-          label: 'Filter',
-          icon: 'pi pi-filter',
-          command: () => {
-            this.toggleFiltering();
-          },
-        },
-        {
-          label: 'Group',
-          icon: 'pi pi-arrow-down-left-and-arrow-up-right-to-center',
-          command: () => {
-            this.tableExpandableMode = !this.tableExpandableMode;
-          },
-        },
-      ],
-    },
-    {
-      label: 'Directions',
-      items: [
-        {
-          label: 'Highlight',
-          icon: 'pi pi-directions',
-          command: () => {
-            this.toggleTripDaysHighlight();
-          },
-        },
-        {
-          label: 'GMaps itinerary',
-          icon: 'pi pi-car',
-          command: () => {
-            this.tripToNavigation();
-          },
-        },
-      ],
-    },
-  ];
-  readonly menuTripExportItems: MenuItem[] = [
-    {
-      label: 'Actions',
-      items: [
-        {
-          label: 'Calendar (.ics)',
-          icon: 'pi pi-calendar',
-          command: () => generateTripICSFile(this.flattenedTripItems, this.trip?.name, this.utilsService),
-        },
-        {
-          label: 'CSV',
-          icon: 'pi pi-file',
-          command: () => generateTripCSVFile(this.flattenedTripItems, this.trip?.name),
-        },
-        {
-          label: 'Pretty Print',
-          icon: 'pi pi-print',
-          command: () => {
-            this.togglePrint();
-          },
-        },
-      ],
-    },
-  ];
-  readonly tripTableColumns: string[] = [
-    'day',
-    'time',
-    'text',
-    'place',
-    'comment',
-    'LatLng',
-    'price',
-    'status',
-    'distance',
-  ];
-  tripTableSelectedColumns: string[] = ['day', 'time', 'text', 'place', 'comment'];
-  tripTableSearchInput = new FormControl('');
+    };
 
-  dayStatsCache = new Map<number, { price: number; places: number }>();
-  placesUsedInTable = new Set<number>();
-
-  constructor(
-    private apiService: ApiService,
-    private utilsService: UtilsService,
-    private route: ActivatedRoute,
-  ) {
-    this.statuses = this.utilsService.statuses;
-    this.tripTableSearchInput.valueChanges.pipe(debounceTime(300), takeUntilDestroyed()).subscribe({
-      next: (value) => {
-        if (value) this.flattenTripDayItems(value.toLowerCase());
-        else this.flattenTripDayItems();
-      },
-    });
+    this.menuTripActionsItems = [lists, actions];
+    this.menuTripActions.toggle(event);
   }
 
-  ngAfterViewInit(): void {
-    this.route.paramMap
-      .pipe(
-        take(1),
-        tap((params) => {
-          const token = params.get('token');
-          if (token) {
-            this.token = token;
-            this.loadTripData(token);
-          }
-        }),
-      )
-      .subscribe();
-  }
-
-  loadTripData(token: string): void {
-    this.apiService
-      .getSharedTrip(token)
-      .pipe(take(1))
-      .subscribe({
-        next: (trip) => {
-          this.trip = trip;
-          this.flattenTripDayItems();
-          this.updateTotalPrice();
-          this.initMap();
-        },
-      });
-  }
-
-  initMap(): void {
-    const contentMenuItems = [
+  openMenuSelectedDayActions(event: any, d: TripDay) {
+    this.menuSelectedDayActionsItems = [
       {
-        text: 'Copy coordinates',
-        callback: (e: any) => {
-          const latlng = e.latlng;
-          navigator.clipboard.writeText(`${parseFloat(latlng.lat).toFixed(5)}, ${parseFloat(latlng.lng).toFixed(5)}`);
-        },
+        label: 'Actions',
+        items: [
+          {
+            label: 'Open Navigation',
+            icon: 'pi pi-car',
+            command: () => this.tripDayToNavigation(d.id),
+          },
+          {
+            label: 'Highlight',
+            icon: 'pi pi-directions',
+            command: () => this.toggleTripDayHighlight(d.id),
+          },
+        ],
       },
     ];
-    setTimeout(() => {
-      this.map = createMap(contentMenuItems);
-      this.markerClusterGroup = createClusterGroup().addTo(this.map);
-      this.setPlacesAndMarkers();
-      this.resetMapBounds();
-    }, 50); // HACK: Prevent map not found due to @if
+    this.menuSelectedDayActions.toggle(event);
+  }
+
+  toggleTripDayHighlight(newValue: number | null) {
+    this.highlightedDayId.update((current) => (current === newValue ? null : newValue));
+  }
+
+  toggleTripDaysHighlight() {
+    this.highlightedDayId.update((current) => (current === -1 ? null : -1));
+  }
+
+  back() {
+    this.router.navigate(['/trips']);
   }
 
   togglePrint() {
-    this.isPrinting = true;
+    this.isPrinting.update((v) => !v);
     setTimeout(() => {
       window.print();
-      this.isPrinting = false;
+      this.isPrinting.update((v) => !v);
     }, 100);
   }
 
   toggleFiltering() {
-    this.isFilteringMode = !this.isFilteringMode;
-    if (!this.isFilteringMode) this.flattenTripDayItems();
+    this.isFilteringMode.update((v) => !v);
   }
 
-  toGithub() {
-    this.utilsService.toGithubTRIP();
+  togglePlansPanel() {
+    this.isPlansPanelCollapsed.update((v) => !v);
   }
 
-  getDayStats(day: TripDay): { price: number; places: number } {
-    if (this.dayStatsCache.has(day.id)) return this.dayStatsCache.get(day.id)!;
-
-    const stats = day.items.reduce(
-      (acc, item) => {
-        acc.price += item.price || 0;
-        if (item.place) acc.places += 1;
-        return acc;
-      },
-      { price: 0, places: 0 },
-    );
-    this.dayStatsCache.set(day.id, stats);
-    return stats;
+  togglePlacesPanel() {
+    this.isPlacesPanelVisible.update((v) => !v);
   }
 
-  get getWatchlistData(): (TripItem & { status: TripStatus })[] {
-    if (!this.trip?.days) return [];
-
-    return this.trip.days
-      .flatMap((day) => day.items.filter((item) => ['constraint', 'pending'].includes(item.status as string)))
-      .map((item) => ({
-        ...item,
-        status: this.statusToTripStatus(item.status as string),
-      })) as (TripItem & { status: TripStatus })[];
+  toggleDaysPanel() {
+    this.isDaysPanelVisible.update((v) => !v);
   }
 
-  isPlaceUsed(id: number): boolean {
-    return this.placesUsedInTable.has(id);
+  toggleUnplannedPlacesFilter() {
+    this.showOnlyUnplannedPlaces.update((v) => !v);
   }
 
-  statusToTripStatus(status?: string): TripStatus | undefined {
-    if (!status) return undefined;
-    return this.statuses.find((s) => s.label == status);
+  toggleArchiveReview() {
+    this.isArchivalReviewDisplayed.update((v) => !v);
   }
 
-  flattenTripDayItems(searchValue?: string) {
-    const searchLower = (searchValue || '').toLowerCase();
-    let prevLat: number, prevLng: number;
-    this.flattenedTripItems = this.trip!.days.flatMap((day) => day.items.map((item) => ({ item, day })))
-      .filter(
-        ({ item }) =>
-          !searchLower ||
-          item.text.toLowerCase().includes(searchLower) ||
-          item.place?.name.toLowerCase().includes(searchLower) ||
-          item.comment?.toLowerCase().includes(searchLower),
-      )
-      .sort((a, b) => {
-        const dateA = a.day.dt;
-        const dateB = b.day.dt;
-        if (dateA && dateB) return dateA.localeCompare(dateB) || (a.item.time || '').localeCompare(b.item.time || '');
-        if (!dateA && !dateB) {
-          return (
-            (a.day.label || '').localeCompare(b.day.label || '') || (a.item.time || '').localeCompare(b.item.time || '')
-          );
-        }
-        return dateA ? -1 : 1;
-      })
-      .map(({ item, day }) => {
-        const lat = item.lat ?? item.place?.lat;
-        const lng = item.lng ?? item.place?.lng;
-
-        let distance: number | undefined;
-        if (lat && lng) {
-          if (prevLat && prevLng) {
-            const d = calculateDistanceBetween(prevLat, prevLng, lat, lng);
-            distance = +(Math.round(d * 1000) / 1000).toFixed(2);
-          }
-          prevLat = lat;
-          prevLng = lng;
-        }
-
-        return {
-          td_id: day.id,
-          td_label: day.label,
-          td_date: day.dt,
-          id: item.id,
-          time: item.time,
-          text: item.text,
-          status: this.statusToTripStatus(item.status as string),
-          comment: item.comment,
-          price: item.price || undefined,
-          day_id: item.day_id,
-          place: item.place,
-          image: item.image,
-          image_id: item.image_id,
-          gpx: item.gpx,
-          lat,
-          lng,
-          distance,
-          paid_by: item.paid_by,
-        };
+  getDayAttachments(day: TripDay): TripAttachment[] {
+    const attachments = new Map<number, TripAttachment>();
+    day.items.forEach((item) => {
+      if (!item.attachments) return;
+      item.attachments.forEach((attachment) => {
+        attachments.set(attachment.id, attachment);
       });
-  }
-
-  computePlacesUsedInTable() {
-    this.placesUsedInTable.clear();
-    this.flattenedTripItems.forEach((item) => {
-      if (item.place?.id) this.placesUsedInTable.add(item.place.id);
     });
+    return Array.from(attachments.values());
   }
 
-  setPlacesAndMarkers() {
-    this.computePlacesUsedInTable();
-    this.places = [...(this.trip?.places ?? [])].sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
-    this.markerClusterGroup?.clearLayers();
-    this.places.forEach((p) => {
-      const marker = this._placeToMarker(p);
-      this.markerClusterGroup?.addLayer(marker);
-    });
-  }
-
-  _placeToMarker(place: Place): L.Marker {
-    const marker = placeToMarker(place, false, !this.placesUsedInTable.has(place.id));
-    marker.on('click', () => {
-      this.onMapMarkerClick(place.id);
-      marker.closeTooltip();
-    });
-    return marker;
-  }
-
-  resetMapBounds() {
-    if (!this.places.length) {
-      this.map?.fitBounds(
-        this.flattenedTripItems.filter((i) => i.lat != null && i.lng != null).map((i) => [i.lat!, i.lng!]),
-        { padding: [30, 30] },
-      );
-      return;
-    }
-
-    this.map?.fitBounds(
-      this.places.map((p) => [p.lat, p.lng]),
-      { padding: [30, 30] },
-    );
-  }
-
-  toggleMapFullscreen() {
-    this.isMapFullscreen = !this.isMapFullscreen;
-    document.body.classList.toggle('overflow-hidden');
-
-    setTimeout(() => {
-      this.map?.invalidateSize();
-      if (!this.tripMapAntLayer) this.resetMapBounds();
-      else this.map?.fitBounds(this.tripMapAntLayer.getBounds());
-    }, 10);
-  }
-
-  toggleMapFullscreenDays() {
-    this.isMapFullscreenDays = !this.isMapFullscreenDays;
-  }
-
-  updateTotalPrice(n?: number) {
-    if (n) {
-      this.totalPrice += n;
-      return;
-    }
-    this.totalPrice =
-      this.trip?.days.flatMap((d) => d.items).reduce((price, item) => price + (item.price ?? 0), 0) ?? 0;
-  }
-
-  resetPlaceHighlightMarker() {
-    if (this.tripMapHoveredElement) {
-      this.tripMapHoveredElement.classList.remove('list-hover');
-      this.tripMapHoveredElement = undefined;
-    }
-
-    if (this.tripMapTemporaryMarker) {
-      this.map?.removeLayer(this.tripMapTemporaryMarker);
-      this.tripMapTemporaryMarker = undefined;
-    }
-
-    if (this.tripMapGpxLayer) {
-      this.map?.removeLayer(this.tripMapGpxLayer);
-      this.tripMapGpxLayer = undefined;
-    }
-    this.resetMapBounds();
-  }
-
-  placeHighlightMarker(item: any) {
-    if (this.tripMapHoveredElement || this.tripMapTemporaryMarker) this.resetPlaceHighlightMarker();
-
-    let marker: L.Marker | undefined;
-    this.markerClusterGroup?.eachLayer((layer: any) => {
-      if (layer.getLatLng && layer.getLatLng().equals([item.lat, item.lng])) {
-        marker = layer;
+  getDayPlaces(day: TripDay): Place[] {
+    const places = new Map<number, Place>();
+    day.items.forEach((item) => {
+      if (item.place) {
+        places.set(item.place.id, item.place);
       }
     });
+    return Array.from(places.values());
+  }
 
-    if (item.gpx) {
-      this.tripMapGpxLayer = gpxToPolyline(item.gpx);
-      this.tripMapGpxLayer.addTo(this.map!);
-    }
+  getCategoriesFromPlaces(places: Place[]): Category[] {
+    const categories = new Map<number, Category>();
+    places.forEach((p) => categories.set(p.category.id, p.category));
+    return Array.from(categories.values());
+  }
 
-    if (!marker) {
-      // TripItem without place, but latlng
-      this.tripMapTemporaryMarker = tripDayMarker(item).addTo(this.map!);
-      if (this.tripMapGpxLayer) {
-        this.map?.fitBounds([[item.lat, item.lng], (this.tripMapGpxLayer as any).getBounds()], { padding: [30, 30] });
-      } else this.map?.fitBounds([[item.lat, item.lng]], { padding: [60, 60] });
+  resetPlansWidth() {
+    this.panelWidth.set(null);
+    localStorage.removeItem('plansPanelWidth');
+  }
+
+  onPlansResizeStart(event: PointerEvent): void {
+    event.preventDefault();
+
+    const section = (event.target as HTMLElement).closest('section');
+    this.panelDeltaX = event.clientX;
+    this.panelDeltaWidth = section?.offsetWidth || 512;
+
+    const handle = event.target as HTMLElement;
+    handle.setPointerCapture(event.pointerId);
+
+    const onMove = (e: PointerEvent) => {
+      const newWidth = Math.max(320, Math.min(800, this.panelDeltaWidth + (e.clientX - this.panelDeltaX)));
+      this.panelWidth.set(newWidth);
+    };
+
+    const onUp = (e: PointerEvent) => {
+      handle.releasePointerCapture(e.pointerId);
+      localStorage.setItem('plansPanelWidth', this.panelWidth()!.toString());
+      window.removeEventListener('pointermove', onMove);
+      window.removeEventListener('pointerup', onUp);
+    };
+
+    window.addEventListener('pointermove', onMove);
+    window.addEventListener('pointerup', onUp);
+  }
+
+  onCoordsCopied() {
+    this.tooltipCopied.set(true);
+    setTimeout(() => this.tooltipCopied.set(false), 1200);
+  }
+
+  onDayClick(day: TripDay) {
+    this.toggleTripDayHighlight(null);
+    if (this.selectedDay()?.id === day.id) {
+      this.selectedPlace.set(null);
+      this.selectedItem.set(null);
+      this.selectedDay.set(null);
       return;
     }
 
-    let targetLatLng: L.LatLng | null = null;
-    const markerElement = marker.getElement() as HTMLElement; // search for Marker. If 'null', is inside Cluster
+    this.selectedDay.set(day);
+    this.selectedPlace.set(null);
+    this.selectedItem.set(null);
+    this.toggleTripDayHighlight(day.id);
+  }
+
+  onPlaceClick(place: Place) {
+    if (this.selectedPlace()?.id === place.id) {
+      this.selectedPlace.set(null);
+      this.selectedItem.set(null);
+      this.selectedDay.set(null);
+      this.selectedPlaceActiveTabIndex.set(0);
+      return;
+    }
+
+    this.selectedPlace.set(place);
+    this.selectedItem.set(null);
+    this.selectedDay.set(null);
+    const itemCount = this.selectedPlaceItems().length;
+    this.selectedPlaceActiveTabIndex.set(itemCount);
+  }
+
+  onRowClick(item: ViewTripItem) {
+    if (item.place) {
+      const currentSelection = this.selectedPlace();
+      // compute tab index for items
+      const placeItems = this.tripViewModel()
+        .flatMap((vm) => vm.items)
+        .filter((i) => i.place?.id === item.place?.id);
+
+      const newTabIndex = placeItems.findIndex((i) => i.id === item.id);
+      const targetTabIndex = newTabIndex >= 0 ? newTabIndex : 0;
+      if (currentSelection?.id === item.place.id) {
+        const currentTabIndex = this.selectedPlaceActiveTabIndex();
+
+        if (currentTabIndex === targetTabIndex) {
+          this.selectedPlace.set(null);
+          this.selectedItem.set(null);
+          this.selectedDay.set(null);
+          this.selectedPlaceActiveTabIndex.set(0);
+          return;
+        }
+
+        this.selectedPlaceActiveTabIndex.set(targetTabIndex);
+        this.selectedItem.set(null);
+        return;
+      }
+
+      this.selectedPlace.set(item.place);
+      this.selectedItem.set(null);
+      this.selectedDay.set(null);
+      this.selectedPlaceActiveTabIndex.set(targetTabIndex);
+      return;
+    }
+
+    const currentItem = this.selectedItem();
+    if (currentItem?.id === item.id) {
+      this.selectedItem.set(null);
+      this.selectedPlace.set(null);
+      this.selectedDay.set(null);
+      return;
+    }
+
+    this.selectedItem.set(item);
+    this.selectedPlace.set(null);
+    this.selectedDay.set(null);
+  }
+
+  async centerOnMe() {
+    const position = await getGeolocationLatLng();
+    if (position.err) {
+      this.utilsService.toast('error', 'Error', position.err);
+      return;
+    }
+
+    const coords: any = [position.lat!, position.lng!];
+    this.map?.flyTo(coords);
+    const marker = toDotMarker(coords);
+    marker.addTo(this.map!);
+    setTimeout(() => {
+      marker.remove();
+    }, 4000);
+  }
+
+  highlightExistingMarker(marker: L.Marker) {
+    if (!this.markerClusterGroup) return;
+    const markerElement = marker.getElement() as HTMLElement;
     if (markerElement) {
-      // marker, not clustered
       markerElement.classList.add('list-hover');
-      this.tripMapHoveredElement = markerElement;
-      targetLatLng = marker.getLatLng();
+      this.highlightedMarkerElement = markerElement;
     } else {
-      // marker is clustered
       const parentCluster = (this.markerClusterGroup as any).getVisibleParent(marker);
       if (parentCluster) {
         const clusterEl = parentCluster.getElement();
         if (clusterEl) {
           clusterEl.classList.add('list-hover');
-          this.tripMapHoveredElement = clusterEl;
+          this.highlightedMarkerElement = clusterEl;
         }
-        targetLatLng = parentCluster.getLatLng();
-      }
-    }
-
-    if (targetLatLng && this.map) {
-      const currentBounds = this.map.getBounds();
-
-      // If point is not inside map bounsd, move map w/o touching zoom
-      if (!currentBounds.contains(targetLatLng)) {
-        setTimeout(() => {
-          this.map!.setView(targetLatLng, this.map!.getZoom());
-        }, 50);
       }
     }
   }
 
-  resetDayHighlight() {
-    this.map?.removeLayer(this.tripMapAntLayer!);
-    this.tripMapAntLayerDayID = undefined;
-    this.tripMapAntLayer = undefined;
-    this.resetMapBounds();
+  clearSelectedItemHighlight() {
+    if (this.selectedItemMarker) {
+      this.map?.removeLayer(this.selectedItemMarker);
+      this.selectedItemMarker = undefined;
+    }
+
+    if (this.highlightedMarkerElement) {
+      this.highlightedMarkerElement.classList.remove('list-hover');
+      this.highlightedMarkerElement = undefined;
+    }
   }
 
-  toggleTripDaysHighlight() {
-    if (this.tripMapAntLayerDayID == -1) {
-      this.resetDayHighlight();
-      return;
-    }
-    if (!this.trip) return;
-
-    const items = this.trip.days
-      .flatMap((day, idx) =>
-        day.items
-          .sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0))
-          .map((item) => {
-            let data = {
-              text: item.text,
-              isPlace: !!item.place,
-              idx: idx,
-              time: item.time,
-              gpx: item.gpx,
-            };
-
-            if (item.lat && item.lng)
-              return {
-                ...data,
-                lat: item.lat,
-                lng: item.lng,
-              };
-            if (item.place)
-              return {
-                ...data,
-                lat: item.place.lat,
-                lng: item.place.lng,
-              };
-            return undefined;
-          }),
-      )
-      .filter((n) => n !== undefined);
-
-    if (items.length < 2) {
-      this.utilsService.toast('info', 'Info', 'Not enough values to map an itinerary');
-      return;
-    }
-
-    const dayGroups: { [idx: number]: any } = {};
-    items.forEach((item) => {
-      if (!dayGroups[item.idx]) dayGroups[item.idx] = [];
-      dayGroups[item.idx].push(item);
+  openPackingList() {
+    if (!this.token) return;
+    this.apiService.getSharedTripPackingList(this.token).subscribe((items) => {
+      this.packingList.set(items);
+      this.isPackingDialogVisible = !this.isPackingDialogVisible;
+      this.computeMenuTripPackingItems();
     });
-
-    const layGroup = L.featureGroup();
-    const COLORS: string[] = [
-      '#e6194b',
-      '#3cb44b',
-      '#ffe119',
-      '#4363d8',
-      '#9a6324',
-      '#f58231',
-      '#911eb4',
-      '#46f0f0',
-      '#f032e6',
-      '#bcf60c',
-      '#fabebe',
-      '#008080',
-      '#e6beff',
-      '#808000',
-    ];
-    let prevPoint: [number, number] | null = null;
-
-    Object.values(dayGroups).forEach((group, idx) => {
-      const coords = group.map((day: any) => [day.lat, day.lng]);
-      const pathOptions = {
-        delay: 600,
-        dashArray: [10, 20],
-        weight: 5,
-        color: COLORS[idx % COLORS.length],
-        pulseColor: '#FFFFFF',
-        paused: false,
-        reverse: false,
-        hardwareAccelerated: true,
-      };
-
-      if (coords.length >= 2) {
-        const path = antPath(coords, pathOptions);
-        layGroup.addLayer(path);
-        prevPoint = coords[coords.length - 1];
-      } else if (coords.length === 1 && prevPoint) {
-        const path = antPath([prevPoint, coords[0]], pathOptions);
-        layGroup.addLayer(path);
-        prevPoint = coords[0];
-      } else if (coords.length === 1) {
-        prevPoint = coords[0];
-      }
-
-      group.forEach((data: any) => {
-        if (!data.isPlace) layGroup.addLayer(tripDayMarker(data));
-        if (data.gpx) layGroup.addLayer(gpxToPolyline(data.gpx));
-      });
-    });
-
-    this.map?.fitBounds(
-      items.map((c) => [c.lat, c.lng]),
-      { padding: [30, 30] },
-    );
-
-    if (this.tripMapAntLayer) {
-      this.map?.removeLayer(this.tripMapAntLayer);
-      this.tripMapAntLayerDayID = undefined;
-    }
-
-    setTimeout(() => {
-      layGroup.addTo(this.map!);
-    }, 200);
-
-    this.tripMapAntLayer = layGroup;
-    this.tripMapAntLayerDayID = -1; //Hardcoded value for global trace
   }
 
-  toggleTripDayHighlight(day_id: number) {
-    // Click on the currently displayed day: remove
-    if (this.tripMapAntLayerDayID == day_id) {
-      this.resetDayHighlight();
-      return;
-    }
-
-    const idx = this.trip?.days.findIndex((d) => d.id === day_id);
-    if (!this.trip || idx === undefined || idx == -1) return;
-    const data = this.trip.days[idx].items.sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
-    const items = data
-      .map((item) => {
-        if (item.lat && item.lng)
-          return {
-            text: item.text,
-            lat: item.lat,
-            lng: item.lng,
-            isPlace: !!item.place,
-            time: item.time,
-            gpx: item.gpx,
-          };
-        if (item.place)
-          return {
-            text: item.text,
-            lat: item.place.lat,
-            lng: item.place.lng,
-            isPlace: true,
-            time: item.time,
-            gpx: item.gpx,
-          };
-        return undefined;
-      })
-      .filter((n) => n !== undefined);
-
-    if (items.length < 2) {
-      this.utilsService.toast('info', 'Info', 'Not enough values to map an itinerary');
-      return;
-    }
-
-    this.map?.fitBounds(
-      items.map((c) => [c.lat, c.lng]),
-      { padding: [30, 30] },
-    );
-
-    const path = antPath(
-      items.map((c) => [c.lat, c.lng]),
+  computeMenuTripPackingItems() {
+    this.menuTripPackingItems = [
       {
-        delay: 400,
-        dashArray: [10, 20],
-        weight: 5,
-        color: '#0000FF',
-        pulseColor: '#FFFFFF',
-        paused: false,
-        reverse: false,
-        hardwareAccelerated: true,
+        label: 'Actions',
+        items: [
+          {
+            label: 'Copy to clipboard (text)',
+            icon: 'pi pi-clipboard',
+            command: () => this.copyPackingListToClipboard(),
+          },
+        ],
       },
-    );
+    ];
+  }
 
-    const layGroup = L.featureGroup();
-    layGroup.addLayer(path);
-    items.forEach((item) => {
-      if (!item.isPlace) layGroup.addLayer(tripDayMarker(item));
-      if (item.gpx) layGroup.addLayer(gpxToPolyline(item.gpx));
+  copyPackingListToClipboard() {
+    const content = this.packingList()
+      .sort((a, b) =>
+        a.category !== b.category
+          ? a.category.localeCompare(b.category)
+          : a.text < b.text
+            ? -1
+            : a.text > b.text
+              ? 1
+              : 0,
+      )
+      .map((item) => `[${item.category}] ${item.qt ? item.qt + ' ' : ''}${item.text}`)
+      .join('\n');
+    const success = this.clipboard.copy(content);
+    if (success) this.utilsService.toast('success', 'Success', `Content copied to clipboard`);
+    else this.utilsService.toast('error', 'Error', 'Content could not be copied to clipboard');
+  }
+
+  openChecklist() {
+    if (!this.token) return;
+    this.apiService.getSharedTripChecklist(this.token).subscribe((items) => {
+      this.checklistItems.set(items);
+      this.isChecklistDialogVisible = !this.isChecklistDialogVisible;
     });
-
-    if (this.tripMapAntLayer) {
-      this.map?.removeLayer(this.tripMapAntLayer);
-      this.tripMapAntLayerDayID = undefined;
-    }
-
-    setTimeout(() => {
-      layGroup.addTo(this.map!);
-    }, 200);
-
-    this.tripMapAntLayer = layGroup;
-    this.tripMapAntLayerDayID = day_id;
   }
 
-  onRowClick(item: FlattenedTripItem) {
-    if (this.selectedItem && this.selectedItem.id === item.id) {
-      this.selectedItem = undefined;
-      this.resetPlaceHighlightMarker();
-    } else {
-      this.selectedItem = item;
-      if (item.lat && item.lng) this.placeHighlightMarker(item);
-    }
-  }
-
-  onMapMarkerClick(place_id: number) {
-    const item = this.flattenedTripItems.find((i) => i.place && i.place.id == place_id);
-    if (!item) {
-      this.utilsService.toast('info', 'Place not used', 'The place is not used in the table');
-      return;
-    }
-
-    this.resetPlaceHighlightMarker();
-    this.selectedItem = item;
-    this.placeHighlightMarker(item);
-  }
-
-  itemToNavigation() {
-    if (!this.selectedItem) return;
-    // TODO: More services
-    // const url = `http://maps.apple.com/?daddr=${this.selectedItem.lat},${this.selectedItem.lng}`;
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${this.selectedItem.lat},${this.selectedItem.lng}`;
-    window.open(url, '_blank');
+  openAttachmentsModal() {
+    this.isAttachmentsDialogVisible = !this.isAttachmentsDialogVisible;
   }
 
   downloadItemGPX() {
-    if (!this.selectedItem?.gpx) return;
-    const dataBlob = new Blob([this.selectedItem.gpx]);
+    const item = this.selectedItem();
+    const placeItems = this.selectedPlaceItems();
+    const gpx = this.selectedItem()?.gpx || this.selectedPlaceItems()[this.selectedPlaceActiveTabIndex()]?.gpx;
+    if (!gpx) return;
+
+    const itemName = item?.text || placeItems[this.selectedPlaceActiveTabIndex()]?.text || 'item';
+    const dataBlob = new Blob([gpx]);
     const downloadURL = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = downloadURL;
-    link.download = `TRIP_${this.trip?.name}_${this.selectedItem.text}.gpx`;
+    link.download = `TRIP_${this.trip()!.name}_${itemName}.gpx`;
     link.click();
     link.remove();
     URL.revokeObjectURL(downloadURL);
   }
 
-  tripDayToNavigation(day_id: number) {
-    const idx = this.trip?.days.findIndex((d) => d.id === day_id);
-    if (!this.trip || idx === undefined || idx == -1) return;
-    const data = this.trip.days[idx].items.sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
+  itemToNavigation() {
+    const item = this.selectedItem();
+    const placeItems = this.selectedPlaceItems();
+    const target = item || placeItems[this.selectedPlaceActiveTabIndex()];
+    if (!target?.lat || !target?.lng) return;
+
+    openNavigation([{ lat: target.lat, lng: target.lng }]);
+  }
+
+  tripDayToNavigation(dayId: number) {
+    const idx = this.trip()?.days.findIndex((d) => d.id === dayId);
+    if (!this.trip() || idx === undefined || idx == -1) return;
+    const data = this.trip()!.days[idx].items.sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
     const items = data.filter((item) => item.lat && item.lng);
     if (!items.length) return;
-
-    const waypoints = items.map((item) => `${item.lat},${item.lng}`).join('/');
-    const url = `https://www.google.com/maps/dir/${waypoints}`;
-    window.open(url, '_blank');
+    openNavigation(items.map((item) => ({ lat: item.lat!, lng: item.lng! })));
   }
 
   tripToNavigation() {
-    // TODO: More services
-    const items = this.flattenedTripItems.filter((item) => item.lat && item.lng);
+    const items = this.tripViewModel()
+      .flatMap((d) => d.items)
+      .filter((item) => item.lat && item.lng);
     if (!items.length) return;
-
-    const waypoints = items.map((item) => `${item.lat},${item.lng}`).join('/');
-    const url = `https://www.google.com/maps/dir/${waypoints}`;
-    window.open(url, '_blank');
+    openNavigation(items.map((item) => ({ lat: item.lat!, lng: item.lng! })));
   }
 
-  openPackingList() {
+  downloadAttachment(attachment: TripAttachment) {
     if (!this.token) return;
+    this.apiService
+      .downloadSharedTripAttachment(this.token, attachment.id)
+      .pipe(take(1))
+      .subscribe({
+        next: (data) => {
+          const blob = new Blob([data], { type: 'application/pdf' });
+          const url = window.URL.createObjectURL(blob);
+          const anchor = document.createElement('a');
+          anchor.download = attachment.filename;
+          anchor.href = url;
 
-    if (!this.packingList.length)
-      this.apiService
-        .getSharedTripPackingList(this.token)
-        .pipe(take(1))
-        .subscribe({
-          next: (items) => {
-            this.packingList = [...items];
-            this.computeDispPackingList();
-          },
-        });
-    this.packingDialogVisible = true;
-  }
+          document.body.appendChild(anchor);
+          anchor.click();
 
-  computeDispPackingList() {
-    const sorted: PackingItem[] = [...this.packingList].sort((a, b) =>
-      a.packed !== b.packed ? (a.packed ? 1 : -1) : a.text < b.text ? -1 : a.text > b.text ? 1 : 0,
-    );
-
-    this.dispPackingList = sorted.reduce<Record<string, PackingItem[]>>((acc, item) => {
-      (acc[item.category] ??= []).push(item);
-      return acc;
-    }, {});
-  }
-
-  openChecklist() {
-    if (!this.token) return;
-
-    if (!this.checklistItems.length)
-      this.apiService
-        .getSharedTripChecklist(this.token)
-        .pipe(take(1))
-        .subscribe({
-          next: (items) => {
-            this.checklistItems = [...items];
-          },
-        });
-    this.checklistDialogVisible = true;
+          document.body.removeChild(anchor);
+          window.URL.revokeObjectURL(url);
+        },
+      });
   }
 }

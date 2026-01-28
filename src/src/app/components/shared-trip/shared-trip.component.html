@@ -1,738 +1,992 @@
-@defer {
-@if (trip) {
-<section class="mt-4" [class.prettyprint]="isPrinting">
-  <div class="p-4 print:p-0 flex items-center justify-between">
-    <div class="flex items-center gap-2">
-      <div class="pl-2 flex flex-col max-w-[55vw] md:max-w-full">
-        <h1 class="font-medium tracking-tight text-2xl truncate">{{ trip.name }}</h1>
-        <div class="mt-1 flex items-center">
-          <span
-            class="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded min-w-fit dark:bg-gray-400">{{
-            trip.days.length }} {{ trip.days!.length > 1 ? 'days' : 'day' }}</span>
-          <span
-            class="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded min-w-fit dark:bg-gray-400">{{
-            (totalPrice | number: '1.0-2') || '-' }} {{ trip.currency }}</span>
+@defer (when trip()) {
+@if (trip()) {
+<div class="relative h-screen w-screen overflow-hidden bg-gray-950" [class.prettyprint]="isPrinting()">
+  <div class="fixed inset-0 w-full h-full z-0">
+    <div id="map" class="w-full h-full"></div>
+  </div>
+
+  <div class="fixed top-4 right-4 z-10 pointer-events-none lg:w-88">
+    <div class="pointer-events-auto">
+      <div
+        class="select-none flex items-center gap-2 p-1.5 bg-white/70 dark:bg-black/70 backdrop-blur-xl rounded-lg shadow-lg shadow-black/5">
+
+        <div (click)="centerOnMe()" pTooltip="Center on my location"
+          class="cursor-pointer flex items-center justify-center w-9 h-9 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-all">
+          <i class="pi pi-bullseye text-gray-700 dark:text-gray-300 text-sm"></i>
         </div>
-      </div>
-    </div>
 
-    @if (trip.archived) {
-    <div class="mx-auto p-4 mt-4 md:mt-0 w-full md:w-fit text-orange-800 rounded-md bg-orange-50"
-      [class.prettyprint]="isPrinting">
-      <div class="text-center font-semibold">This shared Trip is archived.</div>
-      <div class="mt-2 flex items-center justify-center">
-        @if (trip.archival_review) {
-        <p-button text icon="pi pi-comment" [label]="isArchivalReviewDisplayed ? 'Hide review' : 'View review'"
-          (click)="isArchivalReviewDisplayed = !isArchivalReviewDisplayed" />
-        }
-      </div>
-    </div>
-    }
+        <div class="w-px h-5 bg-gray-200 dark:bg-gray-800"></div>
 
-    <div class="hidden print:flex flex-col items-center">
-      <img src="favicon.png" class="size-20" />
-      <div class="flex gap-2 items-center text-xs text-gray-500"><i class="pi pi-github"></i>itskovacs/trip</div>
-    </div>
-    <div class="flex items-center gap-2 print:hidden">
-      <div class="flex">
-        <p-button (click)="menuTripActions.toggle($event)" severity="secondary" text icon="pi pi-ellipsis-h" />
-        <p-menu #menuTripActions [model]="menuTripActionsItems" [popup]="true" />
+        <div (click)="toggleDaysPanel()"
+          class="cursor-pointer flex items-center justify-center gap-2 h-9 px-2.5 rounded-lg transition-all"
+          [class]="isDaysPanelVisible() ? 'bg-blue-50 dark:bg-blue-950' : 'hover:bg-gray-100 dark:hover:bg-gray-900'">
+          <div class="w-7 h-7 flex items-center justify-center">
+            <i class="pi text-sm transition-transform duration-200"
+              [class]="isDaysPanelVisible() ? 'pi-times text-blue-600 dark:text-blue-400 rotate-90' : 'pi-calendar text-gray-700 dark:text-gray-300'"></i>
+          </div>
+          <div class="hidden md:flex items-center gap-2 text-sm font-medium"
+            [class]="isDaysPanelVisible() ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'">Days
+            <span
+              class="flex items-center gap-1.5 rounded px-2.5 py-1 w-fit text-xs font-bold text-gray-700 bg-gray-100 dark:bg-gray-900/30 dark:text-gray-400">{{
+              this.trip()?.days?.length || '0' }}</span>
+          </div>
+        </div>
+
+        <div class="w-px h-5 bg-gray-200 dark:bg-gray-800"></div>
+
+        <div (click)="togglePlacesPanel()"
+          class="cursor-pointer flex items-center justify-center gap-2 h-9 px-2.5 rounded-lg transition-all"
+          [class]="isPlacesPanelVisible() ? 'bg-blue-50 dark:bg-blue-950' : 'hover:bg-gray-100 dark:hover:bg-gray-900'">
+          <div class="w-7 h-7 flex items-center justify-center">
+            <i class="pi text-sm transition-transform duration-200"
+              [class]="isPlacesPanelVisible() ? 'pi-times text-blue-600 dark:text-blue-400 rotate-90' : 'pi-map-marker text-gray-700 dark:text-gray-300'"></i>
+          </div>
+          <div class="hidden md:flex items-center gap-2 text-sm font-medium"
+            [class]="isPlacesPanelVisible() ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'">
+            Places
+            <span
+              class="flex items-center gap-1.5 rounded px-2.5 py-1 w-fit text-xs font-bold text-gray-700 bg-gray-100 dark:bg-gray-900/30 dark:text-gray-400">{{
+              this.trip()?.places?.length || '0' }}</span>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
-  @if (isArchivalReviewDisplayed) {
+  @if (trip()?.archived && isArchiveWarningVisible()) {
   <div
-    class="m-4 whitespace-pre-line text-gray-800 dark:text-gray-200 max-h-[600px] overflow-y-auto p-4 rounded border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800">
-    {{ trip.archival_review }}</div>
-  }
-</section>
-
-<section class="p-4 print:px-1 grid lg:grid-cols-3 gap-4 print:block" [class.prettyprint]="isPrinting">
-  <div [class]="isExpanded ? 'lg:col-span-3' : 'lg:col-span-2'" class="p-4 shadow self-start rounded-md max-w-screen">
-    <div [class.sticky]="!isMapFullscreen"
-      class="top-0 z-10 bg-white p-2 mb-2 flex justify-between items-center dark:bg-surface-900">
-      <div>
-        <h1 class="font-semibold tracking-tight text-xl">Plans</h1>
-        <span class="text-xs text-gray-500 line-clamp-1">{{ trip.name }} plans</span>
-      </div>
-
-      <div class="flex items-center gap-2 print:hidden">
-        <div class="hidden md:flex items-center gap-2">
-          <p-button label="Filters" icon="pi pi-filter" (click)="toggleFiltering()" text />
-          <p-button label="Expand" pTooltip="Expand table to full width" class="hidden lg:flex" icon="pi pi-arrows-h"
-            (click)="isExpanded = !isExpanded" text />
-          <p-button [label]="tableExpandableMode ? 'Ungroup' : 'Group'"
-            [pTooltip]="tableExpandableMode ? 'Switch table mode' : 'Switch table mode, allow column resizing'" [icon]="
-                  tableExpandableMode
-                    ? 'pi pi-arrow-up-right-and-arrow-down-left-from-center'
-                    : 'pi pi-arrow-down-left-and-arrow-up-right-to-center'
-                " (click)="tableExpandableMode = !tableExpandableMode" text />
-          <p-button label="GMaps" pTooltip="Open Google Maps directions" icon="pi pi-car" (click)="tripToNavigation()"
-            text />
-          <p-button label="Highlight" pTooltip="Show itinerary on map" icon="pi pi-directions"
-            [severity]="tripMapAntLayerDayID == -1 ? 'help' : 'primary'" (click)="toggleTripDaysHighlight()" text />
-          <p-button icon="pi pi-ellipsis-v" label="Export" (click)="menuTripExport.toggle($event)" text />
-          <p-menu #menuTripExport [model]="menuTripExportItems" appendTo="body" [popup]="true" />
+    class="fixed left-4 right-4 bottom-4 sm:bottom-auto sm:top-4 pointer-events-none z-50 flex justify-center print:hidden">
+    <div
+      class="pointer-events-auto w-full max-w-xl rounded sm:rounded-2xl border border-orange-400/40 bg-orange-500/90 px-4 py-3 shadow-sm backdrop-blur-md dark:border-orange-400/30 dark:bg-orange-500/85">
+      <div class="flex items-center gap-3">
+        <div class="mt-0.5 flex h-8 w-8 items-center justify-center rounded-full bg-white/15 text-white">
+          <i class="pi pi-box text-sm"></i>
         </div>
 
-        <div class="flex md:hidden items-center">
-          <p-button (click)="menuTripTableActions.toggle($event)" severity="secondary" text icon="pi pi-ellipsis-h" />
-          <p-menu #menuTripTableActions [model]="menuTripTableActionsItems" appendTo="body" [popup]="true" />
+        <div class="min-w-0 flex-1">
+          <div class="flex flex-1 items-center justify-between gap-3">
+            <div class="min-w-0">
+              <p class="truncate text-sm font-semibold text-white">
+                Trip is archived
+              </p>
+            </div>
+
+            <div class="flex shrink-0 items-center gap-2">
+              @if (trip()?.archival_review) {
+              <p-button size="small" text [outlined]="true"
+                [icon]="isArchivalReviewDisplayed() ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" label="Notes"
+                (click)="toggleArchiveReview()" />
+              }
+              <p-button size="small" icon="pi pi-times" text [outlined]="true" severity="danger"
+                (click)="isArchiveWarningVisible.set(false)" />
+            </div>
+          </div>
         </div>
       </div>
-    </div>
 
-    @if (isFilteringMode) {
-    <div class="grid md:grid-cols-2 gap-2 mb-2">
-      <p-multiselect display="chip" [options]="tripTableColumns" [(ngModel)]="tripTableSelectedColumns"
-        class="capitalize" selectedItemsLabel="{0} columns selected" placeholder="Choose Columns" />
-
-      <input [formControl]="tripTableSearchInput" pInputText placeholder="Search..." />
-    </div>
-    }
-
-    @defer {
-    @if (flattenedTripItems.length) {
-    <p-table [value]="flattenedTripItems" class="max-w-[85vw] md:max-w-full print-striped-rows"
-      [class.table-colored-resizer]="tableExpandableMode" [rowGroupMode]="tableExpandableMode ? 'subheader' : 'rowspan'"
-      groupRowsBy="td_label" [resizableColumns]="tableExpandableMode">
-      <ng-template #header>
-        <tr>
-          @if (!tableExpandableMode && tripTableSelectedColumns.includes('day')) {
-          <th class="w-24" pResizableColumn>Day</th>
-          }
-          @if (tripTableSelectedColumns.includes('time')) {
-          <th class="w-12" pResizableColumn>Time</th>
-          }
-          @if (tripTableSelectedColumns.includes('text')) {
-          <th pResizableColumn>Text</th>
-          }
-          @if (tripTableSelectedColumns.includes('place')) {
-          <th pResizableColumn>Place</th>
-          }
-          @if (tripTableSelectedColumns.includes('comment')) {
-          <th pResizableColumn>Comment</th>
-          }
-          @if (tripTableSelectedColumns.includes('LatLng')) {
-          <th class="w-12" pResizableColumn>LatLng</th>
-          }
-          @if (tripTableSelectedColumns.includes('price')) {
-          <th class="w-12" pResizableColumn>Price</th>
-          }
-          @if (tripTableSelectedColumns.includes('status')) {
-          <th class="w-12" pResizableColumn>Status</th>
-          }
-          @if (tripTableSelectedColumns.includes('distance')) {
-          <th pResizableColumn>Distance (km)</th>
-          }
-        </tr>
-      </ng-template>
-      @if (tableExpandableMode) {
-      <ng-template #groupheader let-tripitem let-rowIndex="rowIndex" let-expanded="expanded">
-        <tr>
-          <td colspan="8">
-            <div class="flex items-center gap-2 w-full">
-              <button type="button" pButton pRipple [pRowToggler]="tripitem" text rounded plain
-                [icon]="expanded ? 'pi pi-chevron-down' : 'pi pi-chevron-right'"></button>
-              <span class="font-bold w-xs max-w-xs min-w-0 inline-block truncate">{{
-                tripitem.td_label
-                }}</span>
-
-              <p-button class="ml-2" label="Highlight" pTooltip="Show itinerary on map" text icon="pi pi-directions"
-                [severity]="tripMapAntLayerDayID == tripitem.day_id ? 'help' : 'primary'"
-                (click)="toggleTripDayHighlight(tripitem.day_id)" />
-              <p-button label="GMaps" pTooltip="Open Google Maps directions" text icon="pi pi-car"
-                (click)="tripDayToNavigation(tripitem.day_id)" />
-            </div>
-          </td>
-        </tr>
-      </ng-template>
-
-      <ng-template #expandedrow let-tripitem>
-        <tr class="h-12 cursor-pointer" [class.font-bold]="selectedItem?.id === tripitem.id"
-          (click)="onRowClick(tripitem)">
-          @if (tripTableSelectedColumns.includes('time')) {
-          <td class="font-mono text-sm">{{ tripitem.time }}</td>
-          }
-          @if (tripTableSelectedColumns.includes('text')) {
-          <td class="relative">
-            <div class="truncate">
-              @if (tripitem.status) {
-              <div class="block absolute top-3 left-1.5 size-2 rounded-full" [style.background]="tripitem.status.color">
-              </div>
-              }
-              {{ tripitem.text }}
-            </div>
-          </td>
-          }
-          @if (tripTableSelectedColumns.includes('place')) {
-          <td class="relative">
-            @if (tripitem.place) {
-            <div class="ml-7 print:ml-0 truncate print:whitespace-normal">
-              <img [src]="tripitem.place.image || tripitem.place.category.image"
-                class="absolute left-0 top-1/2 -translate-y-1/2 w-9 rounded-full object-cover print:hidden" />
-              {{ tripitem.place.name }}
-            </div>
-            } @else {
-            -
-            }
-          </td>
-          }
-          @if (tripTableSelectedColumns.includes('comment')) {
-          <td class="relative">
-            @if (tripitem.image) {
-            <div
-              class="ml-7 print:ml-0 truncate print:whitespace-normal line-clamp-1 whitespace-pre-line print:line-clamp-none">
-              <img [src]="tripitem.image"
-                class="absolute left-0 top-1/2 -translate-y-1/2 size-9 rounded-full object-cover" />
-              {{ tripitem.comment }}
-            </div>
-            } @else {
-            <div class="line-clamp-1 whitespace-pre-line print:line-clamp-none">
-              {{ tripitem.comment || '-' }}
-            </div>
-            }
-          </td>
-          }
-          @if (tripTableSelectedColumns.includes('LatLng')) {
-          <td class="font-mono text-sm">
-            <div class="print:max-w-full truncate">
-              @if (tripitem.lat) {
-              {{ tripitem.lat }}, {{ tripitem.lng }}
-              } @else {
-              -
-              }
-            </div>
-          </td>
-          }
-          @if (tripTableSelectedColumns.includes('price')) {
-          <td class="truncate">
-            @if (tripitem.price) {
-            <span class="bg-gray-100 text-gray-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded">{{ tripitem.price }}
-              @if (tripitem.price) {
-              {{ trip.currency }}
-              }
-            </span>
-            }
-          </td>
-          }
-          @if (tripTableSelectedColumns.includes('status')) {
-          <td class="truncate">
-            @if (tripitem.status) {
-            <span [style.background]="tripitem.status.color + '1A'" [style.color]="tripitem.status.color"
-              class="text-xs font-medium me-2 px-2.5 py-0.5 rounded">{{ tripitem.status.label }}</span>
-            }
-          </td>
-          }
-          @if (tripTableSelectedColumns.includes('distance')) {
-          <td class="text-sm">
-            <div class="print:max-w-full truncate">{{ tripitem.distance || '-' }}</div>
-          </td>
-          }
-        </tr>
-      </ng-template>
-      } @else {
-      <ng-template #body let-tripitem let-rowgroup="rowgroup" let-rowspan="rowspan">
-        <tr class="h-12 cursor-pointer" [class.font-bold]="selectedItem?.id === tripitem.id"
-          (click)="onRowClick(tripitem)">
-          @if (tripTableSelectedColumns.includes('day') && rowgroup) {
-          <td [attr.rowspan]="rowspan" class="font-normal! max-w-20 truncate cursor-pointer"
-            [class.text-blue-500]="tripMapAntLayerDayID == tripitem.day_id"
-            (click)="toggleTripDayHighlight(tripitem.day_id); $event.stopPropagation()">
-            <div class="text-xs text-gray-500">{{ tripitem.td_date | date: 'd MMM, y' }}</div>
-            <div class="truncate">{{ tripitem.td_label }}</div>
-          </td>
-          }
-          @if (tripTableSelectedColumns.includes('time')) {
-          <td class="font-mono text-sm">{{ tripitem.time }}</td>
-          }
-          @if (tripTableSelectedColumns.includes('text')) {
-          <td class="relative max-w-60">
-            <div class="truncate">
-              @if (tripitem.status) {
-              <div class="block absolute top-3 left-1.5 size-2 rounded-full" [style.background]="tripitem.status.color">
-              </div>
-              }
-              {{ tripitem.text }}
-            </div>
-          </td>
-          }
-          @if (tripTableSelectedColumns.includes('place')) {
-          <td>
-            @if (tripitem.place) {
-            <div [style.background]="tripitem.place.category.color + '1A'"
-              class="inline-flex items-center gap-2 text-gray-800 font-medium px-1 py-1 pr-3 rounded-full">
-              <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden flex-shrink-0">
-                <img [src]="tripitem.place.image || tripitem.place.category.image" class="size-full object-cover" />
-              </div>
-              <span class="text-sm truncate min-w-0">{{ tripitem.place.name }}</span>
-            </div>
-            } @else {
-            -
-            }
-          </td>
-          }
-          @if (tripTableSelectedColumns.includes('comment')) {
-          <td class="relative">
-            @if (tripitem.image) {
-            <div
-              class="ml-7 print:ml-0 truncate print:whitespace-normal line-clamp-1 whitespace-pre-line print:line-clamp-none">
-              <img [src]="tripitem.image"
-                class="absolute left-0 top-1/2 -translate-y-1/2 size-9 rounded-full object-cover print:hidden" />
-              {{ tripitem.comment }}
-            </div>
-            } @else {
-            <div class="line-clamp-1 whitespace-pre-line print:line-clamp-none">
-              {{ tripitem.comment || '-' }}
-            </div>
-            }
-          </td>
-          }
-          @if (tripTableSelectedColumns.includes('LatLng')) {
-          <td class="font-mono text-sm">
-            <div class="max-w-20 print:max-w-full truncate">
-              @if (tripitem.lat) {
-              {{ tripitem.lat }}, {{ tripitem.lng }}
-              } @else {
-              -
-              }
-            </div>
-          </td>
-          }
-          @if (tripTableSelectedColumns.includes('price')) {
-          <td class="truncate">
-            @if (tripitem.price) {
-            <span class="bg-gray-100 text-gray-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded">{{ tripitem.price }}
-              @if (tripitem.price) {
-              {{ trip.currency }}
-              }
-            </span>
-            }
-          </td>
-          }
-          @if (tripTableSelectedColumns.includes('status')) {
-          <td class="truncate">
-            @if (tripitem.status) {
-            <span [style.background]="tripitem.status.color + '1A'" [style.color]="tripitem.status.color"
-              class="text-xs font-medium me-2 px-2.5 py-0.5 rounded">{{ tripitem.status.label }}</span>
-            }
-          </td>
-          }
-          @if (tripTableSelectedColumns.includes('distance')) {
-          <td class="text-sm">
-            <div class="print:max-w-full truncate">{{ tripitem.distance || '-' }}</div>
-          </td>
-          }
-        </tr>
-      </ng-template>
+      @if (isArchivalReviewDisplayed() && trip()?.archival_review) {
+      <div
+        class="mt-3 max-h-64 overflow-y-auto rounded-xl border border-orange-100/40 bg-orange-50/95 px-3 py-2.5 text-xs leading-relaxed text-orange-900 shadow-sm dark:border-orange-100/15 dark:bg-orange-950/60 dark:text-orange-50">
+        <p class="mb-1 text-[11px] font-semibold uppercase tracking-wide text-orange-700/90 dark:text-orange-200/90">
+          Archival notes
+        </p>
+        <p class="whitespace-pre-line">
+          {{ trip()!.archival_review }}
+        </p>
+      </div>
       }
-    </p-table>
-    } @else {
-    <div class="px-4 mx-auto max-w-screen-xl mt-8 col-span-full print:hidden">
-      <div class="py-8 px-4 flex flex-col items-center gap-1">
-        <h2 class="mb-0 text-4xl text-center tracking-tight font-extrabold text-gray-900 dark:text-gray-200">
-          No Trip.
-        </h2>
+    </div>
+  </div>
+  }
+
+  <section [class]="isPlansPanelCollapsed() ? '-translate-x-full left-0!' : 'translate-x-0'"
+    [class.bottom-4]="selectedPanelHeight() === 0"
+    [style.bottom.px]="selectedPanelHeight() > 0 ? selectedPanelHeight() + 16 : null" [style.width.px]="panelWidth()"
+    [style.height]="selectedPanelHeight() > 0 ? 'calc(100vh - 2rem - ' + selectedPanelHeight() + 'px)' : 'calc(100vh - 2rem)'"
+    class="fixed top-4 left-4 right-4 md:h-auto! md:bottom-4! md:w-[24rem] lg:w-[28rem] xl:w-[32rem] md:max-w-1/3 z-40 transition-transform duration-300 ease-out">
+
+    <div
+      class="flex h-full overflow-hidden shadow rounded-lg ring-1 ring-black/5 dark:ring-white/10 bg-white/70 dark:bg-black/70 backdrop-blur-xl">
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <div
+          class="flex-shrink-0 bg-white/50 dark:bg-gray-900/50 border-b border-gray-200/50 dark:border-gray-700/50 backdrop-blur-xl">
+
+          <div class="flex items-center gap-3 p-4">
+            <div class="flex flex-1 min-w-0 flex-col gap-1">
+              <h1 class="flex items-center gap-1 truncate font-semibold text-gray-900 dark:text-white">{{ trip()?.name
+                }}
+              </h1>
+
+              <div class="flex gap-1">
+                <span
+                  class="flex items-center gap-1.5 rounded px-2.5 py-1 w-fit text-xs font-semibold text-gray-600 bg-gray-100 dark:bg-gray-900/30 dark:text-gray-200">
+                  <i class="pi pi-calendar text-[10px]"></i>{{ trip()?.days?.length }}</span>
+
+                @if (totalPrice()) {
+                <span
+                  class="flex items-center gap-1.5 rounded px-2.5 py-1 w-fit text-xs font-semibold text-gray-600 bg-gray-100 dark:bg-gray-900/30 dark:text-gray-200">
+                  <i class="pi pi-wallet text-[10px]"></i> {{ (totalPrice() | number:'1.0-2') || '-' }} {{
+                  trip()?.currency}}
+                </span>
+                }
+              </div>
+            </div>
+
+            <div class="flex gap-1">
+              <p-button text icon="pi pi-ellipsis-h" severity="secondary" (click)="openMenuTripActionsItems($event)" />
+              <p-menu #menuTripActions [model]="menuTripActionsItems" [popup]="true" appendTo="body" />
+              <div class="flex sm:hidden">
+                <p-button text severity="danger" icon="pi pi-times" (click)="togglePlansPanel()" />
+              </div>
+            </div>
+          </div>
+
+          <div class="px-4 sm:px-5 py-3">
+            <div class="flex items-center justify-between">
+              <div class="flex-1 min-w-0">
+                <h2 class="text-base font-bold text-gray-900 dark:text-white leading-none">Plans</h2>
+                <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">Your itinerary</p>
+              </div>
+
+              <div class="flex items-center gap-1">
+                <p-button icon="pi pi-directions" (click)="toggleTripDaysHighlight()" text size="small"
+                  pTooltip="Highlight Trip" />
+                <p-button icon="pi pi-filter" (click)="toggleFiltering()" text size="small" pTooltip="Filter" />
+                <p-button icon="pi pi-download" (click)="menuTripExport.toggle($event)" text size="small"
+                  pTooltip="Export" />
+                <p-menu #menuTripExport [model]="menuTripExportItems" appendTo="body" [popup]="true" />
+              </div>
+            </div>
+
+            @if (isFilteringMode()) {
+            <div class="z-30 mt-3 grid sm:grid-cols-2 gap-2" animate.enter="slide-y" animate.leave="a-slide-y">
+              <p-multiselect display="chip" fluid [options]="availableItemProps" [(ngModel)]="selectedItemProps"
+                placeholder="Cols" class="text-sm" appendTo="body" />
+
+              <div class="relative">
+                <input pInputText [formControl]="plansSearchInput" placeholder="Search..." class="h-full" pSize="small"
+                  fluid />
+                @if (plansSearchInput.value) {
+                <div class="absolute right-2 top-1/2 -translate-y-1/2">
+                  <p-button text icon="pi pi-times" severity="danger" size="small"
+                    (click)="plansSearchInput.setValue('')" />
+                </div>
+                }
+              </div>
+            </div>
+            }
+          </div>
+        </div>
+
+        <div class="flex-1 overflow-y-auto min-h-0">
+          @defer {
+          @let visibleProps = selectedItemPropsSet();
+          <div class="space-y-4 pb-4">
+            @for (group of tripViewModel(); track group.day.id) {
+            <div class="z-20 sticky top-0 flex items-center justify-between gap-2 p-4 min-w-0 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 border-b border-gray-200
+            dark:hover:bg-surface-900 transition-colors border-l-primary-500 dark:border-l-primary-400 cursor-pointer"
+              [class]="selectedDay()?.id == group.day.id ? 'border-l-4' : 'border-l-0'" (click)="onDayClick(group.day)">
+              <div class="flex items-center gap-3 min-w-0 flex-1">
+                <div
+                  class="shrink-0 flex items-center justify-center w-10 h-10 rounded-lg bg-primary-100 dark:bg-primary-900/30"
+                  [class]="highlightedDayId() === group.day.id ? 'ring-2 ring-primary-500 bg-primary-200' : ''">
+                  <span class="text-sm font-semibold text-primary-700 dark:text-primary-400">
+                    {{ group.day.items.length }}
+                  </span>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <h3 class="font-medium text-gray-900 dark:text-white truncate">{{ group.day.label }}</h3>
+                  <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                    {{ group.day.dt | date: 'd MMM, y' }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="shrink-0 flex items-center gap-2">
+                @if (visibleProps.has('price')) {
+                <span class="flex items-center bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-1 text-xs
+              font-medium rounded-md">{{ group.stats.cost | number:'1.0-0' }} {{ trip()?.currency }}
+                </span>
+                }
+                <p-button icon="pi pi-ellipsis-h"
+                  (click)="openMenuPlanDayActionsItems($event, group.day); $event.stopPropagation()" text
+                  size="small" />
+              </div>
+            </div>
+
+            <div class="space-y-2 pl-4 md:pr-4">
+              @for (item of group.items; track item.id) {
+              <div
+                class="group relative rounded-s-lg md:rounded-lg bg-white dark:bg-gray-900 border-s border-y md:border-x border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700 hover:shadow-sm transition-all cursor-pointer"
+                (click)="onRowClick(item)">
+
+                <div class="flex items-center gap-3 p-3 min-w-0 border-primary-500 rounded-s"
+                  [class]="(selectedItem()?.id === item.id || selectedPlaceItems()[selectedPlaceActiveTabIndex()]?.id === item.id) ? 'border-l-4' : 'border-l-0'">
+                  <div class="shrink-0 flex items-center">
+                    <span
+                      class="px-2.5 py-1 text-sm font-mono font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded whitespace-nowrap">
+                      {{ item.time }}
+                    </span>
+                  </div>
+
+                  <div class="flex-1 min-w-0">
+                    <div class="relative flex items-center gap-2 min-w-0">
+                      @if (item.status) {
+                      <span class="absolute -top-px -left-1.5 w-2.5 h-2.5 rounded-full"
+                        [style.background]="item.status.color"></span>
+                      }
+
+                      @if (item.place && visibleProps.has('place')) {
+                      <div class="flex items-center gap-2 px-2.5 py-1 rounded-lg min-w-0 max-w-full"
+                        [style.background]="item.place.category.color + '1A'" [style.color]="item.place.category.color">
+                        <img [src]="item.place.image || item.place.category.image"
+                          class="shrink-0 w-5 h-5 rounded-full object-cover">
+                        <span class="text-sm font-medium truncate">
+                          {{ item.place.name }}
+                        </span>
+                      </div>
+                      } @else {
+                      <span class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                        {{ item.text }}
+                      </span>
+                      }
+
+                      @if (item.attachments?.length) {
+                      <i class="shrink-0 pi pi-paperclip text-xs text-gray-400"></i>
+                      }
+                    </div>
+
+                    @if (item.comment && visibleProps.has('comment')) {
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
+                      {{ item.comment }}
+                    </p>
+                    }
+                  </div>
+
+                  <div class="shrink-0 flex items-center gap-2">
+                    @if (item.lat && item.lng && visibleProps.has('latlng')) {
+                    <span
+                      class="text-center bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-md dark:bg-gray-100/85 max-w-[100px] truncate"
+                      [title]="item.lat + ', ' + item.lng">{{ item.lat }}, {{ item.lng }}
+                    </span>
+                    }
+
+                    @if (item.price && visibleProps.has('price')) {
+                    <span
+                      class="flex items-center bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-1 text-xs font-medium rounded-md whitespace-nowrap">
+                      {{ item.price | number:'1.0-0' }} {{ trip()?.currency }}
+                    </span>
+                    }
+
+                    @if (item.distance && visibleProps.has('distance')) {
+                    <span
+                      class="flex items-center bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-1 text-xs font-medium rounded-md whitespace-nowrap">
+                      {{ item.distance }}km
+                    </span>
+                    }
+
+                    @if (item.status && visibleProps.has('status')) {
+                    <span class="flex items-center px-2 py-1 text-xs font-medium rounded-md max-w-[80px] truncate"
+                      [style.background]="item.status.color + '1A'" [style.color]="item.status.color"
+                      [title]="item.status.label">
+                      {{ item.status.label }}
+                    </span>
+                    }
+                  </div>
+
+                  <i class="pi pi-chevron-right absolute top-1/2 -translate-y-1/2 right-1 bg-gray-100 dark:bg-surface-800 p-1 rounded text-xs opacity-0 group-hover:opacity-100
+                  group-hover:-translate-x-2 transition-all pointer-events-none"></i>
+                </div>
+              </div>
+              } @empty {
+              <div class="flex flex-col items-center justify-center py-4">
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  No plans yet
+                </h3>
+              </div>
+              }
+            </div>
+            }
+          </div>
+          } @placeholder (minimum 0.4s) {
+          <div class="space-y-4">
+            <p-skeleton class="rounded-none!" height="4.5rem" />
+            @for (_ of [1,2,3]; track _) {
+            <div class="px-4">
+              <p-skeleton height="3rem" />
+            </div>
+            }
+          </div>
+          }
+        </div>
+        <p-menu #menuPlanDayActions [model]="menuPlanDayActionsItems" appendTo="body" [popup]="true" />
+      </div>
+
+      <div (pointerdown)="onPlansResizeStart($event)" (dblclick)="resetPlansWidth()"
+        class="hidden md:flex w-1 cursor-ew-resize hover:bg-primary-500/20 active:bg-primary-500/30 transition-colors"
+        pTooltip="Drag to resize. Double click to reset." tooltipPosition="right">
       </div>
     </div>
-    <div class="hidden print:block text-center text-sm text-gray-500 mt-4">No Trip</div>
-    }
-    } @placeholder (minimum 0.4s) {
-    <div class="h-[400px] w-full">
-      <p-skeleton height="100%" />
-    </div>
-    }
-  </div>
 
-  <div [class]="isExpanded ? 'grid col-span-full grid-cols-4' : 'flex flex-col sticky'"
-    class="gap-4 top-4 self-start max-w-screen print:hidden min-w-0">
-    @if (selectedItem) {
-    <div class="p-4 w-full max-w-full min-h-20 rounded-md shadow text-center">
-      <div class="flex justify-between items-center mb-3">
-        <div class="p-2 flex items-center gap-4 w-full max-w-full">
-          @if (selectedItem.place) {
-          <img [src]="selectedItem.place.image || selectedItem.place.category.image"
-            class="hidden md:flex object-cover rounded-md h-20 w-32" />
-          }
+    <button (click)="togglePlansPanel()" [class]="isPlansPanelCollapsed() ? 'flex' : 'hidden md:flex'" class="absolute -right-8 top-1/2 translate-y-1/2 items-center justify-center w-8 h-10 
+      bg-white dark:bg-gray-900 shadow rounded-e-lg text-gray-500 hover:text-primary-600 cursor-pointer">
+      <i [class]="isPlansPanelCollapsed() ? 'pi pi-chevron-right' : 'pi pi-chevron-left'" class="text-xs font-bold"></i>
+    </button>
+  </section>
 
-          <div class="flex items-center justify-between gap-2 w-full">
-            <h1 class="text-start font-semibold mb-0 line-clamp-1 md:text-xl">{{ selectedItem.text }}</h1>
+  <section class="pointer-events-none fixed top-18 bottom-4 right-4 z-30 flex w-[calc(100%-2rem)]
+    flex-col gap-3 print:hidden md:w-64 lg:w-88">
+    @if (isDaysPanelVisible()) {
+    <div animate.enter="slide-y-no-opacity" animate.leave="a-slide-y" class="pointer-events-auto relative min-h-0 rounded-lg overflow-hidden shadow-2xl ring-1 ring-black/5 dark:ring-white/10
+              bg-white/80 dark:bg-gray-900/80 backdrop-blur-2xl flex flex-col overflow-y-auto p-4 max-h-[400px]"
+      [class]="isPlacesPanelVisible() ? 'h-1/3' : 'h-auto'">
 
-            <div class="flex items-center gap-2 flex-none">
-              @if (selectedItem.gpx) {
-              <p-button icon="pi pi-download" (click)="downloadItemGPX()" text />
-              }
-              @if (selectedItem.lat && selectedItem.lng) {
-              <p-button icon="pi pi-car" (click)="itemToNavigation()" text />
-              }
-              <p-button icon="pi pi-times" (click)="selectedItem = undefined; resetPlaceHighlightMarker()" text />
+      <div class="space-y-2 pt-1">
+        @defer {
+        @for (group of tripViewModel(); track group.day.id) {
+        <div (click)="onDayClick(group.day)"
+          class="cursor-pointer relative rounded-lg hover:bg-gray-100 dark:hover:bg-gray-750">
+          <div class="flex items-center justify-between p-3 gap-3 border-primary-500 rounded-s  select-none"
+            [class]="selectedDay()?.id == group.day.id ? 'border-l-4' : 'border-l-0'">
+            <div class="flex items-center gap-3 min-w-0">
+              <div
+                class="flex shrink-0 items-center justify-center w-10 h-10 rounded-lg bg-primary-100 dark:bg-primary-900/30">
+                <span class="text-sm font-semibold text-primary-700 dark:text-primary-400">
+                  {{ group.day.items.length }}
+                </span>
+              </div>
+              <div class="min-w-0">
+                <h3 class="font-medium truncate text-gray-900 dark:text-white">{{ group.day.label }}</h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400">
+                  {{ group.day.dt | date: 'd MMM, y' }}
+                </p>
+              </div>
+            </div>
+
+            <div class="flex shrink-0 items-center gap-2">
+              <span class="flex items-center bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-1 text-xs
+                font-medium rounded-md">{{ group.stats.cost | number:'1.0-0' }} {{ trip()?.currency }}
+              </span>
             </div>
           </div>
         </div>
-      </div>
-
-      <div class="p-4 px-2 grid md:grid-cols-3 gap-4 overflow-auto w-full">
-        <div class="rounded-md shadow p-4 w-full">
-          <p class="font-bold mb-1">Time</p>
-          <p class="text-sm text-gray-500">{{ selectedItem.time }}</p>
-        </div>
-
-        <div class="md:col-span-2 rounded-md shadow p-4">
-          <p class="font-bold mb-1">Text</p>
-          <p class="text-sm text-gray-500">{{ selectedItem.text }}</p>
-        </div>
-
-        @if (selectedItem.place) {
-        <div class="rounded-md shadow p-4">
-          <p class="font-bold mb-1">Place</p>
-          <div class="text-sm text-gray-500 truncate">{{ selectedItem.place.name }}</div>
+        } @empty {
+        <div class="flex flex-col items-center justify-center py-12">
+          <h3 class="text-sm font-bold text-gray-900 dark:text-white mb-2">No days</h3>
         </div>
         }
-
-        @if (selectedItem.comment) {
-        <div class="md:col-span-2 rounded-md shadow p-4">
-          <p class="font-bold mb-1">Comment</p>
-          <p class="text-sm text-gray-500 whitespace-pre-line" [innerHTML]="selectedItem.comment | linkify"></p>
-        </div>
-        }
-
-        @if (selectedItem.lat) {
-        <div class="rounded-md shadow p-4">
-          <p class="font-bold mb-1 truncate">Latitude, Longitude</p>
-          <p class="text-sm text-gray-500 truncate cursor-copy"
-            [cdkCopyToClipboard]="selectedItem.lat + ',' + selectedItem.lng">
-            {{ selectedItem.lat }}, {{ selectedItem.lng }}
-          </p>
-        </div>
-        }
-
-        @if (selectedItem.price) {
-        <div class="rounded-md shadow p-4">
-          <p class="font-bold mb-1">Price</p>
-          <p class="text-sm text-gray-500">
-            {{ selectedItem.price }}
-            @if (selectedItem.price) {
-            {{ trip.currency }}
-            }
-            @if (selectedItem.paid_by) {
-            <span class="text-xs text-gray-500">(by {{ selectedItem.paid_by }})</span>
-            }
-          </p>
-        </div>
-        }
-
-        @if (selectedItem.status) {
-        <div class="rounded-md shadow p-4">
-          <p class="font-bold mb-1">Status</p>
-          <span [style.background]="selectedItem.status.color + '1A'" [style.color]="selectedItem.status.color"
-            class="text-xs font-medium me-2 px-2.5 py-0.5 rounded">{{ selectedItem.status.label }}</span>
-        </div>
-        }
-
-        @if (selectedItem.image) {
-        <div class="p-4 px-2 gap-4 overflow-auto w-full min-h-0 max-h-64">
-          <img [src]="selectedItem.image" class="w-full object-cover rounded-md" />
+        } @placeholder () {
+        <div class="space-y-2">
+          @for (_ of [1,2,3]; track _) {
+          <p-skeleton height="5rem" />
+          }
         </div>
         }
       </div>
     </div>
     }
 
-    <div class="z-10 p-4 shadow rounded-md w-full min-h-20 max-h-full overflow-y-auto">
-      <div class="p-2 mb-2 flex justify-between items-center">
-        <div>
-          <h1 class="font-semibold tracking-tight text-xl">Map</h1>
-          <span class="text-xs text-gray-500 line-clamp-1">{{ trip.name }} places</span>
+    @if (isPlacesPanelVisible()) {
+    <div animate.enter="slide-y-no-opacity" animate.leave="a-slide-y"
+      class="pointer-events-auto relative rounded-lg overflow-hidden shadow-2xl ring-1 ring-black/5 dark:ring-white/10
+              bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl flex flex-col transition-all duration-300 flex-1 overflow-y-auto" [class]="isDaysPanelVisible() ? 'h-2/3' : 'h-full'">
+      <div class="p-4 flex-1 overflow-y-auto overscroll-contain">
+        <div class="py-4 flex justify-end">
+          <p-button [icon]="showOnlyUnplannedPlaces() ? 'pi pi-filter-fill' : 'pi pi-filter'"
+            (click)="toggleUnplannedPlacesFilter()" size="small" text label="Unplanned" />
         </div>
 
-        <div class="flex gap-2">
-          <p-button pTooltip="Fullscreen" tooltipPosition="left" icon="pi pi-window-maximize"
-            (click)="toggleMapFullscreen()" text />
-          <p-button pTooltip="Reset bounds" tooltipPosition="left" icon="pi pi-refresh" [disabled]="!places.length"
-            (click)="resetMapBounds()" text />
+        @defer {
+        @for (p of displayedPlaces(); track p.id) {
+        <app-place-list-item [place]="p" [editable]="false" [grayscale]="!usedPlaceIds().has(p.id)"
+          (clickEmitter)="onPlaceClick(p)"></app-place-list-item>
+        } @empty {
+        @if (showOnlyUnplannedPlaces()) {
+        <div class="flex flex-col items-center justify-center py-12">
+          <i class="pi pi-check-circle text-4xl! text-green-500 mb-2"></i>
+          <h3 class="text-sm font-bold text-gray-900 dark:text-white mb-2">No unused place</h3>
+          <p class="text-xs text-gray-600 dark:text-gray-400 text-center mb-4">Every place is used</p>
         </div>
-      </div>
-
-      <div id="map" [class.fullscreen-map]="isMapFullscreen" class="w-full rounded-md min-h-96 h-1/3 max-h-full"></div>
-    </div>
-
-    @if (!selectedItem) {
-    <div class="p-4 shadow rounded-md w-full min-h-20">
-      <div class="p-2 mb-2 flex justify-between items-center">
-        <div class="group relative">
-          <h1 class="font-semibold tracking-tight text-xl">Places</h1>
-          <span class="text-xs text-gray-500 line-clamp-1">{{ trip.name }} places</span>
-
-          <div
-            class="bg-white rounded py-2 absolute top-1/2 -translate-y-1/2 left-0 hidden group-hover:block slide-x dark:bg-surface-900">
-            <p-button [icon]="collapsedTripPlaces ? 'pi pi-chevron-down' : 'pi pi-chevron-up'" text
-              (click)="collapsedTripPlaces = !collapsedTripPlaces" />
-          </div>
+        } @else {
+        <div class="flex flex-col items-center justify-center py-12">
+          <h3 class="text-sm font-bold text-gray-900 dark:text-white mb-2">No places</h3>
+          <p class="text-xs text-gray-600 dark:text-gray-400 text-center mb-4">Link places to trip</p>
         </div>
-
-        <div class="flex items-center">
-          @defer {
-          <span class="bg-blue-100 text-blue-800 text-sm me-2 px-2.5 py-0.5 rounded-md dark:bg-blue-100/85">{{
-            places.length
-            }}</span>
-          } @placeholder (minimum 0.4s) {
-          <p-skeleton height="1.75rem" width="2.5rem" class="mr-1" />
+        }
+        }
+        } @placeholder (minimum 0.3s) {
+        <div class="space-y-2">
+          @for (_ of [1,2,3]; track _) {
+          <p-skeleton height="5rem" />
           }
         </div>
+        }
       </div>
+    </div>
+    }
+  </section>
 
-      @if (!collapsedTripPlaces) {
-      <div [class.max-h-64!]="!isExpanded" class="max-h-[340px] overflow-y-auto">
-        @defer {
-        @for (p of places; track p.id) {
-        <div class="flex items-center gap-4 py-2 px-4 hover:bg-gray-50 rounded-md overflow-auto dark:hover:bg-gray-800"
-          (mouseenter)="placeHighlightMarker(p)" (mouseleave)="resetPlaceHighlightMarker()">
-          <img [src]="p.image || p.category.image" class="w-12 rounded-full object-fit" />
+  @if (dispSelectedPlace(); as selection) {
+  <div #selectedPanel class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[calc(100%-2rem)] md:max-w-4xl z-40"
+    animate.enter="slide-from-y" animate.leave="a-slide-from-y">
+    <div class="relative rounded-t-lg p-4 pb-0 max-h-[40vh] overflow-y-auto shadow bg-white dark:bg-gray-900">
+      <div class="border-b border-gray-200 dark:border-gray-800 px-2 py-4 sm:p-4">
+        <div class="flex items-center gap-3">
+          @if (selectedPlaceActiveTabIndex() === selection.items.length) {
+          <img [src]="selection.place.image || selection.place.category.image"
+            class="w-10 sm:w-18 h-10 sm:h-18 rounded-lg object-cover flex-shrink-0">
 
-          <div class="flex flex-col gap-1 truncate">
-            <h1 class="tracking-tight truncate dark:text-surface-300">{{ p.name }}</h1>
-            <span class="text-xs text-gray-500 truncate">{{ p.place }}</span>
-
-            <div class="flex gap-0.5">
-              <span [style.color]="p.category.color" [style.background-color]="p.category.color + '1A'"
-                class="text-xs font-medium me-2 px-2.5 py-0.5 rounded flex gap-2 items-center truncate"><i
-                  class="pi pi-box text-xs"></i>{{ p.category.name }}</span>
-
-              @if (isPlaceUsed(p.id)) {
-              <span class="bg-green-100 text-green-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-green-100/85"><i
-                  class="pi pi-check-square text-xs"></i></span>
-              } @else {
-              <span class="bg-red-100 text-red-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-red-100/85"><i
-                  class="pi pi-map-marker text-xs"></i></span>
-              }
-
-              <span
-                class="bg-gray-100 text-gray-800 text-sm font-medium me-2 px-2.5 py-0.5 rounded dark:bg-gray-100/85">{{
-                p.price || '-' }}
-                @if (p.price) {
-                {{ trip.currency }}
-                }
+          <div class="flex-1 min-w-0 space-y-1">
+            <h3 class="text-md sm:text-lg font-bold text-gray-900 dark:text-white truncate mb-px">
+              {{ selection.place.name }}
+            </h3>
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="min-w-0 flex items-center gap-1 px-2 py-1 text-xs font-medium rounded"
+                [style.background]="selection.place.category.color + '1A'"
+                [style.color]="selection.place.category.color">
+                <i class="pi pi-tag text-[9px]"></i><span class="truncate">{{ selection.place.category.name
+                  }}</span>
               </span>
 
-              @if (trip.collaborators.length) {
-              <span class="bg-gray-100 text-gray-800 text-sm me-2 px-2.5 py-0.5 rounded dark:bg-gray-100/85">{{ p.user
-                }}</span>
+              @if (selection.count > 0) {
+              <span
+                class="hidden md:flex items-center gap-1 px-2 py-1 text-xs font-medium rounded bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
+                <i class="pi pi-calendar text-[9px]"></i>
+                {{ selection.count }} plan{{ selection.count > 1 ? 's' : '' }}
+              </span>
               }
             </div>
           </div>
-        </div>
-        } @empty {
-        No place
-        }
-        } @placeholder (minimum 0.4s) {
-        <div class="flex flex-col gap-4">
-          @for (_ of [1, 2, 3]; track _) {
-          <div class="h-16">
-            <p-skeleton height="100%" />
+
+          <div class="flex gap-1">
+            <p-button (click)="selectedPlace.set(null); selectedPlaceActiveTabIndex.set(0)" severity="secondary" text
+              icon="pi pi-times" />
+          </div>
+          } @else {
+          @let item = selection.items[selectedPlaceActiveTabIndex()];
+          @if (item.status) {
+          <span class="px-2 py-1 text-xs font-medium rounded-md max-w-[80px]"
+            [style.background]="item.status.color + '1A'" [style.color]="item.status.color" [title]="item.status.label">
+            {{ item.status.label }}
+          </span>
+          }
+
+          <div class="flex flex-1 flex-col min-w-0">
+            <div class="text-lg font-bold text-gray-900 dark:text-white truncate">{{ item.text }}</div>
+
+            <div class="flex items-center gap-2 mt-1">
+              <span class="text-sm font-medium truncate max-w-[50%]">{{ getItemDayLabel(item) }}</span>
+              <span class="text-gray-300 dark:text-gray-700">•</span>
+              <span class="text-xs font-mono font-medium px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">{{
+                item.time }}</span>
+            </div>
+          </div>
+
+          <div class="hidden md:flex gap-1">
+            @if (item.lat && item.lng) {
+            <p-button icon="pi pi-car" text pTooltip="Navigate" (click)="itemToNavigation()" />
+            }
+            <p-button (click)="selectedPlace.set(null); selectedPlaceActiveTabIndex.set(0)" text icon="pi pi-times" />
+          </div>
+
+          <div class="flex md:hidden gap-1">
+            <p-button (click)="openMenuSelectedItemActions($event, item)" text icon="pi pi-ellipsis-h" />
+            <p-button (click)="selectedPlace.set(null); selectedPlaceActiveTabIndex.set(0)" text icon="pi pi-times" />
           </div>
           }
         </div>
-        }
-      </div>
-      }
-    </div>
-
-    <div class="p-4 shadow rounded-md w-full min-h-20">
-      <div class="p-2 mb-2 flex justify-between items-center">
-        <div class="group relative">
-          <h1 class="font-semibold tracking-tight text-xl">Days</h1>
-          <span class="text-xs text-gray-500 line-clamp-1">{{ trip.name }} days</span>
-
-          <div
-            class="bg-white rounded py-2 absolute top-1/2 -translate-y-1/2 left-0 hidden group-hover:block slide-x dark:bg-surface-900">
-            <p-button [icon]="collapsedTripDays ? 'pi pi-chevron-down' : 'pi pi-chevron-up'" text
-              (click)="collapsedTripDays = !collapsedTripDays" />
-          </div>
-        </div>
       </div>
 
-      @if (!collapsedTripDays) {
-      <div [class.max-h-64!]="!isExpanded" class="max-h-[340px] overflow-y-auto">
-        @defer {
-        @for (d of trip.days; track d.id) {
-        <div class="flex items-center gap-4 rounded-md justify-between h-10 px-4 py-2 w-full max-w-full">
-          <div class="line-clamp-1 dark:text-surface-300">
-            {{ d.label }}
-          </div>
-          <div class="flex items-center gap-2 flex-none">
-            <span
-              class="bg-gray-100 text-gray-800 text-sm px-2.5 py-0.5 rounded-md min-w-fit flex items-center group-hover:hidden dark:bg-gray-100/85"><i
-                class="pi pi-calendar"></i>&nbsp;{{ (d.dt | date: 'd MMM, y' ) || '-' }}</span>
-            <span class="bg-gray-100 text-gray-800 text-sm px-2.5 py-0.5 rounded-md min-w-fit dark:bg-gray-100/85">{{
-              getDayStats(d).price || '-' }}
-              @if (getDayStats(d).price) {
-              {{ trip.currency }}
+      <p-tabs [(value)]="selectedPlaceActiveTabIndex" scrollable>
+        <p-tablist>
+          @for (item of selection.items; track item.id) {
+          <p-tab [value]="$index">
+            <div class="flex items-center gap-2 px-1">
+              <span class="text-sm font-medium truncate max-w-[120px]">
+                {{ getItemDayLabel(item) }}
+              </span>
+              <span class="text-xs font-mono font-medium px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">
+                {{ item.time }}
+              </span>
+            </div>
+          </p-tab>
+          }
+
+          <p-tab [value]="selection.count">
+            <div class="flex items-center gap-2 px-1">
+              <i class="pi pi-info-circle text-sm"></i>
+              <span class="text-sm font-medium">Place Details</span>
+            </div>
+          </p-tab>
+        </p-tablist>
+
+        <p-tabpanels>
+          @for (item of selection.items; track item.id) {
+          <p-tabpanel [value]="$index">
+            <div class="pt-2 space-y-3">
+              <div class="grid md:grid-cols-2 gap-4 min-w-0">
+                <div class="flex flex-col min-w-0">
+                  <span
+                    class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Text</span>
+                  <div class="line-clamp-2 text-gray-900 dark:text-gray-100 break-words">{{ item.text }}</div>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 min-w-0">
+                  @if (item.lat && item.lng) {
+                  <div class="md:col-span-2 min-w-0">
+                    @let coords = item.lat + ', ' + item.lng;
+                    <span
+                      class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+                      Coordinates
+                    </span>
+
+                    <button [cdkCopyToClipboard]="coords" (cdkCopyToClipboardCopied)="onCoordsCopied()"
+                      class="inline-flex items-center h-8 gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 cursor-pointer rounded border bg-gray-50 dark:bg-gray-800
+                  hover:bg-gray-100 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-700 transition-colors min-w-0 max-w-full">
+                      <i class="pi shrink-0" [class]="tooltipCopied() ? 'pi-check text-green-600' : 'pi-copy'"></i>
+                      <span class="truncate">{{ coords }}</span>
+                    </button>
+                  </div>
+                  }
+
+                  @if (item.price) {
+                  <div class="min-w-0">
+                    <span
+                      class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+                      Price
+                    </span>
+                    <div
+                      class="w-fit h-8 flex items-center gap-1.5 px-3 py-1.5 text-sm rounded bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700">
+                      <i class="pi pi-wallet text-green-600 dark:text-green-400 text-xs"></i>
+                      <span class="text-xs font-medium text-green-700 dark:text-green-300">{{ item.price }} {{
+                        trip()?.currency }}</span>
+                    </div>
+                  </div>
+                  }
+
+                  @if (item.distance) {
+                  <div class="min-w-0">
+                    <span
+                      class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+                      Distance
+                    </span>
+                    <div
+                      class="h-8 flex items-center gap-1.5 px-3 py-1.5 text-sm rounded bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700">
+                      <i class="pi pi-arrow-right text-blue-600 dark:text-blue-400 text-xs"></i>
+                      <span class="text-xs font-medium text-blue-700 dark:text-blue-300 truncate">{{ item.distance }}km
+                        from previous</span>
+                    </div>
+                  </div>
+                  }
+                </div>
+              </div>
+
+
+              @if (item.comment) {
+              <div class="flex flex-col mt-4 max-h-40 overflow-y-auto">
+                <span
+                  class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Comment</span>
+                <div
+                  class="border-l-3 border-gray-300 dark:border-gray-700 pl-3 py-1 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed"
+                  [innerHTML]="item.comment | linkify">
+                </div>
+              </div>
               }
-            </span>
-            <span class="bg-blue-100 text-blue-800 text-sm px-2.5 py-0.5 rounded-md dark:bg-blue-100/85">{{
-              getDayStats(d).places
-              }}</span>
-          </div>
-        </div>
-        } @empty {
-        No day
-        }
-        } @placeholder (minimum 0.4s) {
-        <div class="h-16">
-          <p-skeleton height="100%" />
-        </div>
-        }
-      </div>
-      }
+
+              @if (item.attachments?.length) {
+              <div class="flex flex-col mt-4">
+                <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+                  Attachments ({{ item.attachments?.length }})
+                </span>
+                <div class="flex flex-wrap gap-2">
+                  @for (attachment of item.attachments; track attachment.id) {
+                  <button (click)="downloadAttachment(attachment)"
+                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 active:bg-gray-100 dark:active:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700">
+                    <div
+                      class="w-9 h-9 rounded-lg bg-red-50 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
+                      <i class="pi pi-file text-red-600 dark:text-red-400 text-sm"></i>
+                    </div>
+                    <div class="flex-1 min-w-0 text-left">
+                      <p class="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">
+                        {{ attachment.filename }}
+                      </p>
+                    </div>
+                    <i class="pi pi-download text-gray-400 text-xs flex-shrink-0"></i>
+                  </button>
+                  }
+                </div>
+              </div>
+              }
+
+              @if (item.image) {
+              <div class="flex flex-col mt-4">
+                <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+                  Image
+                </span>
+                <img [src]="item.image" class="w-full rounded-lg object-cover" loading="lazy" />
+              </div>
+              }
+
+              @if (item.gpx) {
+              <div class="flex flex-col mt-4">
+                <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+                  GPX
+                </span>
+                <div class="flex gap-2">
+                  <p-button disabled icon="pi pi-compass" label="Display" pTooltip="WIP - Coming soon!" text />
+                  <p-button (click)="downloadItemGPX()" icon="pi pi-download" label="Download" text />
+                </div>
+              </div>
+              }
+            </div>
+          </p-tabpanel>
+          }
+
+          <p-tabpanel [value]="selection.count">
+            <div class="py-2">
+              <app-place-box-content [selectedPlace]="selection.place" [showMeta]="false"></app-place-box-content>
+            </div>
+          </p-tabpanel>
+        </p-tabpanels>
+      </p-tabs>
     </div>
-
-    <div class="p-4 shadow rounded-md w-full min-h-20">
-      <div class="p-2 mb-2 flex justify-between items-center">
-        <h1 class="font-semibold tracking-tight text-xl">About</h1>
-        <div class="flex items-center gap-1 text-gray-500">
-          <p-button text label="itskovacs/trip" icon="pi pi-github" (click)="toGithub()" />
-        </div>
-      </div>
-
-      <div class="max-w-[85%] text-center mx-auto flex flex-col items-center gap-4">
-        <div>
-          TRIP is free and always will be. Building it takes a lot of time and effort, and since I'm committed to
-          keeping it free, your support simply helps keep the project going. Thank you! ❤️
-        </div>
-
-        <a href="https://ko-fi.com/itskovacs" target="_blank" class="custom-button flex items-center">Buy me a
-          coffee</a>
-      </div>
-    </div>
-    }
-  </div>
-</section>
-
-@if (isMapFullscreen) {
-<div class="fixed top-2 right-2 p-2 bg-white shadow rounded dark:bg-surface-900" [class.prettyprint]="isPrinting">
-  <p-button (click)="toggleMapFullscreen()" severity="secondary" text icon="pi pi-window-minimize" />
-</div>
-
-<div class="fixed top-20 right-2 p-2 bg-white shadow rounded dark:bg-surface-900" [class.prettyprint]="isPrinting">
-  <p-button (click)="toggleTripDaysHighlight()" text icon="pi pi-directions"
-    [severity]="tripMapAntLayerDayID == -1 ? 'help' : 'secondary'" />
-</div>
-
-<div
-  class="fixed bottom-6 left-6 z-40 w-40 md:w-60 max-h-[50vh] bg-white/90 dark:bg-surface-900/90 backdrop-blur-lg shadow-xl rounded-md overflow-hidden"
-  [class.prettyprint]="isPrinting">
-  @if (isMapFullscreenDays) {
-  <div animate.enter="expand" animate.leave="collapse" class="overflow-y-auto max-h-[calc(30vh-5rem)] p-2 space-y-1">
-    @for (day of trip.days; track day.id) {
-    <button (click)="toggleTripDayHighlight(day.id)" [class]="
-                  tripMapAntLayerDayID === day.id
-                    ? 'shadow-md bg-blue-500'
-                    : 'hover:bg-blue-50 dark:hover:bg-blue-950/20'
-                " class="w-full flex items-center gap-3 p-3 rounded-xl cursor-pointer transition-all">
-      <span class="flex-shrink-0 w-9 h-9 flex items-center justify-center rounded-lg font-semibold text-sm" [class]="
-                    tripMapAntLayerDayID === day.id
-                      ? 'bg-white text-blue-600'
-                      : 'bg-blue-100 text-blue-800 dark:bg-blue-900'
-                  ">
-        {{ day.items.length }}
-      </span>
-      <span class="flex-1 text-left text-sm font-medium truncate"
-        [class]="tripMapAntLayerDayID === day.id ? 'text-white' : 'text-gray-900 dark:text-gray-50'">
-        {{ day.label }}
-      </span>
-    </button>
-    }
   </div>
   }
 
-  <div [class]="isMapFullscreenDays ? 'border-t border-gray-200 dark:border-surface-700' : ''"
-    class="px-4 py-3 cursor-pointer select-none flex justify-between items-center" (click)="toggleMapFullscreenDays()">
-    <h2 class="font-semibold text-sm">Days</h2>
-    <i [class]="isMapFullscreenDays ? 'pi pi-chevron-down' : 'pi pi-chevron-up'" class="text-gray-500"></i>
-  </div>
-</div>
-}
-} @else {
-<section class="min-h-screen my-auto flex flex-col items-center justify-center gap-8">
-  <div class="mx-auto w-full text-center">
-    <h1 class="text-2xl font-semibold text-gray-800 tracking-tight dark:text-white md:text-4xl">Trip not found</h1>
-    <p class="mt-2 text-gray-500 dark:text-gray-400">The requested Trip does not exist</p>
-  </div>
+  @if (dispSelectedItem(); as item) {
+  <div #selectedPanel class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[calc(100%-2rem)] md:max-w-4xl z-40"
+    animate.enter="slide-from-y" animate.leave="a-slide-from-y">
+    <div class="relative rounded-t-lg p-4 pb-0 max-h-[40vh] overflow-y-auto shadow bg-white dark:bg-gray-900">
+      <div class="border-b border-gray-200 dark:border-gray-800 px-2 py-4 sm:p-4">
+        <div class="flex items-center gap-3">
+          <div class="flex flex-1 gap-4 items-center min-w-0">
+            @if (item.status) {
+            <span class="px-2 py-1 text-xs font-medium rounded-md max-w-[80px]"
+              [style.background]="item.status.color + '1A'" [style.color]="item.status.color"
+              [title]="item.status.label">
+              {{ item.status.label }}
+            </span>
+            }
 
-  <div class="mx-auto">
-    <img class="w-full lg:h-[32rem] h-80 md:h-96 rounded-lg object-cover" src="cover.webp" />
-  </div>
+            <div class="flex flex-1 flex-col min-w-0">
+              <div class="text-lg font-bold text-gray-900 dark:text-white truncate">{{ item.text }}</div>
 
-  <p-button text label="itskovacs/trip" icon="pi pi-github" (click)="toGithub()" />
-</section>
-}
-}
-
-<p-dialog header="Packing list" [draggable]="false" [dismissableMask]="true" [modal]="true"
-  [(visible)]="packingDialogVisible" styleClass="w-[95%] md:w-[70%] lg:w-[50%]">
-  <section class="md:max-w-3/4 md:mx-auto max-h-[80%] md:max-h-[600px]">
-    <div class="grid gap-2 mt-4 pb-4">
-      @for (c of dispPackingList | keyvalue; track c.key) {
-      <div class="mt-4 text-md font-semibold capitalize">{{ c.key }}</div>
-
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-        @for (item of c.value; track item.id) {
-        <div class="relative flex items-center gap-3 rounded-md p-2 hover:bg-gray-100 dark:hover:bg-white/5">
-          <label [for]="item.id" [class.line-through]="item.packed"
-            class="flex items-center gap-2 w-full cursor-pointer">
-            <p-checkbox disabled [binary]="true" [inputId]="item.id.toString()" [(ngModel)]="item.packed" />
-            <div class="pr-6 md:pr-0 truncate select-none flex-1">
-              @if (item.qt) {<span class="text-gray-400 mr-0.5">{{ item.qt }}</span>}
-              <span>{{ item.text }}</span>
+              <div class="flex items-center gap-2 mt-1">
+                <span class="text-sm font-medium truncate max-w-[50%]">{{ item.day }}</span>
+                <span class="text-gray-300 dark:text-gray-700">•</span>
+                <span class="text-xs font-mono font-medium px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">{{
+                  item.time }}</span>
+              </div>
             </div>
-          </label>
+          </div>
+
+          <div class="hidden md:flex gap-1">
+            @if (item.lat && item.lng) {
+            <p-button icon="pi pi-car" text pTooltip="Navigate" (click)="itemToNavigation()" />
+            }
+            <p-button (click)="selectedItem.set(null)" text icon="pi pi-times" />
+          </div>
+
+          <div class="flex md:hidden gap-1">
+            <p-button (click)="openMenuSelectedItemActions($event, item)" text icon="pi pi-ellipsis-h" />
+            <p-button (click)="selectedItem.set(null)" text icon="pi pi-times" />
+          </div>
+        </div>
+      </div>
+
+      <div class="p-4">
+        <div class="grid md:grid-cols-2 gap-4 min-w-0">
+          <div class="flex flex-1 flex-col min-w-0">
+            <span
+              class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Text</span>
+            <div class="line-clamp-2 text-gray-900 dark:text-gray-100 break-words">{{ item.text }}</div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 min-w-0">
+            @if (item.lat && item.lng) {
+            <div class="md:col-span-2 min-w-0">
+              @let coords = item.lat + ', ' + item.lng;
+              <span class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+                Coordinates
+              </span>
+
+              <button [cdkCopyToClipboard]="coords" (cdkCopyToClipboardCopied)="onCoordsCopied()"
+                class="inline-flex items-center h-8 gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 cursor-pointer rounded border bg-gray-50 dark:bg-gray-800
+                  hover:bg-gray-100 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-700 transition-colors min-w-0 max-w-full">
+                <i class="pi shrink-0" [class]="tooltipCopied() ? 'pi-check text-green-600' : 'pi-copy'"></i>
+                <span class="truncate">{{ coords }}</span>
+              </button>
+            </div>
+            }
+
+            @if (item.price) {
+            <div class="min-w-0">
+              <span class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+                Price
+              </span>
+              <div
+                class="w-fit h-8 flex items-center gap-1.5 px-3 py-1.5 text-sm rounded bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700">
+                <i class="pi pi-wallet text-green-600 dark:text-green-400 text-xs"></i>
+                <span class="text-xs font-medium text-green-700 dark:text-green-300">{{ item.price }} {{
+                  trip()?.currency }}</span>
+              </div>
+            </div>
+            }
+
+            @if (item.distance) {
+            <div class="min-w-0">
+              <span class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+                Distance
+              </span>
+              <div
+                class="h-8 flex items-center gap-1.5 px-3 py-1.5 text-sm rounded bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700">
+                <i class="pi pi-arrow-right text-blue-600 dark:text-blue-400 text-xs"></i>
+                <span class="text-xs font-medium text-blue-700 dark:text-blue-300 truncate">{{ item.distance }}km from
+                  previous</span>
+              </div>
+            </div>
+            }
+          </div>
+        </div>
+
+        @if (item.comment) {
+        <div class="flex flex-col mt-4 max-h-40 overflow-y-auto">
+          <span
+            class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Comment</span>
+          <div
+            class="border-l-3 border-gray-300 dark:border-gray-700 pl-3 py-1 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed"
+            [innerHTML]="item.comment | linkify">
+          </div>
+        </div>
+        }
+
+        @if (item.attachments?.length) {
+        <div class="flex flex-col mt-4">
+          <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+            Attachments ({{ item.attachments?.length }})
+          </span>
+          <div class="flex flex-wrap gap-2">
+            @for (attachment of item.attachments; track attachment.id) {
+            <div (click)="downloadAttachment(attachment)" class="w-full sm:w-fit group relative cursor-pointer flex items-center gap-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-100 dark:hover:bg-white/5 p-3 transition-all
+                dark:border-gray-800 dark:bg-gray-950">
+              <div
+                class="group relative flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-md bg-red-50 transition-colors dark:bg-red-900/30">
+                <i class="pi pi-file text-red-600 transition-opacity group-hover:opacity-0 dark:text-red-400"></i>
+                <i
+                  class="pi pi-arrow-down absolute -translate-y-4 text-red-600 opacity-0 transition-none group-hover:translate-y-0 group-hover:opacity-100 group-hover:transition-all group-hover:duration-300 dark:text-red-400"></i>
+              </div>
+
+              <div class="min-w-0 flex-1">
+                <div class="truncate font-mono text-sm  text-gray-900 dark:text-gray-100">{{
+                  attachment.filename }}</div>
+                <div class="flex items-center gap-2 mt-1 text-xs font-mono text-gray-500 dark:text-gray-400">
+                  <span>{{ attachment.file_size | fileSize }}</span>
+                  <span
+                    class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded min-w-fit dark:bg-gray-400">{{
+                    attachment.uploaded_by }}</span>
+                </div>
+              </div>
+            </div>
+            }
+          </div>
+        </div>
+        }
+
+        @if (item.image) {
+        <div class="flex flex-col mt-4">
+          <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+            Image
+          </span>
+          <img [src]="item.image" class="w-full rounded-lg object-cover" loading="lazy" />
+        </div>
+        }
+
+        @if (item.gpx) {
+        <div class="flex flex-col mt-4">
+          <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+            GPX
+          </span>
+          <div class="flex gap-2">
+            <p-button disabled icon="pi pi-compass" label="Display" pTooltip="WIP - Coming soon!" text />
+            <p-button (click)="downloadItemGPX()" icon="pi pi-download" label="Download" text />
+          </div>
         </div>
         }
       </div>
+    </div>
+  </div>
+  }
+
+  @if (selectedDay(); as day) {
+  <div #selectedPanel class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[calc(100%-2rem)] md:max-w-4xl z-40"
+    animate.enter="slide-from-y" animate.leave="a-slide-from-y">
+    <div class="relative rounded-t-lg p-4 pb-0 max-h-[40vh] overflow-y-auto shadow bg-white dark:bg-gray-900">
+      <div class="border-b border-gray-200 dark:border-gray-800 px-2 py-4 sm:p-4">
+        <div class="flex items-center gap-3">
+          <div class="flex-1 min-w-0 space-y-1">
+            <div class="text-lg font-bold text-gray-900 dark:text-white truncate">{{ day.label }}</div>
+
+            <div class="text-gray-600 flex items-center gap-1 mt-1">
+              <i class="pi pi-calendar text-xs"></i>
+              <span class="text-sm font-medium truncate">{{ day.dt | date: 'd MMM, y' }}</span>
+            </div>
+          </div>
+
+          <div class="hidden md:flex gap-1">
+            <p-button icon="pi pi-car" text pTooltip="Open Navigation" (click)="tripDayToNavigation(day.id)" />
+            <p-button icon="pi pi-directions" text pTooltip="Highlight" (click)="toggleTripDayHighlight(day.id)" />
+            <p-button (click)="onDayClick(day)" text icon="pi pi-times" />
+          </div>
+
+          <div class="flex md:hidden gap-1">
+            <p-button (click)="openMenuSelectedDayActions($event, day)" text icon="pi pi-ellipsis-h" />
+            <p-button (click)="onDayClick(day)" text icon="pi pi-times" />
+          </div>
+        </div>
+      </div>
+
+      @let attachments = getDayAttachments(day);
+      @let places = getDayPlaces(day);
+      <div class="p-4 space-y-4">
+        <div class="flex flex-col md:flex-row gap-4 min-w-0">
+          <div class="flex-1 flex flex-col min-w-0">
+            <span
+              class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Label</span>
+            <div class="line-clamp-2 text-gray-900 dark:text-gray-100 break-words">{{ day.label }}</div>
+          </div>
+
+          <div class="flex gap-4 min-w-0">
+            <div class="min-w-0">
+              <span
+                class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Places</span>
+              <div
+                class="w-fit h-8 flex items-center gap-1.5 px-3 py-1.5 text-sm rounded bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700">
+                <i class="pi pi-map-marker text-purple-600 dark:text-purple-400 text-xs"></i>
+                <span class="text-xs font-medium text-purple-700 dark:text-purple-300">{{ places.length }} Place{{
+                  places.length > 1 ? 's' : '' }}</span>
+              </div>
+            </div>
+
+            <div class="min-w-0">
+              <span class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+                Plans
+              </span>
+              <div
+                class="h-8 flex items-center gap-1.5 px-3 py-1.5 text-sm rounded bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700">
+                <i class="pi pi-list text-blue-600 dark:text-blue-400 text-xs"></i>
+                <span class="text-xs font-medium text-blue-700 dark:text-blue-300 truncate">{{ day.items.length }}
+                  Plan{{ day.items.length > 1 ? 's' : '' }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        @if (day.notes) {
+        <div class="flex flex-col min-w-0">
+          <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Notes</span>
+          <div
+            class="border-l-3 border-gray-300 dark:border-gray-700 pl-3 py-1 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed"
+            [innerHTML]="day.notes | linkify">
+          </div>
+        </div>
+        }
+
+        @if (attachments.length) {
+        <div class="flex flex-col min-w-0">
+          <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Attachments
+            ({{attachments.length}})</span>
+          <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
+            @for(attachment of attachments; track attachment.id) {
+            <div (click)="downloadAttachment(attachment)" class="group relative cursor-pointer flex items-center gap-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-100 dark:hover:bg-white/5 p-3 transition-all
+                dark:border-gray-800 dark:bg-gray-950">
+              <div
+                class="group relative flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-md bg-red-50 transition-colors dark:bg-red-900/30">
+                <i class="pi pi-file text-red-600 transition-opacity group-hover:opacity-0 dark:text-red-400"></i>
+                <i
+                  class="pi pi-arrow-down absolute -translate-y-4 text-red-600 opacity-0 transition-none group-hover:translate-y-0 group-hover:opacity-100 group-hover:transition-all group-hover:duration-300 dark:text-red-400"></i>
+              </div>
+
+              <div class="min-w-0 flex-1">
+                <div class="truncate font-mono text-sm  text-gray-900 dark:text-gray-100">{{
+                  attachment.filename }}</div>
+                <div class="flex items-center gap-2 mt-1 text-xs font-mono text-gray-500 dark:text-gray-400">
+                  <span class="truncate">{{ attachment.file_size | fileSize }}</span>
+                  <span
+                    class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded min-w-fit dark:bg-gray-400">{{
+                    attachment.uploaded_by }}</span>
+                </div>
+              </div>
+            </div>
+            }
+          </div>
+        </div>
+        }
+
+        @if (places.length) {
+        <div class="flex flex-col min-w-0">
+          <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Places
+            ({{places.length}})</span>
+          <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+            @for(place of places; track place.id) {
+            <div [style.background]="place.category.color + '1A'"
+              class="inline-flex items-center gap-2 font-medium p-2 rounded-lg">
+              <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden flex-shrink-0">
+                <img [src]="place.image" class="size-full object-cover" loading="lazy" />
+              </div>
+              <span class="text-sm truncate">{{ place.name }}</span>
+            </div>
+            }
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+  </div>
+  }
+  <p-menu #menuSelectedItemActions [model]="menuSelectedItemActionsItems" appendTo="body" [popup]="true" />
+  <p-menu #menuSelectedDayActions [model]="menuSelectedDayActionsItems" appendTo="body" [popup]="true" />
+  <p-menu #menuTripDayActions [model]="menuTripDayActionsItems" appendTo="body" [popup]="true" />
+</div>
+
+<p-dialog header="Checklist" [draggable]="false" [dismissableMask]="true" [modal]="true"
+  [(visible)]="isChecklistDialogVisible" styleClass="w-[95%] md:w-[80%] max-w-5xl">
+  <section class="p-4 max-w-full max-h-[80%] md:max-h-[600px]">
+    <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-2 mt-2 pb-4">
+      @for (item of dispChecklist(); track item.id) {
+      <div class="relative flex items-center gap-3 rounded-md py-1 min-w-0 hover:bg-gray-100 dark:hover:bg-white/5">
+        <label [for]="item.id" [pTooltip]="item.text" [class.line-through]="item.checked"
+          class="flex items-center gap-2 w-full cursor-pointer">
+          <p-checkbox [binary]="true" [disabled]="true" [inputId]="item.id.toString()" [(ngModel)]="item.checked" />
+          <div class="truncate select-none">
+            <span>{{ item.text }}</span>
+          </div>
+        </label>
+      </div>
       } @empty {
-      <div class="flex flex-col items-center justify-center mt-4 text-center select-none">
+      <div class="col-span-full flex flex-col items-center justify-center mt-4 text-center select-none">
         <i style="font-size: 3rem" class="pi pi-inbox mb-2 text-gray-300 dark:text-gray-700"></i>
         <p class="text-sm text-gray-500 dark:text-gray-400">No item</p>
       </div>
       }
     </div>
-  </section>
-</p-dialog>
 
-<p-dialog header="Checklist" [draggable]="false" [dismissableMask]="true" [modal]="true"
-  [(visible)]="checklistDialogVisible" styleClass="w-[95%] md:w-[80%]">
-  <section class="p-4 max-w-full max-h-[80%] md:max-h-[600px]">
-    <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-2 mt-2 pb-4">
-      @for (item of checklistItems; track item.id) {
-      <div class="relative group flex items-center gap-3 rounded-md p-2 hover:bg-gray-100 dark:hover:bg-white/5">
-        <label [for]="item.id" [class.line-through]="item.checked"
-          class="flex items-center gap-2 w-full cursor-pointer">
-          <p-checkbox disabled [binary]="true" [inputId]="item.id.toString()" [(ngModel)]="item.checked" />
-          <div class="pr-6 md:pr-0 truncate select-none flex-1">
-            <span>{{ item.text }}</span>
-          </div>
-        </label>
-      </div>
-      }
-    </div>
-
-    <div class="flex items-center justify-center flex-wrap xl:justify-between gap-1 mt-4">
-      <div class="font-semibold tracking-tight text-md">Items with status</div>
+    <div class="mt-4 grid grid-cols-2">
+      <div class="font-semibold tracking-tight text-md">With status</div>
       <div class="flex justify-center md:justify-end gap-1">
         @for (status of statuses; track status.label) {
+        @if (['pending', 'constraint'].includes(status.label)) {
         <div class="relative">
-          <div class="z-50 block absolute top-0.5 left-1 size-2.5 rounded-full" [style.background]="status.color"></div>
           <span [style.background]="status.color+'1A'" [style.color]="status.color"
             class="text-xs md:text-sm font-medium me-2 px-2.5 py-1 rounded">{{ status.label }}</span>
         </div>
         }
+        }
       </div>
     </div>
     <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-2 mt-2 pb-4">
-      @for (item of getWatchlistData; track item.id) {
+      @for (item of watchlistItems(); track item.id) {
       <div class="rounded-md py-1 min-w-0 hover:bg-gray-100 dark:hover:bg-white/5">
-        <label [for]="item.id" class="flex items-center gap-2 w-full">
+        <label [for]="item.id" [pTooltip]="item.text" class="flex items-center gap-2 w-full">
           <div class="relative">
             @if (item.status) {
             <div class="z-50 block absolute top-0 left-3 size-2.5 rounded-full" [style.background]="item.status.color">
@@ -745,29 +999,179 @@
           </div>
         </label>
       </div>
+      } @empty {
+      <div class="col-span-full flex flex-col items-center justify-center mt-4 text-center select-none">
+        <i style="font-size: 3rem" class="pi pi-inbox mb-2 text-gray-300 dark:text-gray-700"></i>
+        <p class="text-sm text-gray-500 dark:text-gray-400">No item</p>
+      </div>
       }
     </div>
   </section>
 </p-dialog>
+<p-dialog header="Attachments" [draggable]="false" [dismissableMask]="true" [modal]="true"
+  [(visible)]="isAttachmentsDialogVisible" styleClass="w-[95%] md:w-[70%] lg:w-[50%]">
+  <section class="md:max-w-3/4 md:mx-auto max-h-[80%] md:max-h-[600px]">
+    <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-2 mt-2 pb-4">
+      @for (attachment of trip()?.attachments; track attachment.id) {
+      <div (click)="downloadAttachment(attachment)"
+        class="group relative cursor-pointer flex items-center gap-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-100 dark:hover:bg-white/5 p-3 transition-all dark:border-gray-800 dark:bg-gray-950">
+        <div
+          class="group relative flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-md bg-red-100 transition-colors dark:bg-red-900">
+          <i class="pi pi-file text-red-600 transition-opacity group-hover:opacity-0 dark:text-red-400"></i>
+          <i
+            class="pi pi-arrow-down absolute -translate-y-4 text-red-600 opacity-0 transition-none group-hover:translate-y-0 group-hover:opacity-100 group-hover:transition-all group-hover:duration-300 dark:text-red-400"></i>
+        </div>
 
-@if (isPrinting) {
+        <div class="min-w-0 flex-1">
+          <div class="truncate font-mono text-md text-gray-900 dark:text-gray-100">{{ attachment.filename }}</div>
+          <div class="flex items-center gap-2 mt-1 text-xs font-mono text-gray-500 dark:text-gray-400">
+            <span>{{ attachment.file_size | fileSize }}</span>
+            <span
+              class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded min-w-fit dark:bg-gray-400">{{
+              attachment.uploaded_by }}</span>
+          </div>
+        </div>
+      </div>
+      } @empty {
+      <div class="col-span-full flex flex-col items-center justify-center mt-4 text-center select-none">
+        <i style="font-size: 3rem" class="pi pi-inbox mb-2 text-gray-300 dark:text-gray-700"></i>
+        <p class="text-sm text-gray-500 dark:text-gray-400">No attachments</p>
+      </div>
+      }
+    </div>
+  </section>
+</p-dialog>
+<p-menu #menuTripPacking [model]="menuTripPackingItems" attachTo="body" [popup]="true" />
+<p-dialog header="Packing List" [draggable]="false" [dismissableMask]="true" [modal]="true"
+  [(visible)]="isPackingDialogVisible" styleClass="w-[95%] md:w-[80%] max-w-5xl">
+
+  <section class="p-4 max-h-[80vh] overflow-hidden flex flex-col">
+    <div class="flex flex-wrap items-center justify-center gap-3 mb-6">
+      <p-button (click)="menuTripPacking.toggle($event)" icon="pi pi-ellipsis-h" text />
+    </div>
+
+    <div class="overflow-y-auto px-2 pb-4">
+      @for (category of dispPackingList() | keyvalue; track category) {
+      <div class="mb-6 break-inside-avoid">
+        <h3
+          class="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 px-1 sticky top-0 bg-white dark:bg-gray-900 z-10 py-2">
+          {{ category.key }}
+        </h3>
+
+        <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-3">
+          @for (item of category.value; track item.id) {
+          <div
+            class="relative flex items-center gap-3 p-2 rounded-lg transition-colors hover:bg-gray-50 dark:hover:bg-white/5 border border-transparent hover:border-gray-100 dark:hover:border-gray-800">
+
+            <label [for]="'pack-' + item.id" class="flex flex-1 items-center gap-3 cursor-pointer min-w-0">
+              <p-checkbox [binary]="true" [inputId]="'pack-' + item.id" [(ngModel)]="item.packed" [disabled]="true" />
+
+              <div class="flex-1 min-w-0">
+                <div class="flex items-baseline gap-2">
+                  @if (item.qt && item.qt > 1) {
+                  <span class="text-xs font-bold bg-primary-100 text-primary-700 px-1.5 rounded">{{ item.qt }}x</span>
+                  }
+                  <span class="truncate select-none" [class.line-through]="item.packed"
+                    [class.text-gray-400]="item.packed">
+                    {{ item.text }}
+                  </span>
+                </div>
+              </div>
+            </label>
+          </div>
+          }
+        </div>
+      </div>
+      } @empty {
+      <div class="flex flex-col items-center justify-center py-12 text-center opacity-60">
+        <i class="pi pi-briefcase text-4xl mb-3 text-gray-300"></i>
+        <p class="text-sm font-medium">Your packing list is empty</p>
+        <p class="text-xs text-gray-500 mt-1">Start adding items or paste from another trip</p>
+      </div>
+      }
+    </div>
+  </section>
+</p-dialog>
+<p-dialog header="BETA Trip" [draggable]="false" [dismissableMask]="true" [modal]="true"
+  [(visible)]="isBetaDialogVisible" styleClass="w-[95%] md:w-[40%] lg:w-[30%]">
+  <section class="p-5 md:p-6 space-y-8 text-sm text-gray-800 dark:text-gray-100">
+    <div class="flex items-center gap-4">
+      <div
+        class="hidden md:flex w-fit mt-0.5 items-center gap-1.5 rounded bg-purple-100 dark:bg-purple-900/40 px-2.5 py-1">
+        <span class="text-[11px] font-semibold uppercase tracking-[0.16em] text-purple-700 dark:text-purple-300">
+          Beta
+        </span>
+      </div>
+
+      <div class="flex-1 min-w-0">
+        <h2 class="text-base md:text-lg font-semibold leading-snug">
+          Welcome to Trip BETA!
+        </h2>
+        <p class="mt-1 text-xs md:text-sm text-gray-500 dark:text-gray-400">
+          This redesigned UI is still in progress. Things may move, break, or change as it evolves.
+        </p>
+      </div>
+    </div>
+
+    <div class="grid gap-3 md:grid-cols-2">
+      <div class="space-y-1.5">
+        <h3 class="text-red-500 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+          Found a bug?
+        </h3>
+        <p class="text-xs md:text-sm text-gray-600 dark:text-gray-300">
+          Open an <a href="https://github.com/itskovacs/trip" target="_blank" class="text-blue-600">issue</a> and
+          follow
+          the steps. Thanks!
+        </p>
+      </div>
+
+      <div class="space-y-1.5">
+        <h3 class="text-green-500 text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">
+          Have an idea?
+        </h3>
+        <p class="text-xs md:text-sm text-gray-600 dark:text-gray-300">
+          Head to <a href="https://github.com/itskovacs/trip/discussions" target="_blank"
+            class="text-blue-600">discussions</a> and share it.
+        </p>
+      </div>
+    </div>
+
+    <div
+      class="mt-2 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/80 dark:bg-gray-900/60 px-3.5 py-3 flex items-center gap-3">
+      <span class="mt-0.5 text-3xl">☕</span>
+      <p class="text-xs md:text-sm text-gray-600 dark:text-gray-300">
+        If TRIP makes your trips planning easier and you'd like to support me and its development, you're welcome (but
+        never expected) to <a href="https://ko-fi.com/itskovacs" target="_blank" class="text-blue-600">buy me a
+          coffee</a>. Thank you!
+      </p>
+    </div>
+
+    <div class="flex flex-wrap items-center justify-end gap-2 pt-1">
+      <p-button label="Continue" icon="pi pi-arrow-right" size="small" (click)="isBetaDialogVisible=false" />
+    </div>
+  </section>
+</p-dialog>
+
+@if (isPrinting()) {
 <section class="hidden print:block">
   <div class="flex items-center justify-center">
     <div class="flex flex-col items-center max-w-[55vw] md:max-w-full">
       <div class="flex flex-col items-center">
-        <img src="favicon.png" class="size-20" />
+        <img src="favicon.png" class="size-20">
         <div class="flex gap-2 items-center text-xs text-gray-500"><i class="pi pi-github"></i>itskovacs/trip</div>
       </div>
 
-      <h1 class="mt-4 tracking-tight text-3xl font-semibold truncate p-2">{{ trip?.name }}</h1>
+      <h1 class="mt-4 tracking-tight text-3xl font-semibold truncate p-2">{{ trip()?.name }}</h1>
       <div class="flex items-center">
         <span
           class="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-1 rounded min-w-fit flex items-center gap-2"><i
-            class="pi pi-calendar text-xs"></i> {{ trip?.days?.length }}
-          {{ (trip?.days)!.length > 1 ? 'days' : 'day' }}</span>
+            class="pi pi-calendar text-xs"></i> {{
+          trip()?.days?.length }} {{ trip()?.days!.length > 1 ? 'days' :
+          'day'}}</span>
         <span
           class="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-1 rounded min-w-fit flex items-center gap-2"><i
-            class="pi pi-wallet text-xs"></i> {{ (totalPrice | number: '1.0-2') || '-' }} {{ trip?.currency }}</span>
+            class="pi pi-wallet text-xs"></i> {{
+          (totalPrice() | number:'1.0-2') || '-' }} {{ trip()?.currency }}</span>
       </div>
     </div>
   </div>
@@ -776,7 +1180,8 @@
     <div class="text-2xl font-semibold">Notes</div>
 
     <div class="mt-4 border-l-3 border-gray-900 pl-6 py-2">
-      <p class="text-sm leading-relaxed text-gray-800 whitespace-pre-line">{{ trip?.notes || 'Nothing there.' }}</p>
+      <p class="text-sm leading-relaxed text-gray-800 whitespace-pre-line">{{ trip()?.notes || 'Nothing there.'
+        }}</p>
     </div>
   </div>
 
@@ -784,43 +1189,57 @@
     <div class="text-2xl font-semibold">Itinerary</div>
 
     <div class="mt-4">
-      @for (day of trip?.days; track day.id) {
+      @for (group of tripViewModel(); track group.day.id) {
       <div class="mb-12">
-        <div class="flex items-center gap-4 mb-6">
-          <h2 class="text-xl font-semibold text-gray-900 whitespace-nowrap">{{ day.label }}</h2>
+        <div class="flex items-center gap-4 mb-4">
+          <h2 class="text-xl font-semibold text-gray-900 whitespace-nowrap">{{ group.day.label }}</h2>
           <div class="flex-1 h-px bg-gray-300"></div>
+          @if (group.day.dt) {
+          <span class="text-sm font-medium text-gray-400 dark:text-gray-600 whitespace-nowrap">{{ group.day.dt | date:
+            'd MMM, y' }}</span>
+          }
         </div>
 
-        @for (item of day.items | orderBy: 'time'; track item.id) {
+        @if (group.day.notes) {
+        <div class="border-l-3 border-gray-900 pl-6 py-2 mb-4">
+          <p class="text-sm leading-relaxed text-gray-800 whitespace-pre-line">{{ group.day.notes }}</p>
+        </div>
+        }
+
+        @for (item of group.items; track item.id) {
         <div class="flex gap-4 items-center rounded-lg p-3 -mx-3">
-          <span class="bg-gray-900 text-white text-xs font-mono px-3 py-1 rounded-full">{{ item.time }}</span>
+          <span
+            class="px-2.5 py-1 text-xs font-mono font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded">{{
+            item.time }}</span>
 
           <div class="flex-1 min-w-0">
             @if (item.place) {
-            <div
-              class="inline-flex items-center gap-2 bg-gray-100 text-gray-800 font-medium px-1 py-1 pr-3 rounded-full">
-              <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden flex-shrink-0">
-                <img [src]="item.place.image || item.place.category.image" class="size-full object-cover" />
-              </div>
-              <span class="text-sm">{{ item.place.name }}</span>
+            <div class="w-fit flex items-center gap-2 px-2.5 py-1 rounded-full"
+              [style.background]="item.place.category.color + '1A'">
+              <img [src]="item.place.image || item.place.category.image" class="w-5 h-5 rounded-full object-cover">
+              <span class="text-sm font-medium text-gray-900 dark:text-white truncate">
+                {{ item.place.name }}
+              </span>
             </div>
             } @else {
             <h4 class="font-semibold text-gray-900">{{ item.text }}</h4>
             }
 
             @if (item.comment) {
-            <p class="text-sm text-gray-500 italic">{{ item.comment }}</p>
+            <p class="text-sm text-gray-500 whitespace-pre-line italic">{{ item.comment }}</p>
             }
           </div>
 
           <div class="flex items-center">
             @if (item.price) {
-            <span class="text-sm font-semibold text-gray-900 me-2">{{ item.price }} {{ trip?.currency }}</span>
+            <span
+              class="flex items-center bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-1 text-xs font-medium rounded whitespace-nowrap me-2">{{
+              item.price }} {{ trip()?.currency }}</span>
             }
             @if (item.status) {
             <span class="text-xs font-medium px-2.5 py-1 rounded min-w-fit"
-              [style.background]="statusToTripStatus(item.status)?.color + '1A'"
-              [style.color]="statusToTripStatus(item.status)?.color">{{ statusToTripStatus(item.status)?.label }}</span>
+              [style.background]="item.status.color + '1A'" [style.color]="item.status.color">{{ item.status.label
+              }}</span>
             }
           </div>
         </div>
@@ -836,17 +1255,51 @@
 
   <div class="mt-8 break-inside-avoid">
     <div class="text-2xl font-semibold">📍 Places</div>
-
     <div class="mt-4">
-      @for (place of trip?.places; track place.id) {
-      <div class="inline-flex items-center gap-2 bg-gray-100 text-gray-800 font-medium px-1 py-1 pr-3 rounded-full m-1">
+      @for(place of places(); track place.id) {
+      <div [style.background]="place.category.color + '1A'"
+        class="inline-flex items-center gap-2 font-medium p-1 pr-3 m-1 rounded-full">
         <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden flex-shrink-0">
-          <img [src]="place.image" class="size-full object-cover" />
+          <img [src]="place.image" class="size-full object-cover" loading="lazy" />
         </div>
         <span class="text-sm">{{ place.name }}</span>
+      </div>
+      } @empty {
+      <div class="mt-4 border-l-3 border-gray-900 pl-6 py-2">
+        <p class="text-gray-800 text-lg leading-loose whitespace-pre-line font-light">Nothing there.</p>
+      </div>
+      }
+    </div>
+
+    <div class="mt-4 text-right">*
+      @for (category of getCategoriesFromPlaces(places()); track category.id) {
+      <div [style.background]="category.color + '1A'"
+        class="inline-flex items-center gap-2 font-medium p-1 pr-3 m-1 rounded">
+        <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden flex-shrink-0">
+          <img [src]="category.image" class="size-full object-cover" loading="lazy" />
+        </div>
+        <span class="text-sm">{{ category.name }}</span>
       </div>
       }
     </div>
   </div>
 </section>
+}
+} @else {
+<section class="min-h-screen my-auto flex flex-col items-center justify-center gap-8">
+  <div class="mx-auto w-full text-center">
+    <h1 class="text-2xl font-semibold text-gray-800 tracking-tight dark:text-white md:text-4xl">Trip not found</h1>
+    <p class="mt-2 text-gray-500 dark:text-gray-400">The requested trip does not exist</p>
+  </div>
+
+  <div class="mx-auto">
+    <img class="w-full lg:h-[32rem] h-80 md:h-96 rounded-lg object-cover" src="cover.webp" />
+  </div>
+
+  <div>
+    <div>Made with ❤️ in BZH</div>
+    <p-button text label="itskovacs/trip" icon="pi pi-github" (click)="toGithub()" />
+  </div>
+</section>
+}
 }
