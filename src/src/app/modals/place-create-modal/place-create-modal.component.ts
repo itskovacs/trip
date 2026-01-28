@@ -286,6 +286,7 @@ export class PlaceCreateModalComponent {
           },
         });
       },
+      error: () => this.utilsService.setLoading(''),
     });
   }
 
