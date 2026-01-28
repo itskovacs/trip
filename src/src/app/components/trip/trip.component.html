@@ -311,11 +311,13 @@
                     }
 
                     @if (item.price && visibleProps.has('price')) {
-                    <span
-                      class="flex items-center bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-1 text-xs font-medium rounded-md whitespace-nowrap">
-                      {{ item.price | number:'1.0-0' }} {{ trip()?.currency }}
-                    </span>
-                    }
+                      @let width = panelWidth();
+                      <span
+                        class="flex items-center bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-1 text-xs font-medium rounded-md whitespace-nowrap">
+                        {{ item.price | number:'1.0-0' }} {{ trip()?.currency }} @if (width != null && +width > 550 &&
+                        item.paid_by) {<span class="ml-px text-[10px] opacity-75">({{ item.paid_by }})</span>}
+                      </span>
+                      }
 
                     @if (item.distance && visibleProps.has('distance')) {
                     <span
