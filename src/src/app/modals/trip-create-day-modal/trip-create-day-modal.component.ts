@@ -8,10 +8,20 @@ import { DatePickerModule } from 'primeng/datepicker';
 import { TripDay } from '../../types/trip';
 import { UtilsService } from '../../services/utils.service';
 import { TextareaModule } from 'primeng/textarea';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TabsModule } from 'primeng/tabs';
 
 @Component({
   selector: 'app-trip-create-day-modal',
-  imports: [FloatLabelModule, InputTextModule, DatePickerModule, ButtonModule, ReactiveFormsModule, TextareaModule],
+  imports: [
+    FloatLabelModule,
+    InputTextModule,
+    DatePickerModule,
+    ButtonModule,
+    ReactiveFormsModule,
+    TextareaModule,
+    TabsModule,
+  ],
   standalone: true,
   templateUrl: './trip-create-day-modal.component.html',
   styleUrl: './trip-create-day-modal.component.scss',
@@ -25,7 +35,10 @@ export class TripCreateDayModalComponent {
   }
 
   dayForm: FormGroup;
+  daysForm: FormGroup;
   dayNames: string[] = [];
+  months = ['Jan.', 'Feb.', 'Mar.', 'Apr.', 'May.', 'Jun.', 'Jul.', 'Aug.', 'Sep.', 'Oct.', 'Nov.', 'Dec.'];
+  tabValue: number = 0;
 
   constructor(
     private ref: DynamicDialogRef,
@@ -37,6 +50,11 @@ export class TripCreateDayModalComponent {
       id: -1,
       dt: null,
       label: ['', Validators.required],
+      notes: null,
+    });
+
+    this.daysForm = this.fb.group({
+      daterange: [[], Validators.required],
       notes: null,
     });
 
@@ -52,6 +70,19 @@ export class TripCreateDayModalComponent {
         .filter((d: TripDay) => d.id !== this.config.data.day?.id)
         .map((d: TripDay) => d.label);
     }
+
+    this.dayForm
+      .get('dt')
+      ?.valueChanges.pipe(takeUntilDestroyed())
+      .subscribe({
+        next: (value: Date) => {
+          if (!value) return;
+          if (this.dayForm.get('label')?.value) return;
+          const day = String(value.getDate()).padStart(2, '0');
+          const label = `${day} ${this.months[value.getMonth()]}`;
+          this.dayForm.get('label')?.setValue(label);
+        },
+      });
   }
 
   formatDateWithoutTimezone(date: Date) {
@@ -62,15 +93,20 @@ export class TripCreateDayModalComponent {
   }
 
   closeDialog() {
-    if (!this.dayForm.valid) return;
-    let ret = this.dayForm.value;
-    if (this.dayNames.includes(ret['label'])) {
-      this.utilsService.toast('error', 'Error', 'Day label is already in use');
-      return;
+    let ret;
+    if (this.tabValue === 0) {
+      if (!this.dayForm.valid) return;
+      ret = this.dayForm.value;
+      if (this.dayNames.includes(ret['label'])) {
+        this.utilsService.toast('error', 'Error', 'Day label is already in use');
+        return;
+      }
+      if (ret['dt']) ret['dt'] = this.formatDateWithoutTimezone(ret['dt']);
+    } else if (this.tabValue === 1) {
+      if (!this.daysForm.valid) return;
+      ret = this.daysForm.value;
     }
 
-    if (!ret['label']) return;
-    if (ret['dt']) ret['dt'] = this.formatDateWithoutTimezone(ret['dt']);
     this.ref.close(ret);
   }
 }

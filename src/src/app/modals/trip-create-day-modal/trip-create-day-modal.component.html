@@ -1,28 +1,85 @@
-<section>
+<section class="w-2xl max-w-full">
+  @if (dayForm.get("id")?.value === -1) {
+  <p-tabs [(value)]="tabValue" scrollable>
+    <p-tablist>
+      <p-tab [value]="0">Create a Day</p-tab>
+      <p-tab [value]="1">Create Days</p-tab>
+    </p-tablist>
+
+    <p-tabpanels>
+      <p-tabpanel [value]="0">
+        <div [formGroup]="dayForm" class="grid md:grid-cols-3 gap-4">
+          <p-floatlabel variant="in" class="md:col-span-2">
+            <input id="label" formControlName="label" autofocus pInputText fluid />
+            <label for="label">Label</label>
+          </p-floatlabel>
+
+          <p-floatlabel variant="in">
+            <p-datepicker id="date" formControlName="dt" [iconDisplay]="'input'" [showIcon]="true" appendTo="body"
+              fluid />
+            <label for="date">Date</label>
+          </p-floatlabel>
+
+          <div class="relative col-span-full">
+            <textarea pTextarea id="notes" placeholder="Day notes" formControlName="notes" rows="4" fluid
+              class="!pr-10"></textarea>
+            @if (dayForm.get('notes')?.value) {
+            <p-button text icon="pi pi-times" severity="danger" class="absolute right-2 top-2"
+              (click)="dayForm.get('notes')?.setValue(''); dayForm.markAsDirty()" pTooltip="Clear" />
+            }
+          </div>
+        </div>
+        <div class="mt-4 text-right">
+          <p-button (click)="closeDialog()" label="Create" [disabled]="!dayForm.dirty || !dayForm.valid" />
+        </div>
+      </p-tabpanel>
+
+      <p-tabpanel [value]="1">
+        <div [formGroup]="daysForm" class="grid gap-4">
+          <p-floatlabel variant="in">
+            <p-datepicker id="daterange" formControlName="daterange" [iconDisplay]="'input'" [showIcon]="true"
+              selectionMode="range" appendTo="body" fluid />
+            <label for="daterange">Date Range</label>
+          </p-floatlabel>
+
+          <div class="relative col-span-full">
+            <textarea pTextarea id="notes" placeholder="Day notes" formControlName="notes" rows="4" fluid
+              class="!pr-10"></textarea>
+            @if (daysForm.get('notes')?.value) {
+            <p-button text icon="pi pi-times" severity="danger" class="absolute right-2 top-2"
+              (click)="daysForm.get('notes')?.setValue('')" pTooltip="Clear" />
+            }
+          </div>
+          <div class="text-right">
+            <p-button (click)="closeDialog()" label="Create" [disabled]="!daysForm.dirty || !daysForm.valid" />
+          </div>
+        </div>
+      </p-tabpanel>
+    </p-tabpanels>
+  </p-tabs>
+  } @else {
   <div [formGroup]="dayForm" class="grid md:grid-cols-3 gap-4">
     <p-floatlabel variant="in" class="md:col-span-2">
-      <input id="label" formControlName="label" autofocus pInputText fluid (keyup.enter)="closeDialog()" />
+      <input id="label" formControlName="label" autofocus pInputText fluid />
       <label for="label">Label</label>
     </p-floatlabel>
 
     <p-floatlabel variant="in">
-      <p-datepicker id="date" formControlName="dt" [iconDisplay]="'input'" [showIcon]="true" appendTo="body" fluid
-        (keyup.enter)="closeDialog()" />
+      <p-datepicker id="date" formControlName="dt" [iconDisplay]="'input'" [showIcon]="true" appendTo="body" fluid />
       <label for="date">Date</label>
     </p-floatlabel>
 
     <div class="relative col-span-full">
-      <textarea pTextarea id="notes" placeholder="Day notes" formControlName="notes" rows="4" #notesInput fluid
+      <textarea pTextarea id="notes" placeholder="Day notes" formControlName="notes" rows="4" fluid
         class="!pr-10"></textarea>
-      @if (notesInput.value) {
+      @if (dayForm.get('notes')?.value) {
       <p-button text icon="pi pi-times" severity="danger" class="absolute right-2 top-2"
-        (click)="notesInput.value = ''; dayForm.markAsDirty()" pTooltip="Clear" />
+        (click)="dayForm.get('notes')?.setValue(''); dayForm.markAsDirty()" pTooltip="Clear" />
       }
     </div>
   </div>
-
   <div class="mt-4 text-right">
-    <p-button (click)="closeDialog()" [disabled]="!dayForm.dirty || !dayForm.valid">{{ dayForm.get("id")?.value
-      !== -1 ? "Update" : "Create" }}</p-button>
+    <p-button (click)="closeDialog()" label="Update" [disabled]="!dayForm.dirty || !dayForm.valid" />
   </div>
+  }
 </section>
