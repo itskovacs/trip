@@ -6,7 +6,7 @@
 [![Sponsor](https://img.shields.io/badge/sponsor-30363D?style=for-the-badge&logo=GitHub-Sponsors)](https://ko-fi.com/itskovacs)
 ![Status](https://img.shields.io/badge/status-active-success?style=for-the-badge)
 [![GitHub Issues](https://img.shields.io/github/issues/itskovacs/trip?style=for-the-badge&color=ededed)](https://github.com/itskovacs/trip/issues)
-![Pulls](https://img.shields.io/badge/pulls-75k+-2596be?style=for-the-badge)
+![Pulls](https://img.shields.io/badge/pulls-80k+-2596be?style=for-the-badge)
 
 </div>
 
@@ -118,8 +118,8 @@ In the spirit of free and open-source software, TRIP is now licensed under the M
 
 ### **Frontend**
 
-- 🅰️ Angular 20
-- 🏗️ PrimeNG 20
+- 🅰️ Angular 21
+- 🏗️ PrimeNG 21
 - 🎨 Tailwind CSS 4
 - 🗺️ Leaflet 1.9 (plugins: [Leaflet.markercluster](https://github.com/Leaflet/Leaflet.markercluster), [Leaflet.contextmenu](https://github.com/aratcliffe/Leaflet.contextmenu))
 
