@@ -41,8 +41,14 @@
     "@angular/cli": "^21.1.1",
     "@angular/compiler-cli": "^21.1.1",
     "autoprefixer": "^10.4.23",
+    "lightningcss": "^1.31.1",
     "postcss": "^8.5.6",
     "prettier": "^3.8.1",
     "typescript": "~5.9.3"
+  },
+  "optionalDependencies": {
+    "lightningcss-linux-arm64-gnu": "^1.31.1",
+    "lightningcss-linux-x64-gnu": "^1.31.1",
+    "lightningcss-linux-x64-musl": "^1.31.1"
   }
 }
