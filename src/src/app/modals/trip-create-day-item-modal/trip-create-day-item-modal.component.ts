@@ -48,7 +48,7 @@ export class TripCreateDayItemModalComponent {
   @ViewChild('op') op!: Popover;
   @HostListener('keydown.control.enter', ['$event'])
   @HostListener('keydown.meta.enter', ['$event'])
-  onCtrlEnter(event: KeyboardEvent) {
+  onCtrlEnter(event: Event) {
     event.preventDefault();
     this.closeDialog();
   }

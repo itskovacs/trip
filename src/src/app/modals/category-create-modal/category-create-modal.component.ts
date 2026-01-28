@@ -18,7 +18,7 @@ import { Category } from '../../types/poi';
 export class CategoryCreateModalComponent {
   @HostListener('keydown.control.enter', ['$event'])
   @HostListener('keydown.meta.enter', ['$event'])
-  onCtrlEnter(event: KeyboardEvent) {
+  onCtrlEnter(event: Event) {
     event.preventDefault();
     this.closeDialog();
   }

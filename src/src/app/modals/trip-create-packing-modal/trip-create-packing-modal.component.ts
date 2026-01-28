@@ -26,7 +26,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
 export class TripCreatePackingModalComponent {
   @HostListener('keydown.control.enter', ['$event'])
   @HostListener('keydown.meta.enter', ['$event'])
-  onCtrlEnter(event: KeyboardEvent) {
+  onCtrlEnter(event: Event) {
     event.preventDefault();
     this.closeDialog();
   }

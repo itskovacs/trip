@@ -16,7 +16,7 @@ import { InputTextModule } from 'primeng/inputtext';
 export class UpdatePasswordModalComponent {
   @HostListener('keydown.control.enter', ['$event'])
   @HostListener('keydown.meta.enter', ['$event'])
-  onCtrlEnter(event: KeyboardEvent) {
+  onCtrlEnter(event: Event) {
     event.preventDefault();
     this.closeDialog();
   }

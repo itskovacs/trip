@@ -19,7 +19,7 @@ import { take } from 'rxjs';
 export class TripCreateModalComponent {
   @HostListener('keydown.control.enter', ['$event'])
   @HostListener('keydown.meta.enter', ['$event'])
-  onCtrlEnter(event: KeyboardEvent) {
+  onCtrlEnter(event: Event) {
     event.preventDefault();
     this.closeDialog();
   }
