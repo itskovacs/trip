@@ -336,11 +336,6 @@ class PlaceCreate(PlaceBase):
     category_id: int
 
 
-class PlacesCreate(PlaceBase):
-    image: str | None = None
-    category: str
-
-
 class PlaceUpdate(PlaceBase):
     name: str | None = None
     lat: float | None = None

@@ -92,10 +92,6 @@ export class ApiService {
     return this.httpClient.post<Place>(`${this.apiBaseUrl}/places`, place);
   }
 
-  postPlaces(places: Partial<Place[]>): Observable<Place[]> {
-    return this.httpClient.post<Place[]>(`${this.apiBaseUrl}/places/batch`, places);
-  }
-
   putPlace(placeId: number, place: Partial<Place>): Observable<Place> {
     return this.httpClient.put<Place>(`${this.apiBaseUrl}/places/${placeId}`, place);
   }
@@ -288,6 +284,12 @@ export class ApiService {
 
   downloadTripAttachment(tripId: number, attachmentId: number): Observable<Blob> {
     return this.httpClient.get(`${this.apiBaseUrl}/trips/${tripId}/attachments/${attachmentId}/download`, {
+      responseType: 'blob',
+    });
+  }
+
+  downloadSharedTripAttachment(token: string, attachmentId: number): Observable<Blob> {
+    return this.httpClient.get(`${this.apiBaseUrl}/trips/shared/${token}/attachments/${attachmentId}/download`, {
       responseType: 'blob',
     });
   }

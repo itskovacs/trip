@@ -7,9 +7,8 @@ from sqlmodel import select
 
 from ..config import settings
 from ..deps import SessionDep, get_current_username
-from ..models.models import (Category, GooglePlaceResult, Image,
-                             LatitudeLongitude, Place, PlaceCreate, PlaceRead,
-                             PlacesCreate, PlaceUpdate, User)
+from ..models.models import (GooglePlaceResult, Image, LatitudeLongitude,
+                             Place, PlaceCreate, PlaceRead, PlaceUpdate, User)
 from ..security import verify_exists_and_owns
 from ..utils.csv import iter_csv_lines
 from ..utils.gmaps import (gmaps_get_boundaries, gmaps_nearbysearch,
@@ -105,52 +104,6 @@ async def create_place(
     session.commit()
     session.refresh(new_place)
     return PlaceRead.serialize(new_place)
-
-
-@router.post("/batch", response_model=list[PlaceRead])
-async def create_places(
-    places: list[PlacesCreate],
-    session: SessionDep,
-    current_user: Annotated[str, Depends(get_current_username)],
-) -> list[PlaceRead]:
-    new_places = []
-
-    for place in places:
-        category_name = place.category
-        category = session.exec(
-            select(Category).where(Category.user == current_user, Category.name == category_name)
-        ).first()
-        if not category:
-            continue
-
-        new_place = Place(
-            name=place.name,
-            lat=place.lat,
-            lng=place.lng,
-            place=place.place,
-            gpx=place.gpx,
-            allowdog=place.allowdog,
-            description=place.description,
-            price=place.price,
-            duration=place.duration,
-            category_id=category.id,
-            user=current_user,
-        )
-
-        if place.image:  # It's a link, dl file
-            fp = await download_file(place.image)
-            if fp:
-                patch_image(fp)
-                image = Image(filename=fp.split("/")[-1], user=current_user)
-                session.add(image)
-                session.flush()
-                new_place.image_id = image.id
-
-        session.add(new_place)
-        new_places.append(new_place)
-
-    session.commit()
-    return [PlaceRead.serialize(p) for p in new_places]
 
 
 @router.post("/google-bulk")

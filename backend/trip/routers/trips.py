@@ -992,6 +992,31 @@ async def download_trip_attachment(
     return FileResponse(path=file_path, filename=attachment.filename, media_type="application/pdf")
 
 
+@router.get("/shared/{token}/attachments/{attachment_id}/download")
+async def download_shared_trip_attachment(
+    session: SessionDep,
+    token: str,
+    attachment_id: int,
+):
+    _trip = _trip_from_token_or_404(session, token)
+    attachment = session.exec(
+        select(TripAttachment).where(
+            TripAttachment.trip_id == _trip.trip_id, TripAttachment.id == attachment_id
+        )
+    ).first()
+    print("att:")
+    print(attachment)
+
+    if not attachment:
+        raise HTTPException(status_code=404, detail="Attachment not found")
+
+    file_path = attachments_trip_folder_path(_trip.trip_id) / attachment.stored_filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Attachment not found")
+
+    return FileResponse(path=file_path, filename=attachment.filename, media_type="application/pdf")
+
+
 @router.delete("/{trip_id}/attachments/{attachment_id}")
 async def delete_trip_attachment(
     session: SessionDep,
