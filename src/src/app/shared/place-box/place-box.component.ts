@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { Place } from '../../types/poi';
 import { PlaceBoxContentComponent } from '../place-box-content/place-box-content.component';
 
