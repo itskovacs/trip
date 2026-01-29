@@ -336,6 +336,11 @@ class PlaceCreate(PlaceBase):
     category_id: int
 
 
+class TokenPlaceCreate(PlaceBase):
+    image: str | None = None
+    category: str
+
+
 class PlaceUpdate(PlaceBase):
     name: str | None = None
     lat: float | None = None
