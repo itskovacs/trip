@@ -1426,17 +1426,22 @@
             item.time }}</span>
 
           <div class="flex-1 min-w-0">
-            @if (item.place) {
-            <div class="w-fit flex items-center gap-2 px-2.5 py-1 rounded-full"
-              [style.background]="item.place.category.color + '1A'">
-              <img [src]="item.place.image || item.place.category.image" class="w-5 h-5 rounded-full object-cover">
-              <span class="text-sm font-medium text-gray-900 dark:text-white truncate">
-                {{ item.place.name }}
-              </span>
-            </div>
+            <div class="flex items-center gap-2">
+              @if (!item.place || item.place.name !== item.text) {
+              <h4 class="font-semibold text-primary-900">{{ item.text }}</h4>
+              }
+              @if (item.place) {
+              <div class="w-fit flex items-center gap-2 px-2.5 py-1 rounded-full"
+                [style.background]="item.place.category.color + '1A'">
+                <img [src]="item.place.image || item.place.category.image" class="w-5 h-5 rounded-full object-cover">
+                <span class="text-sm font-medium text-primary-900 dark:text-white truncate">
+                  {{ item.place.name }}
+                </span>
+              </div>
             } @else {
             <h4 class="font-semibold text-gray-900">{{ item.text }}</h4>
-            }
+              }
+            </div>
 
             @if (item.comment) {
             <p class="text-sm text-gray-500 whitespace-pre-line italic">{{ item.comment }}</p>
