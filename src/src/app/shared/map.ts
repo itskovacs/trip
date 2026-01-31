@@ -123,6 +123,7 @@ export function placeToMarker(
   isLowNet: boolean = true,
   grayscale: boolean = false,
   gpxInBubble: boolean = false,
+  rightClickFn: (() => void) | null = null,
 ): L.Marker {
   const options: Partial<L.MarkerOptions> = {
     riseOnHover: true,
@@ -152,6 +153,7 @@ export function placeToMarker(
     icon,
   });
 
+  if (rightClickFn) marker.on('contextmenu', (e: L.LeafletMouseEvent) => rightClickFn());
   const touchDevice = 'ontouchstart' in window;
   if (!touchDevice) {
     marker.bindTooltip(placeHoverTooltip(place), {
