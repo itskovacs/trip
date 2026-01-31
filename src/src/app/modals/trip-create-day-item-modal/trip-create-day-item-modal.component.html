@@ -1,6 +1,6 @@
 <section class="mx-auto max-w-5xl space-y-6" [formGroup]="itemForm">
   <div class="space-y-4">
-    <h2 class="text-sm font-semibold text-gray-900 dark:text-surface-50">Mandatory Information</h2>
+    <h2 class="text-sm font-semibold text-primary-900 dark:text-primary-50">Mandatory Information</h2>
 
     <div class="grid md:grid-cols-12 gap-4">
       <div class="md:col-span-3">
@@ -50,14 +50,14 @@
   </div>
 
   <div class="space-y-4">
-    <h2 class="text-sm font-semibold text-gray-900 dark:text-surface-50">Additional Details</h2>
+    <h2 class="text-sm font-semibold text-primary-900 dark:text-primary-50">Additional Details</h2>
 
     <div class="grid md:grid-cols-5 gap-4">
       <p-floatlabel variant="in" class="md:col-span-3">
         <p-select [options]="places" appendTo="body" optionValue="id" optionLabel="name" inputId="place" [filter]="true"
           filterBy="name" formControlName="place" [showClear]="true" fluid>
           <ng-template let-place #item>
-            <div class="flex items-center gap-2" [class.text-gray-500]="place.placeUsage">
+            <div class="flex items-center gap-2" [class.text-primary-500]="place.placeUsage">
               <img [src]="place.image || place.category.image" class="rounded-md size-6 object-cover" />
               <div>{{ place.name }}</div>
             </div>
@@ -123,11 +123,11 @@
 
     <div class="grid md:grid-cols-[auto_1fr] gap-4">
       <div
-        class="flex flex-col items-center justify-center gap-2 p-4 bg-surface-50 dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700">
+        class="flex flex-col items-center justify-center gap-2 p-4 bg-primary-50 dark:bg-primary-800 rounded-lg border border-primary-200 dark:border-primary-700">
         <div class="relative group">
           @if (itemForm.get("image_id")?.value || itemForm.get("image")?.value) {
           <img [src]="itemForm.get('image')?.value || '/favicon.png'"
-            class="size-24 object-cover rounded-lg shadow ring-2 ring-surface-200 dark:ring-surface-700 cursor-pointer transition-all group-hover:ring-primary-400"
+            class="size-24 object-cover rounded-lg shadow ring-2 ring-primary-200 dark:ring-primary-700 cursor-pointer transition-all group-hover:ring-primary-400"
             (click)="imageInput.click()" />
           <div
             class="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
@@ -142,9 +142,9 @@
           </button>
           } @else {
           <div
-            class="size-24 flex items-center justify-center bg-surface-100 dark:bg-surface-900 rounded-lg border-2 border-dashed border-surface-300 dark:border-surface-600 cursor-pointer transition hover:border-primary-400"
+            class="size-24 flex items-center justify-center bg-primary-100 dark:bg-primary-900 rounded-lg border-2 border-dashed border-primary-300 dark:border-primary-600 cursor-pointer transition hover:border-primary-400"
             (click)="imageInput.click()">
-            <i class="pi pi-image text-3xl text-surface-400"></i>
+            <i class="pi pi-image text-3xl text-primary-400"></i>
           </div>
           }
           <input type="file" accept="image/*" #imageInput class="hidden" (change)="onImageSelected($event)" />
@@ -154,7 +154,7 @@
       <div class="space-y-4">
         <div class="grid md:grid-cols-3 gap-4">
           <div
-            class="flex flex-wrap gap-4 p-3 bg-surface-50 dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700">
+            class="flex flex-wrap gap-4 p-3 bg-primary-50 dark:bg-primary-800 rounded-lg border border-primary-200 dark:border-primary-700">
             <div class="flex items-center gap-2">
               @if (itemForm.get('gpx')?.value) {
               <p-button icon="pi pi-check"
@@ -169,11 +169,11 @@
           </div>
 
           <p-floatlabel variant="in" class="md:col-span-2">
-            <p-multiselect [options]="trip?.attachments ?? []" optionValue="id" optionLabel="filename"
+            <p-multiselect [options]="trip?.attachments ?? []" optionValue="id" optionLabel="filename" class="h-full"
               formControlName="attachments" [showToggleAll]="false" display="chip" scrollHeight="320px" appendTo="body"
               fluid>
               <ng-template #footer>
-                <div class="p-2 border-t border-surface-200 dark:border-surface-700">
+                <div class="p-2 border-t border-primary-200 dark:border-primary-700">
                   <p-button (click)="fileUpload.click()" icon="pi pi-plus" label="Upload New" text size="small" fluid />
                   <input type="file" class="hidden" (change)="onFileUploadInputChange($event)" #fileUpload>
                 </div>
@@ -186,7 +186,7 @@
         <div class="relative">
           <p-floatlabel variant="in">
             <textarea pTextarea id="comment" formControlName="comment" rows="4" #descriptionInput fluid
-              class="!pr-10"></textarea>
+              class="pr-12!"></textarea>
             <label for="comment">Comment</label>
           </p-floatlabel>
           @if (descriptionInput.value) {
@@ -198,7 +198,7 @@
     </div>
   </div>
 
-  <div class="flex justify-end gap-3 pt-4 border-t border-surface-200 dark:border-surface-700">
+  <div class="flex justify-end gap-3 pt-4 border-t border-primary-200 dark:border-primary-700">
     <p-button [label]="itemForm.get('id')?.value !== -1 ? 'Update Item' : 'Create Item'" icon="pi pi-check"
       [disabled]="!itemForm.dirty || !itemForm.valid" (click)="closeDialog()" />
   </div>
@@ -207,10 +207,10 @@
 
 <p-popover #op>
   <div class="flex flex-col gap-1 w-48">
-    <span class="text-xs font-semibold text-surface-500 px-2 mb-1">Paid By</span>
+    <span class="text-xs font-semibold text-primary-500 px-2 mb-1">Paid By</span>
     @for (member of members; track member.user) {
     <button
-      class="flex items-center justify-between w-full p-2 hover:bg-surface-100 dark:hover:bg-surface-800 rounded-md text-sm transition-colors text-left"
+      class="flex items-center justify-between w-full p-2 hover:bg-primary-100 dark:hover:bg-primary-800 rounded-md text-sm transition-colors text-left"
       (click)="selectPriceMember(member.user)">
       <span>{{ member.user }}</span>
       @if (itemForm.get('paid_by')?.value == member.user) {

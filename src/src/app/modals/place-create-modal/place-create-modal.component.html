@@ -1,19 +1,17 @@
 <section class="mx-auto max-w-5xl space-y-6" [formGroup]="placeForm">
   <div class="space-y-4">
-    <h2 class="text-sm font-semibold text-gray-900 dark:text-surface-50">Mandatory Information</h2>
+    <h2 class="text-sm font-semibold text-primary-900 dark:text-primary-50">Mandatory Information</h2>
 
     <div class="grid grid-cols-2 gap-4">
       <div class="relative col-span-2">
         <p-floatlabel variant="in">
-          <input id="name" formControlName="name" pInputText autofocus fluid class="!pr-12"
-            (keydown.enter)="gmapsSearchText()" />
+          <input id="name" formControlName="name" pInputText autofocus fluid (keydown.enter)="gmapsSearchText()" />
           <label for="name">Name</label>
         </p-floatlabel>
-        <div class="absolute right-3 top-1/2 -translate-y-1/2">
+        <div class="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg">
           <p-button [disabled]="!placeForm.get('name')!.value" text label="Query GMaps" icon="pi pi-sparkles"
-            size="small"
-            class="cursor-pointer text-surface-400 hover:text-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            pTooltip="Complete using GMaps API" (click)="gmapsSearchText()" />
+            size="small" pTooltip="Complete using GMaps API" (click)="gmapsSearchText()"
+            class="cursor-pointer text-primary-400 hover:text-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors" />
         </div>
       </div>
 
@@ -34,9 +32,8 @@
           <input id="place" aria-describedby="username-help" formControlName="place" pInputText fluid />
           <label for="place">Place</label>
         </p-floatlabel>
-        <span class="select-none text-xs text-gray-500">Supports <i>google.com/maps/place/</i> and
-          <i>https://maps.app.goo.gl</i>
-          (Google API Key required)</span>
+        <span class="select-none text-xs text-primary-500">Supports <i>google.com/maps/place/</i> and
+          <i>https://maps.app.goo.gl</i> (Google API Key required)</span>
       </div>
 
       <div>
@@ -55,14 +52,14 @@
   </div>
 
   <div class="space-y-4">
-    <h2 class="text-sm font-semibold text-gray-900 dark:text-surface-50">Additional Details</h2>
+    <h2 class="text-sm font-semibold text-primary-900 dark:text-primary-50">Additional Details</h2>
     <div class="grid md:grid-cols-[auto_1fr] gap-4">
       <div
-        class="flex flex-col items-center justify-center gap-2 p-4 bg-surface-50 dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700">
+        class="flex flex-col items-center justify-center gap-2 p-4 bg-primary-50 dark:bg-black rounded-lg border border-primary-200 dark:border-primary-700">
         <div class="relative group">
           @if (placeForm.get("image_id")?.value || placeForm.get("image")?.value) {
           <img [src]="placeForm.get('image')?.value || '/favicon.png'"
-            class="size-24 object-cover rounded-lg shadow ring-2 ring-surface-200 dark:ring-surface-700 cursor-pointer transition-all group-hover:ring-primary-400"
+            class="size-24 object-cover rounded-lg shadow ring-2 ring-primary-200 dark:ring-primary-700 cursor-pointer transition-all group-hover:ring-primary-400"
             (click)="imageInput.click()" />
           <div
             class="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
@@ -78,9 +75,9 @@
           }
           } @else {
           <div
-            class="size-24 flex items-center justify-center bg-surface-100 dark:bg-surface-900 rounded-lg border-2 border-dashed border-surface-300 dark:border-surface-600 cursor-pointer transition hover:border-primary-400"
+            class="size-24 flex items-center justify-center bg-primary-100 dark:bg-primary-900 rounded-lg border-2 border-dashed border-primary-300 dark:border-primary-600 cursor-pointer transition hover:border-primary-400"
             (click)="imageInput.click()">
-            <i class="pi pi-image text-3xl text-surface-400"></i>
+            <i class="pi pi-image text-3xl text-primary-400"></i>
           </div>
           }
           <input type="file" accept="image/*" #imageInput class="hidden" (change)="onImageSelected($event)" />
@@ -90,12 +87,11 @@
       </div>
 
       <div class="space-y-4">
-
         <div
-          class="flex flex-wrap gap-4 p-3 bg-surface-50 dark:bg-surface-800 rounded-lg border border-surface-200 dark:border-surface-700">
+          class="flex flex-wrap gap-4 p-3 bg-primary-50 dark:bg-black/20 rounded-lg border border-primary-200 dark:border-primary-700">
           <button (click)="toggleCheckbox('allowdog')"
             class="select-none cursor-pointer inline-flex items-center gap-2 h-8 w-36 max-w-[25vw] px-3 rounded-lg text-sm font-medium transition-all"
-            [class]="placeForm.get('allowdog')?.value ? 'bg-emerald-600 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
+            [class]="placeForm.get('allowdog')?.value ? 'bg-emerald-600 text-white' : 'bg-primary-100 dark:bg-black text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800'">
             @if (placeForm.get('allowdog')?.value) {
             <i class="pi pi-check text-xs"></i>
             } @else {
@@ -106,7 +102,7 @@
 
           <button (click)="toggleCheckbox('restroom')"
             class="select-none cursor-pointer inline-flex items-center gap-2 h-8 w-24 max-w-[25vw] px-3 rounded-lg text-sm font-medium transition-all"
-            [class]="placeForm.get('restroom')?.value ? 'bg-sky-400 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
+            [class]="placeForm.get('restroom')?.value ? 'bg-sky-400 text-white' : 'bg-primary-100 dark:bg-black text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800'">
             @if (placeForm.get('restroom')?.value) {
             <i class="pi pi-check text-xs"></i>
             } @else {
@@ -117,7 +113,7 @@
 
           <button (click)="toggleCheckbox('visited')"
             class="select-none cursor-pointer inline-flex items-center gap-2 h-8 w-24 max-w-[25vw] px-3 rounded-lg text-sm font-medium transition-all"
-            [class]="placeForm.get('visited')?.value ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
+            [class]="placeForm.get('visited')?.value ? 'bg-blue-600 text-white' : 'bg-primary-100 dark:bg-black text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800'">
             @if (placeForm.get('visited')?.value) {
             <i class="pi pi-check text-xs"></i>
             } @else {
@@ -151,7 +147,7 @@
 
         <div class="relative">
           <textarea pTextarea id="description" placeholder="Description" formControlName="description" rows="4"
-            #descriptionInput fluid class="!pr-10"></textarea>
+            #descriptionInput fluid class="pr-12!"></textarea>
           @if (descriptionInput.value) {
           <p-button text icon="pi pi-times" severity="danger" class="absolute right-2 top-2"
             (click)="placeForm.get('description')?.setValue(''); placeForm.markAsDirty()" pTooltip="Clear" />
@@ -161,14 +157,14 @@
     </div>
   </div>
 
-  <div class="flex justify-end gap-3 pt-4 border-t border-surface-200 dark:border-surface-700">
+  <div class="flex justify-end gap-3 pt-4 border-t border-primary-200 dark:border-primary-700">
     <p-button [label]="placeForm.get('id')?.value !== -1 ? 'Update' : 'Create'" icon="pi pi-check"
       [disabled]="!placeForm.dirty || !placeForm.valid" (click)="closeDialog()" />
   </div>
 </section>
 
-<p-dialog [(visible)]="showImageUrlDialog" header="Add Image URL" [modal]="true" [style]="{width: '450px'}"
-  [draggable]="false" [resizable]="false">
+<p-dialog [(visible)]="showImageUrlDialog" appendTo="body" header="Add Image URL" [modal]="true"
+  [style]="{width: '450px'}" [draggable]="false" [resizable]="false">
   <div class="py-4">
     <p-floatlabel variant="in">
       <input id="imageUrl" type="url" [(ngModel)]="imageUrl" pInputText fluid />

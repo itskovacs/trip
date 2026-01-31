@@ -1,4 +1,4 @@
-<div class="relative h-screen w-screen overflow-hidden bg-gray-950" [class.prettyprint]="isPrinting()">
+<div class="relative h-screen w-screen overflow-hidden bg-primary-950" [class.prettyprint]="isPrinting()">
   <div class="fixed inset-0 w-full h-full z-0">
     <div id="map" class="w-full h-full"></div>
   </div>
@@ -9,41 +9,44 @@
         class="select-none flex items-center gap-2 p-1.5 bg-white/70 dark:bg-black/70 backdrop-blur-xl rounded-lg shadow-lg shadow-black/5">
 
         <div (click)="centerOnMe()" pTooltip="Center on my location"
-          class="cursor-pointer flex items-center justify-center w-9 h-9 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-all">
-          <i class="pi pi-bullseye text-gray-700 dark:text-gray-300 text-sm"></i>
+          class="cursor-pointer flex items-center justify-center w-9 h-9 hover:bg-primary-100 dark:hover:bg-primary-800 rounded-lg transition-all">
+          <i class="pi pi-bullseye text-primary-700 dark:text-primary-300 text-sm"></i>
         </div>
 
-        <div class="w-px h-5 bg-gray-200 dark:bg-gray-800"></div>
+        <div class="w-px h-5 bg-primary-200 dark:bg-primary-800"></div>
 
         <div (click)="toggleDaysPanel()"
           class="cursor-pointer flex items-center justify-center gap-2 h-9 px-2.5 rounded-lg transition-all"
-          [class]="isDaysPanelVisible() ? 'bg-blue-50 dark:bg-blue-950' : 'hover:bg-gray-100 dark:hover:bg-gray-900'">
+          [class]="isDaysPanelVisible() ? 'bg-primary-100 dark:bg-primary-800' : 'hover:bg-primary-100 dark:hover:bg-primary-800'">
           <div class="w-7 h-7 flex items-center justify-center">
             <i class="pi text-sm transition-transform duration-200"
-              [class]="isDaysPanelVisible() ? 'pi-times text-blue-600 dark:text-blue-400 rotate-90' : 'pi-calendar text-gray-700 dark:text-gray-300'"></i>
+              [class]="isDaysPanelVisible() ? 'pi-times text-primary-600 dark:text-primary-400 rotate-90' : 'pi-calendar text-primary-700 dark:text-primary-300'"></i>
           </div>
           <div class="hidden md:flex items-center gap-2 text-sm font-medium"
-            [class]="isDaysPanelVisible() ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'">Days
+            [class]="isDaysPanelVisible() ? 'text-primary-600 dark:text-primary-400' : 'text-primary-900 dark:text-white'">
+            Days
             <span
-              class="flex items-center gap-1.5 rounded px-2.5 py-1 w-fit text-xs font-bold text-gray-700 bg-gray-100 dark:bg-gray-900/30 dark:text-gray-400">{{
+              [class]="isDaysPanelVisible() ? 'text-primary-600 bg-primary-200 dark:bg-primary-800/30 dark:text-primary-500' : 'text-primary-700 bg-primary-100 dark:bg-primary-900/30 dark:text-primary-400'"
+              class="flex items-center gap-1.5 rounded px-2.5 py-1 w-fit text-xs font-bold transition-colors">{{
               this.trip()?.days?.length || '0' }}</span>
           </div>
         </div>
 
-        <div class="w-px h-5 bg-gray-200 dark:bg-gray-800"></div>
+        <div class="w-px h-5 bg-primary-200 dark:bg-primary-800"></div>
 
         <div (click)="togglePlacesPanel()"
           class="cursor-pointer flex items-center justify-center gap-2 h-9 px-2.5 rounded-lg transition-all"
-          [class]="isPlacesPanelVisible() ? 'bg-blue-50 dark:bg-blue-950' : 'hover:bg-gray-100 dark:hover:bg-gray-900'">
+          [class]="isPlacesPanelVisible() ? 'bg-primary-100 dark:bg-primary-800' : 'hover:bg-primary-100 dark:hover:bg-primary-800'">
           <div class="w-7 h-7 flex items-center justify-center">
             <i class="pi text-sm transition-transform duration-200"
-              [class]="isPlacesPanelVisible() ? 'pi-times text-blue-600 dark:text-blue-400 rotate-90' : 'pi-map-marker text-gray-700 dark:text-gray-300'"></i>
+              [class]="isPlacesPanelVisible() ? 'pi-times text-primary-600 dark:text-primary-400 rotate-90' : 'pi-map-marker text-primary-700 dark:text-primary-300'"></i>
           </div>
           <div class="hidden md:flex items-center gap-2 text-sm font-medium"
-            [class]="isPlacesPanelVisible() ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'">
+            [class]="isPlacesPanelVisible() ? 'text-primary-600 dark:text-primary-400' : 'text-primary-900 dark:text-white'">
             Places
             <span
-              class="flex items-center gap-1.5 rounded px-2.5 py-1 w-fit text-xs font-bold text-gray-700 bg-gray-100 dark:bg-gray-900/30 dark:text-gray-400">{{
+              [class]="isPlacesPanelVisible() ? 'text-primary-600 bg-primary-200 dark:bg-primary-800/30 dark:text-primary-500' : 'text-primary-700 bg-primary-100 dark:bg-primary-900/30 dark:text-primary-400'"
+              class="flex items-center gap-1.5 rounded px-2.5 py-1 w-fit text-xs font-bold transition-colors">{{
               this.trip()?.places?.length || '0' }}</span>
           </div>
         </div>
@@ -103,29 +106,30 @@
     [class.bottom-4]="selectedPanelHeight() === 0"
     [style.bottom.px]="selectedPanelHeight() > 0 ? selectedPanelHeight() + 16 : null" [style.width.px]="panelWidth()"
     [style.height]="selectedPanelHeight() > 0 ? 'calc(100vh - 2rem - ' + selectedPanelHeight() + 'px)' : 'calc(100vh - 2rem)'"
-    class="fixed top-4 left-4 right-4 md:h-auto! md:bottom-4! md:w-[24rem] lg:w-[28rem] xl:w-[32rem] md:max-w-1/3 z-40 transition-transform duration-300 ease-out">
+    class="fixed top-4 left-4 right-4 md:h-auto! md:bottom-4! md:w-sm lg:w-md xl:w-lg md:max-w-1/3 z-40 transition-transform duration-300 ease-out">
 
     <div
       class="flex h-full overflow-hidden shadow rounded-lg ring-1 ring-black/5 dark:ring-white/10 bg-white/70 dark:bg-black/70 backdrop-blur-xl">
       <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
         <div
-          class="flex-shrink-0 bg-white/50 dark:bg-gray-900/50 border-b border-gray-200/50 dark:border-gray-700/50 backdrop-blur-xl">
+          class="shrink-0 bg-white/50 dark:bg-primary-900/50 border-b border-primary-200/50 dark:border-primary-700/50 backdrop-blur-xl">
 
           <div class="flex items-center gap-3 p-4">
             <p-button icon="pi pi-arrow-left" text (click)="back()" severity="secondary" />
             <div class="flex flex-1 min-w-0 flex-col gap-1">
-              <h1 class="flex items-center gap-1 truncate font-semibold text-gray-900 dark:text-white">{{ trip()?.name
+              <h1 class="flex items-center gap-1 truncate font-semibold text-primary-900 dark:text-white">{{
+                trip()?.name
                 }}
               </h1>
 
               <div class="flex gap-1">
                 <span
-                  class="flex items-center gap-1.5 rounded px-2.5 py-1 w-fit text-xs font-semibold text-gray-600 bg-gray-100 dark:bg-gray-900/30 dark:text-gray-200">
+                  class="flex items-center gap-1.5 rounded px-2.5 py-1 w-fit text-xs font-semibold text-primary-600 bg-primary-100 dark:bg-primary-800 dark:text-primary-200">
                   <i class="pi pi-calendar text-[10px]"></i>{{ trip()?.days?.length }}</span>
 
                 @if (totalPrice()) {
                 <span
-                  class="flex items-center gap-1.5 rounded px-2.5 py-1 w-fit text-xs font-semibold text-gray-600 bg-gray-100 dark:bg-gray-900/30 dark:text-gray-200">
+                  class="flex items-center gap-1.5 rounded px-2.5 py-1 w-fit text-xs font-semibold text-primary-600 bg-primary-100 dark:bg-primary-800 dark:text-primary-200">
                   <i class="pi pi-wallet text-[10px]"></i> {{ (totalPrice() | number:'1.0-2') || '-' }} {{
                   trip()?.currency}}
                 </span>
@@ -133,7 +137,7 @@
 
                 @if (tripMembers().length > 1) {
                 <span
-                  class="flex items-center gap-1.5 rounded px-2.5 py-1 w-fit text-xs font-semibold text-gray-600 bg-gray-100 dark:bg-gray-900/30 dark:text-gray-200">
+                  class="flex items-center gap-1.5 rounded px-2.5 py-1 w-fit text-xs font-semibold text-primary-600 bg-primary-100 dark:bg-primary-800 dark:text-primary-200">
                   <i class="pi pi-users text-[10px]"></i>{{ tripMembers().length }}</span>
                 }
               </div>
@@ -151,8 +155,8 @@
           <div class="px-4 sm:px-5 py-3">
             <div class="flex items-center justify-between">
               <div class="flex-1 min-w-0">
-                <h2 class="text-base font-bold text-gray-900 dark:text-white leading-none">Plans</h2>
-                <p class="text-xs text-gray-500 dark:text-gray-400 font-medium mt-1">Your itinerary</p>
+                <h2 class="text-base font-bold text-primary-900 dark:text-white leading-none">Plans</h2>
+                <p class="text-xs text-primary-500 dark:text-primary-400 font-medium mt-1">Your itinerary</p>
               </div>
 
               <div class="flex items-center gap-1">
@@ -161,7 +165,7 @@
                   [severity]="isMultiSelectMode() ? 'danger' : 'primary'"
                   [icon]="isMultiSelectMode() ? 'pi pi-times' : 'pi pi-check-square'"
                   [pTooltip]="isMultiSelectMode() ? 'Exit Multi-Select' : 'Multi-Select plans'" />
-                <div class="w-px h-5 bg-gray-200 dark:bg-gray-800"></div>
+                <div class="w-px h-5 bg-primary-200 dark:bg-primary-800"></div>
                 }
                 <p-button icon="pi pi-directions" (click)="toggleTripDaysHighlight()" text size="small"
                   pTooltip="Highlight Trip" />
@@ -220,8 +224,9 @@
           @let visibleProps = selectedItemPropsSet();
           <div class="space-y-4 pb-4">
             @for (group of tripViewModel(); track group.day.id) {
-            <div class="z-20 sticky top-0 flex items-center justify-between gap-2 p-4 min-w-0 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 border-b border-gray-200
-            dark:hover:bg-surface-900 transition-colors border-l-primary-500 dark:border-l-primary-400 cursor-pointer"
+            <div
+              class="z-20 sticky top-0 flex items-center justify-between gap-2 p-4 min-w-0 bg-primary-50 dark:bg-primary-800 hover:bg-primary-100 border-b border-b-primary-200
+            dark:border-b-primary-400 dark:hover:bg-primary-900 transition-colors border-l-primary-500 dark:border-l-primary-400 cursor-pointer"
               [class]="selectedDay()?.id == group.day.id ? 'border-l-4' : 'border-l-0'" (click)="onDayClick(group.day)">
               <div class="pointer-events-none flex items-center gap-3 min-w-0 flex-1">
                 <div
@@ -232,8 +237,8 @@
                   </span>
                 </div>
                 <div class="min-w-0 flex-1">
-                  <h3 class="font-medium text-gray-900 dark:text-white truncate">{{ group.day.label }}</h3>
-                  <p class="text-xs text-gray-500 dark:text-gray-400 truncate">
+                  <h3 class="font-medium text-primary-900 dark:text-white truncate">{{ group.day.label }}</h3>
+                  <p class="text-xs text-primary-500 dark:text-primary-400 truncate">
                     {{ group.day.dt | date: 'd MMM, y' }}
                   </p>
                 </div>
@@ -241,7 +246,7 @@
 
               <div class="shrink-0 flex items-center gap-2">
                 @if (visibleProps.has('price')) {
-                <span class="flex items-center bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-1 text-xs
+                <span class="flex items-center bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-1 text-xs
               font-medium rounded-md">{{ group.stats.cost | number:'1.0-0' }} {{ trip()?.currency }}
                 </span>
                 }
@@ -254,7 +259,7 @@
             <div class="space-y-2 pl-4 md:pr-4">
               @for (item of group.items; track item.id) {
               <div
-                class="group relative rounded-s-lg md:rounded-lg bg-white dark:bg-gray-900 border-s border-y md:border-x border-gray-200 dark:border-gray-700 hover:border-primary-300 dark:hover:border-primary-700 hover:shadow-sm transition-all cursor-pointer"
+                class="group relative rounded-s-lg md:rounded-lg bg-white dark:bg-primary-900 border-s border-y md:border-x border-primary-200 dark:border-primary-700 hover:border-primary-300 dark:hover:border-primary-700 hover:shadow-sm transition-all cursor-pointer"
                 [class.ring-2]="isMultiSelectMode() && selectedItemIds().has(item.id)"
                 [class.ring-primary-500]="isMultiSelectMode() && selectedItemIds().has(item.id)"
                 (click)="onRowClick(item)">
@@ -263,7 +268,7 @@
                   [class]="(selectedItem()?.id === item.id || selectedPlaceItems()[selectedPlaceActiveTabIndex()]?.id === item.id) && !isMultiSelectMode() ? 'border-l-4' : 'border-l-0'">
                   <div class="shrink-0 flex items-center">
                     <span
-                      class="px-2.5 py-1 text-sm font-mono font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded whitespace-nowrap">
+                      class="px-2.5 py-1 text-sm font-mono font-medium bg-primary-100 dark:bg-primary-800 text-primary-700 dark:text-primary-300 rounded whitespace-nowrap">
                       {{ item.time }}
                     </span>
                   </div>
@@ -276,8 +281,8 @@
                       }
 
                       @if (item.place && visibleProps.has('place')) {
-                      <div class="flex items-center gap-2 px-2.5 py-1 rounded-lg min-w-0 max-w-full"
-                        [style.background]="item.place.category.color + '1A'" [style.color]="item.place.category.color">
+                      <div class="flex color-bg-opacity items-center gap-2 px-2.5 py-1 rounded-lg min-w-0 max-w-full"
+                        [style.--color-bg-opacity]="item.place.category.color">
                         <img [src]="item.place.image || item.place.category.image"
                           class="shrink-0 w-5 h-5 rounded-full object-cover">
                         <span class="pointer-events-none text-sm font-medium truncate">
@@ -285,35 +290,35 @@
                         </span>
                       </div>
                       } @else {
-                      <span class="pointer-events-none text-sm font-medium text-gray-900 dark:text-white truncate">
+                      <span class="pointer-events-none text-sm font-medium text-primary-900 dark:text-white truncate">
                         {{ item.text }}
                       </span>
                       }
 
                       @if (item.attachments?.length) {
-                      <i class="shrink-0 pi pi-paperclip text-xs text-gray-400"></i>
+                      <i class="shrink-0 pi pi-paperclip text-xs text-primary-400"></i>
                       }
                     </div>
 
                     @if (item.comment && visibleProps.has('comment')) {
-                    <p class="pointer-events-none mt-1 text-xs text-gray-500 dark:text-gray-400 line-clamp-1">
+                    <p class="pointer-events-none mt-1 text-xs text-primary-500 dark:text-primary-400 line-clamp-1">
                       {{ item.comment }}
                     </p>
                     }
                   </div>
 
-                  <div class="shrink-0 flex items-center gap-2">
+                  <div class="shrink-0 flex items-center gap-2 max-w-1/4">
                     @if (item.lat && item.lng && visibleProps.has('latlng')) {
+                    @let coords = item.lat + ', ' + item.lng;
                     <span
-                      class="text-center bg-gray-100 text-gray-800 text-xs px-2 py-1 rounded-md dark:bg-gray-100/85 max-w-[100px] truncate"
-                      [title]="item.lat + ', ' + item.lng">{{ item.lat }}, {{ item.lng }}
-                    </span>
+                      class="text-center bg-primary-100 text-primary-800 text-xs px-2 py-1 rounded-md dark:text-primary-300 dark:bg-primary-800 truncate"
+                      [title]="coords">{{ coords }}</span>
                     }
 
                     @if (item.price && visibleProps.has('price')) {
                     @let width = panelWidth();
                     <span
-                      class="flex items-center bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-1 text-xs font-medium rounded-md whitespace-nowrap">
+                      class="flex items-center bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-1 text-xs font-medium rounded-md whitespace-nowrap">
                       {{ item.price | number:'1.0-0' }} {{ trip()?.currency }} @if (width != null && +width > 550 &&
                       item.paid_by) {<span class="ml-px text-[10px] opacity-75">({{ item.paid_by }})</span>}
                     </span>
@@ -321,27 +326,27 @@
 
                     @if (item.distance && visibleProps.has('distance')) {
                     <span
-                      class="flex items-center bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-1 text-xs font-medium rounded-md whitespace-nowrap">
+                      class="flex items-center bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-1 text-xs font-medium rounded-md whitespace-nowrap">
                       {{ item.distance }}km
                     </span>
                     }
 
                     @if (item.status && visibleProps.has('status')) {
-                    <span class="flex items-center px-2 py-1 text-xs font-medium rounded-md max-w-[80px] truncate"
-                      [style.background]="item.status.color + '1A'" [style.color]="item.status.color"
-                      [title]="item.status.label">
+                    <span
+                      class="pointer-events-none shrink-0 color-bg-opacity flex items-center px-2 py-1 text-xs font-medium rounded-md max-w-[80px] truncate"
+                      [style.--color-bg-opacity]="item.status.color" [title]="item.status.label">
                       {{ item.status.label }}
                     </span>
                     }
                   </div>
 
-                  <i class="pi pi-chevron-right absolute top-1/2 -translate-y-1/2 right-1 bg-gray-100 dark:bg-surface-800 p-1 rounded text-xs opacity-0 group-hover:opacity-100
+                  <i class="pi pi-chevron-right absolute top-1/2 -translate-y-1/2 right-1 bg-primary-100 dark:bg-primary-800 p-1 rounded text-xs opacity-0 group-hover:opacity-100
                   group-hover:-translate-x-2 transition-all pointer-events-none"></i>
                 </div>
               </div>
               } @empty {
               <div class="flex flex-col items-center justify-center py-4">
-                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                <h3 class="text-lg font-semibold text-primary-900 dark:text-white mb-2">
                   No plans yet
                 </h3>
                 <p-button icon="pi pi-plus" text size="small" label="Add Item" [disabled]="trip()?.archived"
@@ -372,7 +377,7 @@
     </div>
 
     <button (click)="togglePlansPanel()" [class]="isPlansPanelCollapsed() ? 'flex' : 'hidden md:flex'" class="absolute -right-8 top-1/2 translate-y-1/2 items-center justify-center w-8 h-10 
-      bg-white dark:bg-gray-900 shadow rounded-e-lg text-gray-500 hover:text-primary-600 cursor-pointer">
+      bg-white dark:bg-primary-900 shadow rounded-e-lg text-primary-500 hover:text-primary-600 cursor-pointer">
       <i [class]="isPlansPanelCollapsed() ? 'pi pi-chevron-right' : 'pi pi-chevron-left'" class="text-xs font-bold"></i>
     </button>
   </section>
@@ -381,30 +386,30 @@
     flex-col gap-3 print:hidden md:w-64 lg:w-88">
     @if (isDaysPanelVisible()) {
     <div animate.enter="slide-y-no-opacity" animate.leave="a-slide-y" class="pointer-events-auto relative min-h-0 rounded-lg overflow-hidden shadow-2xl ring-1 ring-black/5 dark:ring-white/10
-              bg-white/80 dark:bg-gray-900/80 backdrop-blur-2xl flex flex-col overflow-y-auto p-4 max-h-[400px]"
+              bg-white/80 dark:bg-primary-900/80 backdrop-blur-2xl flex flex-col overflow-y-auto p-4 max-h-[400px]"
       [class]="isPlacesPanelVisible() ? 'h-1/3' : 'h-auto'">
 
       <div class="space-y-2 pt-1">
         @defer {
         @if (!trip()?.archived) {
         <div (click)="addDay()"
-          class="cursor-pointer group relative flex items-center gap-4 p-4 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:border-indigo-400 dark:hover:border-indigo-500 transition-all duration-200">
+          class="cursor-pointer group relative flex items-center gap-4 p-4 rounded-lg border-2 border-dashed border-primary-300 dark:border-primary-600 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:border-primary-400 dark:hover:border-primary-500 transition-all duration-200">
           <div
-            class="flex items-center justify-center w-10 h-10 rounded-lg bg-white dark:bg-gray-700 border-2 border-dashed border-gray-300 dark:border-gray-600 group-hover:border-indigo-400 dark:group-hover:border-indigo-500 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/30 transition-all duration-200 group-hover:scale-110">
+            class="flex items-center justify-center w-10 h-10 rounded-lg bg-white dark:bg-black border-2 border-dashed border-primary-300 dark:border-primary-600 group-hover:border-primary-400 dark:group-hover:border-primary-500 group-hover:bg-primary-100 dark:group-hover:bg-primary-900/30 transition-all duration-200 group-hover:scale-110">
             <i
-              class="pi pi-plus text-gray-400 dark:text-gray-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-200"></i>
+              class="pi pi-plus text-primary-400 dark:text-primary-500 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-200"></i>
           </div>
 
           <div
-            class="font-semibold text-sm text-gray-600 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-200">
+            class="font-semibold text-sm text-primary-600 dark:text-primary-400 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-200">
             Add Day(s)
           </div>
         </div>
         }
         @for (group of tripViewModel(); track group.day.id) {
         <div (click)="onDayClick(group.day)"
-          class="group cursor-pointer relative rounded-lg hover:bg-gray-100 dark:hover:bg-gray-750">
-          <div class="flex items-center justify-between p-3 gap-3 border-primary-500 rounded-s  select-none"
+          class="group cursor-pointer relative rounded-lg hover:bg-primary-100 dark:hover:bg-black">
+          <div class="flex items-center justify-between p-3 gap-3 border-primary-500 rounded-s select-none"
             [class]="selectedDay()?.id == group.day.id ? 'border-l-4' : 'border-l-0'">
             <div class="flex items-center gap-3 min-w-0">
               <div
@@ -414,15 +419,16 @@
                 </span>
               </div>
               <div class="min-w-0">
-                <h3 class="font-medium truncate text-gray-900 dark:text-white">{{ group.day.label }}</h3>
-                <p class="text-xs text-gray-500 dark:text-gray-400">
+                <h3 class="pointer-events-none font-medium truncate text-primary-900 dark:text-white">{{ group.day.label
+                  }}</h3>
+                <p class="text-xs text-primary-500 dark:text-primary-400">
                   {{ group.day.dt | date: 'd MMM, y' }}
                 </p>
               </div>
             </div>
 
             <div class="flex shrink-0 items-center gap-2">
-              <span class="flex items-center bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-1 text-xs
+              <span class="flex items-center bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-1 text-xs
                 font-medium rounded-md">{{ group.stats.cost | number:'1.0-0' }} {{ trip()?.currency }}
               </span>
               <div class="flex md:hidden">
@@ -432,7 +438,7 @@
             </div>
 
             <div
-              class="hidden md:flex absolute top-1/2 -translate-y-1/2 right-1 bg-gray-100 rounded opacity-0 group-hover:opacity-100 group-hover:-translate-x-2 transition-all">
+              class="hidden md:flex absolute top-1/2 -translate-y-1/2 right-1 bg-primary-100 dark:bg-black rounded opacity-0 group-hover:opacity-100 group-hover:-translate-x-2 transition-all">
               <p-button icon="pi pi-pencil" [disabled]="trip()?.archived"
                 (click)="editDay(group.day); $event.stopPropagation();" text />
               <p-button icon="pi pi-trash" severity="danger" [disabled]="trip()?.archived"
@@ -442,7 +448,7 @@
         </div>
         } @empty {
         <div class="flex flex-col items-center justify-center py-12">
-          <h3 class="text-sm font-bold text-gray-900 dark:text-white mb-2">No days</h3>
+          <h3 class="text-sm font-bold text-primary-900 dark:text-white mb-2">No days</h3>
         </div>
         }
         } @placeholder () {
@@ -459,7 +465,8 @@
     @if (isPlacesPanelVisible()) {
     <div animate.enter="slide-y-no-opacity" animate.leave="a-slide-y"
       class="pointer-events-auto relative rounded-lg overflow-hidden shadow-2xl ring-1 ring-black/5 dark:ring-white/10
-              bg-white/70 dark:bg-gray-900/70 backdrop-blur-xl flex flex-col transition-all duration-300 flex-1 overflow-y-auto" [class]="isDaysPanelVisible() ? 'h-2/3' : 'h-full'">
+              bg-white/70 dark:bg-primary-900/70 backdrop-blur-xl flex flex-col transition-all duration-300 flex-1 overflow-y-auto"
+      [class]="isDaysPanelVisible() ? 'h-2/3' : 'h-full'">
       <div class="p-4 flex-1 overflow-y-auto overscroll-contain">
         <div class="flex justify-between items-center gap-2">
           <p-button icon="pi pi-list-check" [disabled]="trip()?.archived" (click)="manageTripPlaces()" size="small" text
@@ -481,13 +488,13 @@
         @if (showOnlyUnplannedPlaces()) {
         <div class="flex flex-col items-center justify-center py-12">
           <i class="pi pi-check-circle text-4xl! text-green-500 mb-2"></i>
-          <h3 class="text-sm font-bold text-gray-900 dark:text-white mb-2">No unused place</h3>
-          <p class="text-xs text-gray-600 dark:text-gray-400 text-center mb-4">Every place is used</p>
+          <h3 class="text-sm font-bold text-primary-900 dark:text-white mb-2">No unused place</h3>
+          <p class="text-xs text-primary-600 dark:text-primary-400 text-center mb-4">Every place is used</p>
         </div>
         } @else {
         <div class="flex flex-col items-center justify-center py-12">
-          <h3 class="text-sm font-bold text-gray-900 dark:text-white mb-2">No places</h3>
-          <p class="text-xs text-gray-600 dark:text-gray-400 text-center mb-4">Link places to trip</p>
+          <h3 class="text-sm font-bold text-primary-900 dark:text-white mb-2">No places</h3>
+          <p class="text-xs text-primary-600 dark:text-primary-400 text-center mb-4">Link places to trip</p>
         </div>
         }
         }
@@ -506,21 +513,20 @@
   @if (dispSelectedPlace(); as selection) {
   <div #selectedPanel class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[calc(100%-2rem)] md:max-w-4xl z-40"
     animate.enter="slide-from-y" animate.leave="a-slide-from-y">
-    <div class="relative rounded-t-lg p-4 pb-0 max-h-[40vh] overflow-y-auto shadow bg-white dark:bg-gray-900">
-      <div class="border-b border-gray-200 dark:border-gray-800 px-2 py-4 sm:p-4">
+    <div class="relative rounded-t-lg p-4 pb-0 max-h-[40vh] overflow-y-auto shadow bg-white dark:bg-primary-900">
+      <div class="border-b border-primary-200 dark:border-primary-800 px-2 py-4 sm:p-4">
         <div class="flex items-center gap-3">
           @if (selectedPlaceActiveTabIndex() === selection.items.length) {
           <img [src]="selection.place.image || selection.place.category.image"
-            class="w-10 sm:w-18 h-10 sm:h-18 rounded-lg object-cover flex-shrink-0">
+            class="w-10 sm:w-18 h-10 sm:h-18 rounded-lg object-cover shrink-0">
 
           <div class="flex-1 min-w-0 space-y-1">
-            <h3 class="text-md sm:text-lg font-bold text-gray-900 dark:text-white truncate mb-px">
+            <h3 class="text-md sm:text-lg font-bold text-primary-900 dark:text-white truncate mb-px">
               {{ selection.place.name }}
             </h3>
             <div class="flex flex-wrap items-center gap-2">
-              <span class="min-w-0 flex items-center gap-1 px-2 py-1 text-xs font-medium rounded"
-                [style.background]="selection.place.category.color + '1A'"
-                [style.color]="selection.place.category.color">
+              <span class="min-w-0 color-bg-opacity flex items-center gap-1 px-2 py-1 text-xs font-medium rounded"
+                [style.--color-bg-opacity]="selection.place.category.color">
                 <i class="pi pi-tag text-[9px]"></i><span class="truncate">{{ selection.place.category.name
                   }}</span>
               </span>
@@ -547,20 +553,20 @@
           } @else {
           @let item = selection.items[selectedPlaceActiveTabIndex()];
           @if (item.status) {
-          <span class="px-2 py-1 text-xs font-medium rounded-md max-w-[80px]"
-            [style.background]="item.status.color + '1A'" [style.color]="item.status.color" [title]="item.status.label">
+          <span class="px-2 py-1 color-bg-opacity text-xs font-medium rounded-md max-w-[80px]"
+            [style.--color-bg-opacity]="item.status.color" [title]="item.status.label">
             {{ item.status.label }}
           </span>
           }
 
           <div class="flex flex-1 flex-col min-w-0">
-            <div class="pointer-events-none text-lg font-bold text-gray-900 dark:text-white truncate">{{ item.text }}
+            <div class="pointer-events-none text-lg font-bold text-primary-900 dark:text-white truncate">{{ item.text }}
             </div>
 
             <div class="flex items-center gap-2 mt-1">
               <span class="text-sm font-medium truncate max-w-[50%]">{{ getItemDayLabel(item) }}</span>
-              <span class="text-gray-300 dark:text-gray-700">•</span>
-              <span class="text-xs font-mono font-medium px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">{{
+              <span class="text-primary-300 dark:text-primary-700">•</span>
+              <span class="text-xs font-mono font-medium px-1.5 py-0.5 bg-primary-100 dark:bg-primary-800 rounded">{{
                 item.time }}</span>
             </div>
           </div>
@@ -592,7 +598,7 @@
               <span class="text-sm font-medium truncate max-w-[120px]">
                 {{ getItemDayLabel(item) }}
               </span>
-              <span class="text-xs font-mono font-medium px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">
+              <span class="text-xs font-mono font-medium px-1.5 py-0.5 bg-primary-100 dark:bg-primary-800 rounded">
                 {{ item.time }}
               </span>
             </div>
@@ -614,8 +620,9 @@
               <div class="grid md:grid-cols-2 gap-4 min-w-0">
                 <div class="flex flex-col min-w-0">
                   <span
-                    class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Text</span>
-                  <div class="pointer-events-none line-clamp-2 text-gray-900 dark:text-gray-100 break-words">{{
+                    class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">Text</span>
+                  <div class="pointer-events-none line-clamp-2 text-primary-900 dark:text-primary-100 wrap-break-word">
+                    {{
                     item.text }}</div>
                 </div>
 
@@ -624,13 +631,13 @@
                   <div class="md:col-span-2 min-w-0">
                     @let coords = item.lat + ', ' + item.lng;
                     <span
-                      class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+                      class="block text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">
                       Coordinates
                     </span>
 
                     <button [cdkCopyToClipboard]="coords" (cdkCopyToClipboardCopied)="onCoordsCopied()"
-                      class="inline-flex items-center h-8 gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 cursor-pointer rounded border bg-gray-50 dark:bg-gray-800
-                  hover:bg-gray-100 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-700 transition-colors min-w-0 max-w-full">
+                      class="inline-flex items-center h-8 gap-1.5 px-3 py-1.5 text-xs font-medium text-primary-600 dark:text-primary-300 cursor-pointer rounded border bg-primary-50 dark:bg-primary-800
+                  hover:bg-primary-100 dark:hover:bg-primary-700 border-primary-200 dark:border-primary-700 transition-colors min-w-0 max-w-full">
                       <i class="pi shrink-0" [class]="tooltipCopied() ? 'pi-check text-green-600' : 'pi-copy'"></i>
                       <span class="truncate">{{ coords }}</span>
                     </button>
@@ -640,7 +647,7 @@
                   @if (item.price) {
                   <div class="min-w-0">
                     <span
-                      class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+                      class="block text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">
                       Price
                     </span>
                     <div
@@ -658,7 +665,7 @@
                   @if (item.distance) {
                   <div class="min-w-0">
                     <span
-                      class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+                      class="block text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">
                       Distance
                     </span>
                     <div
@@ -676,9 +683,9 @@
               @if (item.comment) {
               <div class="flex flex-col mt-4 max-h-40 overflow-y-auto">
                 <span
-                  class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Comment</span>
+                  class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">Comment</span>
                 <div
-                  class="border-l-3 border-gray-300 dark:border-gray-700 pl-3 py-1 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed"
+                  class="border-l-3 border-primary-300 dark:border-primary-700 pl-3 py-1 text-sm text-primary-700 dark:text-primary-300 whitespace-pre-line leading-relaxed"
                   [innerHTML]="item.comment | linkify">
                 </div>
               </div>
@@ -686,23 +693,23 @@
 
               @if (item.attachments?.length) {
               <div class="flex flex-col mt-4">
-                <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+                <span class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">
                   Attachments ({{ item.attachments?.length }})
                 </span>
                 <div class="flex flex-wrap gap-2">
                   @for (attachment of item.attachments; track attachment.id) {
                   <button (click)="downloadAttachment(attachment)"
-                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 active:bg-gray-100 dark:active:bg-gray-700 transition-colors border border-gray-200 dark:border-gray-700">
+                    class="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-primary-50 dark:hover:bg-primary-800 active:bg-primary-100 dark:active:bg-primary-700 transition-colors border border-primary-200 dark:border-primary-700">
                     <div
-                      class="w-9 h-9 rounded-lg bg-red-50 dark:bg-red-900/30 flex items-center justify-center flex-shrink-0">
+                      class="w-9 h-9 rounded-lg bg-red-50 dark:bg-red-900/30 flex items-center justify-center shrink-0">
                       <i class="pi pi-file text-red-600 dark:text-red-400 text-sm"></i>
                     </div>
                     <div class="flex-1 min-w-0 text-left">
-                      <p class="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">
+                      <p class="text-sm font-medium text-primary-700 dark:text-primary-300 truncate">
                         {{ attachment.filename }}
                       </p>
                     </div>
-                    <i class="pi pi-download text-gray-400 text-xs flex-shrink-0"></i>
+                    <i class="pi pi-download text-primary-400 text-xs shrink-0"></i>
                   </button>
                   }
                 </div>
@@ -711,7 +718,7 @@
 
               @if (item.image) {
               <div class="flex flex-col mt-4">
-                <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+                <span class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">
                   Image
                 </span>
                 <img [src]="item.image" class="w-full rounded-lg object-cover" loading="lazy" />
@@ -720,7 +727,7 @@
 
               @if (item.gpx) {
               <div class="flex flex-col mt-4">
-                <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+                <span class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">
                   GPX
                 </span>
                 <div class="flex gap-2">
@@ -747,26 +754,26 @@
   @if (dispSelectedItem(); as item) {
   <div #selectedPanel class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[calc(100%-2rem)] md:max-w-4xl z-40"
     animate.enter="slide-from-y" animate.leave="a-slide-from-y">
-    <div class="relative rounded-t-lg p-4 pb-0 max-h-[40vh] overflow-y-auto shadow bg-white dark:bg-gray-900">
-      <div class="border-b border-gray-200 dark:border-gray-800 px-2 py-4 sm:p-4">
+    <div class="relative rounded-t-lg p-4 pb-0 max-h-[40vh] overflow-y-auto shadow bg-white dark:bg-primary-900">
+      <div class="border-b border-primary-200 dark:border-primary-800 px-2 py-4 sm:p-4">
         <div class="flex items-center gap-3">
           <div class="flex flex-1 gap-4 items-center min-w-0">
             @if (item.status) {
-            <span class="px-2 py-1 text-xs font-medium rounded-md max-w-[80px]"
-              [style.background]="item.status.color + '1A'" [style.color]="item.status.color"
-              [title]="item.status.label">
+            <span class="px-2 py-1 color-bg-opacity text-xs font-medium rounded-md max-w-[80px]"
+              [style.--color-bg-opacity]="item.status.color" [title]="item.status.label">
               {{ item.status.label }}
             </span>
             }
 
             <div class="flex flex-1 flex-col min-w-0">
-              <div class="pointer-events-none text-lg font-bold text-gray-900 dark:text-white truncate">{{ item.text }}
+              <div class="pointer-events-none text-lg font-bold text-primary-900 dark:text-white truncate">{{ item.text
+                }}
               </div>
 
               <div class="flex items-center gap-2 mt-1">
                 <span class="text-sm font-medium truncate max-w-[50%]">{{ item.day }}</span>
-                <span class="text-gray-300 dark:text-gray-700">•</span>
-                <span class="text-xs font-mono font-medium px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">{{
+                <span class="text-primary-300 dark:text-primary-700">•</span>
+                <span class="text-xs font-mono font-medium px-1.5 py-0.5 bg-primary-100 dark:bg-primary-800 rounded">{{
                   item.time }}</span>
               </div>
             </div>
@@ -793,8 +800,9 @@
         <div class="grid md:grid-cols-2 gap-4 min-w-0">
           <div class="flex flex-1 flex-col min-w-0">
             <span
-              class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Text</span>
-            <div class="pointer-events-none line-clamp-2 text-gray-900 dark:text-gray-100 break-words">{{ item.text }}
+              class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">Text</span>
+            <div class="pointer-events-none line-clamp-2 text-primary-900 dark:text-primary-100 wrap-break-word">{{
+              item.text }}
             </div>
           </div>
 
@@ -802,13 +810,14 @@
             @if (item.lat && item.lng) {
             <div class="md:col-span-2 min-w-0">
               @let coords = item.lat + ', ' + item.lng;
-              <span class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+              <span
+                class="block text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">
                 Coordinates
               </span>
 
               <button [cdkCopyToClipboard]="coords" (cdkCopyToClipboardCopied)="onCoordsCopied()"
-                class="inline-flex items-center h-8 gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-600 dark:text-gray-300 cursor-pointer rounded border bg-gray-50 dark:bg-gray-800
-                  hover:bg-gray-100 dark:hover:bg-gray-700 border-gray-200 dark:border-gray-700 transition-colors min-w-0 max-w-full">
+                class="inline-flex items-center h-8 gap-1.5 px-3 py-1.5 text-xs font-medium text-primary-600 dark:text-primary-300 cursor-pointer rounded border bg-primary-50 dark:bg-primary-800
+                  hover:bg-primary-100 dark:hover:bg-primary-700 border-primary-200 dark:border-primary-700 transition-colors min-w-0 max-w-full">
                 <i class="pi shrink-0" [class]="tooltipCopied() ? 'pi-check text-green-600' : 'pi-copy'"></i>
                 <span class="truncate">{{ coords }}</span>
               </button>
@@ -817,7 +826,8 @@
 
             @if (item.price) {
             <div class="min-w-0">
-              <span class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+              <span
+                class="block text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">
                 Price
               </span>
               <div
@@ -833,7 +843,8 @@
 
             @if (item.distance) {
             <div class="min-w-0">
-              <span class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+              <span
+                class="block text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">
                 Distance
               </span>
               <div
@@ -850,9 +861,9 @@
         @if (item.comment) {
         <div class="flex flex-col mt-4 max-h-40 overflow-y-auto">
           <span
-            class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Comment</span>
+            class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">Comment</span>
           <div
-            class="border-l-3 border-gray-300 dark:border-gray-700 pl-3 py-1 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed"
+            class="border-l-3 border-primary-300 dark:border-primary-700 pl-3 py-1 text-sm text-primary-700 dark:text-primary-300 whitespace-pre-line leading-relaxed"
             [innerHTML]="item.comment | linkify">
           </div>
         </div>
@@ -860,13 +871,13 @@
 
         @if (item.attachments?.length) {
         <div class="flex flex-col mt-4">
-          <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+          <span class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">
             Attachments ({{ item.attachments?.length }})
           </span>
           <div class="flex flex-wrap gap-2">
             @for (attachment of item.attachments; track attachment.id) {
-            <div (click)="downloadAttachment(attachment)" class="w-full sm:w-fit group relative cursor-pointer flex items-center gap-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-100 dark:hover:bg-white/5 p-3 transition-all
-                dark:border-gray-800 dark:bg-gray-950">
+            <div (click)="downloadAttachment(attachment)" class="w-full sm:w-fit group relative cursor-pointer flex items-center gap-3 rounded-lg border border-primary-200 bg-white hover:bg-primary-100 dark:hover:bg-white/5 p-3 transition-all
+                dark:border-primary-800 dark:bg-primary-950">
               <div
                 class="group relative flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-md bg-red-50 transition-colors dark:bg-red-900/30">
                 <i class="pi pi-file text-red-600 transition-opacity group-hover:opacity-0 dark:text-red-400"></i>
@@ -875,12 +886,12 @@
               </div>
 
               <div class="min-w-0 flex-1">
-                <div class="truncate font-mono text-sm  text-gray-900 dark:text-gray-100">{{
+                <div class="truncate font-mono text-sm  text-primary-900 dark:text-primary-100">{{
                   attachment.filename }}</div>
-                <div class="flex items-center gap-2 mt-1 text-xs font-mono text-gray-500 dark:text-gray-400">
+                <div class="flex items-center gap-2 mt-1 text-xs font-mono text-primary-500 dark:text-primary-400">
                   <span>{{ attachment.file_size | fileSize }}</span>
                   <span
-                    class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded min-w-fit dark:bg-gray-400">{{
+                    class="bg-primary-100 text-primary-800 text-xs font-medium px-2.5 py-0.5 rounded min-w-fit dark:bg-primary-400">{{
                     attachment.uploaded_by }}</span>
                 </div>
               </div>
@@ -892,7 +903,7 @@
 
         @if (item.image) {
         <div class="flex flex-col mt-4">
-          <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+          <span class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">
             Image
           </span>
           <img [src]="item.image" class="w-full rounded-lg object-cover" loading="lazy" />
@@ -901,7 +912,7 @@
 
         @if (item.gpx) {
         <div class="flex flex-col mt-4">
-          <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+          <span class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">
             GPX
           </span>
           <div class="flex gap-2">
@@ -918,13 +929,13 @@
   @if (selectedDay(); as day) {
   <div #selectedPanel class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[calc(100%-2rem)] md:max-w-4xl z-40"
     animate.enter="slide-from-y" animate.leave="a-slide-from-y">
-    <div class="relative rounded-t-lg p-4 pb-0 max-h-[40vh] overflow-y-auto shadow bg-white dark:bg-gray-900">
-      <div class="border-b border-gray-200 dark:border-gray-800 px-2 py-4 sm:p-4">
+    <div class="relative rounded-t-lg p-4 pb-0 max-h-[40vh] overflow-y-auto shadow bg-white dark:bg-primary-900">
+      <div class="border-b border-primary-200 dark:border-primary-800 px-2 py-4 sm:p-4">
         <div class="flex items-center gap-3">
           <div class="flex-1 min-w-0 space-y-1">
-            <div class="text-lg font-bold text-gray-900 dark:text-white truncate">{{ day.label }}</div>
+            <div class="text-lg font-bold text-primary-900 dark:text-white truncate">{{ day.label }}</div>
 
-            <div class="text-gray-600 flex items-center gap-1 mt-1">
+            <div class="text-primary-600 flex items-center gap-1 mt-1">
               <i class="pi pi-calendar text-xs"></i>
               <span class="text-sm font-medium truncate">{{ day.dt | date: 'd MMM, y' }}</span>
             </div>
@@ -952,14 +963,14 @@
         <div class="flex flex-col md:flex-row gap-4 min-w-0">
           <div class="flex-1 flex flex-col min-w-0">
             <span
-              class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Label</span>
-            <div class="line-clamp-2 text-gray-900 dark:text-gray-100 break-words">{{ day.label }}</div>
+              class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">Label</span>
+            <div class="line-clamp-2 text-primary-900 dark:text-primary-100 wrap-break-word">{{ day.label }}</div>
           </div>
 
           <div class="flex gap-4 min-w-0">
             <div class="min-w-0">
               <span
-                class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Places</span>
+                class="block text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">Places</span>
               <div
                 class="w-fit h-8 flex items-center gap-1.5 px-3 py-1.5 text-sm rounded bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700">
                 <i class="pi pi-map-marker text-purple-600 dark:text-purple-400 text-xs"></i>
@@ -969,7 +980,8 @@
             </div>
 
             <div class="min-w-0">
-              <span class="block text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">
+              <span
+                class="block text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">
                 Plans
               </span>
               <div
@@ -984,9 +996,10 @@
 
         @if (day.notes) {
         <div class="flex flex-col min-w-0">
-          <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Notes</span>
+          <span
+            class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">Notes</span>
           <div
-            class="border-l-3 border-gray-300 dark:border-gray-700 pl-3 py-1 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-line leading-relaxed"
+            class="border-l-3 border-primary-300 dark:border-primary-700 pl-3 py-1 text-sm text-primary-700 dark:text-primary-300 whitespace-pre-line leading-relaxed"
             [innerHTML]="day.notes | linkify">
           </div>
         </div>
@@ -994,12 +1007,13 @@
 
         @if (attachments.length) {
         <div class="flex flex-col min-w-0">
-          <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Attachments
+          <span
+            class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">Attachments
             ({{attachments.length}})</span>
           <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
             @for(attachment of attachments; track attachment.id) {
-            <div (click)="downloadAttachment(attachment)" class="group relative cursor-pointer flex items-center gap-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-100 dark:hover:bg-white/5 p-3 transition-all
-                dark:border-gray-800 dark:bg-gray-950">
+            <div (click)="downloadAttachment(attachment)" class="group relative cursor-pointer flex items-center gap-3 rounded-lg border border-primary-200 bg-white hover:bg-primary-100 dark:hover:bg-white/5 p-3 transition-all
+                dark:border-primary-800 dark:bg-primary-950">
               <div
                 class="group relative flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-md bg-red-50 transition-colors dark:bg-red-900/30">
                 <i class="pi pi-file text-red-600 transition-opacity group-hover:opacity-0 dark:text-red-400"></i>
@@ -1008,12 +1022,12 @@
               </div>
 
               <div class="min-w-0 flex-1">
-                <div class="truncate font-mono text-sm  text-gray-900 dark:text-gray-100">{{
+                <div class="truncate font-mono text-sm  text-primary-900 dark:text-primary-100">{{
                   attachment.filename }}</div>
-                <div class="flex items-center gap-2 mt-1 text-xs font-mono text-gray-500 dark:text-gray-400">
+                <div class="flex items-center gap-2 mt-1 text-xs font-mono text-primary-500 dark:text-primary-400">
                   <span class="truncate">{{ attachment.file_size | fileSize }}</span>
                   <span
-                    class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded min-w-fit dark:bg-gray-400">{{
+                    class="bg-primary-100 text-primary-800 text-xs font-medium px-2.5 py-0.5 rounded min-w-fit dark:bg-primary-400">{{
                     attachment.uploaded_by }}</span>
                 </div>
               </div>
@@ -1025,13 +1039,13 @@
 
         @if (places.length) {
         <div class="flex flex-col min-w-0">
-          <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-1">Places
+          <span class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">Places
             ({{places.length}})</span>
           <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             @for(place of places; track place.id) {
-            <div [style.background]="place.category.color + '1A'"
-              class="inline-flex items-center gap-2 font-medium p-2 rounded-lg">
-              <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden flex-shrink-0">
+            <div [style.--color-bg-opacity]="place.category.color"
+              class="inline-flex color-bg-opacity items-center gap-2 font-medium p-2 rounded-lg">
+              <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden shrink-0">
                 <img [src]="place.image" class="size-full object-cover" loading="lazy" />
               </div>
               <span class="text-sm truncate">{{ place.name }}</span>
@@ -1059,7 +1073,7 @@
     <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-2 mt-2 pb-4">
       @for (item of dispChecklist(); track item.id) {
       <div
-        class="relative group flex items-center gap-3 rounded-md py-1 min-w-0 hover:bg-gray-100 dark:hover:bg-white/5">
+        class="relative group flex items-center gap-3 rounded-md py-1 min-w-0 hover:bg-primary-100 dark:hover:bg-white/5">
         <label [for]="item.id" [pTooltip]="item.text" [class.line-through]="item.checked"
           class="flex items-center gap-2 w-full cursor-pointer">
           <p-checkbox (onChange)="onCheckChecklistItem($event, item.id)" [binary]="true"
@@ -1076,8 +1090,8 @@
       </div>
       } @empty {
       <div class="col-span-full flex flex-col items-center justify-center mt-4 text-center select-none">
-        <i style="font-size: 3rem" class="pi pi-inbox mb-2 text-gray-300 dark:text-gray-700"></i>
-        <p class="text-sm text-gray-500 dark:text-gray-400">No item</p>
+        <i style="font-size: 3rem" class="pi pi-inbox mb-2 text-primary-300 dark:text-primary-700"></i>
+        <p class="text-sm text-primary-500 dark:text-primary-400">No item</p>
       </div>
       }
     </div>
@@ -1088,8 +1102,8 @@
         @for (status of statuses; track status.label) {
         @if (['pending', 'constraint'].includes(status.label)) {
         <div class="relative">
-          <span [style.background]="status.color+'1A'" [style.color]="status.color"
-            class="text-xs md:text-sm font-medium me-2 px-2.5 py-1 rounded">{{ status.label }}</span>
+          <span [style.--color-bg-opacity]="status.color"
+            class="text-xs color-bg-opacity md:text-sm font-medium me-2 px-2.5 py-1 rounded">{{ status.label }}</span>
         </div>
         }
         }
@@ -1097,7 +1111,7 @@
     </div>
     <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-2 mt-2 pb-4">
       @for (item of watchlistItems(); track item.id) {
-      <div class="rounded-md py-1 min-w-0 hover:bg-gray-100 dark:hover:bg-white/5">
+      <div class="rounded-md py-1 min-w-0 hover:bg-primary-100 dark:hover:bg-white/5">
         <label [for]="item.id" [pTooltip]="item.text" class="flex items-center gap-2 w-full">
           <div class="relative">
             @if (item.status) {
@@ -1113,8 +1127,8 @@
       </div>
       } @empty {
       <div class="col-span-full flex flex-col items-center justify-center mt-4 text-center select-none">
-        <i style="font-size: 3rem" class="pi pi-inbox mb-2 text-gray-300 dark:text-gray-700"></i>
-        <p class="text-sm text-gray-500 dark:text-gray-400">No item</p>
+        <i style="font-size: 3rem" class="pi pi-inbox mb-2 text-primary-300 dark:text-primary-700"></i>
+        <p class="text-sm text-primary-500 dark:text-primary-400">No item</p>
       </div>
       }
     </div>
@@ -1127,17 +1141,17 @@
       <p-button (click)="addMember()" [disabled]="trip()?.archived" icon="pi pi-plus" label="Member" text />
     </div>
 
-    <div class="divide-y divide-gray-100 mt-4 pb-4">
+    <div class="divide-y divide-primary-100 mt-4 pb-4">
       @for (m of tripMembers(); track m.user) {
       <div class="flex items-center justify-between gap-6 py-5">
         <div class="flex items-center min-w-0 gap-4">
           <div class="size-12 flex flex-none rounded-full items-center justify-center"
-            [class]="!m.invited_at ? 'bg-red-100' : m.invited_at && !m.joined_at ? 'bg-gray-50' : 'bg-blue-100'">
+            [class]="!m.invited_at ? 'bg-red-100' : m.invited_at && !m.joined_at ? 'bg-primary-50' : 'bg-blue-100'">
             <i class="pi pi-user"></i>
           </div>
 
           <div class="flex flex-col gap-1 min-w-0">
-            <span class="capitalize truncate font-semibold text-gray-900">{{ m.user }}</span>
+            <span class="capitalize truncate font-semibold text-primary-900">{{ m.user }}</span>
 
             <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
               @if (!m.invited_at) {
@@ -1147,7 +1161,7 @@
 
               @if (m.invited_at && !m.joined_at) {
               <span
-                class="text-center bg-gray-100 text-gray-800 text-xs px-2.5 py-0.5 rounded-md group-hover:hidden dark:bg-gray-100/85">Invited</span>
+                class="text-center bg-primary-100 text-primary-800 text-xs px-2.5 py-0.5 rounded-md group-hover:hidden dark:bg-primary-100/85">Invited</span>
               }
 
               @if (m.joined_at) {
@@ -1160,7 +1174,7 @@
 
         <div class="flex items-center gap-2">
           <span
-            [class]="m.balance ? m.balance > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'"
+            [class]="m.balance ? m.balance > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' : 'bg-primary-100 text-primary-800'"
             class="text-center text-xs px-2.5 py-0.5 rounded-md group-hover:hidden">{{
             m.balance || '-' }} {{ trip()?.currency }}</span>
 
@@ -1186,7 +1200,7 @@
     <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-2 mt-2 pb-4">
       @for (attachment of trip()?.attachments; track attachment.id) {
       <div (click)="downloadAttachment(attachment)"
-        class="group relative cursor-pointer flex items-center gap-3 rounded-lg border border-gray-200 bg-white hover:bg-gray-100 dark:hover:bg-white/5 p-3 transition-all dark:border-gray-800 dark:bg-gray-950">
+        class="group relative cursor-pointer flex items-center gap-3 rounded-lg border border-primary-200 bg-white hover:bg-primary-100 dark:hover:bg-white/5 p-3 transition-all dark:border-primary-800 dark:bg-primary-950">
         <div
           class="group relative flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-md bg-red-100 transition-colors dark:bg-red-900">
           <i class="pi pi-file text-red-600 transition-opacity group-hover:opacity-0 dark:text-red-400"></i>
@@ -1195,11 +1209,11 @@
         </div>
 
         <div class="min-w-0 flex-1">
-          <div class="truncate font-mono text-md text-gray-900 dark:text-gray-100">{{ attachment.filename }}</div>
-          <div class="flex items-center gap-2 mt-1 text-xs font-mono text-gray-500 dark:text-gray-400">
+          <div class="truncate font-mono text-md text-primary-900 dark:text-primary-100">{{ attachment.filename }}</div>
+          <div class="flex items-center gap-2 mt-1 text-xs font-mono text-primary-500 dark:text-primary-400">
             <span>{{ attachment.file_size | fileSize }}</span>
             <span
-              class="bg-gray-100 text-gray-800 text-xs font-medium px-2.5 py-0.5 rounded min-w-fit dark:bg-gray-400">{{
+              class="bg-primary-100 text-primary-800 text-xs font-medium px-2.5 py-0.5 rounded min-w-fit dark:bg-primary-400">{{
               attachment.uploaded_by }}</span>
           </div>
         </div>
@@ -1212,8 +1226,8 @@
       </div>
       } @empty {
       <div class="col-span-full flex flex-col items-center justify-center mt-4 text-center select-none">
-        <i style="font-size: 3rem" class="pi pi-inbox mb-2 text-gray-300 dark:text-gray-700"></i>
-        <p class="text-sm text-gray-500 dark:text-gray-400">No attachments</p>
+        <i style="font-size: 3rem" class="pi pi-inbox mb-2 text-primary-300 dark:text-primary-700"></i>
+        <p class="text-sm text-primary-500 dark:text-primary-400">No attachments</p>
       </div>
       }
     </div>
@@ -1226,7 +1240,7 @@
   <section class="p-4 max-h-[80vh] overflow-hidden flex flex-col">
     <div class="flex flex-wrap items-center justify-center gap-3 mb-6">
       <p-button (click)="addPackingItem()" [disabled]="trip()?.archived" icon="pi pi-plus" label="Add item" text />
-      <div class="h-6 w-px bg-gray-200 dark:bg-gray-700 mx-2 hidden sm:block"></div>
+      <div class="h-6 w-px bg-primary-200 dark:bg-primary-700 mx-2 hidden sm:block"></div>
       <p-button (click)="menuTripPacking.toggle($event)" icon="pi pi-ellipsis-h" text />
     </div>
 
@@ -1234,14 +1248,14 @@
       @for (category of dispPackingList() | keyvalue; track category.key) {
       <div class="mb-6 break-inside-avoid">
         <h3
-          class="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3 px-1 sticky top-0 bg-white dark:bg-gray-900 z-10 py-2">
+          class="text-sm font-bold text-primary-500 dark:text-primary-400 uppercase tracking-wider mb-3 px-1 sticky top-0 bg-white dark:bg-primary-900 z-10 py-2">
           {{ category.key }}
         </h3>
 
         <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-3">
           @for (item of category.value; track item.id) {
           <div
-            class="group relative flex items-center gap-3 p-2 rounded-lg transition-colors hover:bg-gray-50 dark:hover:bg-white/5 border border-transparent hover:border-gray-100 dark:hover:border-gray-800">
+            class="group relative flex items-center gap-3 p-2 rounded-lg transition-colors hover:bg-primary-50 dark:hover:bg-white/5 border border-transparent hover:border-primary-100 dark:hover:border-primary-800">
 
             <label [for]="'pack-' + item.id" class="flex flex-1 items-center gap-3 cursor-pointer min-w-0">
               <p-checkbox [binary]="true" [inputId]="'pack-' + item.id" [(ngModel)]="item.packed"
@@ -1253,7 +1267,7 @@
                   <span class="text-xs font-bold bg-primary-100 text-primary-700 px-1.5 rounded">{{ item.qt }}x</span>
                   }
                   <span class="truncate select-none" [class.line-through]="item.packed"
-                    [class.text-gray-400]="item.packed">
+                    [class.text-primary-400]="item.packed">
                     {{ item.text }}
                   </span>
                 </div>
@@ -1270,9 +1284,9 @@
       </div>
       } @empty {
       <div class="flex flex-col items-center justify-center py-12 text-center opacity-60">
-        <i class="pi pi-briefcase text-4xl mb-3 text-gray-300"></i>
+        <i class="pi pi-briefcase text-4xl mb-3 text-primary-300"></i>
         <p class="text-sm font-medium">Your packing list is empty</p>
-        <p class="text-xs text-gray-500 mt-1">Start adding items or paste from another trip</p>
+        <p class="text-xs text-primary-500 mt-1">Start adding items or paste from another trip</p>
       </div>
       }
     </div>
@@ -1280,7 +1294,7 @@
 </p-dialog>
 <p-dialog header="BETA Trip" [draggable]="false" [dismissableMask]="true" [modal]="true"
   [(visible)]="isBetaDialogVisible" styleClass="w-[95%] md:w-[40%] lg:w-[30%]">
-  <section class="p-5 md:p-6 space-y-8 text-sm text-gray-800 dark:text-gray-100">
+  <section class="p-5 md:p-6 space-y-8 text-sm text-primary-800 dark:text-primary-100">
     <div class="flex items-center gap-4">
       <div
         class="hidden md:flex w-fit mt-0.5 items-center gap-1.5 rounded bg-purple-100 dark:bg-purple-900/40 px-2.5 py-1">
@@ -1293,7 +1307,7 @@
         <h2 class="text-base md:text-lg font-semibold leading-snug">
           Welcome to Trip BETA!
         </h2>
-        <p class="mt-1 text-xs md:text-sm text-gray-500 dark:text-gray-400">
+        <p class="mt-1 text-xs md:text-sm text-primary-500 dark:text-primary-400">
           This redesigned UI is still in progress. Things may move, break, or change as it evolves.
         </p>
       </div>
@@ -1304,7 +1318,7 @@
         <h3 class="text-red-500 text-xs font-semibold uppercase tracking-wide dark:text-red-400">
           Found a bug?
         </h3>
-        <p class="text-xs md:text-sm text-gray-600 dark:text-gray-300">
+        <p class="text-xs md:text-sm text-primary-600 dark:text-primary-300">
           Open an <a href="https://github.com/itskovacs/trip" target="_blank" class="text-blue-600">issue</a> and
           follow
           the steps. Thanks!
@@ -1315,7 +1329,7 @@
         <h3 class="text-green-500 text-xs font-semibold uppercase tracking-wide dark:text-green-400">
           Have an idea?
         </h3>
-        <p class="text-xs md:text-sm text-gray-600 dark:text-gray-300">
+        <p class="text-xs md:text-sm text-primary-600 dark:text-primary-300">
           Head to <a href="https://github.com/itskovacs/trip/discussions" target="_blank"
             class="text-blue-600">discussions</a> and share it.
         </p>
@@ -1323,9 +1337,9 @@
     </div>
 
     <div
-      class="mt-2 rounded-xl border border-gray-200 dark:border-gray-800 bg-gray-50/80 dark:bg-gray-900/60 px-3.5 py-3 flex items-center gap-3">
+      class="mt-2 rounded-xl border border-primary-200 dark:border-primary-800 bg-primary-50/80 dark:bg-primary-900/60 px-3.5 py-3 flex items-center gap-3">
       <span class="mt-0.5 text-3xl">☕</span>
-      <p class="text-xs md:text-sm text-gray-600 dark:text-gray-300">
+      <p class="text-xs md:text-sm text-primary-600 dark:text-primary-300">
         If TRIP makes your trips planning easier and you'd like to support me and its development, you're welcome (but
         never expected) to <a href="https://ko-fi.com/itskovacs" target="_blank" class="text-blue-600">buy me a
           coffee</a>. Thank you!
@@ -1333,7 +1347,8 @@
     </div>
 
     <div class="flex flex-wrap items-center justify-end gap-2 pt-1">
-      <p-button label="Continue" icon="pi pi-arrow-right" size="small" (click)="isBetaDialogVisible=false" />
+      <p-button label="Continue" severity="secondary" icon="pi pi-arrow-right" size="small"
+        (click)="isBetaDialogVisible=false" />
     </div>
   </section>
 </p-dialog>
@@ -1347,9 +1362,9 @@
     <div class="flex items-center flex-col gap-2">
       <span>{{ t?.name }} is shared on this link:</span>
 
-      <div class="flex items-center w-full rounded-xl border border-gray-300 bg-white p-2 pl-3 pr-2 shadow-sm">
+      <div class="flex items-center w-full rounded-xl border border-primary-300 bg-white p-2 pl-3 pr-2 shadow-sm">
         <p-button text icon="pi pi-trash" severity="danger" (click)="unshareTrip()" />
-        <span class="text-sm font-semibold text-gray-800 truncate">
+        <span class="text-sm font-semibold text-primary-800 truncate">
           {{ (tripSharedURL$ | async) || '' }}
         </span>
         <p-button text icon="pi pi-copy" [cdkCopyToClipboard]="(tripSharedURL$ | async) || ''" />
@@ -1371,18 +1386,18 @@
     <div class="flex flex-col items-center max-w-[55vw] md:max-w-full">
       <div class="flex flex-col items-center">
         <img src="favicon.png" class="size-20">
-        <div class="flex gap-2 items-center text-xs text-gray-500"><i class="pi pi-github"></i>itskovacs/trip</div>
+        <div class="flex gap-2 items-center text-xs text-primary-500"><i class="pi pi-github"></i>itskovacs/trip</div>
       </div>
 
       <h1 class="mt-4 tracking-tight text-3xl font-semibold truncate p-2">{{ trip()?.name }}</h1>
       <div class="flex items-center">
         <span
-          class="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-1 rounded min-w-fit flex items-center gap-2"><i
+          class="bg-primary-100 text-primary-800 text-xs font-medium me-2 px-2.5 py-1 rounded min-w-fit flex items-center gap-2"><i
             class="pi pi-calendar text-xs"></i> {{
           trip()?.days?.length }} {{ trip()?.days!.length > 1 ? 'days' :
           'day'}}</span>
         <span
-          class="bg-gray-100 text-gray-800 text-xs font-medium me-2 px-2.5 py-1 rounded min-w-fit flex items-center gap-2"><i
+          class="bg-primary-100 text-primary-800 text-xs font-medium me-2 px-2.5 py-1 rounded min-w-fit flex items-center gap-2"><i
             class="pi pi-wallet text-xs"></i> {{
           (totalPrice() | number:'1.0-2') || '-' }} {{ trip()?.currency }}</span>
       </div>
@@ -1392,8 +1407,9 @@
   <div class="mt-4">
     <div class="text-2xl font-semibold">Notes</div>
 
-    <div class="mt-4 border-l-3 border-gray-900 pl-6 py-2">
-      <p class="text-sm leading-relaxed text-gray-800 whitespace-pre-line">{{ trip()?.notes || 'Nothing there.'
+    <div class="mt-4 border-l-3 border-primary-900 dark:border-primary-200 pl-6 py-2">
+      <p class="text-sm leading-relaxed text-primary-800 dark:text-primary-400 whitespace-pre-line">{{ trip()?.notes ||
+        'Nothing there.'
         }}</p>
     </div>
   </div>
@@ -1402,68 +1418,75 @@
     <div class="text-2xl font-semibold">Itinerary</div>
 
     <div class="mt-4">
+      @let visibleProps = selectedItemPropsSet();
       @for (group of tripViewModel(); track group.day.id) {
       <div class="mb-12">
         <div class="flex items-center gap-4 mb-4">
-          <h2 class="text-xl font-semibold text-gray-900 whitespace-nowrap">{{ group.day.label }}</h2>
-          <div class="flex-1 h-px bg-gray-300"></div>
+          <h2 class="text-xl font-semibold text-primary-900 dark:text-primary-100 whitespace-nowrap">{{ group.day.label
+            }}</h2>
+          <div class="flex-1 h-px bg-primary-300"></div>
           @if (group.day.dt) {
-          <span class="text-sm font-medium text-gray-400 dark:text-gray-600 whitespace-nowrap">{{ group.day.dt | date:
+          <span class="text-sm font-medium text-primary-400 whitespace-nowrap">{{ group.day.dt |
+            date:
             'd MMM, y' }}</span>
           }
         </div>
 
         @if (group.day.notes) {
-        <div class="border-l-3 border-gray-900 pl-6 py-2 mb-4">
-          <p class="text-sm leading-relaxed text-gray-800 whitespace-pre-line">{{ group.day.notes }}</p>
+        <div class="border-l-3 border-primary-900 dark:border-primary-200 pl-6 py-2 mb-4">
+          <p class="text-sm leading-relaxed text-primary-800 dark:text-primary-400 whitespace-pre-line">{{
+            group.day.notes }}</p>
         </div>
         }
 
         @for (item of group.items; track item.id) {
         <div class="flex gap-4 items-center rounded-lg p-3 -mx-3">
           <span
-            class="px-2.5 py-1 text-xs font-mono font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded">{{
+            class="px-2.5 py-1 text-xs font-mono font-medium bg-primary-100 dark:bg-primary-800 text-primary-700 dark:text-primary-300 rounded">{{
             item.time }}</span>
 
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2">
               @if (!item.place || item.place.name !== item.text) {
-              <h4 class="font-semibold text-primary-900">{{ item.text }}</h4>
+              <h4 class="font-semibold text-primary-900 dark:text-primary-200">{{ item.text }}</h4>
               }
               @if (item.place) {
-              <div class="w-fit flex items-center gap-2 px-2.5 py-1 rounded-full"
-                [style.background]="item.place.category.color + '1A'">
+              <div class="w-fit color-bg-opacity flex items-center gap-2 px-2.5 py-1 rounded-full"
+                [style.--color-bg-opacity]="item.place.category.color">
                 <img [src]="item.place.image || item.place.category.image" class="w-5 h-5 rounded-full object-cover">
                 <span class="text-sm font-medium text-primary-900 dark:text-white truncate">
                   {{ item.place.name }}
                 </span>
               </div>
-            } @else {
-            <h4 class="font-semibold text-gray-900">{{ item.text }}</h4>
               }
             </div>
 
             @if (item.comment) {
-            <p class="text-sm text-gray-500 whitespace-pre-line italic">{{ item.comment }}</p>
+            <p class="text-sm text-primary-500 dark:text-primary-400 whitespace-pre-line italic">{{ item.comment }}</p>
             }
           </div>
 
           <div class="flex items-center">
-            @if (item.price) {
+            @if (item.lat && item.lng && visibleProps.has('latlng')) {
             <span
-              class="flex items-center bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-1 text-xs font-medium rounded whitespace-nowrap me-2">{{
+              class="text-center bg-primary-100 text-primary-800 text-xs px-2 py-1 rounded-md dark:text-primary-300 dark:bg-primary-800 truncate">{{
+              item.lat }}, {{ item.lng }}</span>
+            }
+            @if (visibleProps.has('price') && item.price) {
+            <span
+              class="flex items-center bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-1 text-xs font-medium rounded whitespace-nowrap me-2">{{
               item.price }} {{ trip()?.currency }}</span>
             }
-            @if (item.status) {
-            <span class="text-xs font-medium px-2.5 py-1 rounded min-w-fit"
-              [style.background]="item.status.color + '1A'" [style.color]="item.status.color">{{ item.status.label
+            @if (visibleProps.has('status') && item.status) {
+            <span class="text-xs color-bg-opacity font-medium px-2.5 py-1 rounded min-w-fit"
+              [style.--color-bg-opacity]="item.status.color">{{ item.status.label
               }}</span>
             }
           </div>
         </div>
         } @empty {
-        <div class="mt-4 border-l-3 border-gray-900 pl-6 py-2">
-          <p class="text-gray-800 text-lg leading-loose whitespace-pre-line font-light">Nothing there.</p>
+        <div class="mt-4 border-l-3 border-primary-900 pl-6 py-2">
+          <p class="text-primary-800 text-lg leading-loose whitespace-pre-line font-light">Nothing there.</p>
         </div>
         }
       </div>
@@ -1475,28 +1498,28 @@
     <div class="text-2xl font-semibold">📍 Places</div>
     <div class="mt-4">
       @for(place of places(); track place.id) {
-      <div [style.background]="place.category.color + '1A'"
-        class="inline-flex items-center gap-2 font-medium p-1 pr-3 m-1 rounded-full">
-        <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden flex-shrink-0">
+      <div [style.--color-bg-opacity]="place.category.color"
+        class="inline-flex color-bg-opacity items-center gap-2 font-medium p-1 pr-3 m-1 rounded-full">
+        <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden shrink-0">
           <img [src]="place.image" class="size-full object-cover" loading="lazy" />
         </div>
-        <span class="text-sm">{{ place.name }}</span>
+        <span class="text-sm text-primary-900 dark:text-white">{{ place.name }}</span>
       </div>
       } @empty {
-      <div class="mt-4 border-l-3 border-gray-900 pl-6 py-2">
-        <p class="text-gray-800 text-lg leading-loose whitespace-pre-line font-light">Nothing there.</p>
+      <div class="mt-4 border-l-3 border-primary-900 pl-6 py-2">
+        <p class="text-primary-800 text-lg leading-loose whitespace-pre-line font-light">Nothing there.</p>
       </div>
       }
     </div>
 
     <div class="mt-4 text-right">*
       @for (category of getCategoriesFromPlaces(places()); track category.id) {
-      <div [style.background]="category.color + '1A'"
-        class="inline-flex items-center gap-2 font-medium p-1 pr-3 m-1 rounded">
-        <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden flex-shrink-0">
+      <div [style.--color-bg-opacity]="category.color"
+        class="inline-flex color-bg-opacity items-center gap-2 font-medium p-1 pr-3 m-1 rounded">
+        <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden shrink-0">
           <img [src]="category.image" class="size-full object-cover" loading="lazy" />
         </div>
-        <span class="text-sm">{{ category.name }}</span>
+        <span class="text-sm text-primary-900 dark:text-white">{{ category.name }}</span>
       </div>
       }
     </div>

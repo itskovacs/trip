@@ -7,7 +7,7 @@
           <i class="pi pi-list"></i>
           <span>Available</span>
           <span
-            class="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-1 text-xs font-medium rounded-md">{{
+            class="bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-1 text-xs font-medium rounded-md">{{
             displayedPlaces.length }}</span>
         </div>
       </p-tab>
@@ -16,7 +16,7 @@
           <i class="pi pi-check"></i>
           <span>Selected</span>
           <span
-            class="bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-1 text-xs font-medium rounded-md">{{
+            class="bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-1 text-xs font-medium rounded-md">{{
             selectedPlaces.length }}</span>
         </div>
       </p-tab>
@@ -24,7 +24,7 @@
 
     <p-tabpanels>
       <p-tabpanel value="0">
-        <div class="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div class="sticky top-0 z-10 bg-white dark:bg-primary-800 border-b border-primary-200 dark:border-primary-700">
           <div class="p-4">
             <div class="grid gap-3 md:grid-cols-3">
               <div class="relative md:col-span-2">
@@ -55,11 +55,11 @@
 
           @if (boundariesFiltering || searchInput.value) {
           <div class="px-4 pb-3 flex flex-wrap items-center gap-2">
-            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Active filters:</span>
+            <span class="text-xs font-medium text-primary-500 dark:text-primary-400">Active filters:</span>
 
             @if (searchInput.value) {
             <div
-              class="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-0.5 text-xs font-medium rounded-md">
+              class="flex items-center gap-2 bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-0.5 text-xs font-medium rounded-md">
               <i class="pi pi-search"></i>{{ searchInput.value }}<p-button text icon="pi pi-times" size="small"
                 (click)="searchInput.setValue('')" />
             </div>
@@ -67,7 +67,7 @@
 
             @if (boundariesFiltering) {
             <div
-              class="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-0.5 text-xs font-medium rounded-md">
+              class="flex items-center gap-2 bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-0.5 text-xs font-medium rounded-md">
               <i class="pi pi-map-marker"></i>{{ googleGeocodeInput.value }}<p-button text icon="pi pi-times"
                 size="small" (click)="resetGeocodeFilters()" />
             </div>
@@ -91,29 +91,29 @@
           <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
             @for (p of displayedPlaces; track p.id) {
             <div (click)="togglePlace(p)"
-              class="group relative cursor-pointer rounded-xl border border-gray-200 dark:border-gray-700 p-3 transition-all duration-200 hover:border-gray-400 hover:bg-gray-50 dark:hover:border-gray-600 dark:hover:bg-gray-950/30"
-              [class]="selectedPlacesID.includes(p.id) ? 'ring ring-gray-500 bg-gray-50 dark:bg-gray-950' : ''">
+              class="group relative cursor-pointer rounded-xl border border-primary-200 dark:border-primary-700 p-3 transition-all duration-200 hover:border-primary-400 hover:bg-primary-50 dark:hover:border-primary-600 dark:hover:bg-primary-950/30"
+              [class]="selectedPlacesID.includes(p.id) ? 'ring ring-primary-500 bg-primary-50 dark:bg-primary-950' : ''">
               <div class="flex items-center gap-3">
                 <div class="relative h-14 w-14 shrink-0">
                   <img [src]="p.image || p.category.image" loading="lazy"
                     class="h-full w-full rounded-lg object-cover" />
                   <div
-                    [class]="selectedPlacesID.includes(p.id) ? 'flex bg-gray-600/80' : 'hidden group-hover:flex bg-green-700/80'"
+                    [class]="selectedPlacesID.includes(p.id) ? 'flex bg-primary-600/80' : 'hidden group-hover:flex bg-green-700/80'"
                     class="absolute inset-0 items-center justify-center rounded-lg  text-white transition-all">
                     <i [class]="selectedPlacesID.includes(p.id) ? 'pi pi-check text-xl' : 'pi pi-plus text-xl'"></i>
                   </div>
                 </div>
 
                 <div class="min-w-0 flex-1">
-                  <h3 class="mb-1 truncate text-sm font-semibold text-gray-900 dark:text-white">
+                  <h3 class="mb-1 truncate text-sm font-semibold text-primary-900 dark:text-white">
                     {{ p.name }}
                   </h3>
-                  <p class="mb-2 truncate text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                  <p class="mb-2 truncate text-xs text-primary-500 dark:text-primary-400 flex items-center gap-1">
                     <i class="pi pi-map-marker text-[10px]"></i>
                     {{ p.place }}
                   </p>
-                  <span class="inline-flex items-center gap-1 rounded px-2 py-1 text-xs font-medium"
-                    [style.background]="p.category.color + '1A'" [style.color]="p.category.color">
+                  <span class="inline-flex color-bg-opacity items-center gap-1 rounded px-2 py-1 text-xs font-medium"
+                    [style.--color-bg-opacity]="p.category.color">
                     {{ p.category.name }}
                   </span>
                 </div>
@@ -121,9 +121,9 @@
             </div>
             } @empty {
             <div class="col-span-full py-12 text-center">
-              <i class="pi pi-inbox text-4xl text-gray-300 dark:text-gray-600 mb-3"></i>
-              <p class="text-sm font-medium text-gray-500 dark:text-gray-400">No places found</p>
-              <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Try adjusting your filters</p>
+              <i class="pi pi-inbox text-4xl text-primary-300 dark:text-primary-600 mb-3"></i>
+              <p class="text-sm font-medium text-primary-500 dark:text-primary-400">No places found</p>
+              <p class="text-xs text-primary-400 dark:text-primary-500 mt-1">Try adjusting your filters</p>
             </div>
             }
           </div>
@@ -139,9 +139,9 @@
       <p-tabpanel value="1">
         @if (selectedPlaces.length > 0) {
         <div
-          class="sticky top-0 z-10 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between">
+          class="sticky top-0 z-10 bg-white dark:bg-primary-800 border-b border-primary-200 dark:border-primary-700 px-4 py-3 flex items-center justify-between">
           <div class="flex items-center gap-2">
-            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <span class="text-sm font-medium text-primary-700 dark:text-primary-300">
               {{ selectedPlaces.length }} place{{ selectedPlaces.length === 1 ? '' : 's' }} selected
             </span>
           </div>
@@ -152,7 +152,7 @@
           <div class="grid grid-cols-1 gap-3 md:grid-cols-2 lg:grid-cols-3">
             @for (p of selectedPlaces; track p.id) {
             <div (click)="togglePlace(p)"
-              class="group relative cursor-pointer rounded-xl border border-gray-200 dark:border-gray-700 p-3 transition-all duration-200 hover:border-gray-400 hover:bg-gray-50 dark:hover:border-gray-600 dark:hover:bg-gray-950/30 hover:shadow-md">
+              class="group relative cursor-pointer rounded-xl border border-primary-200 dark:border-primary-700 p-3 transition-all duration-200 hover:border-primary-400 hover:bg-primary-50 dark:hover:border-primary-600 dark:hover:bg-primary-950/30 hover:shadow-md">
               <div class="flex items-center gap-3">
                 <div class="relative h-14 w-14 shrink-0">
                   <img [src]="p.image || p.category.image" loading="lazy"
@@ -164,15 +164,16 @@
                 </div>
 
                 <div class="min-w-0 flex-1">
-                  <h3 class="mb-1 truncate text-sm font-semibold text-gray-900 dark:text-white">
+                  <h3 class="mb-1 truncate text-sm font-semibold text-primary-900 dark:text-white">
                     {{ p.name }}
                   </h3>
-                  <p class="mb-2 truncate text-xs text-gray-500 dark:text-gray-400 flex items-center gap-1">
+                  <p class="mb-2 truncate text-xs text-primary-500 dark:text-primary-400 flex items-center gap-1">
                     <i class="pi pi-map-marker text-[10px]"></i>
                     {{ p.place }}
                   </p>
-                  <span class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-medium"
-                    [style.background]="p.category.color + '1A'" [style.color]="p.category.color">
+                  <span
+                    class="inline-flex color-bg-opacity items-center gap-1 rounded-full px-2.5 py-1 text-[10px] font-medium"
+                    [style.--color-bg-opacity]="p.category.color">
                     {{ p.category.name }}
                   </span>
                 </div>
@@ -183,11 +184,11 @@
         </div>
         } @else {
         <div class="flex flex-col items-center justify-center py-16 px-4">
-          <div class="rounded-full bg-gray-100 dark:bg-gray-800 p-6 mb-4">
-            <i class="pi pi-map text-5xl text-gray-400 dark:text-gray-600"></i>
+          <div class="rounded-full bg-primary-100 dark:bg-primary-800 p-6 mb-4">
+            <i class="pi pi-map text-5xl text-primary-400 dark:text-primary-600"></i>
           </div>
-          <h3 class="text-base font-semibold text-gray-700 dark:text-gray-300 mb-2">No places selected yet</h3>
-          <p class="text-sm text-gray-500 dark:text-gray-400 text-center max-w-sm">
+          <h3 class="text-base font-semibold text-primary-700 dark:text-primary-300 mb-2">No places selected yet</h3>
+          <p class="text-sm text-primary-500 dark:text-primary-400 text-center max-w-sm">
             Switch to the Available tab to browse and select places for your trip
           </p>
         </div>
@@ -197,17 +198,17 @@
   </p-tabs>
 
   <div class="fixed inset-x-0 bottom-0 z-20 flex justify-center p-4 pointer-events-none">
-    <div class="pointer-events-auto flex w-full max-w-lg items-center justify-between gap-4 rounded-lg border bg-gray-50
-      border-gray-200/70 dark:border-gray-700/70 px-5 py-3.5 shadow-lg backdrop-blur-md">
+    <div class="pointer-events-auto flex w-full max-w-lg items-center justify-between gap-4 rounded-lg border bg-primary-50
+      border-primary-200/70 dark:border-primary-700/70 px-5 py-3.5 shadow-lg backdrop-blur-md">
       <div class="flex items-center gap-3">
-        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-500/20">
-          <i class="pi pi-check-circle text-xl text-gray-700"></i>
+        <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-500/20">
+          <i class="pi pi-check-circle text-xl text-primary-700"></i>
         </div>
         <div class="flex flex-col">
-          <span class="text-sm font-semibold text-gray-700">
+          <span class="text-sm font-semibold text-primary-700">
             {{ selectedPlaces.length }} place{{ selectedPlaces.length === 1 ? '' : 's' }} selected
           </span>
-          <span class="text-xs text-gray-400">
+          <span class="text-xs text-primary-400">
             Confirm your selection
           </span>
         </div>

@@ -45,7 +45,7 @@ export function createMap(contextMenuItems: ContextMenuItem[] = [], tilelayer: s
 }
 
 export function placeHoverTooltip(place: Place): string {
-  return `<div class="font-semibold mb-1 truncate" style="font-size:1.1em">${place.name}</div><div><span style="color:${place.category.color}; background:${place.category.color}1A;" class="text-xs font-medium px-2.5 py-0.5 rounded">${place.category.name}</span></div>`.trim();
+  return `<div class="font-semibold mb-1 truncate" style="font-size:1.1em">${place.name}</div><div><span style="--color-bg-opacity:${place.category.color};" class="color-bg-opacity text-xs font-medium px-2.5 py-0.5 rounded">${place.category.name}</span></div>`.trim();
 }
 
 export function createClusterGroup(): L.MarkerClusterGroup {
@@ -76,7 +76,7 @@ export function tripDayMarker(item: Partial<TripItem>): L.Marker {
   const touchDevice = 'ontouchstart' in window;
   if (!touchDevice) {
     marker.bindTooltip(
-      `<div class="flex flex-col gap-1 items-center"><div class="w-fit px-2.5 py-1 text-xs font-mono font-medium bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 rounded">${item.time}</div><div class="font-semibold mb-1 text-base">${item.text}</div></div>`,
+      `<div class="flex flex-col gap-1 items-center"><div class="w-fit px-2.5 py-1 text-xs font-mono font-medium bg-primary-100 dark:bg-primary-800 text-primary-700 dark:text-primary-300 rounded">${item.time}</div><div class="font-semibold mb-1 text-base">${item.text}</div></div>`,
       {
         direction: 'right',
         offset: [10, 0],
@@ -132,13 +132,13 @@ export function placeToMarker(
 
   const markerImage = isLowNet ? place.category.image : (place.image ?? place.category.image);
 
-  let markerClasses = 'w-full h-full rounded-full bg-center bg-cover bg-white dark:bg-surface-900';
+  let markerClasses = 'w-full h-full rounded-full bg-center bg-cover bg-white dark:bg-primary-900';
   if (grayscale) markerClasses += ' grayscale';
 
   const iconHtml = `
     <div class="flex items-center justify-center relative rounded-full marker-anchor size-14 box-border" style="border: 2px solid ${place.category.color};">
       <div class="${markerClasses}" style="background-image: url('${markerImage}');"></div>
-      ${gpxInBubble && place.gpx ? '<div class="absolute -top-1 -left-1 size-6 flex justify-center items-center bg-white dark:bg-surface-900 border-2 border-black rounded-full"><i class="pi pi-compass"></i></div>' : ''}
+      ${gpxInBubble && place.gpx ? '<div class="absolute -top-1 -left-1 size-6 flex justify-center items-center bg-white dark:bg-primary-900 border-2 border-black rounded-full"><i class="pi pi-compass"></i></div>' : ''}
     </div>
   `;
 

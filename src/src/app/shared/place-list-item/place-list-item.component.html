@@ -1,34 +1,34 @@
 @if (place) {
 <div (click)="onPlaceClick()" (mouseenter)="onMouseEnter()" (mouseleave)="onMouseLeave()"
-    class="group relative mb-2 p-3 hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg transition-all cursor-pointer border border-transparent hover:border-gray-200 dark:hover:border-gray-700">
-    <div class="pointer-events-none flex items-center gap-3">
+    class="group relative mb-2 p-3 hover:bg-primary-50 dark:hover:bg-primary-800 rounded-lg transition-all cursor-pointer border border-transparent hover:border-primary-200 dark:hover:border-primary-700">
+    <div class="flex items-center gap-3">
         <img [src]="place.image || place.category.image" loading="lazy" [class.grayscale]="grayscale"
-            class="w-14 h-14 rounded object-cover flex-shrink-0">
+            class="w-14 h-14 rounded object-cover shrink-0">
 
-        <div class="flex-1 min-w-0">
-            <h3 class="text-sm font-semibold text-gray-900 dark:text-white truncate">{{ place.name }}</h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400 truncate mb-1.5">{{ place.place }}</p>
+        <div class="pointer-events-none flex-1 min-w-0">
+            <h3 class="text-sm font-semibold text-primary-900 dark:text-white truncate">{{ place.name }}</h3>
+            <p class="text-xs text-primary-500 dark:text-primary-400 truncate mb-1.5">{{ place.place }}</p>
 
             <div class="flex items-center gap-2">
                 @if (showMeta) {
                 <span class="pi flex items-center px-1.5 py-0.5 rounded text-xs" style="font-size: 12px;"
-                    [class]="place.allowdog ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-500'">
+                    [class]="place.allowdog ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400' : 'bg-primary-100 text-primary-600 dark:bg-primary-800 dark:text-primary-500'">
                     🐶
                 </span>
 
                 <span class="pi flex items-center px-1.5 py-0.5 rounded text-xs" style="font-size: 12px;"
-                    [class]="place.restroom ? 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-500'">
+                    [class]="place.restroom ? 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-400' : 'bg-primary-100 text-primary-600 dark:bg-primary-800 dark:text-primary-500'">
                     🚽
                 </span>
 
                 <span class="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium"
-                    [class]="place.visited ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-500'">
+                    [class]="place.visited ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400' : 'bg-primary-100 text-primary-600 dark:bg-primary-800 dark:text-primary-500'">
                     <i class="pi" style="font-size: 12px;" [class]="place.visited ? 'pi-eye' : 'pi-eye-slash'"></i>
                 </span>
                 }
 
-                <span class="flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded truncate"
-                    [style.background]="place.category.color + '1A'" [style.color]="place.category.color">
+                <span [style.--color-bg-opacity]="place.category.color"
+                    class="pointer-events-none color-bg-opacity flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded truncate">
                     <span class="truncate">{{ place.category.name }}</span>
                 </span>
             </div>
@@ -36,7 +36,7 @@
 
         @if (editable) {
         <p-button icon="pi pi-pencil" (click)="onPlaceEditClick(); $event.stopPropagation()" text
-            class="absolute top-1/2 -translate-y-1/2 right-1 bg-gray-100 rounded opacity-0 group-hover:opacity-100 group-hover:-translate-x-2 transition-all" />
+            class="absolute top-1/2 -translate-y-1/2 right-1 rounded opacity-0 group-hover:opacity-100 group-hover:-translate-x-2 transition-all" />
         }
     </div>
 </div>

@@ -22,7 +22,7 @@
 
           <div class="relative col-span-full">
             <textarea pTextarea id="notes" placeholder="Day notes" formControlName="notes" rows="4" fluid
-              class="!pr-10"></textarea>
+              class="pr-12!"></textarea>
             @if (dayForm.get('notes')?.value) {
             <p-button text icon="pi pi-times" severity="danger" class="absolute right-2 top-2"
               (click)="dayForm.get('notes')?.setValue(''); dayForm.markAsDirty()" pTooltip="Clear" />
@@ -44,7 +44,7 @@
 
           <div class="relative col-span-full">
             <textarea pTextarea id="notes" placeholder="Day notes" formControlName="notes" rows="4" fluid
-              class="!pr-10"></textarea>
+              class="pr-12!"></textarea>
             @if (daysForm.get('notes')?.value) {
             <p-button text icon="pi pi-times" severity="danger" class="absolute right-2 top-2"
               (click)="daysForm.get('notes')?.setValue('')" pTooltip="Clear" />
@@ -71,7 +71,7 @@
 
     <div class="relative col-span-full">
       <textarea pTextarea id="notes" placeholder="Day notes" formControlName="notes" rows="4" fluid
-        class="!pr-10"></textarea>
+        class="pr-12!"></textarea>
       @if (dayForm.get('notes')?.value) {
       <p-button text icon="pi pi-times" severity="danger" class="absolute right-2 top-2"
         (click)="dayForm.get('notes')?.setValue(''); dayForm.markAsDirty()" pTooltip="Clear" />

@@ -1,9 +1,7 @@
-<div pFocusTrap class="grid items-center gap-4" [formGroup]="categoryForm">
-  <div class="flex gap-2 items-center">
-    <p-colorpicker formControlName="color" />
-
-    <p-floatlabel variant="in" class="w-full">
-      <input id="name" formControlName="name" pInputText fluid (keyup.enter)="closeDialog()" />
+<div pFocusTrap class="grid md:grid-cols-3 items-center gap-4" [formGroup]="categoryForm">
+  <div class="grid gap-2 md:col-span-2">
+    <p-floatlabel variant="in">
+      <input id="name" formControlName="name" pInputText fluid />
       <label for="name">Name</label>
     </p-floatlabel>
 
@@ -20,25 +18,24 @@
   </div>
 
   <input type="file" accept="image/*" #fileInput class="hidden" (change)="onFileSelected($event)" />
-  <div class="grid place-items-center">
-    <div class="max-w-80 max-h-80 relative group cursor-pointer" (click)="fileInput.click()">
+  <div class="flex justify-center">
+    <div class="relative group cursor-pointer" (click)="fileInput.click()">
       @if (categoryForm.get("image")?.value) {
       <img [src]="categoryForm.get('image')?.value"
-        class="min-h-24 min-w-24 max-w-80 max-h-80 object-cover rounded-lg transition-transform duration-300" />
+        class="max-h-32 object-cover rounded-lg transition-transform duration-300" />
       } @else {
-      <img src="/favicon.png"
-        class="min-h-24 min-w-24 max-w-80 max-h-80 object-cover rounded-lg transition-transform duration-300" />
+      <img src="/favicon.png" class="object-cover rounded-lg transition-transform duration-300" />
       }
       <div
         class="absolute inset-0 bg-black/50 rounded-lg flex flex-col gap-4 items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-        <span class="text-sm text-gray-300">Click to edit</span><i class="pi pi-upload text-white"></i>
+        <span class="text-sm text-primary-300">Click to edit</span><i class="pi pi-upload text-white"></i>
       </div>
     </div>
   </div>
+</div>
 
-  <div class="mt-4 text-right">
-    <p-button (click)="closeDialog()" [disabled]="!categoryForm.dirty || !categoryForm.valid">{{
-      categoryForm.get("id")?.value
-      !== -1 ? "Update" : "Create" }}</p-button>
-  </div>
+<div class="mt-4 text-right">
+  <p-button (click)="closeDialog()" [disabled]="!categoryForm.dirty || !categoryForm.valid">{{
+    categoryForm.get("id")?.value
+    !== -1 ? "Update" : "Create" }}</p-button>
 </div>

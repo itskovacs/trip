@@ -6,14 +6,15 @@
                 <img [src]="selectedPlace.image || selectedPlace.category.image"
                     class="object-cover rounded-full size-16">
                 <div class="flex grow min-w-0">
-                    <h1 class="text-gray-800 dark:text-gray-200 font-bold mb-0 truncate">Trace of {{ selectedPlace.name
+                    <h1 class="text-primary-800 dark:text-primary-200 font-bold mb-0 truncate">Trace of {{
+                        selectedPlace.name
                         }}</h1>
                 </div>
 
                 <div class="flex items-center justify-end gap-2">
                     <p-button (click)="downloadTrace()" text icon="pi pi-download" />
                     <p-button (click)="removeTrace()" text icon="pi pi-eraser" />
-                    <div class="border-l border-solid border-gray-700 h-4"></div>
+                    <div class="border-l border-solid border-primary-700 h-4"></div>
                     <p-button (click)="close()" text icon="pi pi-times" />
                 </div>
             </div>

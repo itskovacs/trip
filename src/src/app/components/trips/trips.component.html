@@ -1,39 +1,39 @@
-<div class="min-h-screen bg-surface-50 dark:bg-surface-950 text-surface-900 dark:text-surface-50">
+<div class="min-h-screen bg-primary-50 dark:bg-primary-950 text-primary-900 dark:text-primary-50">
   <div class="select-none mx-auto max-w-7xl px-4 pt-8 md:px-6 flex items-center justify-between pointer-events-auto">
-    <div class="w-fit h-12 p-2 bg-white/70 dark:bg-surface-900/70 rounded-lg shadow-lg shadow-black/5">
+    <div class="w-fit h-12 p-2 bg-white/70 dark:bg-primary-900/70 rounded-lg shadow-lg shadow-black/5">
       <div (click)="gotoMap()"
-        class="cursor-pointer flex items-center gap-2.5 h-8 px-4 hover:bg-gray-100 dark:hover:bg-surface-800 rounded-lg">
+        class="cursor-pointer flex items-center gap-2.5 h-8 px-4 hover:bg-primary-100 dark:hover:bg-primary-800 rounded-lg">
         <div class="w-6 h-6 rounded-lg flex items-center justify-center flex-none">
           <i class="pi pi-map text-xs"></i>
         </div>
-        <span class="hidden sm:inline text-sm font-semibold text-gray-900 dark:text-white">Map</span>
+        <span class="hidden sm:inline text-sm font-semibold text-primary-900 dark:text-white">Map</span>
       </div>
     </div>
 
     <div class="text-sm font-semibold">Trips</div>
 
     <div
-      class="inline-flex items-center gap-2 p-1.5 bg-white/70 dark:bg-surface-900/70 rounded-lg shadow-lg shadow-black/5">
+      class="inline-flex items-center gap-2 p-1.5 bg-white/70 dark:bg-primary-900/70 rounded-lg shadow-lg shadow-black/5">
 
       <div (click)="toggleInvitations()"
-        class="relative cursor-pointer flex items-center justify-center gap-2 w-9 h-9 px-2.5 rounded-lg hover:bg-gray-100 dark:hover:bg-surface-800">
+        class="relative cursor-pointer flex items-center justify-center gap-2 w-9 h-9 px-2.5 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-800">
         <div class="w-7 h-7 flex items-center justify-center">
-          <i class="pi pi-bell text-sm transition-transform duration-200 text-gray-700 dark:text-gray-300"></i>
+          <i class="pi pi-bell text-sm transition-transform duration-200 text-primary-700 dark:text-primary-300"></i>
         </div>
         @if (hasPendingInvitations) {
         <span
-          class="absolute -right-1 top-0 inline-flex h-2.5 w-2.5 animate-pulse rounded-full bg-red-500 ring-2 ring-surface-0 dark:ring-surface-900"></span>
+          class="absolute -right-1 top-0 inline-flex h-2.5 w-2.5 animate-pulse rounded-full bg-red-500 ring-2 ring-primary-0 dark:ring-primary-900"></span>
         }
       </div>
 
-      <div class="w-px h-5 bg-gray-200 dark:bg-gray-800"></div>
+      <div class="w-px h-5 bg-primary-200 dark:bg-primary-300"></div>
 
       <button (click)="addTrip()"
-        class="cursor-pointer flex items-center justify-center h-9 w-fit px-2.5 hover:bg-gray-100 dark:hover:bg-surface-800 rounded-lg">
+        class="cursor-pointer flex items-center justify-center h-9 w-fit px-2.5 hover:bg-primary-100 dark:hover:bg-primary-800 rounded-lg">
         <div class="w-7 h-7 flex items-center justify-center">
-          <i class="pi text-sm transition-transform duration-200 pi-plus text-gray-700 dark:text-gray-300"></i>
+          <i class="pi text-sm transition-transform duration-200 pi-plus text-primary-700 dark:text-primary-300"></i>
         </div>
-        <span class="hidden md:inline text-sm font-medium text-gray-900 dark:text-white">Trip</span>
+        <span class="hidden md:inline text-sm font-medium text-primary-900 dark:text-white">Trip</span>
       </button>
     </div>
   </div>
@@ -43,7 +43,7 @@
     @if (trips.length) {
     <div class="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4">
       @for (trip of trips; track trip.id) {
-      <div class="group relative flex cursor-pointer flex-col overflow-hidden rounded-lg border border-surface-100/80 dark:border-surface-800/80 bg-surface-0 dark:bg-surface-900
+      <div class="group relative flex cursor-pointer flex-col overflow-hidden rounded-lg border border-primary-100/80 dark:border-primary-800/80 bg-primary-50 dark:bg-primary-900
         shadow-sm transition-all duration-300 hover:border-primary-100 dark:hover:border-primary-900"
         [class]="trip.archived ? 'grayscale opacity-70' : undefined" (click)="viewTrip(trip.id)">
         <div class="relative aspect-[4/3] overflow-hidden">
@@ -51,30 +51,30 @@
             class="select-none h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" />
 
           <div
-            class="pointer-events-none absolute inset-0 bg-gradient-to-t from-surface-950/75 via-surface-900/0 to-surface-900/0">
+            class="pointer-events-none absolute inset-0 bg-linear-to-t from-primary-950/75 via-primary-900/0 to-primary-900/0">
           </div>
 
           <div class="absolute left-3 top-3 flex gap-1.5">
             @if (trip.collaborators.length) {
             <span
-              class="inline-flex items-center gap-1 rounded-lg bg-black/30 dark:bg-black/50 px-2 py-0.5 text-xs font-medium text-surface-100">
-              <i class="pi pi-users text-gray-300"></i> {{ trip.collaborators.length + 1 }}
+              class="inline-flex items-center gap-1 rounded-lg bg-black/30 dark:bg-black/50 px-2 py-0.5 text-xs font-medium text-primary-100">
+              <i class="pi pi-users text-primary-300"></i> {{ trip.collaborators.length + 1 }}
             </span>
             }
           </div>
 
           <div class="absolute bottom-3 left-3 flex items-center gap-2">
             <span
-              class="select-none rounded-lg bg-black/70 dark:bg-black/80 px-2 py-0.5 text-xs font-medium text-surface-50">{{
+              class="select-none rounded-lg bg-black/70 dark:bg-black/80 px-2 py-0.5 text-xs font-medium text-primary-50">{{
               trip.days || 0 }} {{ trip.days > 1 ? 'days' : 'day' }}</span>
           </div>
         </div>
 
         <div class="flex items-center justify-between gap-2 p-3">
-          <h3 class="truncate text-sm font-semibold tracking-tight text-surface-900 dark:text-surface-100">{{ trip.name
+          <h3 class="truncate text-sm font-semibold tracking-tight text-primary-900 dark:text-primary-100">{{ trip.name
             }}</h3>
 
-          <div class="inline-flex shrink-0 h-7 w-7 items-center justify-center rounded-full bg-surface-50 dark:bg-surface-800 text-surface-400 dark:text-surface-400 transition-all duration-300 group-hover:translate-x-0.5 group-hover:bg-primary-50
+          <div class="inline-flex shrink-0 h-7 w-7 items-center justify-center rounded-full bg-primary-50 dark:bg-primary-800 text-primary-400 dark:text-primary-400 transition-all duration-300 group-hover:translate-x-0.5 group-hover:bg-primary-50
           dark:group-hover:bg-primary-950 group-hover:text-primary-600 dark:group-hover:text-primary-400">
             <i class="pi pi-arrow-right text-sm"></i>
           </div>
@@ -84,13 +84,13 @@
     </div>
     } @else {
     <div
-      class="mt-10 flex flex-col items-center justify-center rounded-lg border border-dashed border-surface-200 dark:border-surface-700 bg-gradient-to-b from-surface-0 dark:from-surface-900 to-surface-50 dark:to-surface-800 px-6 py-12 text-center shadow-sm">
+      class="mt-10 flex flex-col items-center justify-center rounded-lg border border-dashed border-primary-200 dark:border-primary-700 bg-linear-to-b from-primary-0 dark:from-primary-900 to-primary-50 dark:to-primary-800 px-6 py-12 text-center shadow-sm">
       <div
         class="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-lg bg-primary-50 dark:bg-primary-950 text-primary-600 dark:text-primary-400 ring-8 ring-primary-50/60 dark:ring-primary-950/60">
         <i class="pi pi-map text-lg"></i>
       </div>
 
-      <h2 class="text-xl font-semibold tracking-tight text-surface-900 dark:text-surface-100 md:text-lg">
+      <h2 class="text-xl font-semibold tracking-tight text-primary-900 dark:text-primary-100 md:text-lg">
         No trips yet
       </h2>
 
@@ -102,7 +102,7 @@
     <div class="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4">
       @for (_ of [1, 2, 3]; track _) {
       <div
-        class="overflow-hidden rounded-lg border border-surface-100 dark:border-surface-800 bg-surface-0 dark:bg-surface-900 shadow-sm">
+        class="overflow-hidden rounded-lg border border-primary-100 dark:border-primary-800 bg-primary-50 dark:bg-primary-900 shadow-sm">
         <p-skeleton height="14rem" class="rounded-b-none!"></p-skeleton>
         <div class="px-3.5 py-3.5">
           <p-skeleton width="70%" height="1.5rem"></p-skeleton>
@@ -117,26 +117,26 @@
 <p-dialog header="Invitations" [draggable]="false" [dismissableMask]="true" [modal]="true"
   [(visible)]="invitationsDialogVisible" styleClass="w-[95vw] md:w-[32rem] lg:w-[34rem]">
   <section class="max-h-[70vh] overflow-y-auto px-1 pb-2 pt-1 md:max-h-[600px]">
-    <div class="divide-y divide-surface-100 dark:divide-surface-800">
+    <div class="divide-y divide-primary-100 dark:divide-primary-800">
       @for (inv of invitations; track inv.id) {
       <div class="flex items-center justify-between gap-x-4 py-4">
         <div class="flex min-w-0 items-center gap-x-3">
-          <div class="relative h-18 w-18 flex-shrink-0">
+          <div class="relative h-18 w-18 shrink-0">
             <img [src]="inv.image" class="h-full w-full rounded-lg object-cover" loading="lazy" />
           </div>
 
           <div class="flex min-w-0 flex-1 flex-col gap-1">
-            <div class="truncate text-sm md:text-base font-semibold text-surface-900 dark:text-surface-100">
+            <div class="truncate text-sm md:text-base font-semibold text-primary-900 dark:text-primary-100">
               {{ inv.name }}
             </div>
 
-            <div class="text-xs text-surface-500 dark:text-surface-400 md:text-sm">
+            <div class="text-xs text-primary-500 dark:text-primary-400 md:text-sm">
               On
-              <span class="font-medium text-surface-600 dark:text-surface-300">
+              <span class="font-medium text-primary-600 dark:text-primary-300">
                 {{ inv.invited_at | date: 'short' }}
               </span>
               ,
-              <span class="font-medium text-surface-700 dark:text-surface-200">
+              <span class="font-medium text-primary-700 dark:text-primary-200">
                 {{ inv.invited_by }}
               </span>
               invited you to collaborate.
@@ -151,13 +151,13 @@
           </div>
         </div>
 
-        <div class="hidden flex-shrink-0 items-center gap-2 md:flex">
+        <div class="hidden shrink-0 items-center gap-2 md:flex">
           <p-button text (click)="acceptInvitation(inv.id)" icon="pi pi-check" severity="success"></p-button>
           <p-button text (click)="declineInvitation(inv.id)" icon="pi pi-times" severity="danger"></p-button>
         </div>
       </div>
       } @empty {
-      <div class="py-8 text-center text-sm text-surface-500 dark:text-surface-400">
+      <div class="py-8 text-center text-sm text-primary-500 dark:text-primary-400">
         No pending invitations.
       </div>
       }

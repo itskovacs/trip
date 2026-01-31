@@ -8,12 +8,12 @@ import { Component, input, ChangeDetectionStrategy } from '@angular/core';
   template: `
     @if (message()) {
       <div
-        class="z-[9000] flex items-center justify-center min-h-screen p-4 absolute inset-0 bg-white/30 dark:bg-gray-950/80 backdrop-blur-xl">
+        class="z-[9000] flex items-center justify-center min-h-screen p-4 absolute inset-0 bg-white/30 dark:bg-primary-950/80 backdrop-blur-xl">
         <div
           class="flex flex-col items-center gap-8 px-12 py-10
-                bg-white/80 dark:bg-gray-950/80 rounded-3xl
+                bg-white/80 dark:bg-primary-950/80 rounded-3xl
                  shadow-2xl shadow-black/5 dark:shadow-black/20
-                 border border-gray-100/50 dark:border-gray-800/50
+                 border border-primary-100/50 dark:border-primary-800/50
                  max-w-md w-full">
           <div class="relative w-24 h-24">
             <svg
@@ -50,10 +50,10 @@ import { Component, input, ChangeDetectionStrategy } from '@angular/core';
           </div>
 
           <div class="text-center space-y-3 w-full">
-            <h3 class="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
+            <h3 class="text-xl font-bold text-primary-900 dark:text-white tracking-tight">
               {{ message() }}
             </h3>
-            <p class="text-sm text-gray-600 dark:text-gray-400 font-medium leading-relaxed max-w-xs mx-auto">
+            <p class="text-sm text-primary-600 dark:text-primary-400 font-medium leading-relaxed max-w-xs mx-auto">
               This may take a moment. Please wait.
             </p>
           </div>

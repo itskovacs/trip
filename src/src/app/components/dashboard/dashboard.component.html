@@ -18,13 +18,13 @@
 
 <div class="fixed top-0 left-0 z-40 pointer-events-none">
   <div class="mx-4 mt-4 sm:mx-6 sm:mt-6 pointer-events-auto">
-    <div class="w-fit h-12 p-2 bg-white/70 dark:bg-surface-900/70 backdrop-blur-xl rounded-lg shadow-lg shadow-black/5">
+    <div class="w-fit h-12 p-2 bg-white/70 dark:bg-primary-900/70 backdrop-blur-xl rounded-lg shadow-lg shadow-black/5">
       <div (click)="navigateToTrips()"
-        class="cursor-pointer flex items-center gap-2.5 h-8 px-4 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg">
+        class="cursor-pointer flex items-center gap-2.5 h-8 px-4 hover:bg-primary-100 dark:hover:bg-primary-800 rounded-lg">
         <div class="w-6 h-6 rounded-lg flex items-center justify-center flex-none">
           <i class="pi pi-list text-xs"></i>
         </div>
-        <span class="hidden sm:inline text-sm font-semibold text-gray-900 dark:text-white">Trips</span>
+        <span class="hidden sm:inline text-sm font-semibold text-primary-900 dark:text-white">Trips</span>
       </div>
     </div>
   </div>
@@ -33,44 +33,44 @@
 <div class="fixed top-0 right-0 z-40 pointer-events-none">
   <div class="pointer-events-auto mr-4 mt-4 sm:mr-6 sm:mt-6 lg:w-88">
     <div
-      class="w-full inline-flex items-center gap-2 p-1.5 bg-white/70 dark:bg-surface-900/70 backdrop-blur-xl rounded-lg shadow-lg shadow-black/5">
+      class="w-full inline-flex items-center gap-2 p-1.5 bg-white/70 dark:bg-primary-900/70 backdrop-blur-xl rounded-lg shadow-lg shadow-black/5">
 
       <div (click)="togglePlacesList()"
         class="cursor-pointer flex items-center justify-center gap-2 h-9 md:w-28 px-2.5 rounded-lg transition-all"
-        [class]="viewPlacesList() ? 'bg-blue-50 dark:bg-blue-950' : 'hover:bg-gray-100 dark:hover:bg-gray-900'">
+        [class]="viewPlacesList() ? 'bg-primary-100 dark:bg-primary-800' : 'hover:bg-primary-100 dark:hover:bg-primary-800'">
         <div class="w-7 h-7 flex items-center justify-center">
           <i class="pi text-sm transition-transform duration-200"
-            [class]="viewPlacesList() ? 'pi-times text-blue-600 dark:text-blue-400 rotate-90' : 'pi-map-marker text-gray-700 dark:text-gray-300'"></i>
+            [class]="viewPlacesList() ? 'pi-times text-primary-600 dark:text-primary-400 rotate-90' : 'pi-map-marker text-primary-700 dark:text-primary-300'"></i>
         </div>
         <span class="select-none hidden md:inline text-sm font-medium"
-          [class]="viewPlacesList() ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'">Places</span>
+          [class]="viewPlacesList() ? 'text-primary-600 dark:text-primary-400' : 'text-primary-900 dark:text-white'">Places</span>
       </div>
 
-      <div class="w-px h-5 bg-gray-200 dark:bg-gray-800"></div>
+      <div class="w-px h-5 bg-primary-200 dark:bg-primary-800"></div>
 
       <div (click)="toggleFilters()"
         class="cursor-pointer flex items-center justify-center gap-2 h-9 md:w-24 px-2.5 rounded-lg transition-all"
-        [class]="viewFilters() ? 'bg-blue-50 dark:bg-blue-950' : 'hover:bg-gray-100 dark:hover:bg-gray-900'">
+        [class]="viewFilters() ? 'bg-primary-100 dark:bg-primary-800' : 'hover:bg-primary-100 dark:hover:bg-primary-800'">
         <div class="w-7 h-7 flex items-center justify-center">
           <i class="pi text-sm transition-transform duration-200"
-            [class]="viewFilters() ? 'pi-times text-blue-600 dark:text-blue-400 rotate-90' : 'pi-filter text-gray-700 dark:text-gray-300'"></i>
+            [class]="viewFilters() ? 'pi-times text-primary-600 dark:text-primary-400 rotate-90' : 'pi-filter text-primary-700 dark:text-primary-300'"></i>
         </div>
         <span class="select-none hidden md:inline text-sm font-medium"
-          [class]="viewFilters() ? 'text-blue-600 dark:text-blue-400' : 'text-gray-900 dark:text-white'">Filters</span>
+          [class]="viewFilters() ? 'text-primary-600 dark:text-primary-400' : 'text-primary-900 dark:text-white'">Filters</span>
       </div>
 
-      <div class="w-px h-5 bg-gray-200 dark:bg-gray-800"></div>
+      <div class="w-px h-5 bg-primary-200 dark:bg-primary-800"></div>
 
       <div (click)="centerOnMe()" pTooltip="Center on my location"
-        class="cursor-pointer flex items-center justify-center w-9 h-9 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-all">
-        <i class="pi pi-bullseye text-gray-700 dark:text-gray-300 text-sm"></i>
+        class="cursor-pointer flex items-center justify-center w-9 h-9 hover:bg-primary-100 dark:hover:bg-primary-900 rounded-lg transition-all">
+        <i class="pi pi-bullseye text-primary-700 dark:text-primary-300 text-sm"></i>
       </div>
 
-      <div class="w-px h-5 bg-gray-200 dark:bg-gray-800"></div>
+      <div class="w-px h-5 bg-primary-200 dark:bg-primary-800"></div>
 
       <div (click)="toggleSettings()"
-        class="cursor-pointer flex items-center justify-center w-9 h-9 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-all">
-        <i class="pi pi-cog text-gray-700 dark:text-gray-300 text-sm transition-transform duration-300"
+        class="cursor-pointer flex items-center justify-center w-9 h-9 hover:bg-primary-100 dark:hover:bg-primary-900 rounded-lg transition-all">
+        <i class="pi pi-cog text-primary-700 dark:text-primary-300 text-sm transition-transform duration-300"
           [class.rotate-90]="viewSettings()"></i>
       </div>
     </div>
@@ -80,20 +80,20 @@
 <div class="fixed bottom-0 right-0 z-40 pointer-events-none">
   <div class="mx-4 mb-4 sm:mx-6 sm:mb-6 pointer-events-auto">
     <div
-      class="inline-flex items-center gap-2 p-1.5 bg-white/70 dark:bg-surface-900/70 backdrop-blur-xl rounded-lg shadow-lg shadow-black/5">
+      class="inline-flex items-center gap-2 p-1.5 bg-white/70 dark:bg-primary-900/70 backdrop-blur-xl rounded-lg shadow-lg shadow-black/5">
       <button (click)="menuCreatePlacePopover.toggle($event)"
-        class="cursor-pointer flex items-center justify-center w-9 h-9 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-all">
-        <i class="pi pi-ellipsis-h text-gray-700 dark:text-gray-300 text-sm"></i>
+        class="cursor-pointer flex items-center justify-center w-9 h-9 hover:bg-primary-100 dark:hover:bg-primary-900 rounded-lg transition-all">
+        <i class="pi pi-ellipsis-h text-primary-700 dark:text-primary-300 text-sm"></i>
       </button>
 
-      <div class="w-px h-5 bg-gray-200 dark:bg-gray-800"></div>
+      <div class="w-px h-5 bg-primary-200 dark:bg-primary-800"></div>
 
       <button (click)="addPlaceModal()"
-        class="cursor-pointer relative flex items-center gap-2 h-9 pl-2.5 pr-3 hover:bg-gray-100 dark:hover:bg-gray-900 rounded-lg transition-all">
+        class="cursor-pointer relative flex items-center gap-2 h-9 pl-2.5 pr-3 hover:bg-primary-100 dark:hover:bg-primary-900 rounded-lg transition-all">
         <div class="w-7 h-7 flex items-center justify-center">
-          <i class="pi pi-plus text-gray-700 dark:text-gray-300 text-sm"></i>
+          <i class="pi pi-plus text-primary-700 dark:text-primary-300 text-sm"></i>
         </div>
-        <span class="text-sm font-medium text-gray-900 dark:text-white">Place</span>
+        <span class="text-sm font-medium text-primary-900 dark:text-white">Place</span>
       </button>
       <input type="file" style="display: none;" (change)="onGoogleTakeoutInputChange($event)" #fileUploadTakeout>
       <input type="file" style="display: none;" (change)="onGoogleKmzInputChange($event)" #fileUploadKmz>
@@ -104,10 +104,10 @@
 <section
   class="pointer-events-none fixed top-20 md:top-22 bottom-20 md:bottom-22 right-4 md:right-6 z-30 flex w-[calc(100%-2rem)] flex-col gap-3 md:w-64 lg:w-88">
   @if (viewFilters()) {
-  <div animate.enter="slide-y-no-opacity" animate.leave="a-slide-y" class="pointer-events-auto ring-1 ring-black/5 dark:ring-white/10 bg-white/70 dark:bg-surface-900/70 backdrop-blur-xl
-  rounded-lg w-full shadow-2xl overflow-hidden flex flex-col" [class.h-1/3]="viewPlacesList()">
-    <div class="flex items-center justify-between gap-4 p-4 border-b border-gray-200 dark:border-gray-800">
-      <h2 class="text-base font-semibold text-gray-900 dark:text-white">Filters</h2>
+  <div animate.enter="slide-y-no-opacity" animate.leave="a-slide-y" class="pointer-events-auto ring-1 ring-black/5 dark:ring-white/10 bg-white/70 dark:bg-primary-900/70 backdrop-blur-xl
+  rounded-lg w-full shadow-2xl flex flex-col" [class.h-1/3]="viewPlacesList()">
+    <div class="flex items-center justify-between gap-4 p-4 border-b border-primary-200 dark:border-primary-800">
+      <h2 class="text-base font-semibold text-primary-900 dark:text-white">Filters</h2>
       <div class="flex gap-2">
         <p-button text icon="pi pi-refresh" severity="danger" (click)="resetFilters()" />
         <p-button text icon="pi pi-times" severity="danger" (click)="toggleFilters()" />
@@ -115,12 +115,12 @@
     </div>
 
     <div class="flex-1 overflow-y-auto overscroll-contain px-4 space-y-3">
-      <h3 class="mt-6 text-sm font-bold text-gray-900 dark:text-white">Quick Filters</h3>
+      <h3 class="mt-6 text-sm font-bold text-primary-900 dark:text-white">Quick Filters</h3>
 
       <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
         <button (click)="filter_display_visited.set(!filter_display_visited())"
           class="cursor-pointer inline-flex items-center gap-2 h-8 px-3 rounded-lg text-sm font-medium transition-all"
-          [class]="filter_display_visited() ? 'bg-blue-600 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
+          [class]="filter_display_visited() ? 'bg-blue-600 text-white' : 'bg-primary-100 dark:bg-black text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800'">
           @if (filter_display_visited()) {
           <i class="pi pi-check text-xs"></i>
           } @else {
@@ -131,7 +131,7 @@
 
         <button (click)="filter_dog_only.set(!filter_dog_only())"
           class="cursor-pointer inline-flex items-center gap-2 h-8 px-3 rounded-lg text-sm font-medium transition-all"
-          [class]="filter_dog_only() ? 'bg-emerald-600 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
+          [class]="filter_dog_only() ? 'bg-emerald-600 text-white' : 'bg-primary-100 dark:bg-black text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800'">
           @if (filter_dog_only()) {
           <i class="pi pi-check text-xs"></i>
           } @else {
@@ -142,7 +142,7 @@
 
         <button (click)="filter_display_favorite_only.set(!filter_display_favorite_only())"
           class="cursor-pointer inline-flex items-center gap-2 h-8 px-3 rounded-lg text-sm font-medium transition-all"
-          [class]="filter_display_favorite_only() ? 'bg-rose-400 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
+          [class]="filter_display_favorite_only() ? 'bg-rose-400 text-white' : 'bg-primary-100 dark:bg-black text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800'">
           @if (filter_display_favorite_only()) {
           <i class="pi pi-check text-xs"></i>
           } @else {
@@ -153,7 +153,7 @@
 
         <button (click)="filter_display_restroom.set(!filter_display_restroom())"
           class="cursor-pointer inline-flex items-center gap-2 h-8 px-3 rounded-lg text-sm font-medium transition-all"
-          [class]="filter_display_restroom() ? 'bg-sky-400 text-white' : 'bg-gray-100 dark:bg-gray-900 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-800'">
+          [class]="filter_display_restroom() ? 'bg-sky-400 text-white' : 'bg-primary-100 dark:bg-black text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800'">
           @if (filter_display_restroom()) {
           <i class="pi pi-check text-xs"></i>
           } @else {
@@ -164,15 +164,15 @@
       </div>
 
       <div class="mt-6 flex items-center justify-between">
-        <h3 class="text-sm font-bold text-gray-900 dark:text-white">Categories</h3>
+        <h3 class="text-sm font-bold text-primary-900 dark:text-white">Categories</h3>
 
         <div class="flex items-center justify-end gap-1">
           <p-button icon="pi pi-minus-circle" pTooltip="Deselect all" (click)="deselectAllCategories()"
-            severity="danger" size="small" text />
+            severity="danger" size="small" text tooltipPosition="left" />
           <p-button icon="pi pi-check-circle" pTooltip="Select all" (click)="selectAllCategories()" severity="success"
-            size="small" text />
+            size="small" text tooltipPosition="left" />
           <span [class.bg-red-400]="!activeCategories().size"
-            class="px-2.5 py-1 bg-gray-100 dark:bg-gray-900 rounded-lg text-xs font-bold text-gray-900 dark:text-white">
+            class="px-2.5 py-1 bg-primary-100 dark:bg-black rounded-lg text-xs font-bold text-primary-900 dark:text-white">
             {{ activeCategories().size }}/{{ categories().length }}
           </span>
         </div>
@@ -181,24 +181,24 @@
       <div class="mb-4 max-h-[50vh] grid md:grid-cols-2 gap-2">
         @for (category of categories(); track category.id) {
         <div (click)="updateActiveCategories(category.name)" [class.col-span-2]="$index % 3 === 0"
-          [class]="activeCategories().has(category.name) ? 'bg-gray-900 dark:bg-white border-gray-900 dark:border-white shadow-lg': 'bg-white dark:bg-gray-950 border-gray-200 dark:border-gray-800 hover:border-gray-300 dark:hover:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-900'"
+          [class]="activeCategories().has(category.name) ? 'bg-primary-900 dark:bg-black border-primary-900 dark:border-primary-700 shadow-lg': 'bg-white dark:bg-primary-950 border-primary-200 dark:border-primary-700 hover:border-primary-300 dark:hover:border-primary-700 hover:bg-primary-50 dark:hover:bg-primary-900'"
           class="cursor-pointer h-12 group w-full flex items-center gap-3 py-3 px-4 rounded-xl transition-all active:scale-[0.98] border-2 min-w-0">
 
           <div class="size-3 rounded-full flex-none shadow-sm"
-            [class]="activeCategories().has(category.name) ? 'ring-2 ring-white dark:ring-gray-900' : undefined"
+            [class]="activeCategories().has(category.name) ? 'ring-2 ring-white' : undefined"
             [style.background-color]="category.color">
           </div>
 
-          <span class="text-sm font-medium flex-1 text-left truncate"
-            [class]="activeCategories().has(category.name) ? 'text-white dark:text-gray-900' : 'text-gray-900 dark:text-white'">
+          <span class="pointer-events-none text-sm font-medium flex-1 text-left truncate"
+            [class]="activeCategories().has(category.name) ? 'text-white dark:text-white' : 'text-primary-900 dark:text-white'">
             {{ category.name }}
           </span>
 
           @if (activeCategories().has(category.name)) {
           <div class="flex items-center justify-center w-6 h-6 rounded-full flex-none"
-            [class]="activeCategories().has(category.name) ? 'bg-white/20' : 'bg-gray-900/20'">
+            [class]="activeCategories().has(category.name) ? 'bg-white/20' : 'bg-primary-900/20'">
             <i class="pi pi-check text-sm"
-              [class]="activeCategories().has(category.name) ? 'text-white dark:text-gray-900' : undefined"></i>
+              [class]="activeCategories().has(category.name) ? 'text-white dark:text-primary-900' : undefined"></i>
           </div>
           }
         </div>
@@ -209,13 +209,13 @@
   }
 
   @if (viewPlacesList()) {
-  <div animate.enter="slide-y-no-opacity" animate.leave="a-slide-y" class="pointer-events-auto rounded-lg overflow-hidden w-full shadow-2xl ring-1 ring-black/5 dark:ring-white/10 bg-white/70 dark:bg-surface-900/70 backdrop-blur-xl
+  <div animate.enter="slide-y-no-opacity" animate.leave="a-slide-y" class="pointer-events-auto rounded-lg w-full shadow-2xl ring-1 ring-black/5 dark:ring-white/10 bg-white/70 dark:bg-primary-900/70 backdrop-blur-xl
     flex flex-col transition-all duration-300 flex-1" [class]="viewFilters() ? 'h-2/3' : 'h-full'">
     <div class="w-full h-full flex flex-col flex-1 rounded-lg shadow-lg shadow-black/5">
-      <div class="p-4 border-b border-gray-200 dark:border-gray-800">
+      <div class="p-4 border-b border-primary-200 dark:border-primary-800">
         <div class="flex items-center justify-between gap-4">
           <div class="flex items-center gap-2 min-w-0">
-            <h2 class="text-base font-semibold text-gray-900 dark:text-white">Places</h2>
+            <h2 class="text-base font-semibold text-primary-900 dark:text-white">Places</h2>
             <span
               class="px-2.5 py-1 bg-blue-100 dark:bg-blue-900 rounded-lg text-xs font-bold text-blue-900 dark:text-white border-dashed"
               [class]="hideOutOfBoundsPlaces() ? 'border-2 border-blue-400' : undefined">{{ visiblePlaces().length
@@ -225,16 +225,16 @@
           <div class="flex items-center gap-2">
             <button (click)="toggleOutOfBoundsPlaces()" pTooltip="Show out-of-bounds places" tooltipPosition="left"
               class="cursor-pointer flex items-center justify-center size-10 rounded-lg transition-all"
-              [class]="hideOutOfBoundsPlaces() ? 'bg-blue-50 dark:bg-blue-950' : 'hover:bg-gray-100 dark:hover:bg-gray-900'">
+              [class]="hideOutOfBoundsPlaces() ? 'bg-blue-50 dark:bg-blue-950' : 'hover:bg-primary-100 dark:hover:bg-primary-900'">
               <i class="pi pi-expand text-sm"
-                [class]="hideOutOfBoundsPlaces() ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'"></i>
+                [class]="hideOutOfBoundsPlaces() ? 'text-blue-600 dark:text-blue-400' : 'text-primary-700 dark:text-primary-300'"></i>
             </button>
 
             <button (click)="togglePlacesListFiltering()"
               class="cursor-pointer flex items-center justify-center size-10 rounded-lg transition-all"
-              [class]="viewPlacesListFiltering() ? 'bg-blue-50 dark:bg-blue-950' : 'hover:bg-gray-100 dark:hover:bg-gray-900'">
+              [class]="viewPlacesListFiltering() ? 'bg-blue-50 dark:bg-blue-950' : 'hover:bg-primary-100 dark:hover:bg-primary-900'">
               <i class="pi pi-search text-sm"
-                [class]="viewPlacesListFiltering() ? 'text-blue-600 dark:text-blue-400' : 'text-gray-700 dark:text-gray-300'"></i>
+                [class]="viewPlacesListFiltering() ? 'text-blue-600 dark:text-blue-400' : 'text-primary-700 dark:text-primary-300'"></i>
             </button>
 
             <p-button text icon="pi pi-times" severity="danger" (click)="togglePlacesList()" />
@@ -242,11 +242,11 @@
         </div>
 
         @if (viewPlacesListFiltering()) {
-        <div class="grid md:grid-cols-2 gap-2 mt-3" animate.enter="slide-y" animate.leave="a-slide-y">
+        <div class="grid gap-2 mt-3" animate.enter="slide-y" animate.leave="a-slide-y">
           <div class="relative">
-            <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+            <i class="pi pi-search absolute left-3 top-1/2 -translate-y-1/2 text-primary-400 text-xs"></i>
             <input type="text" [formControl]="searchInput" placeholder="Search..."
-              class="w-full h-9 pl-9 pr-3 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors" />
+              class="w-full h-9 pl-9 pr-3 bg-white dark:bg-primary-950 border border-primary-200 dark:border-primary-800 rounded-lg text-sm text-primary-900 dark:text-white placeholder:text-primary-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors" />
             @if (searchInput.value) {
             <div class="absolute right-2 top-1/2 -translate-y-1/2">
               <p-button text icon="pi pi-times" severity="danger" size="small" (click)="searchInput.setValue('')" />
@@ -255,17 +255,17 @@
           </div>
 
           <div class="relative">
-            <i class="pi pi-google absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xs"></i>
+            <i class="pi pi-google absolute left-3 top-1/2 -translate-y-1/2 text-primary-400 text-xs"></i>
             <input type="text" [formControl]="gmapsGeocodeFilterInput" (keydown.enter)="gmapsGeocodeFilter()"
               placeholder="Country, City, ..."
-              class="w-full h-9 pl-9 pr-3 bg-white dark:bg-gray-950 border border-gray-200 dark:border-gray-800 rounded-lg text-sm text-gray-900 dark:text-white placeholder:text-gray-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors" />
+              class="w-full h-9 pl-9 pr-3 bg-white dark:bg-primary-950 border border-primary-200 dark:border-primary-800 rounded-lg text-sm text-primary-900 dark:text-white placeholder:text-primary-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors" />
 
             @if (boundariesFiltering()) {<p-button icon="pi pi-times" text severity="danger" size="small"
-              class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Clear and Cancel"
+              class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Clear and Cancel" tooltipPosition="left"
               (click)="resetGeocodeFilters()" />}
-            @else {<p-button icon="pi pi-sparkles" text [disabled]="!gmapsGeocodeFilterInput.value" size="small"
-              class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Filter using location (GMaps API)"
-              tooltipPosition="left" (click)="gmapsGeocodeFilter()" />}
+            @else {<p-button icon="pi pi-check" text label="Apply" [disabled]="!gmapsGeocodeFilterInput.value"
+              severity="secondary" size="small" class="absolute right-2 top-1/2 -translate-y-1/2"
+              (click)="gmapsGeocodeFilter()" />}
           </div>
         </div>
         }
@@ -276,7 +276,7 @@
         <div class="pb-3 flex flex-wrap items-center gap-2">
           @if (searchInput.value) {
           <div
-            class="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-0.5 text-xs font-medium rounded-md">
+            class="flex items-center gap-2 bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-0.5 text-xs font-medium rounded-md">
             <i class="pi pi-search"></i>{{ searchInput.value }}<p-button text icon="pi pi-times" size="small"
               (click)="searchInput.setValue('')" />
           </div>
@@ -284,7 +284,7 @@
 
           @if (boundariesFiltering()) {
           <div
-            class="flex items-center gap-2 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white px-2 py-0.5 text-xs font-medium rounded-md">
+            class="flex items-center gap-2 bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-0.5 text-xs font-medium rounded-md">
             <i class="pi pi-map-marker"></i>{{ gmapsGeocodeFilterInput.value }}<p-button text icon="pi pi-times"
               size="small" (click)="resetGeocodeFilters()" />
           </div>
@@ -300,8 +300,8 @@
             (mouseLeaveEmitter)="resetHoverPlace()"></app-place-list-item>
           } @empty {
           <div class="flex flex-col items-center justify-center col-span-full py-12 text-center px-6">
-            <i class="pi pi-map-marker text-gray-300 dark:text-gray-700 mb-3" style="font-size: 24px"></i>
-            <h3 class="text-sm font-semibold text-gray-900 dark:text-white">Nothing to see</h3>
+            <i class="pi pi-map-marker text-primary-300 dark:text-primary-700 mb-3" style="font-size: 24px"></i>
+            <h3 class="text-sm font-semibold text-primary-900 dark:text-white">Nothing to see</h3>
           </div>
           }
           } @placeholder (minimum 0.4s) {
@@ -319,13 +319,14 @@
 </section>
 
 @if (viewSettings()) {
-<section class="absolute inset-0 flex items-center justify-center z-40 bg-surface-900/30 backdrop-blur-xl">
+<section class="absolute inset-0 flex items-center justify-center z-40 bg-primary-900/30 backdrop-blur-xl">
   <div
-    class="w-10/12 max-w-screen md:max-w-3xl h-fit max-h-screen bg-white rounded-xl shadow-2xl p-4 md:p-8 z-50 dark:bg-surface-900">
-    <div class="flex-none flex items-center justify-between gap-4 p-4 border-b border-gray-200 dark:border-gray-800">
+    class="w-10/12 max-w-screen md:max-w-3xl h-fit max-h-screen bg-white rounded-xl shadow-2xl p-4 md:p-8 z-50 dark:bg-primary-900">
+    <div
+      class="flex-none flex items-center justify-between gap-4 p-4 border-b border-primary-200 dark:border-primary-800">
       <div>
-        <h2 class="text-xl font-bold text-gray-900 dark:text-white">Settings</h2>
-        <p class="text-xs text-gray-600 dark:text-gray-400 mt-0.5">Customize your experience</p>
+        <h2 class="text-xl font-bold text-primary-900 dark:text-white">Settings</h2>
+        <p class="text-xs text-primary-600 dark:text-primary-400 mt-0.5">Customize your experience</p>
       </div>
 
       <div class="flex items-center gap-1">
@@ -359,12 +360,12 @@
         <p-tabpanel [value]="0">
           <div class="mt-4 grid md:grid-cols-2 gap-4">
             <a href="https://itskovacs.github.io/trip/docs/intro" target="_blank"
-              class="group relative p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-hidden">
+              class="group relative p-6 bg-linear-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-hidden">
               <div class="flex gap-4 items-center relative z-10">
                 <div class="text-4xl">📘</div>
                 <div>
-                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">Documentation</h3>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">Learn how to use TRIP</p>
+                  <h3 class="text-lg font-semibold text-primary-900 dark:text-white mb-1">Documentation</h3>
+                  <p class="text-sm text-primary-600 dark:text-primary-400">Learn how to use TRIP</p>
                 </div>
               </div>
               <div
@@ -373,12 +374,12 @@
             </a>
 
             <a href="https://ko-fi.com/itskovacs" target="_blank"
-              class="group relative p-6 bg-gradient-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-hidden">
+              class="group relative p-6 bg-linear-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-hidden">
               <div class="flex gap-4 items-center relative z-10">
                 <div class="text-4xl">☕</div>
                 <div>
-                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">Support TRIP</h3>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">Buy me a coffee</p>
+                  <h3 class="text-lg font-semibold text-primary-900 dark:text-white mb-1">Support TRIP</h3>
+                  <p class="text-sm text-primary-600 dark:text-primary-400">Buy me a coffee</p>
                 </div>
               </div>
               <div
@@ -388,12 +389,12 @@
 
             @if (info()?.update) {
             <div (click)="toGithub()"
-              class="cursor-pointer group relative p-6 bg-gradient-to-br from-red-50 to-red-200 dark:from-red-900/20 dark:to-red-900/40 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-hidden">
+              class="cursor-pointer group relative p-6 bg-linear-to-br from-red-50 to-red-200 dark:from-red-900/20 dark:to-red-900/40 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-hidden">
               <div class="flex gap-4 items-center relative z-10">
                 <div class="text-4xl">🚀</div>
                 <div>
-                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">TRIP {{ info()?.update }}</h3>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">New version available</p>
+                  <h3 class="text-lg font-semibold text-primary-900 dark:text-white mb-1">TRIP {{ info()?.update }}</h3>
+                  <p class="text-sm text-primary-600 dark:text-primary-400">New version available</p>
                 </div>
               </div>
               <div
@@ -402,12 +403,12 @@
             </div>
             } @else {
             <div (click)="checkUpdate()"
-              class="cursor-pointer group relative p-6 bg-gradient-to-br from-purple-50 to-rose-50 dark:from-purple-900/20 dark:to-rose-900/20 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-hidden">
+              class="cursor-pointer group relative p-6 bg-linear-to-br from-purple-50 to-rose-50 dark:from-purple-900/20 dark:to-rose-900/20 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-hidden">
               <div class="flex gap-4 items-center relative z-10">
                 <div class="text-4xl">👀</div>
                 <div>
-                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">Check update</h3>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">Current: TRIP {{ info()?.version }}</p>
+                  <h3 class="text-lg font-semibold text-primary-900 dark:text-white mb-1">Check update</h3>
+                  <p class="text-sm text-primary-600 dark:text-primary-400">Current: TRIP {{ info()?.version }}</p>
                 </div>
               </div>
               <div
@@ -417,53 +418,55 @@
             }
 
             <div (click)="tabsIndex = 4"
-              class="cursor-pointer group relative p-6 bg-gradient-to-br from-gray-50 to-zinc-100 dark:from-gray-900/20 dark:to-zinc-900/20 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-hidden">
+              class="cursor-pointer group relative p-6 bg-primary-100 dark:bg-primary-800 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-hidden">
               <div class="flex gap-4 items-center relative z-10">
                 <div class="text-4xl">🗃️</div>
                 <div>
-                  <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-1">Data</h3>
-                  <p class="text-sm text-gray-600 dark:text-gray-400">Manage your data</p>
+                  <h3 class="text-lg font-semibold text-primary-900 dark:text-white mb-1">Data</h3>
+                  <p class="text-sm text-primary-600 dark:text-primary-400">Manage your data</p>
                 </div>
               </div>
               <div
-                class="absolute top-0 right-0 w-32 h-32 bg-zinc-500/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500">
+                class="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500">
               </div>
             </div>
           </div>
 
-          <div class="mt-8 text-center text-xs text-gray-500 dark:text-gray-400">TRIP {{ info()?.version }}</div>
-          <div class="text-center text-sm text-gray-500 dark:text-gray-400">Made with ❤️ in BZH</div>
+          <div class="mt-8 text-center text-xs text-primary-500 dark:text-primary-400">TRIP {{ info()?.version }}</div>
+          <div class="text-center text-sm text-primary-500 dark:text-primary-400">Made with ❤️ in BZH</div>
         </p-tabpanel>
         <p-tabpanel [value]="1">
           <div class="max-h-[60vh] overflow-y-auto overscroll-contain">
             <div class="select-none mx-auto pt-4 space-y-4">
               <section
-                class="rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-200">
+                class="rounded-xl bg-white dark:bg-primary-800 shadow-sm border border-primary-200 dark:border-primary-700 overflow-hidden transition-all duration-200">
                 <div (click)="accountSecurityExpanded.set(!accountSecurityExpanded())"
-                  class="select-none w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer">
+                  class="select-none w-full flex items-center justify-between p-4 hover:bg-primary-50 dark:hover:bg-primary-700/50 transition-colors cursor-pointer">
                   <div class="flex items-center gap-3">
                     <div
-                      class="flex items-center justify-center min-w-10 min-h-10 rounded-lg bg-gray-100 dark:bg-gray-900/30">
-                      <i class="pi pi-shield text-gray-600 dark:text-gray-400"></i>
+                      class="flex items-center justify-center min-w-10 min-h-10 rounded-lg bg-primary-100 dark:bg-black/30">
+                      <i class="pi pi-shield text-primary-600 dark:text-primary-400"></i>
                     </div>
                     <div class="flex flex-col items-start">
-                      <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100 line-clamp-1">Security</h2>
-                      <p class="text-xs text-gray-500 dark:text-gray-400">Update your password, manage 2FA</p>
+                      <h2 class="text-base font-semibold text-primary-900 dark:text-primary-100 line-clamp-1">Security
+                      </h2>
+                      <p class="text-xs text-primary-500 dark:text-primary-400">Update your password, manage 2FA</p>
                     </div>
                   </div>
                   <i [class]="accountSecurityExpanded() ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
-                    class="text-gray-400 transition-transform duration-200"></i>
+                    class="text-primary-400 transition-transform duration-200"></i>
                 </div>
 
                 @if (accountSecurityExpanded()) {
-                <div class="flex flex-col gap-3 p-4 pt-0 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex flex-col gap-3 p-4 pt-0 border-t border-primary-200 dark:border-primary-700">
                   <div
-                    class="mt-4 flex items-center justify-between py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
+                    class="mt-4 flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700">
                     <div class="flex items-center gap-3 min-w-0 flex-1">
-                      <i class="pi pi-key text-blue-600 dark:text-blue-400 flex-shrink-0"></i>
+                      <i class="pi pi-key text-blue-600 dark:text-blue-400 shrink-0"></i>
                       <div class="min-w-0">
-                        <span class="font-medium text-sm text-gray-900 dark:text-gray-100 block">Password</span>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Update your password</p>
+                        <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">Password</span>
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Update your password
+                        </p>
                       </div>
                     </div>
 
@@ -472,14 +475,15 @@
                   </div>
 
                   <div
-                    class="flex items-center justify-between py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
+                    class="flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700">
                     <div class="flex items-center gap-3 min-w-0 flex-1">
-                      <i class="pi pi-lock flex-shrink-0"
+                      <i class="pi pi-lock shrink-0"
                         [class]="settings()?.totp_enabled ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"></i>
                       <div class="min-w-0">
-                        <span class="font-medium text-sm text-gray-900 dark:text-gray-100 block">Two-Factor Auth
+                        <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">Two-Factor Auth
                           (2FA)</span>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Add extra security layer
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Add extra security
+                          layer
                         </p>
                       </div>
                     </div>
@@ -493,34 +497,37 @@
               </section>
 
               <section
-                class="rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden transition-all duration-200">
+                class="rounded-xl bg-white dark:bg-primary-800 shadow-sm border border-primary-200 dark:border-primary-700 overflow-hidden transition-all duration-200">
                 <div (click)="accountIntegrationsExpanded.set(!accountIntegrationsExpanded())"
-                  class="select-none w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer">
+                  class="select-none w-full flex items-center justify-between p-4 hover:bg-primary-50 dark:hover:bg-primary-700/50 transition-colors cursor-pointer">
                   <div class="flex items-center gap-3">
                     <div
                       class="flex items-center justify-center min-w-10 min-h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30">
                       <i class="pi pi-share-alt text-blue-600 dark:text-blue-400"></i>
                     </div>
                     <div class="flex flex-col items-start">
-                      <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100 line-clamp-1">Integrations
+                      <h2 class="text-base font-semibold text-primary-900 dark:text-primary-100 line-clamp-1">
+                        Integrations
                       </h2>
-                      <p class="text-xs text-gray-500 dark:text-gray-400">Manage API keys</p>
+                      <p class="text-xs text-primary-500 dark:text-primary-400">Manage API keys</p>
                     </div>
                   </div>
                   <i [class]="accountIntegrationsExpanded() ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
-                    class="text-gray-400 transition-transform duration-200"></i>
+                    class="text-primary-400 transition-transform duration-200"></i>
                 </div>
 
                 @if (accountIntegrationsExpanded()) {
-                <div class="flex flex-col gap-3 p-4 pt-0 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex flex-col gap-3 p-4 pt-0 border-t border-primary-200 dark:border-primary-700">
                   <div
-                    class="mt-4 flex items-center justify-between py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
+                    class="mt-4 flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700">
                     <div class="flex items-center gap-3 min-w-0 flex-1">
-                      <i class="pi pi-link flex-shrink-0"
+                      <i class="pi pi-link shrink-0"
                         [class]="settings()?.google_apikey ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"></i>
                       <div class="min-w-0">
-                        <span class="font-medium text-sm text-gray-900 dark:text-gray-100 block">Google API Key</span>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Connect your Google API
+                        <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">Google API
+                          Key</span>
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Connect your Google
+                          API
                           key
                           for enhanced location services</p>
                       </div>
@@ -541,13 +548,15 @@
                   </div>
 
                   <div
-                    class="flex items-center justify-between py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
+                    class="flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700">
                     <div class="flex items-center gap-3 min-w-0 flex-1">
-                      <i class="pi pi-link flex-shrink-0"
+                      <i class="pi pi-link shrink-0"
                         [class]="settings()?.api_token ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"></i>
                       <div class="min-w-0">
-                        <span class="font-medium text-sm text-gray-900 dark:text-gray-100 block">TRIP API Key</span>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Use it to authenticate in
+                        <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">TRIP API
+                          Key</span>
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Use it to authenticate
+                          in
                           scripts</p>
                       </div>
                     </div>
@@ -566,26 +575,27 @@
           <div class="max-h-[60vh] overflow-y-auto overscroll-contain">
             <div class="flex flex-col gap-4 pt-4 max-w-5xl mx-auto">
               <section [formGroup]="settingsForm"
-                class="rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
+                class="rounded-xl bg-white dark:bg-primary-800 shadow-sm border border-primary-200 dark:border-primary-700">
                 <div (click)="mapParamsExpanded.set(!mapParamsExpanded())"
-                  class="select-none w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer">
+                  class="select-none w-full flex items-center justify-between p-4 hover:bg-primary-50 dark:hover:bg-primary-700/50 transition-colors cursor-pointer">
                   <div class="flex items-center gap-3">
                     <div
                       class="flex items-center justify-center min-w-10 min-h-10 rounded-lg bg-blue-100 dark:bg-blue-900/30">
                       <i class="pi pi-map text-blue-600 dark:text-blue-400"></i>
                     </div>
                     <div class="flex flex-col items-start">
-                      <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Map Parameters</h2>
-                      <p class="text-xs text-gray-600 dark:text-gray-400">Configure default map view and tile layers
+                      <h2 class="text-lg font-semibold text-primary-900 dark:text-primary-100">Map Parameters</h2>
+                      <p class="text-xs text-primary-600 dark:text-primary-400">Configure default map view and tile
+                        layers
                       </p>
                     </div>
                   </div>
                   <i [class]="mapParamsExpanded() ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
-                    class="text-gray-400 transition-transform"></i>
+                    class="text-primary-400 transition-transform"></i>
                 </div>
 
                 @if (mapParamsExpanded()) {
-                <div class="flex flex-col gap-4 p-4 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex flex-col gap-4 p-4 border-t border-primary-200 dark:border-primary-700">
                   <div class="flex justify-end">
                     <p-button icon="pi pi-compass" label="Set Current" [outlined]="true"
                       (click)="setMapCenterToCurrent()" size="small" styleClass="whitespace-nowrap" />
@@ -612,115 +622,118 @@
               </section>
 
               <section
-                class="rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700 transition-all duration-200">
+                class="rounded-xl bg-white dark:bg-primary-800 shadow-sm border border-primary-200 dark:border-primary-700 transition-all duration-200">
                 <div (click)="displaySettingsExpanded.set(!displaySettingsExpanded())"
-                  class="select-none w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer">
+                  class="select-none w-full flex items-center justify-between p-4 hover:bg-primary-50 dark:hover:bg-primary-700/50 transition-colors cursor-pointer">
                   <div class="flex items-center gap-3">
                     <div
                       class="flex items-center justify-center min-w-10 min-h-10 rounded-lg bg-green-100 dark:bg-green-900/30">
                       <i class="pi pi-eye text-green-600 dark:text-green-400"></i>
                     </div>
                     <div class="flex flex-col items-start">
-                      <h2 class="text-base font-semibold text-gray-900 dark:text-gray-100 line-clamp-1">Display &
+                      <h2 class="text-base font-semibold text-primary-900 dark:text-primary-100 line-clamp-1">Display &
                         Performance</h2>
-                      <p class="text-xs text-gray-500 dark:text-gray-400">Visual and performance options</p>
+                      <p class="text-xs text-primary-500 dark:text-primary-400">Visual and performance options</p>
                     </div>
                   </div>
                   <i [class]="displaySettingsExpanded() ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
-                    class="text-gray-400 transition-transform duration-200"></i>
+                    class="text-primary-400 transition-transform duration-200"></i>
                 </div>
 
                 @if (displaySettingsExpanded()) {
-                <div class="flex flex-col gap-3 p-4 pt-0 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex flex-col gap-3 p-4 pt-0 border-t border-primary-200 dark:border-primary-700">
                   <div
-                    class="mt-4 flex items-center justify-between py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
+                    class="mt-4 flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700">
                     <div class="flex items-center gap-3 min-w-0 flex-1">
-                      <i class="pi pi-wifi text-orange-600 dark:text-orange-400 flex-shrink-0"></i>
+                      <i class="pi pi-wifi text-orange-600 dark:text-orange-400 shrink-0"></i>
                       <div class="min-w-0">
-                        <span class="font-medium text-sm text-gray-900 dark:text-gray-100 block">Low Network
+                        <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">Low Network
                           Mode</span>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Use category images to
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Use category images to
                           reduce bandwidth</p>
                       </div>
                     </div>
-                    <p-toggleswitch [(ngModel)]="isLowNetMode" (onChange)="toggleLowNet()" class="flex-shrink-0 ml-4" />
+                    <p-toggleswitch [(ngModel)]="isLowNetMode" (onChange)="toggleLowNet()" class="shrink-0 ml-4" />
                   </div>
 
                   <div
-                    class="flex items-center justify-between py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
+                    class="flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700">
                     <div class="flex items-center gap-3 min-w-0 flex-1">
-                      <i class="pi pi-compass text-purple-600 dark:text-purple-400 flex-shrink-0"></i>
+                      <i class="pi pi-compass text-purple-600 dark:text-purple-400 shrink-0"></i>
                       <div class="min-w-0">
-                        <span class="font-medium text-sm text-gray-900 dark:text-gray-100 block">GPX Indicator</span>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Show compass when GPX data
+                        <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">GPX
+                          Indicator</span>
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Show compass when GPX
+                          data
                           available</p>
                       </div>
                     </div>
                     <p-toggleswitch [(ngModel)]="isGPXInPlaceMode" (onChange)="toggleGPXInPlace()"
-                      class="flex-shrink-0 ml-4" />
+                      class="shrink-0 ml-4" />
                   </div>
 
                   <div
-                    class="flex items-center justify-between py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
+                    class="flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700">
                     <div class="flex items-center gap-3 min-w-0 flex-1">
-                      <i class="pi pi-eye text-indigo-600 dark:text-indigo-400 flex-shrink-0"></i>
+                      <i class="pi pi-eye text-indigo-600 dark:text-indigo-400 shrink-0"></i>
                       <div class="min-w-0">
-                        <span class="font-medium text-sm text-gray-900 dark:text-gray-100 block">Show Visited
+                        <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">Show Visited
                           Places</span>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Always display visited
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Always display visited
                           places as small dots</p>
                       </div>
                     </div>
                     <p-toggleswitch [(ngModel)]="isVisitedMode" (onChange)="toggleVisitedDisplayed()"
-                      class="flex-shrink-0 ml-4" />
+                      class="shrink-0 ml-4" />
                   </div>
 
                   <div
-                    class="flex items-center justify-between py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
+                    class="flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700">
                     <div class="flex items-center gap-3 min-w-0 flex-1">
-                      <i class="pi pi-map text-yellow-500 dark:text-yellow-300 flex-shrink-0"></i>
+                      <i class="pi pi-map text-yellow-500 dark:text-yellow-300 shrink-0"></i>
                       <div class="min-w-0">
-                        <span class="font-medium text-sm text-gray-900 dark:text-gray-100 block">Store Map
+                        <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">Store Map
                           Position</span>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Encode map position in the
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Encode map position in
+                          the
                           URL to restore the same view on refresh</p>
                       </div>
                     </div>
                     <p-toggleswitch [(ngModel)]="isMapPositionMode" (onChange)="toggleMapPositionMode()"
-                      class="flex-shrink-0 ml-4" />
+                      class="shrink-0 ml-4" />
                   </div>
                 </div>
                 }
               </section>
 
               <section [formGroup]="settingsForm"
-                class="rounded-xl bg-white dark:bg-gray-800 shadow-sm border border-gray-200 dark:border-gray-700">
+                class="rounded-xl bg-white dark:bg-primary-800 shadow-sm border border-primary-200 dark:border-primary-700">
                 <div (click)="dataFiltersExpanded.set(!dataFiltersExpanded())"
-                  class="select-none w-full flex items-center justify-between p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors cursor-pointer">
+                  class="select-none w-full flex items-center justify-between p-4 hover:bg-primary-50 dark:hover:bg-primary-700/50 transition-colors cursor-pointer">
                   <div class="flex items-center gap-3">
                     <div
                       class="flex items-center justify-center min-w-10 min-h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/30">
                       <i class="pi pi-sliders-h text-indigo-600 dark:text-indigo-400"></i>
                     </div>
                     <div class="flex flex-col items-start">
-                      <h2 class="text-lg font-semibold text-gray-900 dark:text-gray-100">Data & Filters</h2>
-                      <p class="text-xs text-gray-600 dark:text-gray-400">Manage currency and category visibility
+                      <h2 class="text-lg font-semibold text-primary-900 dark:text-primary-100">Data & Filters</h2>
+                      <p class="text-xs text-primary-600 dark:text-primary-400">Manage currency and category visibility
                       </p>
                     </div>
                   </div>
                   <i [class]="dataFiltersExpanded() ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
-                    class="text-gray-400 transition-transform"></i>
+                    class="text-primary-400 transition-transform"></i>
                 </div>
 
                 @if (dataFiltersExpanded()) {
-                <div class="flex flex-col gap-3 p-4 pt-0 border-t border-gray-200 dark:border-gray-700">
+                <div class="flex flex-col gap-3 p-4 pt-0 border-t border-primary-200 dark:border-primary-700">
                   <div
-                    class="mt-4 flex flex-col gap-2 md:flex-row items-center justify-between py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
+                    class="mt-4 flex flex-col gap-2 md:flex-row items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700">
                     <div class="flex items-center gap-3 min-w-0 flex-1">
-                      <i class="pi pi-wallet text-gray-600 dark:text-gray-400 flex-shrink-0"></i>
+                      <i class="pi pi-wallet text-primary-600 dark:text-primary-400 shrink-0"></i>
                       <div class="min-w-0">
-                        <span class="font-medium text-sm text-gray-900 dark:text-gray-100 block">Currency</span>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Update the default
+                        <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">Currency</span>
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Update the default
                           currency
                         </p>
                       </div>
@@ -731,13 +744,14 @@
                   </div>
 
                   <div
-                    class="flex flex-col gap-2 md:flex-row items-center justify-between py-3 px-4 rounded-lg bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-700">
+                    class="flex flex-col gap-2 md:flex-row items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700">
                     <div class="flex items-center gap-3 min-w-0 flex-1">
-                      <i class="pi pi-filter text-gray-600 dark:text-gray-400 flex-shrink-0"></i>
+                      <i class="pi pi-filter text-primary-600 dark:text-primary-400 shrink-0"></i>
                       <div class="min-w-0">
-                        <span class="font-medium text-sm text-gray-900 dark:text-gray-100 block">Hidden
+                        <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">Hidden
                           Categories</span>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 hidden lg:block">Selected will be hidden by
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Selected will be
+                          hidden by
                           default
                         </p>
                       </div>
@@ -754,10 +768,10 @@
               </section>
 
               <div
-                class="select-none flex items-center justify-between p-4 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-gray-800 dark:to-gray-800 border border-blue-100 dark:border-gray-700 shadow-sm">
+                class="select-none flex items-center justify-between p-4 rounded-xl bg-linear-to-r from-blue-50 to-indigo-50 dark:from-primary-800 dark:to-primary-800 border border-blue-100 dark:border-primary-700 shadow-sm">
                 <div class="flex items-center gap-3 min-w-0 flex-1 pr-4">
-                  <i class="pi pi-info-circle text-blue-600 dark:text-blue-400 flex-shrink-0"></i>
-                  <span class="text-sm text-gray-700 dark:text-gray-300 truncate">
+                  <i class="pi pi-info-circle text-blue-600 dark:text-blue-400 shrink-0"></i>
+                  <span class="text-sm text-primary-700 dark:text-primary-300 truncate">
                     @if (settingsForm.pristine) {
                     No changes to save
                     } @else if (!settingsForm.valid) {
@@ -768,7 +782,7 @@
                   </span>
                 </div>
 
-                <div class="flex gap-2 flex-shrink-0">
+                <div class="flex gap-2 shrink-0">
                   <p-button [label]="settingsForm.pristine ? 'Saved' : 'Save'" icon="pi pi-check"
                     (click)="updateSettings()" [disabled]="!settingsForm.valid || settingsForm.pristine" size="small" />
                 </div>
@@ -781,16 +795,17 @@
             <div class="flex flex-col gap-4 pt-4 mx-auto">
               <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 <div (click)="addCategory()"
-                  class="group relative flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-gray-300 dark:border-gray-600 bg-gray-50/50 dark:bg-gray-800/50 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 hover:border-indigo-400 dark:hover:border-indigo-500 transition-all duration-200 cursor-pointer">
+                  class="group relative flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-primary-300 dark:border-primary-600 bg-primary-50/50
+                  dark:bg-black/50 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:border-primary-400 dark:hover:border-primary-500 transition-all duration-200 cursor-pointer">
                   <div
-                    class="flex items-center justify-center w-12 h-12 rounded-full bg-white dark:bg-gray-700 border-2 border-dashed border-gray-300 dark:border-gray-600 group-hover:border-indigo-400 dark:group-hover:border-indigo-500 group-hover:bg-indigo-100 dark:group-hover:bg-indigo-900/30 transition-all duration-200 group-hover:scale-110">
+                    class="flex items-center justify-center w-12 h-12 rounded-full bg-white dark:bg-black border-2 border-dashed border-primary-300 dark:border-primary-600 group-hover:border-primary-400 dark:group-hover:border-primary-500 group-hover:bg-primary-100 dark:group-hover:bg-primary-900/30 transition-all duration-200 group-hover:scale-110">
                     <i
-                      class="pi pi-plus text-gray-400 dark:text-gray-500 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-200"></i>
+                      class="pi pi-plus text-primary-400 dark:text-primary-500 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-200"></i>
                   </div>
 
                   <div class="flex flex-col items-start">
                     <span
-                      class="font-semibold text-sm text-gray-600 dark:text-gray-400 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors duration-200">
+                      class="font-semibold text-sm text-primary-600 dark:text-primary-400 group-hover:text-primary-600 dark:group-hover:text-primary-400 transition-colors duration-200">
                       Add Category
                     </span>
                   </div>
@@ -798,22 +813,22 @@
 
                 @for (category of categories(); track category.id) {
                 <div
-                  class="group relative flex items-center gap-3 p-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-600 transition-all duration-200">
-                  <div class="relative flex-shrink-0">
+                  class="group relative flex items-center gap-3 p-3 rounded-lg border border-primary-200 dark:border-primary-700 bg-white dark:bg-primary-800 hover:shadow-md hover:border-indigo-300 dark:hover:border-indigo-600 transition-all duration-200">
+                  <div class="relative shrink-0">
                     <img [src]="category.image" style="border: 3px solid" loading="lazy"
                       [style.border-color]="category.color" class="select-none size-12 rounded-full object-cover" />
-                    <div class="absolute -bottom-1 -right-1 px-2 py-1 bg-gray-100 dark:bg-gray-900 rounded-lg text-xs font-bold text-gray-900
+                    <div class="absolute -bottom-1 -right-1 px-2 py-1 bg-primary-100 dark:bg-black rounded-lg text-xs font-bold text-primary-900
                         dark:text-white">{{ getCategoryPlacesCount(category.name) }}
                     </div>
                   </div>
 
                   <div class="flex-1 min-w-0">
-                    <span class="block font-semibold text-sm text-gray-900 dark:text-gray-100 truncate">
+                    <span class="block font-semibold text-sm text-primary-900 dark:text-primary-100 truncate">
                       {{ category.name }}
                     </span>
-                    <span class="block text-xs dark:text-gray-400" [style.color]="category.color">
-                      {{ category.color }}
-                    </span>
+                    <span
+                      class="block color-bg-opacity text-xs dark:text-primary-400 w-fit gap-1 px-2 py-0.5 font-medium rounded truncate"
+                      [style.--color-bg-opacity]="category.color">{{ category.color }}</span>
                   </div>
                   <div
                     class="flex items-center gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-200">
@@ -832,16 +847,15 @@
           <div class="max-h-[60vh] overflow-y-auto overscroll-contain">
             <div class="flex flex-col gap-4 pt-4 mx-auto">
               <div
-                class="flex flex-col md:flex-row gap-4 p-5 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/10 dark:to-indigo-900/10 border border-blue-100/50 dark:border-blue-800/30">
+                class="flex flex-col md:flex-row gap-4 p-5 rounded-xl bg-linear-to-r from-blue-50 to-indigo-50 dark:from-primary-800 dark:to-primary-800 border border-blue-100 dark:border-primary-700">
                 <div class="flex items-center gap-3 sm:gap-4 min-w-0">
-                  <div
-                    class="flex-shrink-0 flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-blue-500 shadow-sm">
-                    <i class="pi pi-database text-white text-base sm:text-lg"></i>
+                  <div class="shrink-0 flex items-center justify-center size-10 rounded-lg shadow-sm">
+                    <i class="pi pi-database text-blue-600 dark:text-blue-400"></i>
                   </div>
 
                   <div class="min-w-0 flex-1">
-                    <h1 class="text-base font-semibold text-gray-900 dark:text-white">Backups</h1>
-                    <p class="text-xs text-gray-600 dark:text-gray-400">Export your data</p>
+                    <h1 class="text-base font-semibold text-primary-900 dark:text-white">Backups</h1>
+                    <p class="text-xs text-primary-600 dark:text-primary-400">Export your data</p>
                   </div>
                 </div>
 
@@ -856,8 +870,8 @@
               <div class="flex flex-col gap-2.5">
                 @for (backup of backups(); track backup.id) {
                 <div
-                  class="group flex items-center gap-4 py-4 md:p-4 rounded-lg bg-white dark:bg-gray-800 hover:shadow-sm transition-all duration-200">
-                  <div class="flex-shrink-0">
+                  class="group flex items-center gap-4 py-4 md:p-4 rounded-lg bg-primary-50 dark:bg-primary-800 hover:shadow-sm transition-all duration-200">
+                  <div class="shrink-0">
                     @if (backup.status === 'completed') {
                     <div
                       class="flex items-center justify-center size-10 rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
@@ -865,7 +879,7 @@
                     </div>
                     } @else if (backup.status === 'pending') {
                     <div class="flex items-center justify-center size-10 rounded-lg bg-blue-50 dark:bg-blue-900/20">
-                      <i class="pi pi-ellipsis-h text-gray-600 dark:text-gray-400"></i>
+                      <i class="pi pi-ellipsis-h text-primary-600 dark:text-primary-400"></i>
                     </div>
                     } @else if (backup.status === 'processing') {
                     <div class="flex items-center justify-center size-10 rounded-lg bg-blue-50 dark:bg-blue-900/20">
@@ -876,8 +890,8 @@
                       <i class="pi pi-times-circle text-red-600 dark:text-red-400"></i>
                     </div>
                     } @else {
-                    <div class="flex items-center justify-center size-10 rounded-lg bg-gray-50 dark:bg-gray-900/20">
-                      <i class="pi pi-clock text-gray-600 dark:text-gray-400"></i>
+                    <div class="flex items-center justify-center size-10 rounded-lg bg-primary-50 dark:bg-black/20">
+                      <i class="pi pi-clock text-primary-600 dark:text-primary-400"></i>
                     </div>
                     }
                   </div>
@@ -891,7 +905,7 @@
                       </span>
                       } @else if (backup.status === 'pending') {
                       <span
-                        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-gray-50 text-gray-700 dark:bg-gray-900/30 dark:text-gray-300">
+                        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-primary-50 text-primary-700 dark:bg-black/30 dark:text-primary-300">
                         Starting
                       </span>
                       } @else if (backup.status === 'failed') {
@@ -901,17 +915,17 @@
                       </span>
                       } @else {
                       <span
-                        class="font-medium text-sm text-gray-900 group-hover:font-semibold dark:text-white truncate">
+                        class="font-medium text-sm text-primary-900 group-hover:font-semibold dark:text-white truncate">
                         {{ backup.filename }}
                       </span>
                       }
                     </div>
 
                     <div
-                      class="flex flex-col md:flex-row md:items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                      class="flex flex-col md:flex-row md:items-center gap-2 text-xs text-primary-500 dark:text-primary-400">
                       <span class="font-mono">{{ (backup.file_size || 0) | fileSize }}</span>
                       @if (backup.created_at) {
-                      <div class="hidden md:inline-flex w-px h-4 bg-gray-200 dark:bg-gray-800"></div>
+                      <div class="hidden md:inline-flex w-px h-4 bg-primary-200 dark:bg-primary-800"></div>
                       <span class="hidden md:inline-flex text-xs">Created {{ backup.created_at| date: 'd MMM. y'
                         }}</span>
                       }
@@ -923,7 +937,7 @@
 
                   <div class="flex grow items-center justify-end gap-1">
                     @if (backup.status === 'completed') {
-                    <p-button (click)="downloadBackup(backup)" text icon="pi pi-download" />
+                    <p-button (click)="downloadBackup(backup)" severity="primary" text icon="pi pi-download" />
                     }
                     @if (backup.status === 'completed' || backup.status === 'failed') {
                     <p-button (click)="deleteBackup(backup)" severity="danger" text icon="pi pi-trash" />
@@ -932,11 +946,11 @@
                 </div>
                 } @empty {
                 <div
-                  class="flex flex-col items-center justify-center py-16 px-6 text-center rounded-lg border border-dashed border-gray-300 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/30">
-                  <h3 class="text-base font-semibold text-gray-900 dark:text-white mb-1">
+                  class="flex flex-col items-center justify-center py-16 px-6 text-center rounded-lg border border-dashed border-primary-300 dark:border-primary-700 bg-primary-50/50 dark:bg-primary-800/30">
+                  <h3 class="text-base font-semibold text-primary-900 dark:text-white mb-1">
                     No backups
                   </h3>
-                  <p class="text-sm text-gray-600 dark:text-gray-400 mb-6 max-w-xs">
+                  <p class="text-sm text-primary-600 dark:text-primary-400 mb-6 max-w-xs">
                     Create your first backup to safeguard your data
                   </p>
 

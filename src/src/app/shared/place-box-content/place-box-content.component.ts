@@ -84,7 +84,7 @@ export class PlaceBoxContentComponent {
       items.unshift({
         label: 'Display GPX',
         icon: 'pi pi-compass',
-        iconClass: 'text-gray-500!',
+        iconClass: 'text-primary-500!',
         command: () => {
           this.displayGPX();
         },

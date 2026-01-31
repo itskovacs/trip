@@ -1,22 +1,22 @@
-<div class="divide-y divide-gray-200 dark:divide-gray-700">
+<div class="divide-y divide-primary-200 dark:divide-primary-700">
   @for (r of results; track r.name) {
-  <div class="flex items-center justify-between gap-4 p-4 cursor-pointer hover:bg-gray-50" (click)="closeDialog(r)">
+  <div class="flex items-center justify-between gap-4 p-4 cursor-pointer hover:bg-primary-50" (click)="closeDialog(r)">
     <div class="flex flex-1 min-w-0 items-center gap-2">
       <div class="shrink-0">
         <img class="size-12 rounded-full" [src]="r.image || 'favicon.png'">
       </div>
 
       <div>
-        <p class="font-medium text-gray-900 truncate dark:text-white">
+        <p class="font-medium text-primary-900 truncate dark:text-white">
           {{ r.name }}
         </p>
-        <p class="text-sm text-gray-500 truncate dark:text-gray-400">
+        <p class="text-sm text-primary-500 truncate dark:text-primary-400">
           {{ r.description.split('\n')[0] }}
         </p>
       </div>
     </div>
 
-    <div class="text-gray-900 dark:text-white">
+    <div class="text-primary-900 dark:text-white">
       -
     </div>
   </div>

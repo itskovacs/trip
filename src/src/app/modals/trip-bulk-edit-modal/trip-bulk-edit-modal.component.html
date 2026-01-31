@@ -1,9 +1,9 @@
 <section class="w-full max-w-xl space-y-4" [formGroup]="editForm">
   <div class="space-y-4">
-    <h2 class="text-sm font-semibold text-gray-900 dark:text-surface-50">
+    <h2 class="text-sm font-semibold text-primary-900 dark:text-primary-50">
       Select fields to update
     </h2>
-    <p class="text-xs text-gray-500 -mt-3 mb-4">
+    <p class="text-xs text-primary-500 -mt-3 mb-4">
       Check the box to update a field. Leave empty to clear the value.
     </p>
 
@@ -46,7 +46,7 @@
         <p-select [options]="trip?.places" optionValue="id" optionLabel="name" formControlName="place" inputId="place"
           [filter]="true" [showClear]="true" appendTo="body" fluid class="capitalize">
           <ng-template let-place #item>
-            <div class="flex items-center gap-2" [class.text-gray-500]="place.placeUsage">
+            <div class="flex items-center gap-2" [class.text-primary-500]="place.placeUsage">
               <img [src]="place.image || place.category.image" class="rounded-md size-6 object-cover" />
               <div>{{ place.name }}</div>
             </div>
@@ -144,7 +144,7 @@
     </p-inputgroup>
   </div>
 
-  <div class="flex justify-center pt-4 border-t border-surface-200 dark:border-surface-700">
+  <div class="flex justify-center pt-4 border-t border-primary-200 dark:border-primary-700">
     <p-button label="Confirm" text (click)="closeDialog()" [disabled]="!editForm.dirty || !editForm.valid" />
   </div>
 </section>

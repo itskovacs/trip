@@ -791,9 +791,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   togglePlacesList() {
     this.viewPlacesList.update((v) => !v);
-    this.viewPlacesListFiltering.set(false);
     this.hideOutOfBoundsPlaces.set(false);
+    this.viewPlacesListFiltering.set(false);
     this.searchInput.setValue('');
+    this.resetGeocodeFilters();
   }
 
   togglePlacesListFiltering() {
