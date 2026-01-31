@@ -1,73 +1,90 @@
-import { Component } from '@angular/core';
-import { ReactiveFormsModule } from '@angular/forms';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { DialogService, DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
-import { FloatLabelModule } from 'primeng/floatlabel';
-import { InputTextModule } from 'primeng/inputtext';
 import { ApiService } from '../../services/api.service';
-import { SkeletonModule } from 'primeng/skeleton';
 import { UtilsService } from '../../services/utils.service';
-import { TooltipModule } from 'primeng/tooltip';
 import { Category, Place } from '../../types/poi';
 import { PlaceCreateModalComponent } from '../place-create-modal/place-create-modal.component';
-import { map, Observable, take, tap } from 'rxjs';
-import { CommonModule } from '@angular/common';
+import { map, take } from 'rxjs';
 import { DialogModule } from 'primeng/dialog';
 import { TripBase } from '../../types/trip';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { PopoverModule } from 'primeng/popover';
+import { YesNoModalComponent } from '../yes-no-modal/yes-no-modal.component';
 
 @Component({
   selector: 'app-multi-places-create-modal',
-  imports: [
-    FloatLabelModule,
-    InputTextModule,
-    CommonModule,
-    ButtonModule,
-    ReactiveFormsModule,
-    SkeletonModule,
-    TooltipModule,
-    DialogModule,
-  ],
+  imports: [ButtonModule, DialogModule, PopoverModule],
   standalone: true,
   templateUrl: './multi-places-create-modal.component.html',
   styleUrl: './multi-places-create-modal.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MultiPlacesCreateModalComponent {
-  places: Place[] = [];
-  categories: Category[] = [];
-  linkToTripID: number | null = null;
-  isTripsDialogVisible = false;
-  trips$!: Observable<TripBase[]>;
+  apiService = inject(ApiService);
+  ref = inject(DynamicDialogRef);
+  dialogService = inject(DialogService);
+  config = inject(DynamicDialogConfig);
+  utilsService = inject(UtilsService);
 
-  constructor(
-    private apiService: ApiService,
-    private ref: DynamicDialogRef,
-    private dialogService: DialogService,
-    private config: DynamicDialogConfig,
-    private utilsService: UtilsService,
-  ) {
-    this.apiService
-      .getCategories()
-      .pipe(take(1))
-      .subscribe({
-        next: (categories) => {
-          this.categories = categories;
-          this.places = this.config.data?.places.map((p: Place, i: number) => {
-            p.id = i;
-            if (!p.category) return p;
+  categories = toSignal(this.apiService.getCategories(), { initialValue: [] as Category[] });
+  places = signal<Place[]>([]);
+  isTripsDialogVisible = signal(false);
+  trips = signal<TripBase[]>([]);
+  linkToTripId = signal<number | null>(null);
 
-            const category_id = this.categoryNameToCategoryID(p.category as unknown as string);
-            return { ...p, category_id };
-          });
-        },
+  categoryById = computed(() => new Map(this.categories().map((c: Category) => [c.id, c])));
+  categoryIdByName = computed(() => new Map(this.categories().map((c: Category) => [c.name, c.id])));
+  validPlaces = computed(() => this.places().filter((p) => this.isPlaceValid(p)).length);
+  hasInvalidPlace = computed(() => this.places().some((p) => !this.isPlaceValid(p)));
+  duplicatePlaceNames = computed(() => {
+    const places = this.places();
+    const seen = new Map<string, Place[]>();
+
+    places.forEach((p) => {
+      const key = `${p.name?.trim().toLowerCase() || ''}_${p.lat?.toFixed(6) || ''}_${p.lng?.toFixed(6) || ''}`;
+      if (!seen.has(key)) seen.set(key, []);
+      seen.get(key)!.push(p);
+    });
+    const duplicateNames: string[] = [];
+    seen.forEach((group) => {
+      if (group.length > 1 && group[0].name) duplicateNames.push(group[0].name);
+    });
+    return duplicateNames;
+  });
+
+  hasDuplicates = computed(() => this.duplicatePlaceNames().length > 0);
+
+  constructor() {
+    if (!this.config.data?.places) {
+      this.ref.close(null);
+      return;
+    }
+
+    effect(() => {
+      const categories = this.categories();
+      if (!categories.length || this.places().length) return;
+
+      const parsedPlaces = this.config.data.places.map((p: Place, i: number) => {
+        const category_id = this.categoryIdByName().get(p.category as unknown as string);
+        return { ...p, id: i, category_id };
       });
+
+      this.sortAndSetPlaces(parsedPlaces);
+    });
   }
 
-  categoryIDToCategory(id: number): Category {
-    return this.categories.find((c) => c.id == id)!;
+  sortAndSetPlaces(places: Place[]) {
+    const sorted = [...places].sort((a, b) => {
+      const nameA = a.name?.toLowerCase() || '';
+      const nameB = b.name?.toLowerCase() || '';
+      return nameA.localeCompare(nameB);
+    });
+    this.places.set(sorted);
   }
 
-  categoryNameToCategoryID(category: string): number | undefined {
-    return this.categories.find((c) => c.name == category)?.id;
+  categoryIDToCategory(id: number) {
+    return this.categoryById().get(id);
   }
 
   editPlace(pEdit: Place) {
@@ -77,60 +94,56 @@ export class MultiPlacesCreateModalComponent {
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       width: '55vw',
       breakpoints: {
         '1920px': '70vw',
         '1260px': '90vw',
       },
-      data: {
-        place: { ...pEdit, category: pEdit.category_id },
-      },
+      data: { place: { ...pEdit, category: pEdit.category_id } },
     })!;
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (p: Place | null) => {
         if (!p) return;
-        const index = this.places.findIndex((place) => place.id == p.id);
-        if (index > -1) this.places.splice(index, 1, p);
+        const updated = this.places().map((place) => (place.id === p.id ? p : place));
+        this.sortAndSetPlaces(updated);
       },
     });
   }
 
   deletePlace(p: Place) {
-    const index = this.places.findIndex((place) => place.id == p.id);
-    if (index > -1) this.places.splice(index, 1);
+    this.places.update((places) => places.filter((place) => place.id !== p.id));
   }
 
   isPlaceValid(p: Place) {
-    return (
-      p !== null &&
-      typeof p === 'object' &&
-      typeof p.category_id === 'number' &&
-      typeof p.place === 'string' &&
-      typeof p.name === 'string' &&
-      typeof p.lat === 'number' &&
-      typeof p.lng === 'number'
-    );
+    return !!(p?.category_id && p.place && p.name && typeof p.lat === 'number' && typeof p.lng === 'number');
   }
 
   openTripsModal() {
-    this.trips$ = this.apiService.getTrips().pipe(
-      tap(() => (this.isTripsDialogVisible = true)),
-      map((trips) => trips.filter((t) => !t.archived)),
-    );
+    this.isTripsDialogVisible.set(true);
+    if (this.trips().length) return;
+    this.apiService
+      .getTrips()
+      .pipe(
+        map((trips) => trips.filter((t) => !t.archived)),
+        take(1),
+      )
+      .subscribe((trips) => this.trips.set(trips));
   }
 
   cancelLinkToTrip() {
-    this.linkToTripID = null;
+    this.linkToTripId.set(null);
   }
 
   linkToTrip(trip: TripBase) {
-    this.linkToTripID = trip.id;
-    this.isTripsDialogVisible = false;
+    this.linkToTripId.set(trip.id);
+    this.isTripsDialogVisible.set(false);
   }
 
   closeDialog() {
-    if (this.places.some((p) => !this.isPlaceValid(p))) {
+    if (this.hasInvalidPlace()) {
       this.utilsService.toast(
         'warn',
         'Incomplete place(s)',
@@ -138,17 +151,52 @@ export class MultiPlacesCreateModalComponent {
       );
       return;
     }
-    if (this.linkToTripID) {
-      this.apiService
-        .getTrip(this.linkToTripID)
-        .pipe(take(1))
-        .subscribe({
-          next: (trip) => {
-            this.ref.close({ places: this.places, trip: trip });
-          },
-        });
-    } else {
-      this.ref.close({ places: this.places, trip: null });
+
+    const tripId = this.linkToTripId();
+    if (!tripId) {
+      this.ref.close({ places: this.places(), trip: null });
+      return;
     }
+
+    this.apiService
+      .getTrip(tripId)
+      .pipe(take(1))
+      .subscribe((trip) => this.ref.close({ places: this.places(), trip }));
+  }
+
+  bulkApplyCategory(category: string): void {
+    const confirmModal = this.dialogService.open(YesNoModalComponent, {
+      header: 'Possible duplicate',
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      draggable: false,
+      resizable: false,
+      data: `Apply ${category} to places with none?`,
+    })!;
+
+    confirmModal.onClose.pipe(take(1)).subscribe({
+      next: (confirmed: boolean) => {
+        if (!confirmed) return;
+        const categoryId = this.categoryIdByName().get(category);
+        const updated = this.places().map((p) => (this.isPlaceValid(p) ? p : { ...p, category_id: categoryId }));
+        this.sortAndSetPlaces(updated);
+      },
+    });
+  }
+
+  removeDuplicates() {
+    const seen = new Map<string, Place>();
+    const unique: Place[] = [];
+
+    this.places().forEach((p) => {
+      const key = `${p.name?.trim().toLowerCase() || ''}_${p.lat?.toFixed(6) || ''}_${p.lng?.toFixed(6) || ''}`;
+      if (!seen.has(key)) {
+        seen.set(key, p);
+        unique.push(p);
+      }
+    });
+
+    this.sortAndSetPlaces(unique);
   }
 }

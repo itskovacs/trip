@@ -1,49 +1,89 @@
 <section>
-  <div class="max-w-full grid md:grid-cols-2 xl:grid-cols-3 gap-2 overflow-y-auto mb-16">
-    @for (p of places; track p.id) {
-    <div (click)="editPlace(p)"
-      class="relative group w-full flex items-center gap-3 p-3 bg-white dark:bg-gray-950 hover:bg-gray-50 dark:hover:bg-gray-900 rounded-lg cursor-pointer transition-all border border-gray-200 dark:border-gray-800 text-left">
-      <button type="button"
-        class="cursor-pointer absolute top-1 right-1 size-8 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-lg shadow transition"
-        (click)="deletePlace(p); $event.stopPropagation()">
-        <i class="pi pi-times text-xs"></i>
-      </button>
+  <div class="rounded-lg bg-primary-50 dark:bg-primary-950 px-4 py-3 mb-4 flex items-center gap-4 justify-between">
+    <div class="pointer-events-none flex items-center gap-4">
+      <span [class]="validPlaces() === places().length
+          ? 'text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900'
+          : 'text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-900'"
+        class="mr-1 flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded truncate shrink-0">
+        <span class="truncate">{{ validPlaces() }}/{{ places().length }} valid</span>
+      </span>
+      <span class="hidden sm:flex text-xs text-neutral-500 dark:text-neutral-400">
+        Some places have no category
+      </span>
+    </div>
 
-      <div class="w-14 h-14 rounded overflow-hidden bg-gray-100 dark:bg-gray-800">
-        <img [src]="p.image || 'favicon.png'" class="w-full h-full object-cover" />
+    @if (hasInvalidPlace()) {
+    <p-button label="Bulk Update" icon="pi pi-clone" size="small" text (click)="popoverCategory.toggle($event)"
+      class="flex justify-center md:ml-auto" />
+    }
+  </div>
+
+  @if (hasDuplicates()) {
+  <div
+    class="rounded-lg bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-900 px-4 py-3 mb-4 space-y-4">
+    <i class="pi pi-exclamation-triangle text-orange-600 dark:text-orange-400 shrink-0"></i>
+    <span class="pointer-events-none ml-2 text-sm font-medium text-orange-900 dark:text-orange-100">Looks like there are
+      a few
+      duplicates:</span>
+
+    <div class="pointer-events-none flex items-center justify-center flex-wrap gap-2">
+      @for (duplicate of duplicatePlaceNames(); track $index) {
+      <span
+        class="max-w-[calc(50%-1rem)] mr-1 flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded truncate bg-primary-100 dark:bg-primary-800">
+        <span class="truncate">{{ duplicate }}</span>
+      </span>
+      }
+    </div>
+
+    <div class="flex items-center justify-center">
+      <p-button label="Remove them" icon="pi pi-trash" size="small" severity="danger" [outlined]="true"
+        (click)="removeDuplicates()" />
+    </div>
+  </div>
+  }
+
+  <div class="max-w-full grid md:grid-cols-2 xl:grid-cols-3 gap-2 mb-16">
+    @for (p of places(); track p.id) {
+    <div (click)="editPlace(p)"
+      class="relative group w-full flex items-center gap-3 p-3 bg-white dark:bg-black hover:bg-primary-50 dark:hover:bg-primary-900 rounded-lg cursor-pointer transition-all border border-primary-200 dark:border-primary-800 text-left">
+      <p-button class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity" text
+        severity="danger" size="small" icon="pi pi-times" (click)="deletePlace(p); $event.stopPropagation()" />
+
+      <div class="pointer-events-none w-14 h-14 rounded overflow-hidden bg-primary-100 dark:bg-primary-800">
+        <img [src]="p.image || 'favicon.png'" class="w-full h-full object-cover" alt="Place image" />
       </div>
 
       <div class="flex-1 min-w-0">
-        <h3 class="text-sm font-semibold text-gray-900 dark:text-white truncate"
-          [class]="isPlaceValid(p) ? undefined : 'text-red-500 font-semibold invalid-content'">
+        <h3 class="pointer-events-none text-sm font-semibold truncate" [class.invalid-content]="!isPlaceValid(p)"
+          [class]="isPlaceValid(p) ? 'text-primary-900 dark:text-white' : 'text-red-500'">
           {{ p.name }}
         </h3>
-        <p class="text-xs text-gray-600 dark:text-gray-400 truncate mt-0.5">
+        <p class="pointer-events-none text-xs text-primary-600 dark:text-primary-400 truncate mt-0.5">
           {{ p.place }}
         </p>
 
-        <div class="flex flex-wrap gap-1 mt-1.5">
-          <span class="flex items-center px-1.5 py-0.5 rounded text-xs"
-            [class]="p.allowdog ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-500'">
+        <div class="flex items-center gap-2">
+          <span class="pi flex items-center px-1.5 py-0.5 rounded text-xs" style="font-size: 12px;"
+            [class]="p.allowdog ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400' : 'bg-primary-100 text-primary-600 dark:bg-primary-800 dark:text-primary-500'">
             🐶
           </span>
 
-          <span class="flex items-center px-1.5 py-0.5 rounded text-xs"
-            [class]="p.restroom ? 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-500'">
+          <span class="pi flex items-center px-1.5 py-0.5 rounded text-xs" style="font-size: 12px;"
+            [class]="p.restroom ? 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-400' : 'bg-primary-100 text-primary-600 dark:bg-primary-800 dark:text-primary-500'">
             🚽
           </span>
 
           <span class="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium"
-            [class]="p.visited ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400' : 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-500'">
+            [class]="p.visited ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400' : 'bg-primary-100 text-primary-600 dark:bg-primary-800 dark:text-primary-500'">
             <i class="pi" style="font-size: 12px;" [class]="p.visited ? 'pi-eye' : 'pi-eye-slash'"></i>
           </span>
 
-          @if (p.category_id) {
-          <span class="flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-medium max-w-[90px]"
-            [style.color]="categoryIDToCategory(p.category_id).color"
-            [style.background-color]="categoryIDToCategory(p.category_id).color + '15'"
-            class="bg-blue-100 text-blue-800 text-xs font-medium me-2 px-2.5 py-0.5 rounded flex gap-2 items-center truncate dark:bg-blue-100/85"><i
-              class="pi pi-box text-xs"></i>{{ categoryIDToCategory(p.category_id).name }}</span>
+          @if (p.category_id && categoryIDToCategory(p.category_id); as category) {
+          <span
+            class="pointer-events-none color-bg-opacity flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded truncate"
+            [style.--color-bg-opacity]="category.color">
+            <span class="truncate">{{ category.name }}</span>
+          </span>
           }
         </div>
       </div>
@@ -51,40 +91,36 @@
     }
   </div>
 
-  <div class="fixed inset-x-0 bottom-0 z-20 flex justify-center p-4">
-    <div
-      class="flex w-full max-w-lg items-center justify-between gap-3 rounded-lg border border-surface-200/70 bg-surface-0/90 px-4 py-2.5 shadow-sm backdrop-blur-md dark:border-surface-700/70 dark:bg-surface-900/90">
-      <div class="flex flex-col min-w-0">
-        <span class="text-xs font-semibold text-surface-700 dark:text-surface-200 truncate">
-          {{ places.length }} places to add
-        </span>
-        <span class="text-xs text-surface-500 dark:text-surface-400 truncate">
-          Confirm to create the places
-        </span>
-      </div>
-
+  <div class="fixed inset-x-0 bottom-4 z-20 flex justify-center w-full pointer-events-none">
+    <div class="pointer-events-auto flex items-center justify-between gap-3 rounded-lg border border-primary-200/70 bg-primary-50/90 px-4 py-2.5 shadow-sm
+      backdrop-blur-mddark:border-primary-700/70 dark:bg-primary-900/90">
       <div class="shrink-0 flex items-center justify-end gap-2">
-        @if (linkToTripID) {
-        <p-button icon="pi pi-times" size="small" severity="danger" label="To Trip" text (click)="cancelLinkToTrip()" />
+        @if (linkToTripId()) {
+        <p-button icon="pi pi-times" size="small" severity="danger" label="Link to Trip" text
+          (click)="cancelLinkToTrip()" />
         } @else {
-        <p-button icon="pi pi-link" size="small" severity="secondary" label="To Trip" text (click)="openTripsModal()" />
+        <p-button icon="pi pi-link" size="small" severity="secondary" label="Link to Trip" text
+          (click)="openTripsModal()" />
         }
-        <p-button (click)="closeDialog()" label="Confirm" size="small" severity="secondary" />
+        <p-button (click)="closeDialog()" [disabled]="hasInvalidPlace()" label="Confirm" size="small"
+          severity="success" />
       </div>
     </div>
   </div>
 </section>
 
 <p-dialog header="Select a Trip" [draggable]="false" [dismissableMask]="true" [modal]="true" appendTo="body"
-  [(visible)]="isTripsDialogVisible" styleClass="w-[95%] md:w-[40%] lg:w-[30%]">
+  [visible]="isTripsDialogVisible()" (visibleChange)="isTripsDialogVisible.set($event)"
+  styleClass="w-[95%] md:w-[40%] lg:w-[30%]">
   <div class="grid grid-cols-1 gap-2 px-4 py-2 md:grid-cols-2 lg:grid-cols-3">
-    @for (trip of (trips$ | async); track trip.id) {
-    <div (click)="linkToTrip(trip)" class="group relative cursor-pointer rounded-xl border border-transparent p-3 transition-colors hover:border-surface-200
-          hover:bg-surface-50 dark:hover:border-surface-700 dark:hover:bg-surface-900">
+    @for (trip of trips(); track trip.id) {
+    <div (click)="linkToTrip(trip)"
+      class="group relative cursor-pointer rounded-xl border border-transparent p-3 transition-colors hover:border-primary-200 hover:bg-primary-50 dark:hover:border-primary-700 dark:hover:bg-primary-900">
       <div class="flex items-center gap-3">
-        <img [src]="trip.image" loading="lazy" class="h-14 w-14 rounded object-cover" />
+        <img [src]="trip.image || 'cover.webp'" loading="lazy" class="h-14 w-14 rounded object-cover"
+          alt="Trip image" />
         <div class="min-w-0 flex-1">
-          <h3 class="mb-0.5 truncate text-sm font-semibold text-gray-900 dark:text-white">
+          <h3 class="mb-0.5 truncate text-sm font-semibold text-primary-900 dark:text-white">
             {{ trip.name }}
           </h3>
         </div>
@@ -93,3 +129,14 @@
     }
   </div>
 </p-dialog>
+
+<p-popover #popoverCategory>
+  <div class="flex flex-col gap-1 max-w-48 overflow-y-auto">
+    <span class="text-center text-xs text-primary-500 mb-4">Select a category to apply to places with no category</span>
+    @for (category of categories(); track category.id) {
+    <div
+      class="p-2 cursor-pointer text-sm font-medium rounded-lg hover:bg-primary-100 dark:hover:bg-primary-800 truncate"
+      (click)="bulkApplyCategory(category.name); popoverCategory.hide()">{{ category.name }}</div>
+    }
+  </div>
+</p-popover>
