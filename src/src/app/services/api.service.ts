@@ -44,9 +44,10 @@ export class ApiService {
 
   getCategories(): Observable<Category[]> {
     if (!this.categoriesSubject.value) {
-      return this.httpClient
-        .get<Category[]>(`${this.apiBaseUrl}/categories`)
-        .pipe(tap((categories) => this._categoriesSubjectNext(categories)));
+      return this.httpClient.get<Category[]>(`${this.apiBaseUrl}/categories`).pipe(
+        map((categories) => categories.sort((a, b) => a.name.localeCompare(b.name))),
+        tap((categories) => this._categoriesSubjectNext(categories)),
+      );
     }
     return this.categories$ as Observable<Category[]>;
   }
