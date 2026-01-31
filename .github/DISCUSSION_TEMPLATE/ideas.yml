@@ -1,11 +1,12 @@
 title: "[FR] "
-labels: []
+labels: ["enhancement"]
 
 body:
   - type: markdown
     attributes:
       value: |
         Thank you for helping me improve TRIP! Please fill out the details below to help me understand your need.
+
   - type: textarea
     id: problem
     attributes:
@@ -13,15 +14,37 @@ body:
       description: "Provide a clear and concise description of what the problem is."
     validations:
       required: true
+
   - type: textarea
     id: solution
     attributes:
       label: "Describe the solution you'd like"
       description: "A clear and concise description of what you want to happen."
       placeholder: "Describe your proposed solution."
+
   - type: textarea
     id: additional_context
     attributes:
       label: "Additional context"
       description: "Add any other context or screenshots about the feature request here."
       placeholder: "Additional information or examples."
+
+  - type: dropdown
+    id: canyoudoit
+    attributes:
+      label: "Could you implement it?"
+      description: "If yes, we can discuss it so you can open a PR."
+      options:
+        - "Yes - I am able to do it"
+        - "Maybe - I can try with guidance"
+        - "No - I can't implement it right now"
+      default: 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: canyoudoit_how
+    attributes:
+      label: "Implementation plan (optional)"
+      description: "A short plan is enough (UI, API, data model, edge cases)."
+      placeholder: "Example: add a new setting, update validation, adjust UI form, etc."

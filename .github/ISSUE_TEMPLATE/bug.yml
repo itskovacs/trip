@@ -73,3 +73,23 @@ body:
       label: "Additional context"
       description: "Add any other context about the problem here."
       placeholder: "Additional information"
+
+  - type: dropdown
+    id: canyoudoit
+    attributes:
+      label: "Could you fix it?"
+      description: "If yes, we can discuss it so you can open a PR."
+      options:
+        - "Yes - I am able to do it"
+        - "Maybe - I can try with guidance"
+        - "No - I can't implement it right now"
+      default: 2
+    validations:
+      required: true
+
+  - type: textarea
+    id: canyoudoit_how
+    attributes:
+      label: "Fix plan (optional)"
+      description: "A short plan is enough (UI, API, data model, edge cases)."
+      placeholder: "Example: add a new setting, update validation, adjust UI form, etc."

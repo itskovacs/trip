@@ -95,14 +95,9 @@ A demo is available at [itskovacs-trip.netlify.app](https://itskovacs-trip.netli
 
 ## 🤝 Contributing <a name = "contributing"></a>
 
-Contributions are welcome! Open an issue to report bugs, start a discussion to share ideas or submit a pull request for new features.
+Contributions are welcome! See [CONTRIBUTING.md](https://github.com/itskovacs/trip/blob/main/CONTRIBUTING.md) for details.
 
-1. Fork the repository
-2. Create a new branch (`my-new-trip-feature`)
-3. Commit and push your changes
-4. Open a pull request
-
-TRIP is and will always remain completely free, no paywalled features, no telemetry, no tracking, no ads. Development is supported through optional donations. If TRIP helps plan your adventures, consider [leaving me a small tip](https://ko-fi.com/itskovacs) ☕.
+Love using TRIP? Support the project and its development by [☕ buying me a coffee](https://ko-fi.com/itskovacs).
 
 <br>
 
