@@ -1005,6 +1005,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       data: 'Remove the place from this Trip?',
     })!;
 
@@ -1224,6 +1226,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       breakpoints: {
         '640px': '90vw',
       },
@@ -1272,10 +1276,13 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   editItem(item: TripItem) {
     const modal = this.dialogService.open(TripCreateDayItemModalComponent, {
       header: 'Update Item',
+      resizable: false,
       modal: true,
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       data: {
         trip: this.trip(),
         item: { ...item, status: item.status ? (item.status as TripStatus)?.label : null },
@@ -1321,12 +1328,16 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   }
 
   deleteItem(item: TripItem) {
+      draggable: false,
+      resizable: false,
     const modal = this.dialogService.open(YesNoModalComponent, {
       header: 'Delete Item',
       modal: true,
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       data: `Delete ${item.text.substring(0, 50)}?`,
     })!;
 
@@ -1346,6 +1357,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           if (remainingItems.length === 0) this.selectedPlaceActiveTabIndex.set(0);
         }
       });
+      draggable: false,
+      resizable: false,
     });
   }
 
@@ -1356,6 +1369,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       data: { days: this.trip()!.days },
       breakpoints: {
         '640px': '80vw',
@@ -1386,6 +1401,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           this.trip.update((t) => {
             if (!t) return null;
             const days = [...t.days, createdDay].sort((a, b) => (a.dt || '').localeCompare(b.dt || ''));
+      draggable: false,
+      resizable: false,
             return { ...t, days };
           });
         });
@@ -1400,6 +1417,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       data: { day, days: this.trip()!.days },
       breakpoints: {
         '640px': '80vw',
@@ -1410,6 +1429,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       if (!newDay) return;
       this.apiService.putTripDay(newDay, this.trip()!.id).subscribe((updated) => {
         this.trip.update((t) => {
+      draggable: false,
+      resizable: false,
           if (!t) return null;
           const days = t.days
             .map((d) => (d.id === updated.id ? { ...d, ...updated } : d))
@@ -1428,9 +1449,13 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       modal: true,
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       breakpoints: {
         '640px': '90vw',
       },
+      draggable: false,
+      resizable: false,
       data: `Delete ${day.label} and associated plans?`,
     })!;
 
@@ -1453,6 +1478,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       breakpoints: {
         '640px': '90vw',
       },
@@ -1461,6 +1488,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     modal.onClose.pipe(take(1)).subscribe({
       next: (place: Place | null) => {
         if (!place) return;
+      draggable: false,
+      resizable: false,
 
         this.apiService
           .postPlace(place)
@@ -1487,6 +1516,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       breakpoints: {
         '640px': '90vw',
       },
@@ -1535,6 +1566,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
         places: this.places(),
         usedPlaces: this.usedPlaceIds(),
       },
+      draggable: false,
+      resizable: false,
       breakpoints: {
         '640px': '90vw',
       },
@@ -1557,6 +1590,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       },
     });
   }
+      draggable: false,
+      resizable: false,
 
   editTrip() {
     const modal: DynamicDialogRef = this.dialogService.open(TripCreateModalComponent, {
@@ -1565,6 +1600,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       width: '50vw',
       breakpoints: {
         '640px': '90vw',
@@ -1589,6 +1626,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       modal: true,
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       breakpoints: {
         '640px': '90vw',
       },
@@ -1611,6 +1650,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   openPackingList() {
     this.apiService.getPackingList(this.trip()!.id).subscribe((items) => {
       this.packingList.set(items);
+      draggable: false,
+      resizable: false,
       this.isPackingDialogVisible = !this.isPackingDialogVisible;
       this.computeMenuTripPackingItems();
     });
@@ -1643,12 +1684,16 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   }
 
   addPackingItem() {
+      draggable: false,
+      resizable: false,
     const modal: DynamicDialogRef = this.dialogService.open(TripCreatePackingModalComponent, {
       header: 'Add Packing',
       modal: true,
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       breakpoints: {
         '640px': '90vw',
       },
@@ -1683,6 +1728,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       modal: true,
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       breakpoints: {
         '640px': '90vw',
       },
@@ -1695,6 +1742,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
         this.apiService
           .deletePackingItem(this.trip()!.id, item.id)
           .pipe(take(1))
+      draggable: false,
+      resizable: false,
           .subscribe({
             next: () => this.packingList.update((l) => l.filter((i) => i.id !== item.id)),
           });
@@ -1734,6 +1783,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     );
   }
 
+      draggable: false,
+      resizable: false,
   pastePackingList() {
     const content: Partial<PackingItem>[] = this.utilsService.packingListToCopy;
     const modal = this.dialogService.open(YesNoModalComponent, {
@@ -1741,6 +1792,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       modal: true,
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       breakpoints: {
         '640px': '90vw',
       },
@@ -1764,6 +1817,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
               this.utilsService.toast('success', 'Success', 'Items pasted');
             },
           });
+      draggable: false,
+      resizable: false,
       },
     });
   }
@@ -1782,6 +1837,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       breakpoints: {
         '640px': '90vw',
       },
@@ -1816,6 +1873,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       modal: true,
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       breakpoints: {
         '640px': '90vw',
       },
@@ -1824,6 +1883,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
     modal.onClose.pipe(take(1)).subscribe({
       next: (bool) => {
+      draggable: false,
+      resizable: false,
         if (!bool) return;
         this.apiService
           .deleteChecklistItem(this.trip()!.id, item.id)
@@ -1865,6 +1926,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           const url = window.URL.createObjectURL(blob);
           const anchor = document.createElement('a');
           anchor.download = attachment.filename;
+      resizable: false,
           anchor.href = url;
 
           document.body.appendChild(anchor);
@@ -1882,12 +1944,16 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       modal: true,
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       breakpoints: {
         '640px': '90vw',
       },
       data: 'Delete attachment? This cannot be undone.',
     })!;
 
+      draggable: false,
+      resizable: false,
     modal.onClose.pipe(take(1)).subscribe({
       next: (bool) => {
         if (!bool) return;
@@ -1925,6 +1991,145 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       modal: true,
       closable: true,
       dismissableMask: true,
+      draggable: false,
+          anchor.download = attachment.filename;
+      resizable: false,
+          anchor.href = url;
+
+          document.body.appendChild(anchor);
+          anchor.click();
+
+          document.body.removeChild(anchor);
+          window.URL.revokeObjectURL(url);
+        },
+      });
+  }
+
+  deleteAttachment(attachmentId: number) {
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: 'Delete Attachment',
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      draggable: false,
+      resizable: false,
+      breakpoints: {
+        '640px': '90vw',
+      },
+      data: 'Delete attachment? This cannot be undone.',
+    })!;
+
+      draggable: false,
+      resizable: false,
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (bool) => {
+        if (!bool) return;
+
+        this.apiService
+          .deleteTripAttachment(this.trip()!.id, attachmentId)
+          .pipe(take(1))
+          .subscribe({
+            next: () => {
+              this.trip.update((t) => {
+                const attachments = t!.attachments?.filter((a) => a.id !== attachmentId);
+                const days = t!.days.map((day) => ({
+                  ...day,
+                  items: day.items.map((item) => ({
+      draggable: false,
+      resizable: false,
+                    ...item,
+                    attachments: item.attachments?.filter((a) => a.id !== attachmentId),
+                  })),
+                }));
+                return { ...t, attachments, days } as Trip;
+              });
+
+              if (this.selectedItem()?.attachments)
+                this.selectedItem.update((curr) =>
+                  curr ? { ...curr, attachments: curr.attachments?.filter((a) => a.id !== attachmentId) ?? [] } : null,
+                );
+            },
+          });
+      },
+    });
+  }
+
+  openUnarchiveTripModal() {
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: 'Restore Trip',
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      draggable: false,
+          anchor.download = attachment.filename;
+      resizable: false,
+          anchor.href = url;
+
+          document.body.appendChild(anchor);
+          anchor.click();
+
+          document.body.removeChild(anchor);
+          window.URL.revokeObjectURL(url);
+        },
+      });
+  }
+
+  deleteAttachment(attachmentId: number) {
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: 'Delete Attachment',
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      draggable: false,
+      resizable: false,
+      breakpoints: {
+        '640px': '90vw',
+      },
+      data: 'Delete attachment? This cannot be undone.',
+    })!;
+
+      draggable: false,
+      resizable: false,
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (bool) => {
+        if (!bool) return;
+
+        this.apiService
+          .deleteTripAttachment(this.trip()!.id, attachmentId)
+          .pipe(take(1))
+          .subscribe({
+            next: () => {
+              this.trip.update((t) => {
+                const attachments = t!.attachments?.filter((a) => a.id !== attachmentId);
+                const days = t!.days.map((day) => ({
+                  ...day,
+                  items: day.items.map((item) => ({
+                    ...item,
+                    attachments: item.attachments?.filter((a) => a.id !== attachmentId),
+                  })),
+                }));
+      draggable: false,
+      resizable: false,
+                return { ...t, attachments, days } as Trip;
+              });
+
+              if (this.selectedItem()?.attachments)
+                this.selectedItem.update((curr) =>
+                  curr ? { ...curr, attachments: curr.attachments?.filter((a) => a.id !== attachmentId) ?? [] } : null,
+                );
+            },
+          });
+      },
+    });
+  }
+
+  openUnarchiveTripModal() {
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: 'Restore Trip',
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      resizable: false,
       breakpoints: {
         '640px': '90vw',
       },
@@ -1939,6 +2144,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           .pipe(take(1))
           .subscribe({
             next: (trip) => this.trip.set(trip),
+      draggable: false,
+      resizable: false,
           });
       },
     });
@@ -1951,6 +2158,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       closable: true,
       appendTo: 'body',
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       breakpoints: {
         '640px': '90vw',
       },
@@ -2001,6 +2210,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     if (!this.trip() || idx === undefined || idx == -1) return;
     const data = this.trip()!.days[idx].items.sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
     const items = data.filter((item) => item.lat && item.lng);
+      draggable: false,
+      resizable: false,
     if (!items.length) return;
     openNavigation(items.map((item) => ({ lat: item.lat!, lng: item.lng! })));
   }
@@ -2014,6 +2225,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   }
 
   getSharedTripURL() {
+      draggable: false,
+      resizable: false,
     this.apiService.getSharedTripURL(this.trip()!.id).pipe(take(1)).subscribe();
   }
 
@@ -2035,6 +2248,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       modal: true,
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       breakpoints: {
         '640px': '90vw',
       },
@@ -2047,6 +2262,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
         this.apiService
           .deleteSharedTrip(this.trip()!.id)
           .pipe(take(1))
+      draggable: false,
+      resizable: false,
           .subscribe({
             next: () => {
               this.trip.update((t) => (t ? { ...t, shared: false } : null));
@@ -2083,6 +2300,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       breakpoints: {
         '640px': '90vw',
       },
@@ -2101,6 +2320,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       },
     });
   }
+      draggable: false,
+      resizable: false,
 
   deleteMember(username: string) {
     const modal = this.dialogService.open(YesNoModalComponent, {
@@ -2108,6 +2329,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       modal: true,
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       breakpoints: {
         '640px': '90vw',
       },
@@ -2144,6 +2367,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       modal: true,
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       width: '30vw',
       breakpoints: {
         '640px': '90vw',
@@ -2174,6 +2399,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       data: `Delete ${items.length} plan${items.length > 1 ? 's' : ''}? This cannot be undone.`,
     })!;
 
@@ -2210,6 +2437,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       data: `Duplicate ${items.length} plan${items.length > 1 ? 's' : ''}?`,
     })!;
 
@@ -2262,6 +2491,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       data: {
         trip: this.trip(),
         members: this.tripMembers(),

@@ -271,6 +271,8 @@ export class PlaceCreateModalComponent {
           appendTo: 'body',
           closable: true,
           dismissableMask: true,
+          draggable: false,
+          resizable: false,
           data: results,
           width: '40vw',
           breakpoints: {

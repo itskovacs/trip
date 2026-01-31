@@ -309,6 +309,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
     effect(() => {
       const placesToDisplay = this.mapDisplayPlaces();
+      // triggers
       const isVisitedMode = this.isVisitedMode();
       const isVisitedFilter = this.filter_display_visited();
       const isLowNetMode = this.isLowNetMode();
@@ -520,6 +521,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       width: '40vw',
       breakpoints: {
         '960px': '75vw',
@@ -539,6 +542,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             modal: true,
             closable: true,
             dismissableMask: true,
+            draggable: false,
+            resizable: false,
             width: '40vw',
             breakpoints: {
               '960px': '75vw',
@@ -647,6 +652,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       modal: true,
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       breakpoints: {
         '960px': '75vw',
         '640px': '90vw',
@@ -682,6 +689,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       width: '40vw',
       breakpoints: {
         '960px': '75vw',
@@ -927,6 +936,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       data: { category: c },
       width: '30vw',
       breakpoints: {
@@ -967,6 +978,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       width: '30vw',
       breakpoints: {
         '960px': '75vw',
@@ -1001,6 +1014,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       modal: true,
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       breakpoints: {
         '640px': '90vw',
       },
@@ -1231,6 +1246,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           modal: true,
           closable: true,
           dismissableMask: true,
+          draggable: false,
+          resizable: false,
           breakpoints: {
             '640px': '90vw',
           },
@@ -1304,6 +1321,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           modal: true,
           closable: true,
           dismissableMask: true,
+          draggable: false,
+          resizable: false,
           breakpoints: {
             '640px': '90vw',
           },
@@ -1319,6 +1338,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       modal: true,
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       breakpoints: {
         '640px': '90vw',
       },
@@ -1342,6 +1363,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       modal: true,
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       breakpoints: {
         '640px': '90vw',
       },
@@ -1460,6 +1483,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       modal: true,
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       breakpoints: {
         '640px': '90vw',
       },
@@ -1537,6 +1562,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       appendTo: 'body',
       closable: true,
       dismissableMask: false,
+      draggable: false,
       width: '50vw',
       breakpoints: {
         '960px': '75vw',
@@ -1623,6 +1649,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       appendTo: 'body',
       closable: true,
       dismissableMask: false,
+      draggable: false,
       width: '50vw',
       breakpoints: {
         '960px': '75vw',

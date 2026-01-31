@@ -63,6 +63,8 @@ export class TripsComponent implements OnInit {
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
+      draggable: false,
+      resizable: false,
       width: '40vw',
       breakpoints: {
         '960px': '80vw',
