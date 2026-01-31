@@ -5,7 +5,8 @@ from sqlmodel import select
 
 from ..config import settings
 from ..deps import SessionDep
-from ..models.models import (Category, CategoryRead, Image, Place, PlaceCreate, TokenPlaceCreate, PlaceRead, TokenGoogleSearch)
+from ..models.models import (Category, CategoryRead, Image, Place, PlaceCreate,
+                             PlaceRead, TokenGoogleSearch, TokenPlaceCreate)
 from ..security import api_token_to_user
 from ..utils.utils import (b64img_decode, download_file, patch_image,
                            save_image_to_file)

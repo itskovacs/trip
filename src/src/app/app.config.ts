@@ -1,5 +1,4 @@
 import { ApplicationConfig, provideZoneChangeDetection, isDevMode } from '@angular/core';
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { providePrimeNG } from 'primeng/config';
@@ -14,7 +13,6 @@ export const appConfig: ApplicationConfig = {
   providers: [
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes),
-    provideAnimationsAsync(), // primeng/issues/18978
     provideHttpClient(withInterceptors([Interceptor])),
     providePrimeNG({
       translation: {
@@ -22,13 +20,7 @@ export const appConfig: ApplicationConfig = {
       },
       theme: {
         preset: TripThemePreset,
-        options: {
-          darkModeSelector: '.dark',
-          cssLayer: {
-            name: 'primeng',
-            order: 'tailwind, primeng',
-          },
-        },
+        options: { darkModeSelector: '.dark' },
       },
     }),
     MessageService,
