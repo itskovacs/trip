@@ -6,6 +6,17 @@
       <input id="name" formControlName="name" pInputText fluid (keyup.enter)="closeDialog()" />
       <label for="name">Name</label>
     </p-floatlabel>
+
+    <div class="relative w-full">
+      <p-floatlabel variant="in">
+        <input id="color" formControlName="color" pInputText fluid />
+        <label for="color">Color</label>
+      </p-floatlabel>
+      <div class="absolute right-3 top-1/2 -translate-y-1/2">
+        <p-colorpicker [ngModel]="categoryForm.get('color')?.value" (ngModelChange)="updateColorFromPicker($event)"
+          [ngModelOptions]="{standalone: true}" appendTo="body" [pt]="{ panel: 'right-0! left-auto!' }" />
+      </div>
+    </div>
   </div>
 
   <input type="file" accept="image/*" #fileInput class="hidden" (change)="onFileSelected($event)" />

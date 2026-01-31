@@ -10,7 +10,15 @@ import { Category } from '../../types/poi';
 
 @Component({
   selector: 'app-category-create-modal',
-  imports: [FloatLabelModule, InputTextModule, ButtonModule, ColorPickerModule, ReactiveFormsModule, FocusTrapModule],
+  imports: [
+    FloatLabelModule,
+    InputTextModule,
+    FormsModule,
+    ButtonModule,
+    ColorPickerModule,
+    ReactiveFormsModule,
+    FocusTrapModule,
+  ],
   standalone: true,
   templateUrl: './category-create-modal.component.html',
   styleUrl: './category-create-modal.component.scss',
@@ -73,5 +81,10 @@ export class CategoryCreateModalComponent {
   clearImage() {
     this.categoryForm.get('image')?.setValue(null);
     this.updatedImage = false;
+  }
+
+  updateColorFromPicker(value: string) {
+    this.categoryForm.get('color')?.setValue(value.toUpperCase());
+    this.categoryForm.get('color')?.markAsDirty();
   }
 }
