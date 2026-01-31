@@ -76,7 +76,13 @@ async def oidc_login(
         case "RS256":
             jwks_uri = oidc_config.get("jwks_uri")
             issuer = oidc_config.get("issuer")
-            jwks_client = jwt.PyJWKClient(jwks_uri)
+            jwks_client = jwt.PyJWKClient(
+                jwks_uri,
+                headers={
+                    "User-Agent": "Mozilla/5.0 (compatible; TRIP/1 PyJWKClient; +https://github.com/itskovacs/trip)",
+                    "Accept": "application/json",
+                },
+            )
 
             try:
                 signing_key = jwks_client.get_signing_key_from_jwt(id_token)
