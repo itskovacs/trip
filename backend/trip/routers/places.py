@@ -76,6 +76,7 @@ async def create_place(
         duration=place.duration,
         category_id=place.category_id,
         visited=place.visited,
+        restroom=place.restroom,
         user=current_user,
     )
 
