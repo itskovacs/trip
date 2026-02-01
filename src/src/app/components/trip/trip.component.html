@@ -147,7 +147,7 @@
               <p-button text icon="pi pi-ellipsis-h" severity="secondary" (click)="openMenuTripActionsItems($event)" />
               <p-menu #menuTripActions [model]="menuTripActionsItems" [popup]="true" appendTo="body" />
               <div class="flex sm:hidden">
-                <p-button text severity="danger" icon="pi pi-times" (click)="togglePlansPanel()" />
+                <p-button text icon="pi pi-window-minimize" (click)="togglePlansPanel()" />
               </div>
             </div>
           </div>
@@ -219,7 +219,7 @@
           </div>
         </div>
 
-        <div class="flex-1 overflow-y-auto min-h-0">
+        <div class="flex-1 overflow-y-auto overflow-x-hidden min-h-0">
           @defer {
           @let visibleProps = selectedItemPropsSet();
           <div class="space-y-4 pb-4">
@@ -268,7 +268,7 @@
                   [class]="(selectedItem()?.id === item.id || selectedPlaceItems()[selectedPlaceActiveTabIndex()]?.id === item.id) && !isMultiSelectMode() ? 'border-l-4' : 'border-l-0'">
                   <div class="shrink-0 flex items-center">
                     <span
-                      class="px-2.5 py-1 text-sm font-mono font-medium bg-primary-100 dark:bg-primary-800 text-primary-700 dark:text-primary-300 rounded whitespace-nowrap">
+                      class="px-2.5 py-1 text-xs sm:text-sm font-mono font-medium bg-primary-100 dark:bg-primary-800 text-primary-700 dark:text-primary-300 rounded whitespace-nowrap">
                       {{ item.time }}
                     </span>
                   </div>
@@ -591,7 +591,7 @@
       </div>
 
       <p-tabs [(value)]="selectedPlaceActiveTabIndex" scrollable>
-        <p-tablist>
+        <p-tablist #selectedTabListRef>
           @for (item of selection.items; track item.id) {
           <p-tab [value]="$index">
             <div class="flex items-center gap-2 px-1">

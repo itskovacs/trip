@@ -70,7 +70,7 @@ import { generateTripCSVFile } from '../../shared/trip-base/csv';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FileSizePipe } from '../../shared/pipes/filesize.pipe';
 import { calculateDistanceBetween, daterangeToTripDays } from '../../shared/utils';
-import { TabsModule } from 'primeng/tabs';
+import { TabList, TabsModule } from 'primeng/tabs';
 import { PlaceBoxContentComponent } from '../../shared/place-box-content/place-box-content.component';
 import { TripBulkEditModalComponent } from '../../modals/trip-bulk-edit-modal/trip-bulk-edit-modal.component';
 import { PlaceListItemComponent } from '../../shared/place-list-item/place-list-item.component';
@@ -150,6 +150,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   @ViewChild('menuTripDayActions') menuTripDayActions!: Menu;
   @ViewChild('menuSelectedDayActions') menuSelectedDayActions!: Menu;
   @ViewChild('selectedPanel', { read: ElementRef }) selectedPanelRef?: ElementRef;
+  @ViewChild('selectedTabListRef') selectedTabListRef: TabList | undefined;
 
   selectedPanelHeight = signal<number>(0);
   plansSearchInput = new FormControl<string>('');
@@ -511,6 +512,19 @@ export class TripComponent implements AfterViewInit, OnDestroy {
             this.map.fitBounds(data.bounds, { padding: [30, 30], maxZoom: 16 });
           }
         });
+      });
+    });
+
+    effect(() => {
+      // fix p-tabs scroll state issues
+      const selection = this.dispSelectedPlace();
+      const activeIndex = this.selectedPlaceActiveTabIndex();
+
+      if (!selection || !this.selectedTabListRef) return;
+      requestAnimationFrame(() => {
+        (this.selectedTabListRef as any).updateButtonState();
+        const element = document.querySelector('[data-pc-name="tab"][data-p-active="true"]');
+        element?.scrollIntoView?.({ block: 'nearest' });
       });
     });
 
