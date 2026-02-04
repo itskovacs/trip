@@ -7,9 +7,11 @@
         class="mr-1 flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded truncate shrink-0">
         <span class="truncate">{{ validPlaces() }}/{{ places().length }} valid</span>
       </span>
+      @if (hasInvalidPlace()) {
       <span class="hidden sm:flex text-xs text-neutral-500 dark:text-neutral-400">
         Some places have no category
       </span>
+      }
     </div>
 
     @if (hasInvalidPlace()) {
