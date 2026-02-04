@@ -408,6 +408,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       if (!targetIsDot) {
         if (layer.options.createdLowNet !== isLowNet) return true;
         if (layer.options.createdGpxMode !== isGpxMode) return true;
+        if (
+          layer.options.category.color !== p.category.color ||
+          layer.options.category.image_id !== p.category.image_id
+        )
+          return true;
       }
       return false;
     });
@@ -424,6 +429,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           isDot: isSupposedToBeDot,
           createdLowNet: isLowNet,
           createdGpxMode: isGpxMode,
+          category: p.category,
         });
         return marker;
       });
