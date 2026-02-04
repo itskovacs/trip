@@ -38,7 +38,7 @@
 
       <div>
         <p-floatlabel variant="in">
-          <p-select [options]="(categories$ | async) || []" optionValue="id" optionLabel="name"
+          <p-select [options]="(categories$ | async) || []" optionValue="id" optionLabel="name" appendTo="body"
             [loading]="!(categories$ | async)?.length" inputId="category" formControlName="category" [checkmark]="true"
             fluid>
             <ng-template let-category #item>
