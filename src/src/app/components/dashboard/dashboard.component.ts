@@ -523,10 +523,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       dismissableMask: true,
       draggable: false,
       resizable: false,
-      width: '40vw',
+      width: '55vw',
       breakpoints: {
-        '960px': '75vw',
-        '640px': '90vw',
+        '1920px': '70vw',
+        '1260px': '90vw',
       },
       ...opts,
     })!;
@@ -691,10 +691,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       dismissableMask: true,
       draggable: false,
       resizable: false,
-      width: '40vw',
+      width: '55vw',
       breakpoints: {
-        '960px': '75vw',
-        '640px': '90vw',
+        '1920px': '70vw',
+        '1260px': '90vw',
       },
       data: {
         place: {
