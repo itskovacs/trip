@@ -521,7 +521,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
       const currentTrip = this.trip();
 
       untracked(() => {
-         if (!this.map && currentTrip) requestAnimationFrame(() => this.initMap());
+        if (!this.map && currentTrip) requestAnimationFrame(() => this.initMap());
       });
     });
   }
