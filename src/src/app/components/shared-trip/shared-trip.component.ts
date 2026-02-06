@@ -521,7 +521,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
       const currentTrip = this.trip();
 
       untracked(() => {
-        if (!this.map && currentTrip) requestAnimationFrame(() => this.initMap());
+         if (!this.map && currentTrip) requestAnimationFrame(() => this.initMap());
       });
     });
   }
@@ -576,6 +576,14 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   }
 
   initMap() {
+    // Check if map container exists first
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer) {
+      // Retry if container not found yet
+      setTimeout(() => this.initMap(), 100);
+      return;
+    }
+
     this.cleanupMap();
     const contextMenuItems = [
       {

@@ -20,18 +20,21 @@ export interface MarkerOptions extends L.MarkerOptions {
   contextmenuItems: ContextMenuItem[];
 }
 
-export function createMap(contextMenuItems: ContextMenuItem[] = [], tilelayer: string = DEFAULT_TILE_URL): L.Map {
+export function createMap(
+  contextMenuItems: ContextMenuItem[] = [],
+  tilelayer: string = DEFAULT_TILE_URL,
+): L.Map {
   const southWest = L.latLng(-89.99, -180);
   const northEast = L.latLng(89.99, 180);
   const bounds = L.latLngBounds(southWest, northEast);
-
+  const center: L.LatLngTuple = [20, 0];
   const map = L.map('map', {
     maxBoundsViscosity: 1.0,
     zoomControl: false,
     contextmenu: true,
     contextmenuItems: contextMenuItems,
   } as MapOptions)
-    .setZoom(10)
+    .setView(center, 10) // this will get overridden by resetMapBounds, but it prevents map from crashing on initial load
     .setMaxBounds(bounds);
 
   L.tileLayer(tilelayer, {
