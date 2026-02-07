@@ -1,24 +1,23 @@
 @if (selectedPlace) {
 <div class="place-box-dialog bg-white/70 backdrop-blur-xl dark:bg-black/70">
-    <div class="place-box-dialog-content">
-        <div class="flex justify-between items-center">
-            <div class="flex items-center gap-4 w-full max-w-full">
-                <img [src]="selectedPlace.image || selectedPlace.category.image"
-                    class="object-cover rounded-full size-16">
-                <div class="flex grow min-w-0">
-                    <h1 class="text-primary-800 dark:text-primary-200 font-bold mb-0 truncate">Trace of {{
-                        selectedPlace.name
-                        }}</h1>
-                </div>
-
-                <div class="flex items-center justify-end gap-2">
-                    <p-button (click)="downloadTrace()" text icon="pi pi-download" />
-                    <p-button (click)="removeTrace()" text icon="pi pi-eraser" />
-                    <div class="border-l border-solid border-primary-700 h-4"></div>
-                    <p-button (click)="close()" text icon="pi pi-times" />
-                </div>
-            </div>
+  <div class="place-box-dialog-content">
+    <div class="flex justify-between items-center">
+      <div class="flex items-center gap-4 w-full max-w-full">
+        <img [src]="selectedPlace.image || selectedPlace.category.image" class="object-cover rounded-full size-16" />
+        <div class="flex grow min-w-0">
+          <h1 class="text-primary-800 dark:text-primary-200 font-bold mb-0 truncate">
+            Trace of {{ selectedPlace.name }}
+          </h1>
         </div>
+
+        <div class="flex items-center justify-end gap-2">
+          <p-button (click)="downloadTrace()" text icon="pi pi-download" />
+          <p-button (click)="removeTrace()" text icon="pi pi-eraser" />
+          <div class="border-l border-solid border-primary-700 h-4"></div>
+          <p-button (click)="close()" text icon="pi pi-times" />
+        </div>
+      </div>
     </div>
+  </div>
 </div>
 }

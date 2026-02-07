@@ -1,10 +1,11 @@
 <section>
   <div class="rounded-lg bg-primary-50 dark:bg-primary-950 px-4 py-3 mb-4 flex items-center gap-4 justify-between">
     <div class="pointer-events-none flex items-center gap-4">
-      <span [class]="validPlaces() === places().length
-          ? 'text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900'
-          : 'text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-900'"
-        class="mr-1 flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded truncate shrink-0">
+      <span [class]="
+          validPlaces() === places().length
+            ? 'text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900'
+            : 'text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-900'
+        " class="mr-1 flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded truncate shrink-0">
         <span class="truncate">{{ validPlaces() }}/{{ places().length }} valid</span>
       </span>
       @if (hasInvalidPlace()) {
@@ -25,8 +26,7 @@
     class="rounded-lg bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-900 px-4 py-3 mb-4 space-y-4">
     <i class="pi pi-exclamation-triangle text-orange-600 dark:text-orange-400 shrink-0"></i>
     <span class="pointer-events-none ml-2 text-sm font-medium text-orange-900 dark:text-orange-100">Looks like there are
-      a few
-      duplicates:</span>
+      a few duplicates:</span>
 
     <div class="pointer-events-none flex items-center justify-center flex-wrap gap-2">
       @for (duplicate of duplicatePlaceNames(); track $index) {
@@ -65,19 +65,28 @@
         </p>
 
         <div class="flex items-center gap-2">
-          <span class="pi flex items-center px-1.5 py-0.5 rounded text-xs" style="font-size: 12px;"
-            [class]="p.allowdog ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400' : 'bg-primary-100 text-primary-600 dark:bg-primary-800 dark:text-primary-500'">
+          <span class="pi flex items-center px-1.5 py-0.5 rounded text-xs" style="font-size: 12px" [class]="
+                p.allowdog
+                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400'
+                  : 'bg-primary-100 text-primary-600 dark:bg-primary-800 dark:text-primary-500'
+              ">
             🐶
           </span>
 
-          <span class="pi flex items-center px-1.5 py-0.5 rounded text-xs" style="font-size: 12px;"
-            [class]="p.restroom ? 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-400' : 'bg-primary-100 text-primary-600 dark:bg-primary-800 dark:text-primary-500'">
+          <span class="pi flex items-center px-1.5 py-0.5 rounded text-xs" style="font-size: 12px" [class]="
+                p.restroom
+                  ? 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-400'
+                  : 'bg-primary-100 text-primary-600 dark:bg-primary-800 dark:text-primary-500'
+              ">
             🚽
           </span>
 
-          <span class="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium"
-            [class]="p.visited ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400' : 'bg-primary-100 text-primary-600 dark:bg-primary-800 dark:text-primary-500'">
-            <i class="pi" style="font-size: 12px;" [class]="p.visited ? 'pi-eye' : 'pi-eye-slash'"></i>
+          <span class="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium" [class]="
+                p.visited
+                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400'
+                  : 'bg-primary-100 text-primary-600 dark:bg-primary-800 dark:text-primary-500'
+              ">
+            <i class="pi" style="font-size: 12px" [class]="p.visited ? 'pi-eye' : 'pi-eye-slash'"></i>
           </span>
 
           @if (p.category_id && categoryIDToCategory(p.category_id); as category) {
@@ -94,8 +103,8 @@
   </div>
 
   <div class="fixed inset-x-0 bottom-4 z-20 flex justify-center w-full pointer-events-none">
-    <div class="pointer-events-auto flex items-center justify-between gap-3 rounded-lg border border-primary-200/70 bg-primary-50/90 px-4 py-2.5 shadow-sm
-      backdrop-blur-mddark:border-primary-700/70 dark:bg-primary-900/90">
+    <div
+      class="pointer-events-auto flex items-center justify-between gap-3 rounded-lg border border-primary-200/70 bg-primary-50/90 px-4 py-2.5 shadow-sm backdrop-blur-mddark:border-primary-700/70 dark:bg-primary-900/90">
       <div class="shrink-0 flex items-center justify-end gap-2">
         @if (linkToTripId()) {
         <p-button icon="pi pi-times" size="small" severity="danger" label="Link to Trip" text
@@ -138,7 +147,9 @@
     @for (category of categories(); track category.id) {
     <div
       class="p-2 cursor-pointer text-sm font-medium rounded-lg hover:bg-primary-100 dark:hover:bg-primary-800 truncate"
-      (click)="bulkApplyCategory(category.name); popoverCategory.hide()">{{ category.name }}</div>
+      (click)="bulkApplyCategory(category.name); popoverCategory.hide()">
+      {{ category.name }}
+    </div>
     }
   </div>
 </p-popover>

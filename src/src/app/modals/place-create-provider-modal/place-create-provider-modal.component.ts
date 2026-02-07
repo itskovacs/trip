@@ -1,17 +1,17 @@
 import { Component } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
-import { GooglePlaceResult } from '../../types/poi';
+import { ProviderPlaceResult } from '../../types/provider';
 
 @Component({
-  selector: 'app-place-create-gmaps-modal',
+  selector: 'app-place-create-provider-modal',
   imports: [ButtonModule],
   standalone: true,
-  templateUrl: './place-create-gmaps-modal.component.html',
-  styleUrl: './place-create-gmaps-modal.component.scss',
+  templateUrl: './place-create-provider-modal.component.html',
+  styleUrl: './place-create-provider-modal.component.scss',
 })
-export class PlaceCreateGmapsModalComponent {
-  results: GooglePlaceResult[];
+export class PlaceCreateProviderModalComponent {
+  results: ProviderPlaceResult[];
 
   constructor(
     private ref: DynamicDialogRef,
@@ -20,7 +20,7 @@ export class PlaceCreateGmapsModalComponent {
     this.results = this.config.data;
   }
 
-  closeDialog(data: GooglePlaceResult) {
+  closeDialog(data: ProviderPlaceResult) {
     this.ref.close(data);
   }
 }

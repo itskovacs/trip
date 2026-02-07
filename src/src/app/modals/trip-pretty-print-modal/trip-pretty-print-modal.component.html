@@ -1,0 +1,74 @@
+<div [formGroup]="printForm" class="space-y-4">
+  <div
+    class="flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700">
+    <div class="flex items-center gap-3 min-w-0 flex-1">
+      <i class="pi pi-calendar text-primary-600 dark:text-primary-400 shrink-0"></i>
+      <div class="min-w-0">
+        <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">Days</span>
+        <p class="text-xs text-primary-500 dark:text-primary-400 truncate">Days to include in print</p>
+      </div>
+    </div>
+
+    <p-multiselect [options]="days" optionValue="id" optionLabel="label" formControlName="days" [filter]="false"
+      display="chip" scrollHeight="320px" appendTo="body" selectedItemsLabel="{0} days selected" [showClear]="true"
+      [pt]="preventMobileKeyboard" fluid class="max-w-40 md:max-w-48 shrink-0 ml-4">
+      <ng-template let-day #item>
+        <div class="whitespace-normal">{{ day.label }}</div>
+      </ng-template>
+    </p-multiselect>
+  </div>
+
+  <div
+    class="flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700">
+    <div class="flex items-center gap-3 min-w-0 flex-1">
+      <i class="pi pi-calendar text-primary-600 dark:text-primary-400 shrink-0"></i>
+      <div class="min-w-0">
+        <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">Properties</span>
+        <p class="text-xs text-primary-500 dark:text-primary-400 truncate">Fields to include</p>
+      </div>
+    </div>
+
+    <p-multiselect [options]="props" formControlName="props" [filter]="false" display="chip" scrollHeight="320px"
+      appendTo="body" selectedItemsLabel="{0} properties selected" [showClear]="true" [pt]="preventMobileKeyboard" fluid
+      class="max-w-40 md:max-w-48 shrink-0 ml-4" />
+  </div>
+  <div
+    class="flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700">
+    <div class="flex items-center gap-3 min-w-0 flex-1">
+      <i class="pi pi-info-circle text-primary-600 dark:text-primary-400 shrink-0"></i>
+      <div class="min-w-0">
+        <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">Metadata</span>
+        <p class="text-xs text-primary-500 dark:text-primary-400 block">Include metadata (price, days)</p>
+      </div>
+    </div>
+    <p-toggleswitch formControlName="metadata" class="shrink-0 ml-4" />
+  </div>
+
+  <div
+    class="flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700">
+    <div class="flex items-center gap-3 min-w-0 flex-1">
+      <i class="pi pi-list text-primary-600 dark:text-primary-400 shrink-0"></i>
+      <div class="min-w-0">
+        <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">Notes</span>
+        <p class="text-xs text-primary-500 dark:text-primary-400 block">Include trip and days notes</p>
+      </div>
+    </div>
+    <p-toggleswitch formControlName="notes" [pt]="{ slider: 'bg-red-100' }" class="shrink-0 ml-4" />
+  </div>
+
+  <div
+    class="flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700">
+    <div class="flex items-center gap-3 min-w-0 flex-1">
+      <i class="pi pi-map-marker text-primary-600 dark:text-primary-400 shrink-0"></i>
+      <div class="min-w-0">
+        <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">Places recap</span>
+        <p class="text-xs text-primary-500 dark:text-primary-400 block">Include places recap</p>
+      </div>
+    </div>
+    <p-toggleswitch formControlName="places" class="shrink-0 ml-4" />
+  </div>
+
+  <div class="flex justify-end">
+    <p-button (click)="closeDialog()" text label="Print" icon="pi pi-print" />
+  </div>
+</div>

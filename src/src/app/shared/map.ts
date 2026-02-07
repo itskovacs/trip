@@ -1,7 +1,7 @@
 import * as L from 'leaflet';
 import 'leaflet.markercluster';
 import 'leaflet-contextmenu';
-import { GoogleBoundaries, Place } from '../types/poi';
+import { ProviderBoundaries, Place } from '../types/poi';
 import { TripItem } from '../types/trip';
 
 export const DEFAULT_TILE_URL = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
@@ -36,7 +36,7 @@ export function createMap(contextMenuItems: ContextMenuItem[] = [], tilelayer: s
     .setMaxBounds(bounds);
 
   L.tileLayer(tilelayer, {
-    maxZoom: 17,
+    maxZoom: 18,
     minZoom: 3,
     attribution:
       '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>',
@@ -178,7 +178,7 @@ export function gpxToPolyline(gpx: string): L.Polyline {
   return L.polyline(latlngs, { color: 'blue' });
 }
 
-export function isPointInBounds(lat: number, lng: number, bounds: GoogleBoundaries): boolean {
+export function isPointInBounds(lat: number, lng: number, bounds: ProviderBoundaries): boolean {
   if (!bounds || !bounds.northeast || !bounds.southwest) return false;
 
   const ne = bounds.northeast;

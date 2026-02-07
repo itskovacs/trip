@@ -125,7 +125,7 @@
       <div
         class="flex flex-col items-center justify-center gap-2 p-4 bg-primary-50 dark:bg-primary-800 rounded-lg border border-primary-200 dark:border-primary-700">
         <div class="relative group">
-          @if (itemForm.get("image_id")?.value || itemForm.get("image")?.value) {
+          @if (itemForm.get('image_id')?.value || itemForm.get('image')?.value) {
           <img [src]="itemForm.get('image')?.value || '/favicon.png'"
             class="size-24 object-cover rounded-lg shadow ring-2 ring-primary-200 dark:ring-primary-700 cursor-pointer transition-all group-hover:ring-primary-400"
             (click)="imageInput.click()" />
@@ -175,7 +175,7 @@
               <ng-template #footer>
                 <div class="p-2 border-t border-primary-200 dark:border-primary-700">
                   <p-button (click)="fileUpload.click()" icon="pi pi-plus" label="Upload New" text size="small" fluid />
-                  <input type="file" class="hidden" (change)="onFileUploadInputChange($event)" #fileUpload>
+                  <input type="file" class="hidden" (change)="onFileUploadInputChange($event)" #fileUpload />
                 </div>
               </ng-template>
             </p-multiselect>
@@ -202,7 +202,6 @@
     <p-button [label]="itemForm.get('id')?.value !== -1 ? 'Update Item' : 'Create Item'" icon="pi pi-check"
       [disabled]="!itemForm.dirty || !itemForm.valid" (click)="closeDialog()" />
   </div>
-
 </section>
 
 <p-popover #op>

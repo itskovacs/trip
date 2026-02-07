@@ -6,6 +6,7 @@
 
   <div class="mt-4 text-right">
     <p-button (click)="closeDialog()" [disabled]="!checklistForm.dirty || !checklistForm.valid">{{
-      checklistForm.get("id")?.value
-      !== -1 ? "Update" : "Create" }}</p-button>
+      checklistForm.get('id')?.value !== -1 ? 'Update' : 'Create'
+      }}</p-button>
   </div>
+</div>

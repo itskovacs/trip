@@ -10,7 +10,7 @@ from starlette.middleware.gzip import GZipMiddleware
 from . import __version__
 from .config import settings
 from .db.core import init_and_migrate_db
-from .routers import auth, categories, places
+from .routers import auth, categories, places, providers
 from .routers import settings as settings_r
 from .routers import token, trips
 from .utils.utils import silence_http_logging
@@ -47,6 +47,7 @@ app.include_router(places.router)
 app.include_router(settings_r.router)
 app.include_router(trips.router)
 app.include_router(token.router)
+app.include_router(providers.router)
 
 
 @app.get("/api/info")

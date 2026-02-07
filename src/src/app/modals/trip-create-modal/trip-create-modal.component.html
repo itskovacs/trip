@@ -3,7 +3,7 @@
     <div
       class="flex flex-col items-center justify-center p-4 bg-primary-50 dark:bg-primary-800 rounded-lg border border-primary-200 dark:border-primary-700">
       <div class="relative group">
-        @if (tripForm.get("image_id")?.value || tripForm.get("image")?.value) {
+        @if (tripForm.get('image_id')?.value || tripForm.get('image')?.value) {
         <img [src]="tripForm.get('image')?.value || '/favicon.png'"
           class="h-24 w-44 object-cover rounded-lg shadow ring-2 ring-primary-200 dark:ring-primary-700 cursor-pointer transition-all group-hover:ring-primary-400"
           (click)="fileInput.click()" />
@@ -12,7 +12,7 @@
           (click)="fileInput.click()">
           <i class="pi pi-camera text-white text-2xl"></i>
         </div>
-        @if (!tripForm.get("image_id")?.value) {
+        @if (!tripForm.get('image_id')?.value) {
         <button type="button"
           class="cursor-pointer absolute -top-2 -right-2 size-7 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-full shadow transition"
           (click)="clearImage(); $event.stopPropagation()">
@@ -42,7 +42,7 @@
           <label for="currency">Currency</label>
         </p-floatlabel>
 
-        @if (tripForm.get("id")?.value === -1) {
+        @if (tripForm.get('id')?.value === -1) {
         <div class="col-span-2">
           <p-floatlabel variant="in">
             <p-datepicker id="daterange" formControlName="daterange" [iconDisplay]="'input'" [showIcon]="true"
