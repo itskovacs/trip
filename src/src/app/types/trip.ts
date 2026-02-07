@@ -125,3 +125,11 @@ export interface ChecklistItem {
   text: string;
   checked?: boolean;
 }
+
+export interface PrintOptions {
+  days: Set<number>;
+  props: Set<string>;
+  places: boolean;
+  notes: boolean;
+  metadata: boolean;
+}

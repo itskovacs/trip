@@ -28,6 +28,8 @@ import {
   ChecklistItem,
   TripMember,
   TripAttachment,
+  PrintOptions,
+  PrintOptions,
 } from '../../types/trip';
 import { Category, Place } from '../../types/poi';
 import {
@@ -74,6 +76,8 @@ import { TabList, TabsModule } from 'primeng/tabs';
 import { PlaceBoxContentComponent } from '../../shared/place-box-content/place-box-content.component';
 import { TripBulkEditModalComponent } from '../../modals/trip-bulk-edit-modal/trip-bulk-edit-modal.component';
 import { PlaceListItemComponent } from '../../shared/place-list-item/place-list-item.component';
+import { TripPrettyPrintModalComponent } from '../../modals/trip-pretty-print-modal/trip-pretty-print-modal.component';
+import { TripPrettyPrintModalComponent } from '../../modals/trip-pretty-print-modal/trip-pretty-print-modal.component';
 
 interface ViewTripItem extends TripItem {
   status?: TripStatus;
@@ -176,7 +180,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   isPlacesPanelVisible = signal<boolean>(false);
   isDaysPanelVisible = signal<boolean>(false);
   showOnlyUnplannedPlaces = signal<boolean>(false);
-  isPrinting = signal<boolean>(false);
+  printOptions = signal<PrintOptions | null>(null);
   isArchivalReviewDisplayed = signal<boolean>(false);
   isArchiveWarningVisible = signal<boolean>(true);
   tooltipCopied = signal(false);
@@ -200,6 +204,30 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   username: string;
 
   places = computed(() => this.trip()?.places ?? []);
+  printOptionsPlaces = computed(() => {
+    const options = this.printOptions();
+    const places: Set<Place> = new Set();
+    this.trip()?.days.forEach((d) => {
+      if (!options?.days.has(d.id)) return;
+      d.items.forEach((i) => {
+        if (!i.place) return;
+        places.add(i.place);
+      });
+    });
+    return places;
+  });
+  printOptionsPlaces = computed(() => {
+    const options = this.printOptions();
+    const places: Set<Place> = new Set();
+    this.trip()?.days.forEach((d) => {
+      if (!options?.days.has(d.id)) return;
+      d.items.forEach((i) => {
+        if (!i.place) return;
+        places.add(i.place);
+      });
+    });
+    return places;
+  });
   usedPlaceIds = computed(() => {
     const trip = this.trip();
     if (!trip?.days) return new Set<number>();
@@ -927,9 +955,89 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           {
             label: 'Edit',
             icon: 'pi pi-pencil',
+    const trip = this.trip();
+    if (!trip || !trip.days.length) return;
+
+    const modal = this.dialogService.open(TripPrettyPrintModalComponent, {
+      header: 'Print options',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      draggable: false,
+      resizable: false,
+      width: '20vw',
+      breakpoints: {
+        '960px': '70vw',
+        '640px': '90vw',
+      },
+      data: {
+        props: this.availableItemProps,
+        selectedProps: this.selectedItemProps(),
+        days: trip.days,
+      },
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe((data: PrintOptions | null) => {
+      if (!data) return;
+      this.printOptions.set(data);
+
+      setTimeout(() => {
+        window.print();
+          {
+            label: 'Delete',
+            icon: 'pi pi-trash',
             disabled: this.trip()!.archived,
-            command: () => this.editDay(d),
+            command: () => this.deleteDay(d),
           },
+        ],
+      },
+    ];
+    this.menuSelectedDayActions.toggle(event);
+  }
+
+  toggleTripDayHighlight(newValue: number | null) {
+    this.highlightedDayId.update((current) => (current === newValue ? null : newValue));
+  }
+
+  toggleTripDaysHighlight() {
+    this.highlightedDayId.update((current) => (current === -1 ? null : -1));
+  }
+
+  back() {
+    this.router.navigate(['/trips']);
+  }
+
+  togglePrint() {
+    const trip = this.trip();
+    if (!trip || !trip.days.length) return;
+
+    const modal = this.dialogService.open(TripPrettyPrintModalComponent, {
+      header: 'Print options',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      draggable: false,
+      resizable: false,
+      width: '20vw',
+      breakpoints: {
+        '960px': '70vw',
+        '640px': '90vw',
+      },
+      data: {
+        props: this.availableItemProps,
+        selectedProps: this.selectedItemProps(),
+        days: trip.days,
+      },
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe((data: PrintOptions | null) => {
+      if (!data) return;
+      this.printOptions.set(data);
+
+      setTimeout(() => {
+        window.print();
           {
             label: 'Delete',
             icon: 'pi pi-trash',
@@ -958,8 +1066,94 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     this.isPrinting.update((v) => !v);
     setTimeout(() => {
       window.print();
+        this.printOptions.set(null);
+      }, 400); //increased after primeng21 migration
+            icon: 'pi pi-trash',
+            disabled: this.trip()!.archived,
+            command: () => this.deleteDay(d),
+          },
+        ],
+      },
+    ];
+    this.menuSelectedDayActions.toggle(event);
+  }
+
+  toggleTripDayHighlight(newValue: number | null) {
+    this.highlightedDayId.update((current) => (current === newValue ? null : newValue));
+  }
+
+  toggleTripDaysHighlight() {
+    this.highlightedDayId.update((current) => (current === -1 ? null : -1));
+  }
+
+  back() {
+    this.router.navigate(['/trips']);
+  }
+
+  togglePrint() {
+    this.isPrinting.update((v) => !v);
+    setTimeout(() => {
+      window.print();
+        this.printOptions.set(null);
+      }, 400); //increased after primeng21 migration
+            icon: 'pi pi-trash',
+            disabled: this.trip()!.archived,
+            command: () => this.deleteDay(d),
+          },
+        ],
+      },
+    ];
+    this.menuSelectedDayActions.toggle(event);
+  }
+
+  toggleTripDayHighlight(newValue: number | null) {
+    this.highlightedDayId.update((current) => (current === newValue ? null : newValue));
+  }
+
+  toggleTripDaysHighlight() {
+    this.highlightedDayId.update((current) => (current === -1 ? null : -1));
+  }
+
+  back() {
+    this.router.navigate(['/trips']);
+  }
+
+  togglePrint() {
+    this.isPrinting.update((v) => !v);
+    setTimeout(() => {
+      window.print();
       this.isPrinting.update((v) => !v);
     }, 400); //increased after primeng21 migration
+    });
+            icon: 'pi pi-trash',
+            disabled: this.trip()!.archived,
+            command: () => this.deleteDay(d),
+          },
+        ],
+      },
+    ];
+    this.menuSelectedDayActions.toggle(event);
+  }
+
+  toggleTripDayHighlight(newValue: number | null) {
+    this.highlightedDayId.update((current) => (current === newValue ? null : newValue));
+  }
+
+  toggleTripDaysHighlight() {
+    this.highlightedDayId.update((current) => (current === -1 ? null : -1));
+  }
+
+  back() {
+    this.router.navigate(['/trips']);
+  }
+
+  togglePrint() {
+    this.isPrinting.update((v) => !v);
+    setTimeout(() => {
+      window.print();
+      this.isPrinting.update((v) => !v);
+    }, 400); //increased after primeng21 migration
+    });
   }
 
   toggleFiltering() {
@@ -2351,6 +2545,48 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       if (!editData) return;
       const obs$ = items.map((item) =>
         this.apiService.putTripDayItem({ ...editData }, this.trip()!.id, item.day_id, item.id),
+
+  dayRouting(day: TripDay) {
+    const coords: [number, number][] = [];
+
+    day.items.forEach((item) => {
+      const lat = item.lat || item.place?.lat;
+      const lng = item.lng || item.place?.lng;
+      if (!lat || !lng) return;
+      coords.push([lat, lng]);
+    });
+
+    if (coords.length < 2) {
+      this.utilsService.toast('warn', 'Not enough values', 'Not enough values to route');
+      return;
+    }
+
+    const profile = this.routeManager.getProfile(coords[0], coords[1]);
+    this.utilsService.setLoading('Calculating route...');
+    this.apiService
+      .completionRouting({
+        coordinates: coords.map((c) => ({ lat: c[0], lng: c[1] })),
+        profile,
+      })
+      .subscribe({
+        next: (resp) => {
+          this.utilsService.setLoading('');
+          const layer = this.routeManager.addRoute({
+            id: this.routeManager.createRouteId(coords[0], coords[coords.length - 1], profile),
+            geometry: resp.geometry,
+            distance: resp.distance ?? 0,
+            duration: resp.duration ?? 0,
+            profile,
+          });
+          const currentMap = this.map;
+          if (currentMap) layer.addTo(currentMap);
+        },
+        error: (err) => {
+          this.utilsService.setLoading('');
+          console.error('Routing error:', err);
+        },
+      });
+  }
       );
       forkJoin(obs$)
         .pipe(take(1))
@@ -2378,5 +2614,47 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           },
         });
     });
+  }
+
+  dayRouting(day: TripDay) {
+    const coords: [number, number][] = [];
+
+    day.items.forEach((item) => {
+      const lat = item.lat || item.place?.lat;
+      const lng = item.lng || item.place?.lng;
+      if (!lat || !lng) return;
+      coords.push([lat, lng]);
+    });
+
+    if (coords.length < 2) {
+      this.utilsService.toast('warn', 'Not enough values', 'Not enough values to route');
+      return;
+    }
+
+    const profile = this.routeManager.getProfile(coords[0], coords[1]);
+    this.utilsService.setLoading('Calculating route...');
+    this.apiService
+      .completionRouting({
+        coordinates: coords.map((c) => ({ lat: c[0], lng: c[1] })),
+        profile,
+      })
+      .subscribe({
+        next: (resp) => {
+          this.utilsService.setLoading('');
+          const layer = this.routeManager.addRoute({
+            id: this.routeManager.createRouteId(coords[0], coords[coords.length - 1], profile),
+            geometry: resp.geometry,
+            distance: resp.distance ?? 0,
+            duration: resp.duration ?? 0,
+            profile,
+          });
+          const currentMap = this.map;
+          if (currentMap) layer.addTo(currentMap);
+        },
+        error: (err) => {
+          this.utilsService.setLoading('');
+          console.error('Routing error:', err);
+        },
+      });
   }
 }

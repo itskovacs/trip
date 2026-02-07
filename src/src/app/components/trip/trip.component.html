@@ -1,4 +1,6 @@
+<div class="relative h-screen w-screen overflow-hidden bg-primary-950" [class.prettyprint]="printOptions()">
 <div class="relative h-screen w-screen overflow-hidden bg-primary-950" [class.prettyprint]="isPrinting()">
+<div class="relative h-screen w-screen overflow-hidden bg-primary-950" [class.prettyprint]="printOptions()">
   <div class="fixed inset-0 w-full h-full z-0">
     <div id="map" class="w-full h-full"></div>
   </div>
@@ -1380,39 +1382,43 @@
   }
 </p-dialog>
 
-@if (isPrinting()) {
+@if (printOptions()) {
+@let options = printOptions();
 <section class="hidden print:block">
   <div class="flex items-center justify-center">
     <div class="flex flex-col items-center max-w-[55vw] md:max-w-full">
       <div class="flex flex-col items-center">
-        <img src="favicon.png" class="size-20">
+        <img src="favicon.png" class="size-20" />
         <div class="flex gap-2 items-center text-xs text-primary-500"><i class="pi pi-github"></i>itskovacs/trip</div>
       </div>
 
       <h1 class="mt-4 tracking-tight text-3xl font-semibold truncate p-2">{{ trip()?.name }}</h1>
+      @if (options?.metadata) {
       <div class="flex items-center">
         <span
           class="bg-primary-100 text-primary-800 text-xs font-medium me-2 px-2.5 py-1 rounded min-w-fit flex items-center gap-2"><i
-            class="pi pi-calendar text-xs"></i> {{
-          trip()?.days?.length }} {{ trip()?.days!.length > 1 ? 'days' :
-          'day'}}</span>
+            class="pi pi-calendar text-xs"></i> {{ trip()?.days?.length }}
+          {{ trip()?.days!.length > 1 ? 'days' : 'day' }}</span>
         <span
           class="bg-primary-100 text-primary-800 text-xs font-medium me-2 px-2.5 py-1 rounded min-w-fit flex items-center gap-2"><i
-            class="pi pi-wallet text-xs"></i> {{
-          (totalPrice() | number:'1.0-2') || '-' }} {{ trip()?.currency }}</span>
+            class="pi pi-wallet text-xs"></i> {{ (totalPrice() | number: '1.0-2') || '-' }}
+          {{ trip()?.currency }}</span>
       </div>
+      }
     </div>
   </div>
 
+  @if (options?.notes) {
   <div class="mt-4">
     <div class="text-2xl font-semibold">Notes</div>
 
     <div class="mt-4 border-l-3 border-primary-900 dark:border-primary-200 pl-6 py-2">
-      <p class="text-sm leading-relaxed text-primary-800 dark:text-primary-400 whitespace-pre-line">{{ trip()?.notes ||
-        'Nothing there.'
-        }}</p>
+      <p class="text-sm leading-relaxed text-primary-800 dark:text-primary-400 whitespace-pre-line">
+        {{ trip()?.notes || 'Nothing there.' }}
+      </p>
     </div>
   </div>
+  }
 
   <div class="mt-8">
     <div class="text-2xl font-semibold">Itinerary</div>
@@ -1420,22 +1426,25 @@
     <div class="mt-4">
       @let visibleProps = selectedItemPropsSet();
       @for (group of tripViewModel(); track group.day.id) {
+      @if (options?.days?.has(group.day.id)) {
       <div class="mb-12">
         <div class="flex items-center gap-4 mb-4">
-          <h2 class="text-xl font-semibold text-primary-900 dark:text-primary-100 whitespace-nowrap">{{ group.day.label
-            }}</h2>
+          <h2 class="text-xl font-semibold text-primary-900 dark:text-primary-100 whitespace-nowrap">
+            {{ group.day.label }}
+          </h2>
           <div class="flex-1 h-px bg-primary-300"></div>
           @if (group.day.dt) {
-          <span class="text-sm font-medium text-primary-400 whitespace-nowrap">{{ group.day.dt |
-            date:
-            'd MMM, y' }}</span>
+          <span class="text-sm font-medium text-primary-400 whitespace-nowrap">{{
+            group.day.dt | date: 'd MMM, y'
+            }}</span>
           }
         </div>
 
-        @if (group.day.notes) {
+        @if (options?.notes && group.day.notes) {
         <div class="border-l-3 border-primary-900 dark:border-primary-200 pl-6 py-2 mb-4">
-          <p class="text-sm leading-relaxed text-primary-800 dark:text-primary-400 whitespace-pre-line">{{
-            group.day.notes }}</p>
+          <p class="text-sm leading-relaxed text-primary-800 dark:text-primary-400 whitespace-pre-line">
+            {{ group.day.notes }}
+          </p>
         </div>
         }
 
@@ -1447,13 +1456,13 @@
 
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2">
-              @if (!item.place || item.place.name !== item.text) {
+              @if (!options?.props?.has('place') || !item.place || item.place.name !== item.text) {
               <h4 class="font-semibold text-primary-900 dark:text-primary-200">{{ item.text }}</h4>
               }
-              @if (item.place) {
+              @if (options?.props?.has('place') && item.place) {
               <div class="w-fit color-bg-opacity flex items-center gap-2 px-2.5 py-1 rounded-full"
                 [style.--color-bg-opacity]="item.place.category.color">
-                <img [src]="item.place.image || item.place.category.image" class="w-5 h-5 rounded-full object-cover">
+                <img [src]="item.place.image || item.place.category.image" class="w-5 h-5 rounded-full object-cover" />
                 <span class="text-sm font-medium text-primary-900 dark:text-white truncate">
                   {{ item.place.name }}
                 </span>
@@ -1461,26 +1470,27 @@
               }
             </div>
 
-            @if (item.comment) {
-            <p class="text-sm text-primary-500 dark:text-primary-400 whitespace-pre-line italic">{{ item.comment }}</p>
+            @if (options?.props?.has('comment') && item.comment) {
+            <p class="text-sm text-primary-500 dark:text-primary-400 whitespace-pre-line italic">
+              {{ item.comment }}
+            </p>
             }
           </div>
 
           <div class="flex items-center">
-            @if (item.lat && item.lng && visibleProps.has('latlng')) {
+            @if (options?.props?.has('latlng') && item.lat && item.lng) {
             <span
-              class="text-center bg-primary-100 text-primary-800 text-xs px-2 py-1 rounded-md dark:text-primary-300 dark:bg-primary-800 truncate">{{
+              class="text-center bg-primary-100 text-primary-800 text-xs px-2 py-1 rounded-md dark:text-primary-300 dark:bg-primary-800 truncate me-2">{{
               item.lat }}, {{ item.lng }}</span>
             }
-            @if (visibleProps.has('price') && item.price) {
+            @if (options?.props?.has('price') && item.price) {
             <span
               class="flex items-center bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-1 text-xs font-medium rounded whitespace-nowrap me-2">{{
               item.price }} {{ trip()?.currency }}</span>
             }
-            @if (visibleProps.has('status') && item.status) {
+            @if (options?.props?.has('status') && item.status) {
             <span class="text-xs color-bg-opacity font-medium px-2.5 py-1 rounded min-w-fit"
-              [style.--color-bg-opacity]="item.status.color">{{ item.status.label
-              }}</span>
+              [style.--color-bg-opacity]="item.status.color">{{ item.status.label }}</span>
             }
           </div>
         </div>
@@ -1491,17 +1501,19 @@
         }
       </div>
       }
+      }
     </div>
   </div>
 
+  @if (options?.places) {
   <div class="mt-8 break-inside-avoid">
     <div class="text-2xl font-semibold">📍 Places</div>
     <div class="mt-4">
-      @for(place of places(); track place.id) {
+      @for (place of printOptionsPlaces(); track place.id) {
       <div [style.--color-bg-opacity]="place.category.color"
         class="inline-flex color-bg-opacity items-center gap-2 font-medium p-1 pr-3 m-1 rounded-full">
         <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden shrink-0">
-          <img [src]="place.image" class="size-full object-cover" loading="lazy" />
+          <img [src]="place.image" class="size-full object-cover" />
         </div>
         <span class="text-sm text-primary-900 dark:text-white">{{ place.name }}</span>
       </div>
@@ -1512,17 +1524,18 @@
       }
     </div>
 
-    <div class="mt-4 text-right">*
-      @for (category of getCategoriesFromPlaces(places()); track category.id) {
+    <div class="mt-4 text-right">
+      @for (category of getCategoriesFromPlaces(printOptionsPlaces()); track category.id) {
       <div [style.--color-bg-opacity]="category.color"
         class="inline-flex color-bg-opacity items-center gap-2 font-medium p-1 pr-3 m-1 rounded">
         <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden shrink-0">
-          <img [src]="category.image" class="size-full object-cover" loading="lazy" />
+          <img [src]="category.image" class="size-full object-cover" />
         </div>
         <span class="text-sm text-primary-900 dark:text-white">{{ category.name }}</span>
       </div>
       }
     </div>
   </div>
+  }
 </section>
 }

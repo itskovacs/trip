@@ -19,7 +19,7 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import * as L from 'leaflet';
 import { TableModule } from 'primeng/table';
-import { Trip, TripDay, TripItem, TripStatus, PackingItem, ChecklistItem, TripAttachment } from '../../types/trip';
+  PrintOptions,
 import { Category, Place } from '../../types/poi';
 import {
   createMap,
@@ -52,6 +52,8 @@ import { calculateDistanceBetween } from '../../shared/utils';
 import { TabsModule } from 'primeng/tabs';
 import { PlaceBoxContentComponent } from '../../shared/place-box-content/place-box-content.component';
 import { PlaceListItemComponent } from '../../shared/place-list-item/place-list-item.component';
+import { TripPrettyPrintModalComponent } from '../../modals/trip-pretty-print-modal/trip-pretty-print-modal.component';
+import { TripPrettyPrintModalComponent } from '../../modals/trip-pretty-print-modal/trip-pretty-print-modal.component';
 
 interface ViewTripItem extends TripItem {
   status?: TripStatus;
@@ -172,8 +174,32 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
 
   tripSharedURL$?: Observable<string>;
   username: string;
+  printOptionsPlaces = computed(() => {
+    const options = this.printOptions();
+    const places: Set<Place> = new Set();
+    this.trip()?.days.forEach((d) => {
+      if (!options?.days.has(d.id)) return;
+      d.items.forEach((i) => {
+        if (!i.place) return;
+        places.add(i.place);
+      });
+    });
+    return places;
+  });
 
   places = computed(() => this.trip()?.places ?? []);
+  printOptionsPlaces = computed(() => {
+    const options = this.printOptions();
+    const places: Set<Place> = new Set();
+    this.trip()?.days.forEach((d) => {
+      if (!options?.days.has(d.id)) return;
+      d.items.forEach((i) => {
+        if (!i.place) return;
+        places.add(i.place);
+      });
+    });
+    return places;
+  });
   usedPlaceIds = computed(() => {
     const trip = this.trip();
     if (!trip?.days) return new Set<number>();
@@ -773,9 +799,87 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
           {
             label: 'Open Navigation',
             icon: 'pi pi-car',
-            command: () => this.tripDayToNavigation(d.id),
+    const trip = this.trip();
+    if (!trip || !trip.days.length) return;
+
+    const modal = this.dialogService.open(TripPrettyPrintModalComponent, {
+      header: 'Print options',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      draggable: false,
+      resizable: false,
+      width: '20vw',
+      breakpoints: {
+        '960px': '70vw',
+        '640px': '90vw',
+      },
+      data: {
+        props: this.availableItemProps,
+        selectedProps: this.selectedItemProps(),
+        days: trip.days,
+      },
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe((data: PrintOptions | null) => {
+      if (!data) return;
+      this.printOptions.set(data);
+
+      setTimeout(() => {
+        window.print();
+            label: 'Highlight',
+            icon: 'pi pi-directions',
+            command: () => this.toggleTripDayHighlight(d.id),
           },
-          {
+        ],
+      },
+    ];
+    this.menuSelectedDayActions.toggle(event);
+  }
+
+  toggleTripDayHighlight(newValue: number | null) {
+    this.highlightedDayId.update((current) => (current === newValue ? null : newValue));
+  }
+
+  toggleTripDaysHighlight() {
+    this.highlightedDayId.update((current) => (current === -1 ? null : -1));
+  }
+
+  back() {
+    this.router.navigate(['/trips']);
+  }
+
+  togglePrint() {
+    const trip = this.trip();
+    if (!trip || !trip.days.length) return;
+
+    const modal = this.dialogService.open(TripPrettyPrintModalComponent, {
+      header: 'Print options',
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      draggable: false,
+      resizable: false,
+      width: '20vw',
+      breakpoints: {
+        '960px': '70vw',
+        '640px': '90vw',
+      },
+      data: {
+        props: this.availableItemProps,
+        selectedProps: this.selectedItemProps(),
+        days: trip.days,
+      },
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe((data: PrintOptions | null) => {
+      if (!data) return;
+      this.printOptions.set(data);
+
+      setTimeout(() => {
+        window.print();
             label: 'Highlight',
             icon: 'pi pi-directions',
             command: () => this.toggleTripDayHighlight(d.id),
@@ -802,8 +906,88 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
     this.isPrinting.update((v) => !v);
     setTimeout(() => {
       window.print();
+        this.printOptions.set(null);
+      }, 400); //increased after primeng21 migration
+            command: () => this.toggleTripDayHighlight(d.id),
+          },
+        ],
+      },
+    ];
+    this.menuSelectedDayActions.toggle(event);
+  }
+
+  toggleTripDayHighlight(newValue: number | null) {
+    this.highlightedDayId.update((current) => (current === newValue ? null : newValue));
+  }
+
+  toggleTripDaysHighlight() {
+    this.highlightedDayId.update((current) => (current === -1 ? null : -1));
+  }
+
+  back() {
+    this.router.navigate(['/trips']);
+  }
+
+  togglePrint() {
+    this.isPrinting.update((v) => !v);
+    setTimeout(() => {
+      window.print();
+        this.printOptions.set(null);
+      }, 400); //increased after primeng21 migration
+            command: () => this.toggleTripDayHighlight(d.id),
+          },
+        ],
+      },
+    ];
+    this.menuSelectedDayActions.toggle(event);
+  }
+
+  toggleTripDayHighlight(newValue: number | null) {
+    this.highlightedDayId.update((current) => (current === newValue ? null : newValue));
+  }
+
+  toggleTripDaysHighlight() {
+    this.highlightedDayId.update((current) => (current === -1 ? null : -1));
+  }
+
+  back() {
+    this.router.navigate(['/trips']);
+  }
+
+  togglePrint() {
+    this.isPrinting.update((v) => !v);
+    setTimeout(() => {
+      window.print();
       this.isPrinting.update((v) => !v);
     }, 400); //increased after primeng21 migration
+    });
+            command: () => this.toggleTripDayHighlight(d.id),
+          },
+        ],
+      },
+    ];
+    this.menuSelectedDayActions.toggle(event);
+  }
+
+  toggleTripDayHighlight(newValue: number | null) {
+    this.highlightedDayId.update((current) => (current === newValue ? null : newValue));
+  }
+
+  toggleTripDaysHighlight() {
+    this.highlightedDayId.update((current) => (current === -1 ? null : -1));
+  }
+
+  back() {
+    this.router.navigate(['/trips']);
+  }
+
+  togglePrint() {
+    this.isPrinting.update((v) => !v);
+    setTimeout(() => {
+      window.print();
+      this.isPrinting.update((v) => !v);
+    }, 400); //increased after primeng21 migration
+    });
   }
 
   toggleFiltering() {
