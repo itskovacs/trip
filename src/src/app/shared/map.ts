@@ -35,7 +35,7 @@ export function createMap(contextMenuItems: ContextMenuItem[] = [], tilelayer: s
     .setMaxBounds(bounds);
 
   L.tileLayer(tilelayer, {
-    maxZoom: 17,
+    maxZoom: 18,
     minZoom: 3,
     attribution:
       '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>',
