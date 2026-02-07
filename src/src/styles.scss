@@ -127,6 +127,65 @@ html {
   }
 }
 
+.routing-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+}
+
+.routing-badge-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 0.9rem;
+  @apply text-primary-100;
+  @apply dark:text-primary-800;
+  @apply py-2 px-2;
+  @apply rounded-lg;
+  @apply font-medium;
+  @apply whitespace-nowrap;
+}
+
+.routing-delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 19px;
+  height: 19px;
+  background: #ef4444;
+  color: white;
+  border-radius: 50%;
+  line-height: 1;
+  cursor: pointer;
+
+  i {
+    font-size: 10px;
+    margin-top: 2px;
+  }
+}
+
+.route-line {
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.route-animate {
+  animation: route-draw 2s ease-out forwards;
+}
+
+@keyframes route-draw {
+  from {
+    stroke-dasharray: 3000;
+    stroke-dashoffset: 3000;
+  }
+  to {
+    stroke-dasharray: 3000;
+    stroke-dashoffset: 0;
+  }
+}
+
 // Markers / Places custom classes
 .list-hover {
   .custom-cluster {

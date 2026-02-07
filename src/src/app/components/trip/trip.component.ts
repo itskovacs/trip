@@ -99,18 +99,18 @@ interface HighlightData {
 
 const HIGHLIGHT_COLORS = [
   '#e6194b',
-  '#3cb44b',
+  '#2c8638',
   '#4363d8',
   '#9a6324',
-  '#f58231',
+  '#b56024',
   '#911eb4',
-  '#46f0f0',
-  '#f032e6',
-  '#bcf60c',
-  '#fabebe',
+  '#268383',
+  '#cb2ac3',
+  '#617f06',
+  '#906e6e',
   '#008080',
-  '#e6beff',
-  '#808000',
+  '#856e93',
+  '#7a7a00',
 ];
 
 @Component({

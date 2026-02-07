@@ -15,6 +15,7 @@ export interface Settings {
   mode_display_visited?: boolean;
   mode_map_position?: boolean;
   api_token?: boolean;
+  map_provider?: string;
 }
 
 export interface ImportResponse {

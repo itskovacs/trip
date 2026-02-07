@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Category, GoogleBoundaries, GooglePlaceResult, Place } from '../types/poi';
+import { Category, ProviderBoundaries, Place } from '../types/poi';
+import { OSMRoutingQuery, OSMRoutingResponse, ProviderPlaceResult } from '../types/provider';
 import { BehaviorSubject, map, Observable, shareReplay, take, tap } from 'rxjs';
 import { Info } from '../types/info';
 import { Backup, ImportResponse, Settings } from '../types/settings';
@@ -325,30 +326,6 @@ export class ApiService {
     return this.httpClient.post<any>(this.apiBaseUrl + '/settings/totp/verify', { code });
   }
 
-  gmapsSearchText(q: string): Observable<GooglePlaceResult[]> {
-    return this.httpClient.get<GooglePlaceResult[]>(`${this.apiBaseUrl}/places/google-search`, { params: { q } });
-  }
-
-  gmapsGeocodeBoundaries(q: string): Observable<GoogleBoundaries> {
-    return this.httpClient.get<GoogleBoundaries>(`${this.apiBaseUrl}/places/google-geocode`, { params: { q } });
-  }
-
-  postTakeoutFile(formdata: FormData): Observable<GooglePlaceResult[]> {
-    return this.httpClient.post<GooglePlaceResult[]>(`${this.apiBaseUrl}/places/google-takeout-import`, formdata);
-  }
-
-  postGmapsMultiline(data: string[]): Observable<GooglePlaceResult[]> {
-    return this.httpClient.post<GooglePlaceResult[]>(`${this.apiBaseUrl}/places/google-bulk`, data);
-  }
-
-  postKmzFile(formdata: FormData): Observable<GooglePlaceResult[]> {
-    return this.httpClient.post<GooglePlaceResult[]>(`${this.apiBaseUrl}/places/google-kmz-import`, formdata);
-  }
-
-  postGmapsNearbySearch(data: any): Observable<GooglePlaceResult[]> {
-    return this.httpClient.post<GooglePlaceResult[]>(`${this.apiBaseUrl}/places/google-nearby-search`, { ...data });
-  }
-
   enableTripApiToken(): Observable<string> {
     return this.httpClient.put<string>(this.apiBaseUrl + '/settings/api_token', {});
   }
@@ -357,7 +334,36 @@ export class ApiService {
     return this.httpClient.delete<{}>(this.apiBaseUrl + '/settings/api_token');
   }
 
-  resolveGmapsShortLink(id: string): Observable<GooglePlaceResult> {
-    return this.httpClient.get<GooglePlaceResult>(`${this.apiBaseUrl}/places/google-resolve/${id}`);
+  // Completions using provider
+  completionSearchText(q: string): Observable<ProviderPlaceResult[]> {
+    return this.httpClient.get<ProviderPlaceResult[]>(`${this.apiBaseUrl}/completions/search`, { params: { q } });
+  }
+
+  completionNearbySearch(data: any): Observable<ProviderPlaceResult[]> {
+    return this.httpClient.post<ProviderPlaceResult[]>(`${this.apiBaseUrl}/completions/nearby`, { ...data });
+  }
+
+  completionGeocodeBoundaries(q: string): Observable<ProviderBoundaries> {
+    return this.httpClient.get<ProviderBoundaries>(`${this.apiBaseUrl}/completions/geocode`, { params: { q } });
+  }
+
+  completionRouting(data: OSMRoutingQuery): Observable<OSMRoutingResponse> {
+    return this.httpClient.post<OSMRoutingResponse>(`${this.apiBaseUrl}/completions/route`, data);
+  }
+
+  completionBulk(data: string[]): Observable<ProviderPlaceResult[]> {
+    return this.httpClient.post<ProviderPlaceResult[]>(`${this.apiBaseUrl}/completions/bulk`, data);
+  }
+
+  completionGoogleTakeoutFile(formdata: FormData): Observable<ProviderPlaceResult[]> {
+    return this.httpClient.post<ProviderPlaceResult[]>(`${this.apiBaseUrl}/completions/takeout-import`, formdata);
+  }
+
+  completionGoogleKmzFile(formdata: FormData): Observable<ProviderPlaceResult[]> {
+    return this.httpClient.post<ProviderPlaceResult[]>(`${this.apiBaseUrl}/completions/mymaps-import`, formdata);
+  }
+
+  completionGoogleShortlink(id: string): Observable<ProviderPlaceResult> {
+    return this.httpClient.get<ProviderPlaceResult>(`${this.apiBaseUrl}/completions/google/resolve-shortlink/${id}`);
   }
 }

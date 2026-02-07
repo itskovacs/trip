@@ -28,7 +28,8 @@ import {
   tap,
   toArray,
 } from 'rxjs';
-import { Place, Category, GoogleBoundaries, GooglePlaceResult } from '../../types/poi';
+import { Place, Category, ProviderBoundaries } from '../../types/poi';
+import { ProviderPlaceResult } from '../../types/provider';
 import { ApiService } from '../../services/api.service';
 import { PlaceBoxComponent } from '../../shared/place-box/place-box.component';
 import * as L from 'leaflet';
@@ -72,12 +73,13 @@ import { FileSizePipe } from '../../shared/pipes/filesize.pipe';
 import { TotpVerifyModalComponent } from '../../modals/totp-verify-modal/totp-verify-modal.component';
 import { MenuModule } from 'primeng/menu';
 import { MultiPlacesCreateModalComponent } from '../../modals/multi-places-create-modal/multi-places-create-modal.component';
-import { GmapsMultilineCreateModalComponent } from '../../modals/gmaps-multiline-create-modal/gmaps-multiline-create-modal.component';
+import { ProviderMultilineCreateModalComponent } from '../../modals/provider-multiline-create-modal/provider-multiline-create-modal.component';
 import { UpdatePasswordModalComponent } from '../../modals/update-password-modal/update-password-modal.component';
 import { SettingsViewTokenComponent } from '../../modals/settings-view-token/settings-view-token.component';
 import { Trip } from '../../types/trip';
 import { PlaceListItemComponent } from '../../shared/place-list-item/place-list-item.component';
 import { PopoverModule } from 'primeng/popover';
+import { RouteManagerService } from '../../services/route-manager.service';
 
 export interface ContextMenuItem {
   text: string;
@@ -133,6 +135,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   fb: FormBuilder;
   location: Location;
   activatedRoute: ActivatedRoute;
+  routeManager: RouteManagerService;
 
   info = signal<Info | null>(null);
   places = signal<Place[]>([]);
@@ -166,10 +169,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   filter_display_favorite_only = signal(false);
   filter_display_restroom = signal(false);
   filter_dog_only = signal(false);
-  boundariesFiltering = signal<GoogleBoundaries | null>(null);
+  boundariesFiltering = signal<ProviderBoundaries | null>(null);
   hoveredElement = signal<HTMLElement | null>(null);
-
-  gmapsGeocodeFilterInput = new FormControl('');
+  providers: { disp: string; value: string }[] = [
+    { disp: 'OpenStreetMap API', value: 'osm' },
+    { disp: 'Google API', value: 'google' },
+  ];
+  geocodeFilterInput = new FormControl('');
   searchInput = new FormControl('');
   settingsForm: FormGroup;
   searchValue = toSignal(
@@ -236,7 +242,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   collator = new Intl.Collator(undefined, { sensitivity: 'base' });
   menuCreatePlaceItems: MenuItem[] = [
     {
-      label: 'Google',
+      label: 'Provider',
       items: [
         {
           label: 'Google KMZ (My Maps)',
@@ -261,15 +267,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           },
         },
         {
-          label: 'Google Maps Bulk',
-          icon: 'pi pi-google',
-          command: () => {
-            if (!this.settings()?.google_apikey) {
-              this.utilsService.toast('error', 'Missing Key', 'Google Maps API key not configured');
-              return;
-            }
-            this.openGmapsMultilineModal();
-          },
+          label: 'Bulk',
+          icon: 'pi pi-list',
+          command: () => this.openProviderMultilineModal(),
         },
       ],
     },
@@ -284,6 +284,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.fb = inject(FormBuilder);
     this.location = inject(Location);
     this.activatedRoute = inject(ActivatedRoute);
+    this.routeManager = inject(RouteManagerService);
 
     this.settingsForm = this.fb.group({
       map_lat: [
@@ -305,6 +306,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       do_not_display: [],
       tile_layer: ['', Validators.required],
       _google_apikey: [null, { validators: [Validators.pattern('AIza[0-9A-Za-z\\-_]{35}')] }],
+      map_provider: [],
     });
 
     effect(() => {
@@ -408,6 +410,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       if (!targetIsDot) {
         if (layer.options.createdLowNet !== isLowNet) return true;
         if (layer.options.createdGpxMode !== isGpxMode) return true;
+        if (layer.options.imageId !== p.image_id) return true;
         if (
           layer.options.category.color !== p.category.color ||
           layer.options.category.image_id !== p.category.image_id
@@ -430,6 +433,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           createdLowNet: isLowNet,
           createdGpxMode: isGpxMode,
           category: p.category,
+          imageId: p.image_id,
         });
         return marker;
       });
@@ -494,7 +498,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   createPlaceMarker(place: Place): L.Marker {
-    const marker = placeToMarker(place, this.isLowNetMode(), place.visited, this.isGPXInPlaceMode());
+    const marker = placeToMarker(place, this.isLowNetMode(), place.visited, this.isGPXInPlaceMode(), () =>
+      this.markerToMarkerRouting(place),
+    );
     this.addEventsToMarker(marker, place);
     return marker;
   }
@@ -917,8 +923,14 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   updateSettings() {
+    const data = { ...this.settingsForm.value };
+    delete data['_google_apikey'];
+    if (!this.settings()?.google_apikey && this.settingsForm.get('_google_apikey')?.value) {
+      data['google_apikey'] = this.settingsForm.get('_google_apikey')?.value;
+    }
+
     this.apiService
-      .putSettings({ ...this.settingsForm.value, google_apikey: this.settingsForm.get('_google_apikey')?.value })
+      .putSettings(data)
       .pipe(take(1))
       .subscribe({
         next: (settings) => {
@@ -1426,7 +1438,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             processed += batch.length;
             this.utilsService.setLoading(`Querying Google Maps API... [${processed}/${lines.length}]`);
 
-            return this.apiService.postTakeoutFile(formdata).pipe(
+            return this.apiService.completionGoogleTakeoutFile(formdata).pipe(
               delay(batchIndex === batches.length - 1 ? 0 : 2500),
               catchError((err) => {
                 this.utilsService.toast(
@@ -1507,7 +1519,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         formdata.append('file', file);
 
         this.apiService
-          .postKmzFile(formdata)
+          .completionGoogleKmzFile(formdata)
           .pipe(take(1))
           .subscribe({
             next: (places) => {
@@ -1562,7 +1574,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     );
   }
 
-  multiPlaceModal(places: GooglePlaceResult[]) {
+  multiPlaceModal(places: ProviderPlaceResult[]) {
     const modal: DynamicDialogRef = this.dialogService.open(MultiPlacesCreateModalComponent, {
       header: 'Create Places',
       modal: true,
@@ -1619,8 +1631,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   toggleOutOfBoundsPlaces() {
     this.hideOutOfBoundsPlaces.update((v) => !v);
   }
-  gmapsGeocodeFilter() {
-    const value = this.gmapsGeocodeFilterInput.value;
+  geocodeFilter() {
+    const value = this.geocodeFilterInput.value;
     if (!value) return;
 
     if (!this.settings()?.google_apikey) {
@@ -1629,29 +1641,29 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     }
 
     this.apiService
-      .gmapsGeocodeBoundaries(value)
+      .completionGeocodeBoundaries(value)
       .pipe(take(1))
       .subscribe({
         next: (boundaries) => {
           this.boundariesFiltering.set(boundaries);
-          this.gmapsGeocodeFilterInput.disable();
+          this.geocodeFilterInput.disable();
         },
       });
   }
 
   resetGeocodeFilters() {
     this.boundariesFiltering.set(null);
-    this.gmapsGeocodeFilterInput.enable();
-    this.gmapsGeocodeFilterInput.setValue('');
+    this.geocodeFilterInput.enable();
+    this.geocodeFilterInput.setValue('');
   }
 
   getCategoryPlacesCount(category: string): number {
     return this.places().filter((place) => place.category.name === category).length;
   }
 
-  openGmapsMultilineModal() {
-    const modal: DynamicDialogRef = this.dialogService.open(GmapsMultilineCreateModalComponent, {
-      header: 'Create Places from GMaps',
+  openProviderMultilineModal() {
+    const modal: DynamicDialogRef = this.dialogService.open(ProviderMultilineCreateModalComponent, {
+      header: 'Create multiple Places',
       modal: true,
       appendTo: 'body',
       closable: true,
@@ -1668,15 +1680,15 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       next: (content: string[] | null) => {
         if (!content) return;
 
-        this.utilsService.setLoading('Querying Google Maps API...');
+        this.utilsService.setLoading('Querying Provider API...');
         this.apiService
-          .postGmapsMultiline(content)
+          .completionBulk(content)
           .pipe(take(1))
           .subscribe({
             next: (places) => {
               this.utilsService.setLoading('');
               if (!places.length) {
-                this.utilsService.toast('warn', 'No result', 'Google API did not return any place');
+                this.utilsService.toast('warn', 'No result', 'Provider API did not return any place');
                 return;
               }
 
@@ -1696,17 +1708,17 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   googleNearbyPlaces(data: L.LeafletMouseEvent) {
-    this.utilsService.setLoading('Querying Google Maps API... ');
+    this.utilsService.setLoading('Querying Provider API... ');
     const latlng = { latitude: data.latlng.lat, longitude: data.latlng.lng };
 
     this.apiService
-      .postGmapsNearbySearch(latlng)
+      .completionNearbySearch(latlng)
       .pipe(take(1))
       .subscribe({
         next: (places) => {
           this.utilsService.setLoading('');
           if (!places.length) {
-            this.utilsService.toast('warn', 'No result', 'Google API did not return any place');
+            this.utilsService.toast('warn', 'No result', 'Provider did not return any place');
             return;
           }
 
@@ -1731,5 +1743,39 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     setTimeout(() => {
       marker.remove();
     }, 4000);
+  }
+
+  markerToMarkerRouting(to: Place) {
+    const from = this.selectedPlace();
+    if (!from) return;
+
+    const profile = this.routeManager.getProfile([from.lat, from.lng], [to.lat, to.lng]);
+    this.utilsService.setLoading('Calculating route...');
+    this.apiService
+      .completionRouting({
+        coordinates: [
+          { lng: from.lng, lat: from.lat },
+          { lng: to.lng, lat: to.lat },
+        ],
+        profile,
+      })
+      .subscribe({
+        next: (resp) => {
+          this.utilsService.setLoading('');
+          const layer = this.routeManager.addRoute({
+            id: this.routeManager.createRouteId([from.lat, from.lng], [to.lat, to.lng], profile),
+            geometry: resp.geometry,
+            distance: resp.distance ?? 0,
+            duration: resp.duration ?? 0,
+            profile,
+          });
+          const currentMap = this.map;
+          if (currentMap) layer.addTo(currentMap);
+        },
+        error: (err) => {
+          this.utilsService.setLoading('');
+          console.error('Routing error:', err);
+        },
+      });
   }
 }

@@ -4,7 +4,7 @@ import { ButtonModule } from 'primeng/button';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { InputTextModule } from 'primeng/inputtext';
-import { GoogleBoundaries, Place } from '../../types/poi';
+import { ProviderBoundaries, Place } from '../../types/poi';
 import { ApiService } from '../../services/api.service';
 import { SkeletonModule } from 'primeng/skeleton';
 import { UtilsService } from '../../services/utils.service';
@@ -31,7 +31,7 @@ import { TabsModule } from 'primeng/tabs';
 export class TripPlaceSelectModalComponent {
   searchInput = new FormControl('');
   googleGeocodeInput = new FormControl('');
-  boundariesFiltering?: GoogleBoundaries;
+  boundariesFiltering?: ProviderBoundaries;
 
   selectedPlaces: Place[] = [];
   showSelectedPlaces: boolean = false;
@@ -138,12 +138,12 @@ export class TripPlaceSelectModalComponent {
     this.selectedPlacesID = [];
   }
 
-  gmapsGeocodeFilter() {
+  geocodeFilter() {
     const value = this.googleGeocodeInput.value;
     if (!value) return;
 
     this.apiService
-      .gmapsGeocodeBoundaries(value)
+      .completionGeocodeBoundaries(value)
       .pipe(take(1))
       .subscribe({
         next: (boundaries) => {

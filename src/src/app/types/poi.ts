@@ -18,6 +18,7 @@ export interface Place {
   user?: string;
   gpx?: string;
   image?: string;
+  image_id?: number;
   price?: number;
   description?: string;
   duration?: number;
@@ -27,21 +28,7 @@ export interface Place {
   restroom?: boolean;
 }
 
-export interface GooglePlaceResult {
-  name: string;
-  place: string;
-  category?: string;
-  lat: number;
-  lng: number;
-  price?: number;
-  types: string[];
-  allowdog?: boolean;
-  description: string;
-  image: string;
-  restroom?: boolean;
-}
-
-export interface GoogleBoundaries {
+export interface ProviderBoundaries {
   northeast: { lat: number; lng: number };
   southwest: { lat: number; lng: number };
 }
