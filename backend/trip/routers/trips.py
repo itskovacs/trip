@@ -1004,8 +1004,6 @@ async def download_shared_trip_attachment(
             TripAttachment.trip_id == _trip.trip_id, TripAttachment.id == attachment_id
         )
     ).first()
-    print("att:")
-    print(attachment)
 
     if not attachment:
         raise HTTPException(status_code=404, detail="Attachment not found")
