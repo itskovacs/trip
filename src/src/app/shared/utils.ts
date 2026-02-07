@@ -1,7 +1,7 @@
 import { TripDay } from '../types/trip';
 
-export function calculateDistanceBetween(lat1: number, lon1: number, lat2: number, lon2: number) {
-  // returns d in meter
+export function computeDistLatLng(lat1: number, lon1: number, lat2: number, lon2: number) {
+  // returns d in km
   const toRad = (deg: number) => (deg * Math.PI) / 180;
   const dLat = toRad(lat2 - lat1);
   const dLon = toRad(lon2 - lon1);

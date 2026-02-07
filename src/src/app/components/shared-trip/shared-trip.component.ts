@@ -19,7 +19,16 @@ import { SkeletonModule } from 'primeng/skeleton';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import * as L from 'leaflet';
 import { TableModule } from 'primeng/table';
+import {
+  Trip,
+  TripDay,
+  TripItem,
+  TripStatus,
+  PackingItem,
+  ChecklistItem,
+  TripAttachment,
   PrintOptions,
+} from '../../types/trip';
 import { Category, Place } from '../../types/poi';
 import {
   createMap,
@@ -32,8 +41,8 @@ import {
   getGeolocationLatLng,
 } from '../../shared/map';
 import { ActivatedRoute, Router } from '@angular/router';
-import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
-import { debounceTime, distinctUntilChanged, forkJoin, Observable, of, switchMap, take } from 'rxjs';
+import { DialogService } from 'primeng/dynamicdialog';
+import { debounceTime, distinctUntilChanged, Observable, take } from 'rxjs';
 import { UtilsService } from '../../services/utils.service';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { MenuItem } from 'primeng/api';
@@ -48,11 +57,10 @@ import { generateTripICSFile } from '../../shared/trip-base/ics';
 import { generateTripCSVFile } from '../../shared/trip-base/csv';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FileSizePipe } from '../../shared/pipes/filesize.pipe';
-import { calculateDistanceBetween } from '../../shared/utils';
+import { computeDistLatLng } from '../../shared/utils';
 import { TabsModule } from 'primeng/tabs';
 import { PlaceBoxContentComponent } from '../../shared/place-box-content/place-box-content.component';
 import { PlaceListItemComponent } from '../../shared/place-list-item/place-list-item.component';
-import { TripPrettyPrintModalComponent } from '../../modals/trip-pretty-print-modal/trip-pretty-print-modal.component';
 import { TripPrettyPrintModalComponent } from '../../modals/trip-pretty-print-modal/trip-pretty-print-modal.component';
 
 interface ViewTripItem extends TripItem {
@@ -93,6 +101,8 @@ const HIGHLIGHT_COLORS = [
   '#7a7a00',
 ];
 
+const MAX_MAP_INIT_RETRIES = 5;
+
 @Component({
   selector: 'app-shared-trip',
   standalone: true,
@@ -131,6 +141,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   @ViewChild('menuSelectedDayActions') menuSelectedDayActions!: Menu;
   @ViewChild('selectedPanel', { read: ElementRef }) selectedPanelRef?: ElementRef;
 
+  mapInitRetries = 0;
   selectedPanelHeight = signal<number>(0);
   plansSearchInput = new FormControl<string>('');
   apiService: ApiService;
@@ -154,7 +165,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   isPlacesPanelVisible = signal<boolean>(false);
   isDaysPanelVisible = signal<boolean>(false);
   showOnlyUnplannedPlaces = signal<boolean>(false);
-  isPrinting = signal<boolean>(false);
+  printOptions = signal<PrintOptions | null>(null);
   isArchivalReviewDisplayed = signal<boolean>(false);
   isArchiveWarningVisible = signal<boolean>(true);
   tooltipCopied = signal(false);
@@ -170,22 +181,10 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   isAttachmentsDialogVisible = false;
   isChecklistDialogVisible = false;
   isBetaDialogVisible = true;
-  selectedItemProps = signal<string[]>(['place', 'comment', 'price', 'status']);
+  selectedItemProps = signal<string[]>(['place', 'comment', 'price']);
 
   tripSharedURL$?: Observable<string>;
   username: string;
-  printOptionsPlaces = computed(() => {
-    const options = this.printOptions();
-    const places: Set<Place> = new Set();
-    this.trip()?.days.forEach((d) => {
-      if (!options?.days.has(d.id)) return;
-      d.items.forEach((i) => {
-        if (!i.place) return;
-        places.add(i.place);
-      });
-    });
-    return places;
-  });
 
   places = computed(() => this.trip()?.places ?? []);
   printOptionsPlaces = computed(() => {
@@ -282,7 +281,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
           let distance: number | undefined;
           if (lat != null && lng != null) {
             if (prevLat != null && prevLng != null) {
-              distance = Math.round(calculateDistanceBetween(prevLat, prevLng, lat, lng) * 10) / 10;
+              distance = Math.round(computeDistLatLng(prevLat, prevLng, lat, lng) * 10) / 10;
             }
             prevLat = lat;
             prevLng = lng;
@@ -602,6 +601,19 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   }
 
   initMap() {
+    const mapContainer = document.getElementById('map');
+    if (!mapContainer) {
+      if (this.mapInitRetries < MAX_MAP_INIT_RETRIES) {
+        this.mapInitRetries++;
+        setTimeout(() => this.initMap(), 100 + this.mapInitRetries * 100);
+      } else {
+        console.error('Failed to initialize map: container not found after retries');
+        this.utilsService.toast('error', 'Error', 'Error during map rendering');
+      }
+      return;
+    }
+    this.mapInitRetries = 0;
+
     this.cleanupMap();
     const contextMenuItems = [
       {
@@ -799,35 +811,9 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
           {
             label: 'Open Navigation',
             icon: 'pi pi-car',
-    const trip = this.trip();
-    if (!trip || !trip.days.length) return;
-
-    const modal = this.dialogService.open(TripPrettyPrintModalComponent, {
-      header: 'Print options',
-      modal: true,
-      appendTo: 'body',
-      closable: true,
-      dismissableMask: true,
-      draggable: false,
-      resizable: false,
-      width: '20vw',
-      breakpoints: {
-        '960px': '70vw',
-        '640px': '90vw',
-      },
-      data: {
-        props: this.availableItemProps,
-        selectedProps: this.selectedItemProps(),
-        days: trip.days,
-      },
-    })!;
-
-    modal.onClose.pipe(take(1)).subscribe((data: PrintOptions | null) => {
-      if (!data) return;
-      this.printOptions.set(data);
-
-      setTimeout(() => {
-        window.print();
+            command: () => this.tripDayToNavigation(d.id),
+          },
+          {
             label: 'Highlight',
             icon: 'pi pi-directions',
             command: () => this.toggleTripDayHighlight(d.id),
@@ -880,113 +866,8 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
 
       setTimeout(() => {
         window.print();
-            label: 'Highlight',
-            icon: 'pi pi-directions',
-            command: () => this.toggleTripDayHighlight(d.id),
-          },
-        ],
-      },
-    ];
-    this.menuSelectedDayActions.toggle(event);
-  }
-
-  toggleTripDayHighlight(newValue: number | null) {
-    this.highlightedDayId.update((current) => (current === newValue ? null : newValue));
-  }
-
-  toggleTripDaysHighlight() {
-    this.highlightedDayId.update((current) => (current === -1 ? null : -1));
-  }
-
-  back() {
-    this.router.navigate(['/trips']);
-  }
-
-  togglePrint() {
-    this.isPrinting.update((v) => !v);
-    setTimeout(() => {
-      window.print();
         this.printOptions.set(null);
       }, 400); //increased after primeng21 migration
-            command: () => this.toggleTripDayHighlight(d.id),
-          },
-        ],
-      },
-    ];
-    this.menuSelectedDayActions.toggle(event);
-  }
-
-  toggleTripDayHighlight(newValue: number | null) {
-    this.highlightedDayId.update((current) => (current === newValue ? null : newValue));
-  }
-
-  toggleTripDaysHighlight() {
-    this.highlightedDayId.update((current) => (current === -1 ? null : -1));
-  }
-
-  back() {
-    this.router.navigate(['/trips']);
-  }
-
-  togglePrint() {
-    this.isPrinting.update((v) => !v);
-    setTimeout(() => {
-      window.print();
-        this.printOptions.set(null);
-      }, 400); //increased after primeng21 migration
-            command: () => this.toggleTripDayHighlight(d.id),
-          },
-        ],
-      },
-    ];
-    this.menuSelectedDayActions.toggle(event);
-  }
-
-  toggleTripDayHighlight(newValue: number | null) {
-    this.highlightedDayId.update((current) => (current === newValue ? null : newValue));
-  }
-
-  toggleTripDaysHighlight() {
-    this.highlightedDayId.update((current) => (current === -1 ? null : -1));
-  }
-
-  back() {
-    this.router.navigate(['/trips']);
-  }
-
-  togglePrint() {
-    this.isPrinting.update((v) => !v);
-    setTimeout(() => {
-      window.print();
-      this.isPrinting.update((v) => !v);
-    }, 400); //increased after primeng21 migration
-    });
-            command: () => this.toggleTripDayHighlight(d.id),
-          },
-        ],
-      },
-    ];
-    this.menuSelectedDayActions.toggle(event);
-  }
-
-  toggleTripDayHighlight(newValue: number | null) {
-    this.highlightedDayId.update((current) => (current === newValue ? null : newValue));
-  }
-
-  toggleTripDaysHighlight() {
-    this.highlightedDayId.update((current) => (current === -1 ? null : -1));
-  }
-
-  back() {
-    this.router.navigate(['/trips']);
-  }
-
-  togglePrint() {
-    this.isPrinting.update((v) => !v);
-    setTimeout(() => {
-      window.print();
-      this.isPrinting.update((v) => !v);
-    }, 400); //increased after primeng21 migration
     });
   }
 
@@ -1035,7 +916,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
     return Array.from(places.values());
   }
 
-  getCategoriesFromPlaces(places: Place[]): Category[] {
+  getCategoriesFromPlaces(places: Set<Place>): Category[] {
     const categories = new Map<number, Category>();
     places.forEach((p) => categories.set(p.category.id, p.category));
     return Array.from(categories.values());

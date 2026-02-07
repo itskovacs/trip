@@ -14,7 +14,6 @@
 
     <div
       class="inline-flex items-center gap-2 p-1.5 bg-white/70 dark:bg-primary-900/70 rounded-lg shadow-lg shadow-black/5">
-
       <div (click)="toggleInvitations()"
         class="relative cursor-pointer flex items-center justify-center gap-2 w-9 h-9 px-2.5 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-800">
         <div class="w-7 h-7 flex items-center justify-center">
@@ -42,8 +41,8 @@
     @if (trips.length) {
     <div class="grid grid-cols-2 gap-4 lg:grid-cols-3 xl:grid-cols-4">
       @for (trip of trips; track trip.id) {
-      <div class="group relative flex cursor-pointer flex-col overflow-hidden rounded-lg border border-primary-100/80 dark:border-primary-800/80 bg-primary-50 dark:bg-primary-900
-        shadow-sm transition-all duration-300 hover:border-primary-100 dark:hover:border-primary-900"
+      <div
+        class="group relative flex cursor-pointer flex-col overflow-hidden rounded-lg border border-primary-100/80 dark:border-primary-800/80 bg-primary-50 dark:bg-primary-900 shadow-sm transition-all duration-300 hover:border-primary-100 dark:hover:border-primary-900"
         [class]="trip.archived ? 'grayscale opacity-70' : undefined" (click)="viewTrip(trip.id)">
         <div class="relative aspect-[4/3] overflow-hidden">
           <img [src]="trip.image || 'cover.webp'" loading="lazy"
@@ -70,11 +69,12 @@
         </div>
 
         <div class="flex items-center justify-between gap-2 p-3">
-          <h3 class="truncate text-sm font-semibold tracking-tight text-primary-900 dark:text-primary-100">{{ trip.name
-            }}</h3>
+          <h3 class="truncate text-sm font-semibold tracking-tight text-primary-900 dark:text-primary-100">
+            {{ trip.name }}
+          </h3>
 
-          <div class="inline-flex shrink-0 h-7 w-7 items-center justify-center rounded-full bg-primary-50 dark:bg-primary-800 text-primary-400 dark:text-primary-400 transition-all duration-300 group-hover:translate-x-0.5 group-hover:bg-primary-50
-          dark:group-hover:bg-primary-950 group-hover:text-primary-600 dark:group-hover:text-primary-400">
+          <div
+            class="inline-flex shrink-0 h-7 w-7 items-center justify-center rounded-full bg-primary-50 dark:bg-primary-800 text-primary-400 dark:text-primary-400 transition-all duration-300 group-hover:translate-x-0.5 group-hover:bg-primary-50 dark:group-hover:bg-primary-950 group-hover:text-primary-600 dark:group-hover:text-primary-400">
             <i class="pi pi-arrow-right text-sm"></i>
           </div>
         </div>
@@ -156,9 +156,7 @@
         </div>
       </div>
       } @empty {
-      <div class="py-8 text-center text-sm text-primary-500 dark:text-primary-400">
-        No pending invitations.
-      </div>
+      <div class="py-8 text-center text-sm text-primary-500 dark:text-primary-400">No pending invitations.</div>
       }
     </div>
   </section>

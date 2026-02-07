@@ -5,12 +5,12 @@
     <div class="grid grid-cols-2 gap-4">
       <div class="relative col-span-2">
         <p-floatlabel variant="in">
-          <input id="name" formControlName="name" pInputText autofocus fluid (keydown.enter)="gmapsSearchText()" />
+          <input id="name" formControlName="name" pInputText autofocus fluid (keydown.enter)="completionSearchText()" />
           <label for="name">Name</label>
         </p-floatlabel>
         <div class="absolute right-3 top-1/2 -translate-y-1/2 rounded-lg">
-          <p-button [disabled]="!placeForm.get('name')!.value" text label="Query GMaps" icon="pi pi-sparkles"
-            size="small" pTooltip="Complete using GMaps API" (click)="gmapsSearchText()"
+          <p-button [disabled]="!placeForm.get('name')!.value" text label="Query" icon="pi pi-sparkles" size="small"
+            pTooltip="Complete using Provider API" (click)="completionSearchText()"
             class="cursor-pointer text-primary-400 hover:text-primary-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors" />
         </div>
       </div>
@@ -57,7 +57,7 @@
       <div
         class="flex flex-col items-center justify-center gap-2 p-4 bg-primary-50 dark:bg-black rounded-lg border border-primary-200 dark:border-primary-700">
         <div class="relative group">
-          @if (placeForm.get("image_id")?.value || placeForm.get("image")?.value) {
+          @if (placeForm.get('image_id')?.value || placeForm.get('image')?.value) {
           <img [src]="placeForm.get('image')?.value || '/favicon.png'"
             class="size-24 object-cover rounded-lg shadow ring-2 ring-primary-200 dark:ring-primary-700 cursor-pointer transition-all group-hover:ring-primary-400"
             (click)="imageInput.click()" />
@@ -66,7 +66,7 @@
             (click)="imageInput.click()">
             <i class="pi pi-camera text-white text-2xl"></i>
           </div>
-          @if (!placeForm.get("image_id")?.value) {
+          @if (!placeForm.get('image_id')?.value) {
           <button type="button"
             class="cursor-pointer absolute -top-2 -right-2 size-7 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-full shadow transition"
             (click)="clearImage(); $event.stopPropagation()">
@@ -91,7 +91,11 @@
           class="flex flex-wrap gap-4 p-3 bg-primary-50 dark:bg-black/20 rounded-lg border border-primary-200 dark:border-primary-700">
           <button (click)="toggleCheckbox('allowdog')"
             class="select-none cursor-pointer inline-flex items-center gap-2 h-8 w-36 max-w-[25vw] px-3 rounded-lg text-sm font-medium transition-all"
-            [class]="placeForm.get('allowdog')?.value ? 'bg-emerald-600 text-white' : 'bg-primary-100 dark:bg-black text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800'">
+            [class]="
+              placeForm.get('allowdog')?.value
+                ? 'bg-emerald-600 text-white'
+                : 'bg-primary-100 dark:bg-black text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800'
+            ">
             @if (placeForm.get('allowdog')?.value) {
             <i class="pi pi-check text-xs"></i>
             } @else {
@@ -102,7 +106,11 @@
 
           <button (click)="toggleCheckbox('restroom')"
             class="select-none cursor-pointer inline-flex items-center gap-2 h-8 w-24 max-w-[25vw] px-3 rounded-lg text-sm font-medium transition-all"
-            [class]="placeForm.get('restroom')?.value ? 'bg-sky-400 text-white' : 'bg-primary-100 dark:bg-black text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800'">
+            [class]="
+              placeForm.get('restroom')?.value
+                ? 'bg-sky-400 text-white'
+                : 'bg-primary-100 dark:bg-black text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800'
+            ">
             @if (placeForm.get('restroom')?.value) {
             <i class="pi pi-check text-xs"></i>
             } @else {
@@ -113,7 +121,11 @@
 
           <button (click)="toggleCheckbox('visited')"
             class="select-none cursor-pointer inline-flex items-center gap-2 h-8 w-24 max-w-[25vw] px-3 rounded-lg text-sm font-medium transition-all"
-            [class]="placeForm.get('visited')?.value ? 'bg-blue-600 text-white' : 'bg-primary-100 dark:bg-black text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800'">
+            [class]="
+              placeForm.get('visited')?.value
+                ? 'bg-blue-600 text-white'
+                : 'bg-primary-100 dark:bg-black text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800'
+            ">
             @if (placeForm.get('visited')?.value) {
             <i class="pi pi-check text-xs"></i>
             } @else {
@@ -164,7 +176,7 @@
 </section>
 
 <p-dialog [(visible)]="showImageUrlDialog" appendTo="body" header="Add Image URL" [modal]="true"
-  [style]="{width: '450px'}" [draggable]="false" [resizable]="false">
+  [style]="{ width: '450px' }" [draggable]="false" [resizable]="false">
   <div class="py-4">
     <p-floatlabel variant="in">
       <input id="imageUrl" type="url" [(ngModel)]="imageUrl" pInputText fluid />

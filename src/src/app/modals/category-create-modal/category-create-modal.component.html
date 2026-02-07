@@ -12,7 +12,7 @@
       </p-floatlabel>
       <div class="absolute right-3 top-1/2 -translate-y-1/2">
         <p-colorpicker [ngModel]="categoryForm.get('color')?.value" (ngModelChange)="updateColorFromPicker($event)"
-          [ngModelOptions]="{standalone: true}" appendTo="body" [pt]="{ panel: 'right-0! left-auto!' }" />
+          [ngModelOptions]="{ standalone: true }" appendTo="body" [pt]="{ panel: 'right-0! left-auto!' }" />
       </div>
     </div>
   </div>
@@ -20,7 +20,7 @@
   <input type="file" accept="image/*" #fileInput class="hidden" (change)="onFileSelected($event)" />
   <div class="flex justify-center">
     <div class="relative group cursor-pointer" (click)="fileInput.click()">
-      @if (categoryForm.get("image")?.value) {
+      @if (categoryForm.get('image')?.value) {
       <img [src]="categoryForm.get('image')?.value"
         class="max-h-32 object-cover rounded-lg transition-transform duration-300" />
       } @else {
@@ -36,6 +36,6 @@
 
 <div class="mt-4 text-right">
   <p-button (click)="closeDialog()" [disabled]="!categoryForm.dirty || !categoryForm.valid">{{
-    categoryForm.get("id")?.value
-    !== -1 ? "Update" : "Create" }}</p-button>
+    categoryForm.get('id')?.value !== -1 ? 'Update' : 'Create'
+    }}</p-button>
 </div>

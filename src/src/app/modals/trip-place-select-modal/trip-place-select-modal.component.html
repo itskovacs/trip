@@ -1,5 +1,4 @@
 <section>
-
   <p-tabs value="0">
     <p-tablist>
       <p-tab value="0">
@@ -38,16 +37,16 @@
               </div>
 
               <div class="relative">
-                <input id="geocodeInput" pSize="small" (keydown.enter)="gmapsGeocodeFilter()"
-                  placeholder="Country, City..." class="h-full" [formControl]="googleGeocodeInput" pInputText fluid />
+                <input id="geocodeInput" pSize="small" (keydown.enter)="geocodeFilter()" placeholder="Country, City..."
+                  class="h-full" [formControl]="googleGeocodeInput" pInputText fluid />
                 @if (boundariesFiltering) {
                 <p-button icon="pi pi-times" text severity="danger" size="small"
                   class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Clear location filter"
                   (click)="resetGeocodeFilters()" />
                 } @else {
-                <p-button icon="pi pi-sparkles" label="Query GMaps" text [disabled]="!googleGeocodeInput.value"
-                  size="small" class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Apply location filter"
-                  (click)="gmapsGeocodeFilter()" />
+                <p-button icon="pi pi-sparkles" label="Query" text [disabled]="!googleGeocodeInput.value" size="small"
+                  class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Apply location filter"
+                  (click)="geocodeFilter()" />
                 }
               </div>
             </div>
@@ -60,16 +59,16 @@
             @if (searchInput.value) {
             <div
               class="flex items-center gap-2 bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-0.5 text-xs font-medium rounded-md">
-              <i class="pi pi-search"></i>{{ searchInput.value }}<p-button text icon="pi pi-times" size="small"
-                (click)="searchInput.setValue('')" />
+              <i class="pi pi-search"></i>{{ searchInput.value
+              }}<p-button text icon="pi pi-times" size="small" (click)="searchInput.setValue('')" />
             </div>
             }
 
             @if (boundariesFiltering) {
             <div
               class="flex items-center gap-2 bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-0.5 text-xs font-medium rounded-md">
-              <i class="pi pi-map-marker"></i>{{ googleGeocodeInput.value }}<p-button text icon="pi pi-times"
-                size="small" (click)="resetGeocodeFilters()" />
+              <i class="pi pi-map-marker"></i>{{ googleGeocodeInput.value
+              }}<p-button text icon="pi pi-times" size="small" (click)="resetGeocodeFilters()" />
             </div>
             }
 
@@ -92,14 +91,18 @@
             @for (p of displayedPlaces; track p.id) {
             <div (click)="togglePlace(p)"
               class="group relative cursor-pointer rounded-xl border border-primary-200 dark:border-primary-700 p-3 transition-all duration-200 hover:border-primary-400 hover:bg-primary-50 dark:hover:border-primary-600 dark:hover:bg-primary-950/30"
-              [class]="selectedPlacesID.includes(p.id) ? 'ring ring-primary-500 bg-primary-50 dark:bg-primary-950' : ''">
+              [class]="
+                    selectedPlacesID.includes(p.id) ? 'ring ring-primary-500 bg-primary-50 dark:bg-primary-950' : ''
+                  ">
               <div class="flex items-center gap-3">
                 <div class="relative h-14 w-14 shrink-0">
                   <img [src]="p.image || p.category.image" loading="lazy"
                     class="h-full w-full rounded-lg object-cover" />
-                  <div
-                    [class]="selectedPlacesID.includes(p.id) ? 'flex bg-primary-600/80' : 'hidden group-hover:flex bg-green-700/80'"
-                    class="absolute inset-0 items-center justify-center rounded-lg  text-white transition-all">
+                  <div [class]="
+                          selectedPlacesID.includes(p.id)
+                            ? 'flex bg-primary-600/80'
+                            : 'hidden group-hover:flex bg-green-700/80'
+                        " class="absolute inset-0 items-center justify-center rounded-lg text-white transition-all">
                     <i [class]="selectedPlacesID.includes(p.id) ? 'pi pi-check text-xl' : 'pi pi-plus text-xl'"></i>
                   </div>
                 </div>
@@ -130,7 +133,7 @@
         </div>
         } @placeholder (minimum 400ms) {
         <div class="grid gap-3 p-4 md:grid-cols-2 lg:grid-cols-3">
-          @for (_ of [1,2,3,4,5,6]; track _) {
+          @for (_ of [1, 2, 3, 4, 5, 6]; track _) {
           <p-skeleton height="5.5rem" borderRadius="0.75rem" />
           }
         </div>
@@ -198,8 +201,8 @@
   </p-tabs>
 
   <div class="fixed inset-x-0 bottom-0 z-20 flex justify-center p-4 pointer-events-none">
-    <div class="pointer-events-auto flex w-full max-w-lg items-center justify-between gap-4 rounded-lg border bg-primary-50
-      border-primary-200/70 dark:border-primary-700/70 px-5 py-3.5 shadow-lg backdrop-blur-md">
+    <div
+      class="pointer-events-auto flex w-full max-w-lg items-center justify-between gap-4 rounded-lg border bg-primary-50 border-primary-200/70 dark:border-primary-700/70 px-5 py-3.5 shadow-lg backdrop-blur-md">
       <div class="flex items-center gap-3">
         <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-primary-500/20">
           <i class="pi pi-check-circle text-xl text-primary-700"></i>
@@ -208,9 +211,7 @@
           <span class="text-sm font-semibold text-primary-700">
             {{ selectedPlaces.length }} place{{ selectedPlaces.length === 1 ? '' : 's' }} selected
           </span>
-          <span class="text-xs text-primary-400">
-            Confirm your selection
-          </span>
+          <span class="text-xs text-primary-400"> Confirm your selection </span>
         </div>
       </div>
 

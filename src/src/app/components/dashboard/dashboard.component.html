@@ -34,13 +34,17 @@
   <div class="pointer-events-auto mr-4 mt-4 sm:mr-6 sm:mt-6 lg:w-88">
     <div
       class="w-full inline-flex items-center gap-2 p-1.5 bg-white/70 dark:bg-primary-900/70 backdrop-blur-xl rounded-lg shadow-lg shadow-black/5">
-
       <div (click)="togglePlacesList()"
         class="cursor-pointer flex items-center justify-center gap-2 h-9 md:w-28 px-2.5 rounded-lg transition-all"
-        [class]="viewPlacesList() ? 'bg-primary-100 dark:bg-primary-800' : 'hover:bg-primary-100 dark:hover:bg-primary-800'">
+        [class]="
+          viewPlacesList() ? 'bg-primary-100 dark:bg-primary-800' : 'hover:bg-primary-100 dark:hover:bg-primary-800'
+        ">
         <div class="w-7 h-7 flex items-center justify-center">
-          <i class="pi text-sm transition-transform duration-200"
-            [class]="viewPlacesList() ? 'pi-times text-primary-600 dark:text-primary-400 rotate-90' : 'pi-map-marker text-primary-700 dark:text-primary-300'"></i>
+          <i class="pi text-sm transition-transform duration-200" [class]="
+              viewPlacesList()
+                ? 'pi-times text-primary-600 dark:text-primary-400 rotate-90'
+                : 'pi-map-marker text-primary-700 dark:text-primary-300'
+            "></i>
         </div>
         <span class="select-none hidden md:inline text-sm font-medium"
           [class]="viewPlacesList() ? 'text-primary-600 dark:text-primary-400' : 'text-primary-900 dark:text-white'">Places</span>
@@ -50,10 +54,15 @@
 
       <div (click)="toggleFilters()"
         class="cursor-pointer flex items-center justify-center gap-2 h-9 md:w-24 px-2.5 rounded-lg transition-all"
-        [class]="viewFilters() ? 'bg-primary-100 dark:bg-primary-800' : 'hover:bg-primary-100 dark:hover:bg-primary-800'">
+        [class]="
+          viewFilters() ? 'bg-primary-100 dark:bg-primary-800' : 'hover:bg-primary-100 dark:hover:bg-primary-800'
+        ">
         <div class="w-7 h-7 flex items-center justify-center">
-          <i class="pi text-sm transition-transform duration-200"
-            [class]="viewFilters() ? 'pi-times text-primary-600 dark:text-primary-400 rotate-90' : 'pi-filter text-primary-700 dark:text-primary-300'"></i>
+          <i class="pi text-sm transition-transform duration-200" [class]="
+              viewFilters()
+                ? 'pi-times text-primary-600 dark:text-primary-400 rotate-90'
+                : 'pi-filter text-primary-700 dark:text-primary-300'
+            "></i>
         </div>
         <span class="select-none hidden md:inline text-sm font-medium"
           [class]="viewFilters() ? 'text-primary-600 dark:text-primary-400' : 'text-primary-900 dark:text-white'">Filters</span>
@@ -95,8 +104,8 @@
         </div>
         <span class="text-sm font-medium text-primary-900 dark:text-white">Place</span>
       </button>
-      <input type="file" style="display: none;" (change)="onGoogleTakeoutInputChange($event)" #fileUploadTakeout>
-      <input type="file" style="display: none;" (change)="onGoogleKmzInputChange($event)" #fileUploadKmz>
+      <input type="file" style="display: none" (change)="onGoogleTakeoutInputChange($event)" #fileUploadTakeout />
+      <input type="file" style="display: none" (change)="onGoogleKmzInputChange($event)" #fileUploadKmz />
     </div>
   </div>
 </div>
@@ -104,8 +113,9 @@
 <section
   class="pointer-events-none fixed top-20 md:top-22 bottom-20 md:bottom-22 right-4 md:right-6 z-30 flex w-[calc(100%-2rem)] flex-col gap-3 md:w-64 lg:w-88">
   @if (viewFilters()) {
-  <div animate.enter="slide-y-no-opacity" animate.leave="a-slide-y" class="pointer-events-auto ring-1 ring-black/5 dark:ring-white/10 bg-white/70 dark:bg-primary-900/70 backdrop-blur-xl
-  rounded-lg w-full shadow-2xl flex flex-col" [class.h-1/3]="viewPlacesList()">
+  <div animate.enter="slide-y-no-opacity" animate.leave="a-slide-y"
+    class="pointer-events-auto ring-1 ring-black/5 dark:ring-white/10 bg-white/70 dark:bg-primary-900/70 backdrop-blur-xl rounded-lg w-full shadow-2xl flex flex-col"
+    [class.h-1/3]="viewPlacesList()">
     <div class="flex items-center justify-between gap-4 p-4 border-b border-primary-200 dark:border-primary-800">
       <h2 class="text-base font-semibold text-primary-900 dark:text-white">Filters</h2>
       <div class="flex gap-2">
@@ -120,7 +130,11 @@
       <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
         <button (click)="filter_display_visited.set(!filter_display_visited())"
           class="cursor-pointer inline-flex items-center gap-2 h-8 px-3 rounded-lg text-sm font-medium transition-all"
-          [class]="filter_display_visited() ? 'bg-blue-600 text-white' : 'bg-primary-100 dark:bg-black text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800'">
+          [class]="
+              filter_display_visited()
+                ? 'bg-blue-600 text-white'
+                : 'bg-primary-100 dark:bg-black text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800'
+            ">
           @if (filter_display_visited()) {
           <i class="pi pi-check text-xs"></i>
           } @else {
@@ -131,7 +145,11 @@
 
         <button (click)="filter_dog_only.set(!filter_dog_only())"
           class="cursor-pointer inline-flex items-center gap-2 h-8 px-3 rounded-lg text-sm font-medium transition-all"
-          [class]="filter_dog_only() ? 'bg-emerald-600 text-white' : 'bg-primary-100 dark:bg-black text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800'">
+          [class]="
+              filter_dog_only()
+                ? 'bg-emerald-600 text-white'
+                : 'bg-primary-100 dark:bg-black text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800'
+            ">
           @if (filter_dog_only()) {
           <i class="pi pi-check text-xs"></i>
           } @else {
@@ -142,7 +160,11 @@
 
         <button (click)="filter_display_favorite_only.set(!filter_display_favorite_only())"
           class="cursor-pointer inline-flex items-center gap-2 h-8 px-3 rounded-lg text-sm font-medium transition-all"
-          [class]="filter_display_favorite_only() ? 'bg-rose-400 text-white' : 'bg-primary-100 dark:bg-black text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800'">
+          [class]="
+              filter_display_favorite_only()
+                ? 'bg-rose-400 text-white'
+                : 'bg-primary-100 dark:bg-black text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800'
+            ">
           @if (filter_display_favorite_only()) {
           <i class="pi pi-check text-xs"></i>
           } @else {
@@ -153,7 +175,11 @@
 
         <button (click)="filter_display_restroom.set(!filter_display_restroom())"
           class="cursor-pointer inline-flex items-center gap-2 h-8 px-3 rounded-lg text-sm font-medium transition-all"
-          [class]="filter_display_restroom() ? 'bg-sky-400 text-white' : 'bg-primary-100 dark:bg-black text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800'">
+          [class]="
+              filter_display_restroom()
+                ? 'bg-sky-400 text-white'
+                : 'bg-primary-100 dark:bg-black text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800'
+            ">
           @if (filter_display_restroom()) {
           <i class="pi pi-check text-xs"></i>
           } @else {
@@ -180,25 +206,30 @@
 
       <div class="mb-4 max-h-[50vh] grid md:grid-cols-2 gap-2">
         @for (category of categories(); track category.id) {
-        <div (click)="updateActiveCategories(category.name)" [class.col-span-2]="$index % 3 === 0"
-          [class]="activeCategories().has(category.name) ? 'bg-primary-900 dark:bg-black border-primary-900 dark:border-primary-700 shadow-lg': 'bg-white dark:bg-primary-950 border-primary-200 dark:border-primary-700 hover:border-primary-300 dark:hover:border-primary-700 hover:bg-primary-50 dark:hover:bg-primary-900'"
+        <div (click)="updateActiveCategories(category.name)" [class.col-span-2]="$index % 3 === 0" [class]="
+                activeCategories().has(category.name)
+                  ? 'bg-primary-900 dark:bg-black border-primary-900 dark:border-primary-700 shadow-lg'
+                  : 'bg-white dark:bg-primary-950 border-primary-200 dark:border-primary-700 hover:border-primary-300 dark:hover:border-primary-700 hover:bg-primary-50 dark:hover:bg-primary-900'
+              "
           class="cursor-pointer h-12 group w-full flex items-center gap-3 py-3 px-4 rounded-xl transition-all active:scale-[0.98] border-2 min-w-0">
-
           <div class="size-3 rounded-full flex-none shadow-sm"
             [class]="activeCategories().has(category.name) ? 'ring-2 ring-white' : undefined"
-            [style.background-color]="category.color">
-          </div>
+            [style.background-color]="category.color"></div>
 
-          <span class="pointer-events-none text-sm font-medium flex-1 text-left truncate"
-            [class]="activeCategories().has(category.name) ? 'text-white dark:text-white' : 'text-primary-900 dark:text-white'">
+          <span class="pointer-events-none text-sm font-medium flex-1 text-left truncate" [class]="
+                  activeCategories().has(category.name)
+                    ? 'text-white dark:text-white'
+                    : 'text-primary-900 dark:text-white'
+                ">
             {{ category.name }}
           </span>
 
           @if (activeCategories().has(category.name)) {
           <div class="flex items-center justify-center w-6 h-6 rounded-full flex-none"
             [class]="activeCategories().has(category.name) ? 'bg-white/20' : 'bg-primary-900/20'">
-            <i class="pi pi-check text-sm"
-              [class]="activeCategories().has(category.name) ? 'text-white dark:text-primary-900' : undefined"></i>
+            <i class="pi pi-check text-sm" [class]="
+                      activeCategories().has(category.name) ? 'text-white dark:text-primary-900' : undefined
+                    "></i>
           </div>
           }
         </div>
@@ -209,8 +240,9 @@
   }
 
   @if (viewPlacesList()) {
-  <div animate.enter="slide-y-no-opacity" animate.leave="a-slide-y" class="pointer-events-auto rounded-lg w-full shadow-2xl ring-1 ring-black/5 dark:ring-white/10 bg-white/70 dark:bg-primary-900/70 backdrop-blur-xl
-    flex flex-col transition-all duration-300 flex-1" [class]="viewFilters() ? 'h-2/3' : 'h-full'">
+  <div animate.enter="slide-y-no-opacity" animate.leave="a-slide-y"
+    class="pointer-events-auto rounded-lg w-full shadow-2xl ring-1 ring-black/5 dark:ring-white/10 bg-white/70 dark:bg-primary-900/70 backdrop-blur-xl flex flex-col transition-all duration-300 flex-1"
+    [class]="viewFilters() ? 'h-2/3' : 'h-full'">
     <div class="w-full h-full flex flex-col flex-1 rounded-lg shadow-lg shadow-black/5">
       <div class="p-4 border-b border-primary-200 dark:border-primary-800">
         <div class="flex items-center justify-between gap-4">
@@ -224,17 +256,29 @@
 
           <div class="flex items-center gap-2">
             <button (click)="toggleOutOfBoundsPlaces()" pTooltip="Show out-of-bounds places" tooltipPosition="left"
-              class="cursor-pointer flex items-center justify-center size-10 rounded-lg transition-all"
-              [class]="hideOutOfBoundsPlaces() ? 'bg-blue-50 dark:bg-blue-950' : 'hover:bg-primary-100 dark:hover:bg-primary-900'">
-              <i class="pi pi-expand text-sm"
-                [class]="hideOutOfBoundsPlaces() ? 'text-blue-600 dark:text-blue-400' : 'text-primary-700 dark:text-primary-300'"></i>
+              class="cursor-pointer flex items-center justify-center size-10 rounded-lg transition-all" [class]="
+                  hideOutOfBoundsPlaces()
+                    ? 'bg-blue-50 dark:bg-blue-950'
+                    : 'hover:bg-primary-100 dark:hover:bg-primary-900'
+                ">
+              <i class="pi pi-expand text-sm" [class]="
+                    hideOutOfBoundsPlaces()
+                      ? 'text-blue-600 dark:text-blue-400'
+                      : 'text-primary-700 dark:text-primary-300'
+                  "></i>
             </button>
 
             <button (click)="togglePlacesListFiltering()"
-              class="cursor-pointer flex items-center justify-center size-10 rounded-lg transition-all"
-              [class]="viewPlacesListFiltering() ? 'bg-blue-50 dark:bg-blue-950' : 'hover:bg-primary-100 dark:hover:bg-primary-900'">
-              <i class="pi pi-search text-sm"
-                [class]="viewPlacesListFiltering() ? 'text-blue-600 dark:text-blue-400' : 'text-primary-700 dark:text-primary-300'"></i>
+              class="cursor-pointer flex items-center justify-center size-10 rounded-lg transition-all" [class]="
+                  viewPlacesListFiltering()
+                    ? 'bg-blue-50 dark:bg-blue-950'
+                    : 'hover:bg-primary-100 dark:hover:bg-primary-900'
+                ">
+              <i class="pi pi-search text-sm" [class]="
+                    viewPlacesListFiltering()
+                      ? 'text-blue-600 dark:text-blue-400'
+                      : 'text-primary-700 dark:text-primary-300'
+                  "></i>
             </button>
 
             <p-button text icon="pi pi-times" severity="danger" (click)="togglePlacesList()" />
@@ -256,16 +300,18 @@
 
           <div class="relative">
             <i class="pi pi-google absolute left-3 top-1/2 -translate-y-1/2 text-primary-400 text-xs"></i>
-            <input type="text" [formControl]="gmapsGeocodeFilterInput" (keydown.enter)="gmapsGeocodeFilter()"
+            <input type="text" [formControl]="geocodeFilterInput" (keydown.enter)="geocodeFilter()"
               placeholder="Country, City, ..."
               class="w-full h-9 pl-9 pr-3 bg-white dark:bg-primary-950 border border-primary-200 dark:border-primary-800 rounded-lg text-sm text-primary-900 dark:text-white placeholder:text-primary-400 focus:outline-none focus:border-blue-500 dark:focus:border-blue-400 transition-colors" />
 
-            @if (boundariesFiltering()) {<p-button icon="pi pi-times" text severity="danger" size="small"
+            @if (boundariesFiltering()) {
+            <p-button icon="pi pi-times" text severity="danger" size="small"
               class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Clear and Cancel" tooltipPosition="left"
-              (click)="resetGeocodeFilters()" />}
-            @else {<p-button icon="pi pi-check" text label="Apply" [disabled]="!gmapsGeocodeFilterInput.value"
-              severity="secondary" size="small" class="absolute right-2 top-1/2 -translate-y-1/2"
-              (click)="gmapsGeocodeFilter()" />}
+              (click)="resetGeocodeFilters()" />
+            } @else {
+            <p-button icon="pi pi-check" text label="Apply" [disabled]="!geocodeFilterInput.value" severity="secondary"
+              size="small" class="absolute right-2 top-1/2 -translate-y-1/2" (click)="geocodeFilter()" />
+            }
           </div>
         </div>
         }
@@ -277,16 +323,16 @@
           @if (searchInput.value) {
           <div
             class="flex items-center gap-2 bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-0.5 text-xs font-medium rounded-md">
-            <i class="pi pi-search"></i>{{ searchInput.value }}<p-button text icon="pi pi-times" size="small"
-              (click)="searchInput.setValue('')" />
+            <i class="pi pi-search"></i>{{ searchInput.value
+            }}<p-button text icon="pi pi-times" size="small" (click)="searchInput.setValue('')" />
           </div>
           }
 
           @if (boundariesFiltering()) {
           <div
             class="flex items-center gap-2 bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-0.5 text-xs font-medium rounded-md">
-            <i class="pi pi-map-marker"></i>{{ gmapsGeocodeFilterInput.value }}<p-button text icon="pi pi-times"
-              size="small" (click)="resetGeocodeFilters()" />
+            <i class="pi pi-map-marker"></i>{{ geocodeFilterInput.value
+            }}<p-button text icon="pi pi-times" size="small" (click)="resetGeocodeFilters()" />
           </div>
           }
         </div>
@@ -306,7 +352,7 @@
           }
           } @placeholder (minimum 0.4s) {
           <div class="space-y-2 p-2">
-            @for(_ of [1,2,3,4,5]; track _) {
+            @for (_ of [1, 2, 3, 4, 5]; track _) {
             <p-skeleton height="5rem" />
             }
           </div>
@@ -393,7 +439,9 @@
               <div class="flex gap-4 items-center relative z-10">
                 <div class="text-4xl">🚀</div>
                 <div>
-                  <h3 class="text-lg font-semibold text-primary-900 dark:text-white mb-1">TRIP {{ info()?.update }}</h3>
+                  <h3 class="text-lg font-semibold text-primary-900 dark:text-white mb-1">
+                    TRIP {{ info()?.update }}
+                  </h3>
                   <p class="text-sm text-primary-600 dark:text-primary-400">New version available</p>
                 </div>
               </div>
@@ -432,7 +480,9 @@
             </div>
           </div>
 
-          <div class="mt-8 text-center text-xs text-primary-500 dark:text-primary-400">TRIP {{ info()?.version }}</div>
+          <div class="mt-8 text-center text-xs text-primary-500 dark:text-primary-400">
+            TRIP {{ info()?.version }}
+          </div>
           <div class="text-center text-sm text-primary-500 dark:text-primary-400">Made with ❤️ in BZH</div>
         </p-tabpanel>
         <p-tabpanel [value]="1">
@@ -448,7 +498,8 @@
                       <i class="pi pi-shield text-primary-600 dark:text-primary-400"></i>
                     </div>
                     <div class="flex flex-col items-start">
-                      <h2 class="text-base font-semibold text-primary-900 dark:text-primary-100 line-clamp-1">Security
+                      <h2 class="text-base font-semibold text-primary-900 dark:text-primary-100 line-clamp-1">
+                        Security
                       </h2>
                       <p class="text-xs text-primary-500 dark:text-primary-400">Update your password, manage 2FA</p>
                     </div>
@@ -465,7 +516,8 @@
                       <i class="pi pi-key text-blue-600 dark:text-blue-400 shrink-0"></i>
                       <div class="min-w-0">
                         <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">Password</span>
-                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Update your password
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">
+                          Update your password
                         </p>
                       </div>
                     </div>
@@ -477,13 +529,16 @@
                   <div
                     class="flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700">
                     <div class="flex items-center gap-3 min-w-0 flex-1">
-                      <i class="pi pi-lock shrink-0"
-                        [class]="settings()?.totp_enabled ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"></i>
+                      <i class="pi pi-lock shrink-0" [class]="
+                              settings()?.totp_enabled
+                                ? 'text-green-600 dark:text-green-400'
+                                : 'text-red-600 dark:text-red-400'
+                            "></i>
                       <div class="min-w-0">
                         <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">Two-Factor Auth
                           (2FA)</span>
-                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Add extra security
-                          layer
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">
+                          Add extra security layer
                         </p>
                       </div>
                     </div>
@@ -517,19 +572,42 @@
                 </div>
 
                 @if (accountIntegrationsExpanded()) {
-                <div class="flex flex-col gap-3 p-4 pt-0 border-t border-primary-200 dark:border-primary-700">
+                <div class="flex flex-col gap-3 p-4 pt-0 border-t border-primary-200 dark:border-primary-700"
+                  [formGroup]="settingsForm">
                   <div
                     class="mt-4 flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700">
                     <div class="flex items-center gap-3 min-w-0 flex-1">
-                      <i class="pi pi-link shrink-0"
-                        [class]="settings()?.google_apikey ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"></i>
+                      <i class="pi pi-map text-amber-600 dark:text-amber-400"></i>
+                      <div class="min-w-0">
+                        <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">Map
+                          Provider</span>
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">
+                          Select the default map provider
+                        </p>
+                      </div>
+                    </div>
+
+                    <div class="w-full md:w-68">
+                      <p-select id="map_provider" [options]="providers" [filter]="false" optionValue="value"
+                        optionLabel="disp" formControlName="map_provider" placeholder="Provider" [showClear]="true"
+                        appendTo="body" pSize="small" class="capitalize" fluid />
+                    </div>
+                  </div>
+
+                  <div
+                    class="flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                      <i class="pi pi-link shrink-0" [class]="
+                              settings()?.google_apikey
+                                ? 'text-green-600 dark:text-green-400'
+                                : 'text-red-600 dark:text-red-400'
+                            "></i>
                       <div class="min-w-0">
                         <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">Google API
                           Key</span>
-                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Connect your Google
-                          API
-                          key
-                          for enhanced location services</p>
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">
+                          Connect your Google API key for enhanced location services
+                        </p>
                       </div>
                     </div>
 
@@ -537,12 +615,9 @@
                     <p-button (click)="deleteGoogleApiKey()" icon="pi pi-trash" label="Remove" severity="danger" text
                       size="small" />
                     } @else {
-                    <div [formGroup]="settingsForm" class="flex gap-2 w-40">
+                    <div [formGroup]="settingsForm" class="w-40">
                       <input id="_google_apikey" type="password" formControlName="_google_apikey" pInputText fluid
                         pSize="small" placeholder="AIza..." />
-                      <p-button icon="pi pi-check" size="small"
-                        [disabled]="!settingsForm.valid || settingsForm.pristine" text severity="success"
-                        (click)="updateSettings()" />
                     </div>
                     }
                   </div>
@@ -550,14 +625,17 @@
                   <div
                     class="flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700">
                     <div class="flex items-center gap-3 min-w-0 flex-1">
-                      <i class="pi pi-link shrink-0"
-                        [class]="settings()?.api_token ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'"></i>
+                      <i class="pi pi-link shrink-0" [class]="
+                              settings()?.api_token
+                                ? 'text-green-600 dark:text-green-400'
+                                : 'text-red-600 dark:text-red-400'
+                            "></i>
                       <div class="min-w-0">
                         <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">TRIP API
                           Key</span>
-                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Use it to authenticate
-                          in
-                          scripts</p>
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">
+                          Use it to authenticate in scripts
+                        </p>
                       </div>
                     </div>
 
@@ -568,12 +646,32 @@
                 </div>
                 }
               </section>
+              <div
+                class="select-none flex items-center justify-between p-4 rounded-xl bg-linear-to-r from-blue-50 to-indigo-50 dark:from-primary-800 dark:to-primary-800 border border-blue-100 dark:border-primary-700 shadow-sm">
+                <div class="flex items-center gap-3 min-w-0 flex-1 pr-4">
+                  <i class="pi pi-info-circle text-blue-600 dark:text-blue-400 shrink-0"></i>
+                  <span class="text-sm text-primary-700 dark:text-primary-300 truncate">
+                    @if (settingsForm.pristine) {
+                    No changes to save
+                    } @else if (!settingsForm.valid) {
+                    Please fix validation errors
+                    } @else {
+                    You have unsaved changes
+                    }
+                  </span>
+                </div>
+
+                <div class="flex gap-2 shrink-0">
+                  <p-button [label]="settingsForm.pristine ? 'Saved' : 'Save'" icon="pi pi-check"
+                    (click)="updateSettings()" [disabled]="!settingsForm.valid || settingsForm.pristine" size="small" />
+                </div>
+              </div>
             </div>
           </div>
         </p-tabpanel>
         <p-tabpanel [value]="2">
           <div class="max-h-[60vh] overflow-y-auto overscroll-contain">
-            <div class="flex flex-col gap-4 pt-4 max-w-5xl mx-auto">
+            <div class="select-none mx-auto pt-4 space-y-4">
               <section [formGroup]="settingsForm"
                 class="rounded-xl bg-white dark:bg-primary-800 shadow-sm border border-primary-200 dark:border-primary-700">
                 <div (click)="mapParamsExpanded.set(!mapParamsExpanded())"
@@ -584,10 +682,11 @@
                       <i class="pi pi-map text-blue-600 dark:text-blue-400"></i>
                     </div>
                     <div class="flex flex-col items-start">
-                      <h2 class="text-base font-semibold text-primary-900 dark:text-primary-100 line-clamp-1">Map
-                        Parameters</h2>
-                      <p class="text-xs text-primary-500 dark:text-primary-400">Configure default map view and tile
-                        layers
+                      <h2 class="text-base font-semibold text-primary-900 dark:text-primary-100 line-clamp-1">
+                        Map Parameters
+                      </h2>
+                      <p class="text-xs text-primary-500 dark:text-primary-400">
+                        Configure default map view and tile layers
                       </p>
                     </div>
                   </div>
@@ -632,8 +731,9 @@
                       <i class="pi pi-eye text-green-600 dark:text-green-400"></i>
                     </div>
                     <div class="flex flex-col items-start">
-                      <h2 class="text-base font-semibold text-primary-900 dark:text-primary-100 line-clamp-1">Display &
-                        Performance</h2>
+                      <h2 class="text-base font-semibold text-primary-900 dark:text-primary-100 line-clamp-1">
+                        Display & Performance
+                      </h2>
                       <p class="text-xs text-primary-500 dark:text-primary-400">Visual and performance options</p>
                     </div>
                   </div>
@@ -650,8 +750,9 @@
                       <div class="min-w-0">
                         <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">Low Network
                           Mode</span>
-                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Use category images to
-                          reduce bandwidth</p>
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">
+                          Use category images to reduce bandwidth
+                        </p>
                       </div>
                     </div>
                     <p-toggleswitch [(ngModel)]="isLowNetMode" (onChange)="toggleLowNet()" class="shrink-0 ml-4" />
@@ -664,9 +765,9 @@
                       <div class="min-w-0">
                         <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">GPX
                           Indicator</span>
-                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Show compass when GPX
-                          data
-                          available</p>
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">
+                          Show compass when GPX data available
+                        </p>
                       </div>
                     </div>
                     <p-toggleswitch [(ngModel)]="isGPXInPlaceMode" (onChange)="toggleGPXInPlace()"
@@ -680,8 +781,9 @@
                       <div class="min-w-0">
                         <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">Show Visited
                           Places</span>
-                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Always display visited
-                          places as small dots</p>
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">
+                          Always display visited places as small dots
+                        </p>
                       </div>
                     </div>
                     <p-toggleswitch [(ngModel)]="isVisitedMode" (onChange)="toggleVisitedDisplayed()"
@@ -695,9 +797,9 @@
                       <div class="min-w-0">
                         <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">Store Map
                           Position</span>
-                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Encode map position in
-                          the
-                          URL to restore the same view on refresh</p>
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">
+                          Encode map position in the URL to restore the same view on refresh
+                        </p>
                       </div>
                     </div>
                     <p-toggleswitch [(ngModel)]="isMapPositionMode" (onChange)="toggleMapPositionMode()"
@@ -717,9 +819,11 @@
                       <i class="pi pi-sliders-h text-indigo-600 dark:text-indigo-400"></i>
                     </div>
                     <div class="flex flex-col items-start">
-                      <h2 class="text-base font-semibold text-primary-900 dark:text-primary-100 line-clamp-1">Data &
-                        Filters</h2>
-                      <p class="text-xs text-primary-500 dark:text-primary-400">Manage currency and category visibility
+                      <h2 class="text-base font-semibold text-primary-900 dark:text-primary-100 line-clamp-1">
+                        Data & Filters
+                      </h2>
+                      <p class="text-xs text-primary-500 dark:text-primary-400">
+                        Manage currency and category visibility
                       </p>
                     </div>
                   </div>
@@ -735,8 +839,8 @@
                       <i class="pi pi-wallet text-primary-600 dark:text-primary-400 shrink-0"></i>
                       <div class="min-w-0">
                         <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">Currency</span>
-                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Update the default
-                          currency
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">
+                          Update the default currency
                         </p>
                       </div>
                     </div>
@@ -752,9 +856,8 @@
                       <div class="min-w-0">
                         <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">Hidden
                           Categories</span>
-                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Selected will be
-                          hidden by
-                          default
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">
+                          Selected will be hidden by default
                         </p>
                       </div>
                     </div>
@@ -797,8 +900,7 @@
             <div class="flex flex-col gap-4 pt-4 mx-auto">
               <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 <div (click)="addCategory()"
-                  class="group relative flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-primary-300 dark:border-primary-600 bg-primary-50/50
-                  dark:bg-black/50 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:border-primary-400 dark:hover:border-primary-500 transition-all duration-200 cursor-pointer">
+                  class="group relative flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-primary-300 dark:border-primary-600 bg-primary-50/50 dark:bg-black/50 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:border-primary-400 dark:hover:border-primary-500 transition-all duration-200 cursor-pointer">
                   <div
                     class="flex items-center justify-center w-12 h-12 rounded-full bg-white dark:bg-black border-2 border-dashed border-primary-300 dark:border-primary-600 group-hover:border-primary-400 dark:group-hover:border-primary-500 group-hover:bg-primary-100 dark:group-hover:bg-primary-900/30 transition-all duration-200 group-hover:scale-110">
                     <i
@@ -819,8 +921,9 @@
                   <div class="relative shrink-0">
                     <img [src]="category.image" style="border: 3px solid" loading="lazy"
                       [style.border-color]="category.color" class="select-none size-12 rounded-full object-cover" />
-                    <div class="absolute -bottom-1 -right-1 px-2 py-1 bg-primary-100 dark:bg-black rounded-lg text-xs font-bold text-primary-900
-                        dark:text-white">{{ getCategoryPlacesCount(category.name) }}
+                    <div
+                      class="absolute -bottom-1 -right-1 px-2 py-1 bg-primary-100 dark:bg-black rounded-lg text-xs font-bold text-primary-900 dark:text-white">
+                      {{ getCategoryPlacesCount(category.name) }}
                     </div>
                   </div>
 
@@ -863,7 +966,7 @@
 
                 <div class="flex grow flex-wrap items-center justify-center md:justify-end gap-2">
                   <p-button (click)="fileUpload.click()" text icon="pi pi-upload" size="small" />
-                  <input type="file" class="hidden" (change)="importData($event)" #fileUpload>
+                  <input type="file" class="hidden" (change)="importData($event)" #fileUpload />
                   <p-button icon="pi pi-sync" (click)="getBackups()" text size="small" />
                   <p-button (click)="createBackup()" text label="Create" icon="pi pi-plus" size="small" />
                 </div>
@@ -925,10 +1028,10 @@
 
                     <div
                       class="flex flex-col md:flex-row md:items-center gap-2 text-xs text-primary-500 dark:text-primary-400">
-                      <span class="font-mono">{{ (backup.file_size || 0) | fileSize }}</span>
+                      <span class="font-mono">{{ backup.file_size || 0 | fileSize }}</span>
                       @if (backup.created_at) {
                       <div class="hidden md:inline-flex w-px h-4 bg-primary-200 dark:bg-primary-800"></div>
-                      <span class="hidden md:inline-flex text-xs">Created {{ backup.created_at| date: 'd MMM. y'
+                      <span class="hidden md:inline-flex text-xs">Created {{ backup.created_at | date: 'd MMM. y'
                         }}</span>
                       }
                       @if (backup.status === 'failed' && backup.error_message) {
@@ -949,9 +1052,7 @@
                 } @empty {
                 <div
                   class="flex flex-col items-center justify-center py-16 px-6 text-center rounded-lg border border-dashed border-primary-300 dark:border-primary-700 bg-primary-50/50 dark:bg-primary-800/30">
-                  <h3 class="text-base font-semibold text-primary-900 dark:text-white mb-1">
-                    No backups
-                  </h3>
+                  <h3 class="text-base font-semibold text-primary-900 dark:text-white mb-1">No backups</h3>
                   <p class="text-sm text-primary-600 dark:text-primary-400 mb-6 max-w-xs">
                     Create your first backup to safeguard your data
                   </p>
@@ -966,7 +1067,6 @@
               </div>
             </div>
           </div>
-
         </p-tabpanel>
       </p-tabpanels>
     </p-tabs>

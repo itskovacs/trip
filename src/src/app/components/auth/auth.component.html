@@ -8,31 +8,26 @@
 
       <div class="block lg:hidden w-full">
         <div class="mt-4 text-center">
-          <div class="text-4xl font-bold leading-none">
-            Welcome to TRIP
-          </div>
-          <div class="mt-3 text-lg tracking-tight leading-6 text-primary-400">Tourism and Recreational Interest Points.
+          <div class="text-4xl font-bold leading-none">Welcome to TRIP</div>
+          <div class="mt-3 text-lg tracking-tight leading-6 text-primary-400">
+            Tourism and Recreational Interest Points.
           </div>
         </div>
       </div>
 
       <div class="text-xl md:text-2xl font-bold leading-tight mt-10">
-        {{ isRegistering ? "Register" : "Sign in" }}
+        {{ isRegistering ? 'Register' : 'Sign in' }}
       </div>
 
       @if (error) {
       <div class="mt-4">
-        <p-message severity="error" variant="outlined" [life]="3000">{{
-          error
-          }}</p-message>
+        <p-message severity="error" variant="outlined" [life]="3000">{{ error }}</p-message>
       </div>
       }
 
       @if (pendingOTP) {
       <div pFocusTrap>
-        <p class="mt-8 text-center font-light text-primary-500">
-          Enter your TOTP code
-        </p>
+        <p class="mt-8 text-center font-light text-primary-500">Enter your TOTP code</p>
 
         <div class="mt-4 flex gap-2 flex-col items-center">
           <p-inputotp [(ngModel)]="otp" [integerOnly]="true" size="large" [length]="6" />
@@ -40,7 +35,7 @@
         </div>
       </div>
       } @else {
-      @defer () {
+      @defer {
       @if (authParams?.oidc) {
       <div class="mt-8 text-center">
         <p-button variant="outlined" severity="primary" size="large" icon="pi pi-key" label="Sign in"
@@ -53,10 +48,7 @@
             fluid autofocus />
           <label for="username">Username</label>
         </p-floatlabel>
-        @if (
-        authForm.get("username")?.dirty &&
-        authForm.get("username")?.hasError("required")
-        ) {
+        @if (authForm.get('username')?.dirty && authForm.get('username')?.hasError('required')) {
         <span class="text-base text-red-600">Username is required</span>
         }
 
@@ -65,22 +57,15 @@
             (keyup.enter)="onKeypressEnter()" />
           <label for="password">Password</label>
         </p-floatlabel>
-        @if (
-        authForm.get("password")?.dirty &&
-        authForm.get("password")?.hasError("required")
-        ) {
+        @if (authForm.get('password')?.dirty && authForm.get('password')?.hasError('required')) {
         <span class="text-base text-red-600">Password is required</span>
         }
 
         <div class="mt-4 text-right">
           @if (isRegistering) {
-          <p-button [disabled]="!authForm.valid" (click)="register()">
-            Register
-          </p-button>
+          <p-button [disabled]="!authForm.valid" (click)="register()"> Register </p-button>
           } @else {
-          <p-button [disabled]="!authForm.valid" (click)="authenticate()">
-            Sign in
-          </p-button>
+          <p-button [disabled]="!authForm.valid" (click)="authenticate()"> Sign in </p-button>
           }
         </div>
       </div>
@@ -125,9 +110,7 @@
   <div class="hidden lg:block w-full md:w-1/2 xl:w-2/3 h-full cover-auth">
     <div class="h-full flex items-center">
       <div class="ml-20 mt-12">
-        <div class="text-7xl font-bold leading-none text-primary-100">
-          Welcome to TRIP
-        </div>
+        <div class="text-7xl font-bold leading-none text-primary-100">Welcome to TRIP</div>
         <div class="mt-6 text-lg tracking-tight leading-6 text-primary-400">
           Tourism and Recreational Interest Points.
         </div>
