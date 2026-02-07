@@ -20,10 +20,7 @@ export interface MarkerOptions extends L.MarkerOptions {
   contextmenuItems: ContextMenuItem[];
 }
 
-export function createMap(
-  contextMenuItems: ContextMenuItem[] = [],
-  tilelayer: string = DEFAULT_TILE_URL,
-): L.Map {
+export function createMap(contextMenuItems: ContextMenuItem[] = [], tilelayer: string = DEFAULT_TILE_URL): L.Map {
   const southWest = L.latLng(-89.99, -180);
   const northEast = L.latLng(89.99, 180);
   const bounds = L.latLngBounds(southWest, northEast);
