@@ -24,6 +24,7 @@ export function createMap(contextMenuItems: ContextMenuItem[] = [], tilelayer: s
   const southWest = L.latLng(-89.99, -180);
   const northEast = L.latLng(89.99, 180);
   const bounds = L.latLngBounds(southWest, northEast);
+  const center: L.LatLngTuple = [48.86, 2.34];
 
   const map = L.map('map', {
     maxBoundsViscosity: 1.0,
@@ -31,7 +32,7 @@ export function createMap(contextMenuItems: ContextMenuItem[] = [], tilelayer: s
     contextmenu: true,
     contextmenuItems: contextMenuItems,
   } as MapOptions)
-    .setZoom(10)
+    .setView(center, 10)
     .setMaxBounds(bounds);
 
   L.tileLayer(tilelayer, {

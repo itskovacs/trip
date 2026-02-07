@@ -607,7 +607,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
         this.mapInitRetries++;
         setTimeout(() => this.initMap(), 100 + this.mapInitRetries * 100);
       } else {
-        console.error('Failed to initialize map: container not found after retries');
+        console.error('Failed to initialize map: container not found');
         this.utilsService.toast('error', 'Error', 'Error during map rendering');
       }
       return;
