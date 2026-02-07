@@ -27,14 +27,15 @@ export function createMap(
   const southWest = L.latLng(-89.99, -180);
   const northEast = L.latLng(89.99, 180);
   const bounds = L.latLngBounds(southWest, northEast);
-  const center: L.LatLngTuple = [20, 0];
+  const center: L.LatLngTuple = [48.86, 2.34];
+
   const map = L.map('map', {
     maxBoundsViscosity: 1.0,
     zoomControl: false,
     contextmenu: true,
     contextmenuItems: contextMenuItems,
   } as MapOptions)
-    .setView(center, 10) // this will get overridden by resetMapBounds, but it prevents map from crashing on initial load
+    .setView(center, 10)
     .setMaxBounds(bounds);
 
   L.tileLayer(tilelayer, {
