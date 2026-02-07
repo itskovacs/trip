@@ -257,11 +257,6 @@
 
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 min-w-0">
-                      @if (item.status) {
-                      <span class="absolute -top-px -left-1.5 w-2.5 h-2.5 rounded-full"
-                        [style.background]="item.status.color"></span>
-                      }
-
                       @if (item.place && visibleProps.has('place')) {
                       <div class="flex color-bg-opacity items-center gap-2 px-2.5 py-1 rounded-lg min-w-0 max-w-full"
                         [style.--color-bg-opacity]="item.place.category.color">
