@@ -91,6 +91,8 @@ const HIGHLIGHT_COLORS = [
   '#808000',
 ];
 
+const MAX_MAP_INIT_RETRIES = 5;
+
 @Component({
   selector: 'app-shared-trip',
   standalone: true,
@@ -129,6 +131,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   @ViewChild('menuSelectedDayActions') menuSelectedDayActions!: Menu;
   @ViewChild('selectedPanel', { read: ElementRef }) selectedPanelRef?: ElementRef;
 
+  mapInitRetries = 0;
   selectedPanelHeight = signal<number>(0);
   plansSearchInput = new FormControl<string>('');
   apiService: ApiService;
@@ -576,13 +579,18 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   }
 
   initMap() {
-    // Check if map container exists first
     const mapContainer = document.getElementById('map');
     if (!mapContainer) {
-      // Retry if container not found yet
-      setTimeout(() => this.initMap(), 100);
+      if (this.mapInitRetries < MAX_MAP_INIT_RETRIES) {
+        this.mapInitRetries++;
+        setTimeout(() => this.initMap(), 100 + this.mapInitRetries * 100);
+      } else {
+        console.error('Failed to initialize map: container not found');
+        this.utilsService.toast('error', 'Error', 'Error during map rendering');
+      }
       return;
     }
+    this.mapInitRetries = 0;
 
     this.cleanupMap();
     const contextMenuItems = [
