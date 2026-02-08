@@ -237,7 +237,9 @@
               @for (item of group.items; track item.id) {
               <div
                 class="group relative rounded-s-lg md:rounded-lg bg-white dark:bg-primary-900 border-s border-y md:border-x border-primary-200 dark:border-primary-700 hover:border-primary-300 dark:hover:border-primary-700 hover:shadow-sm transition-all cursor-pointer"
-                (click)="onRowClick(item)">
+                (click)="onRowClick(item)"
+                (mouseenter)="onRowEnter(item)"
+                (mouseleave)="clearSelectedItemHighlight()">
                 <div class="flex items-center gap-3 p-3 min-w-0 border-primary-500 rounded-s" [class]="
                               selectedItem()?.id === item.id ||
                               selectedPlaceItems()[selectedPlaceActiveTabIndex()]?.id === item.id

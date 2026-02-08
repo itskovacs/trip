@@ -1035,6 +1035,16 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
     this.selectedDay.set(null);
   }
 
+  onRowEnter(item: ViewTripItem) {
+    // clear previous highlight then highlight the marker for this row's place (if any)
+    this.clearSelectedItemHighlight();
+    const placeId = item?.place?.id;
+    if (!placeId) return;
+
+    const marker = this.markers.get(placeId);
+    if (marker) this.highlightExistingMarker(marker);
+  }
+
   async centerOnMe() {
     const position = await getGeolocationLatLng();
     if (position.err) {
