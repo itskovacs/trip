@@ -1377,9 +1377,10 @@
     <div class="flex items-center flex-col gap-2">
       <span>{{ t?.name }} is shared on this link:</span>
 
-      <div class="flex items-center w-full rounded-xl border border-primary-300 bg-white p-2 pl-3 pr-2 shadow-sm">
+      <div
+        class="flex items-center w-full rounded-xl border border-primary-300 bg-white dark:bg-black p-2 pl-3 pr-2 shadow-sm">
         <p-button text icon="pi pi-trash" severity="danger" (click)="unshareTrip()" />
-        <span class="text-sm font-semibold text-primary-800 truncate">
+        <span class="text-sm font-semibold text-primary-800 dark:text-primary-300 truncate">
           {{ (tripSharedURL$ | async) || '' }}
         </span>
         <p-button text icon="pi pi-copy" [cdkCopyToClipboard]="(tripSharedURL$ | async) || ''" />
