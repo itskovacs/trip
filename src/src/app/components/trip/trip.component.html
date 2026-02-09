@@ -1168,12 +1168,12 @@
       <div class="flex items-center justify-between gap-6 py-5">
         <div class="flex items-center min-w-0 gap-4">
           <div class="size-12 flex flex-none rounded-full items-center justify-center"
-            [class]="!m.invited_at ? 'bg-red-100' : m.invited_at && !m.joined_at ? 'bg-primary-50' : 'bg-blue-100'">
-            <i class="pi pi-user"></i>
+            [class]="!m.invited_at ? 'bg-red-100 dark:bg-red-200' : m.invited_at && !m.joined_at ? 'bg-primary-50  dark:bg-primary-200' : 'bg-blue-100  dark:bg-blue-200'">
+            <i class="pi pi-user text-primary-400 dark:text-primary-600"></i>
           </div>
 
           <div class="flex flex-col gap-1 min-w-0">
-            <span class="capitalize truncate font-semibold text-primary-900">{{ m.user }}</span>
+            <span class="capitalize truncate font-semibold text-primary-900 dark:text-primary-200">{{ m.user }}</span>
 
             <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
               @if (!m.invited_at) {
