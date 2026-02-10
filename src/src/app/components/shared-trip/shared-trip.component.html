@@ -108,7 +108,7 @@
         <p class="mb-1 text-[11px] font-semibold uppercase tracking-wide text-orange-700/90 dark:text-orange-200/90">
           Archival notes
         </p>
-        <p class="whitespace-pre-line">
+        <p class="whitespace-pre-wrap">
           {{ trip()!.archival_review }}
         </p>
       </div>
@@ -611,7 +611,7 @@
                 <span
                   class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">Comment</span>
                 <div
-                  class="border-l-3 border-primary-300 dark:border-primary-700 pl-3 py-1 text-sm text-primary-700 dark:text-primary-300 whitespace-pre-line leading-relaxed"
+                  class="border-l-3 border-primary-300 dark:border-primary-700 pl-3 py-1 text-sm text-primary-700 dark:text-primary-300 whitespace-pre-wrap leading-relaxed"
                   [innerHTML]="item.comment | linkify"></div>
               </div>
               }
@@ -783,7 +783,7 @@
           <span
             class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">Comment</span>
           <div
-            class="border-l-3 border-primary-300 dark:border-primary-700 pl-3 py-1 text-sm text-primary-700 dark:text-primary-300 whitespace-pre-line leading-relaxed"
+            class="border-l-3 border-primary-300 dark:border-primary-700 pl-3 py-1 text-sm text-primary-700 dark:text-primary-300 whitespace-pre-wrap leading-relaxed"
             [innerHTML]="item.comment | linkify"></div>
         </div>
         }
@@ -916,7 +916,7 @@
           <span
             class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">Notes</span>
           <div
-            class="border-l-3 border-primary-300 dark:border-primary-700 pl-3 py-1 text-sm text-primary-700 dark:text-primary-300 whitespace-pre-line leading-relaxed"
+            class="border-l-3 border-primary-300 dark:border-primary-700 pl-3 py-1 text-sm text-primary-700 dark:text-primary-300 whitespace-pre-wrap leading-relaxed"
             [innerHTML]="day.notes | linkify"></div>
         </div>
         }
@@ -1211,7 +1211,7 @@
     <div class="text-2xl font-semibold">Notes</div>
 
     <div class="mt-4 border-l-3 border-primary-900 dark:border-primary-200 pl-6 py-2">
-      <p class="text-sm leading-relaxed text-primary-800 dark:text-primary-400 whitespace-pre-line">
+      <p class="text-sm leading-relaxed text-primary-800 dark:text-primary-400 whitespace-pre-wrap">
         {{ trip()?.notes || 'Nothing there.' }}
       </p>
     </div>
@@ -1240,7 +1240,7 @@
 
         @if (options?.notes && group.day.notes) {
         <div class="border-l-3 border-primary-900 dark:border-primary-200 pl-6 py-2 mb-4">
-          <p class="text-sm leading-relaxed text-primary-800 dark:text-primary-400 whitespace-pre-line">
+          <p class="text-sm leading-relaxed text-primary-800 dark:text-primary-400 whitespace-pre-wrap">
             {{ group.day.notes }}
           </p>
         </div>
@@ -1269,7 +1269,7 @@
             </div>
 
             @if (options?.props?.has('comment') && item.comment) {
-            <p class="text-sm text-primary-500 dark:text-primary-400 whitespace-pre-line italic">
+            <p class="text-sm text-primary-500 dark:text-primary-400 whitespace-pre-wrap italic">
               {{ item.comment }}
             </p>
             }
@@ -1294,7 +1294,7 @@
         </div>
         } @empty {
         <div class="mt-4 border-l-3 border-primary-900 pl-6 py-2">
-          <p class="text-primary-800 text-lg leading-loose whitespace-pre-line font-light">
+          <p class="text-primary-800 text-lg leading-loose font-light">
             Nothing there.
           </p>
         </div>
@@ -1319,7 +1319,7 @@
       </div>
       } @empty {
       <div class="mt-4 border-l-3 border-primary-900 pl-6 py-2">
-        <p class="text-primary-800 text-lg leading-loose whitespace-pre-line font-light">Nothing there.</p>
+        <p class="text-primary-800 text-lg leading-loose font-light">Nothing there.</p>
       </div>
       }
     </div>

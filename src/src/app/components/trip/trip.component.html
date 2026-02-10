@@ -103,7 +103,7 @@
         <p class="mb-1 text-[11px] font-semibold uppercase tracking-wide text-orange-700/90 dark:text-orange-200/90">
           Archival notes
         </p>
-        <p class="whitespace-pre-line">
+        <p class="whitespace-pre-wrap">
           {{ trip()!.archival_review }}
         </p>
       </div>
@@ -708,7 +708,7 @@
                 <span
                   class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">Comment</span>
                 <div
-                  class="border-l-3 border-primary-300 dark:border-primary-700 pl-3 py-1 text-sm text-primary-700 dark:text-primary-300 whitespace-pre-line leading-relaxed"
+                  class="border-l-3 border-primary-300 dark:border-primary-700 pl-3 py-1 text-sm text-primary-700 dark:text-primary-300 whitespace-pre-wrap leading-relaxed"
                   [innerHTML]="item.comment | linkify"></div>
               </div>
               }
@@ -887,7 +887,7 @@
           <span
             class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">Comment</span>
           <div
-            class="border-l-3 border-primary-300 dark:border-primary-700 pl-3 py-1 text-sm text-primary-700 dark:text-primary-300 whitespace-pre-line leading-relaxed"
+            class="border-l-3 border-primary-300 dark:border-primary-700 pl-3 py-1 text-sm text-primary-700 dark:text-primary-300 whitespace-pre-wrap leading-relaxed"
             [innerHTML]="item.comment | linkify"></div>
         </div>
         }
@@ -1024,7 +1024,7 @@
           <span
             class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">Notes</span>
           <div
-            class="border-l-3 border-primary-300 dark:border-primary-700 pl-3 py-1 text-sm text-primary-700 dark:text-primary-300 whitespace-pre-line leading-relaxed"
+            class="border-l-3 border-primary-300 dark:border-primary-700 pl-3 py-1 text-sm text-primary-700 dark:text-primary-300 whitespace-pre-wrap leading-relaxed"
             [innerHTML]="day.notes | linkify"></div>
         </div>
         }
@@ -1429,8 +1429,8 @@
   <div class="mt-4">
     <div class="text-2xl font-semibold">Notes</div>
 
-    <div class="mt-4 border-l-3 border-primary-900 dark:border-primary-200 pl-6 py-2">
-      <p class="text-sm leading-relaxed text-primary-800 dark:text-primary-400 whitespace-pre-line">
+    <div class="mt-4 border-l-3 border-primary-900 pl-6 py-2">
+      <p class="text-sm leading-relaxed text-primary-800 whitespace-pre-wrap">
         {{ trip()?.notes || 'Nothing there.' }}
       </p>
     </div>
@@ -1446,7 +1446,7 @@
       @if (options?.days?.has(group.day.id)) {
       <div class="mb-12">
         <div class="flex items-center gap-4 mb-4">
-          <h2 class="text-xl font-semibold text-primary-900 dark:text-primary-100 whitespace-nowrap">
+          <h2 class="text-xl font-semibold text-primary-900 whitespace-nowrap">
             {{ group.day.label }}
           </h2>
           <div class="flex-1 h-px bg-primary-300"></div>
@@ -1458,8 +1458,8 @@
         </div>
 
         @if (options?.notes && group.day.notes) {
-        <div class="border-l-3 border-primary-900 dark:border-primary-200 pl-6 py-2 mb-4">
-          <p class="text-sm leading-relaxed text-primary-800 dark:text-primary-400 whitespace-pre-line">
+        <div class="border-l-3 border-primary-900 pl-6 py-2 mb-4">
+          <p class="text-sm leading-relaxed text-primary-800 whitespace-pre-wrap">
             {{ group.day.notes }}
           </p>
         </div>
@@ -1467,20 +1467,19 @@
 
         @for (item of group.items; track item.id) {
         <div class="flex gap-4 items-center rounded-lg p-3 -mx-3">
-          <span
-            class="px-2.5 py-1 text-xs font-mono font-medium bg-primary-100 dark:bg-primary-800 text-primary-700 dark:text-primary-300 rounded">{{
+          <span class="px-2.5 py-1 text-xs font-mono font-medium bg-primary-100 text-primary-700 rounded">{{
             item.time }}</span>
 
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2">
               @if (!options?.props?.has('place') || !item.place || item.place.name !== item.text) {
-              <h4 class="font-semibold text-primary-900 dark:text-primary-200">{{ item.text }}</h4>
+              <h4 class="font-semibold text-primary-900">{{ item.text }}</h4>
               }
               @if (options?.props?.has('place') && item.place) {
               <div class="w-fit color-bg-opacity flex items-center gap-2 px-2.5 py-1 rounded-full"
                 [style.--color-bg-opacity]="item.place.category.color">
                 <img [src]="item.place.image || item.place.category.image" class="w-5 h-5 rounded-full object-cover" />
-                <span class="text-sm font-medium text-primary-900 dark:text-white truncate">
+                <span class="text-sm font-medium text-primary-900 truncate">
                   {{ item.place.name }}
                 </span>
               </div>
@@ -1488,7 +1487,7 @@
             </div>
 
             @if (options?.props?.has('comment') && item.comment) {
-            <p class="text-sm text-primary-500 dark:text-primary-400 whitespace-pre-line italic">
+            <p class="text-sm text-primary-500 whitespace-pre-wrap italic">
               {{ item.comment }}
             </p>
             }
@@ -1496,13 +1495,12 @@
 
           <div class="flex items-center">
             @if (options?.props?.has('latlng') && item.lat && item.lng) {
-            <span
-              class="text-center bg-primary-100 text-primary-800 text-xs px-2 py-1 rounded-md dark:text-primary-300 dark:bg-primary-800 truncate me-2">{{
+            <span class="text-center bg-primary-100 text-primary-800 text-xs px-2 py-1 rounded-md truncate me-2">{{
               item.lat }}, {{ item.lng }}</span>
             }
             @if (options?.props?.has('price') && item.price) {
             <span
-              class="flex items-center bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-1 text-xs font-medium rounded whitespace-nowrap me-2">{{
+              class="flex items-center bg-primary-100 text-primary-900 px-2 py-1 text-xs font-medium rounded whitespace-nowrap me-2">{{
               item.price }} {{ trip()?.currency }}</span>
             }
             @if (options?.props?.has('status') && item.status) {
@@ -1513,7 +1511,7 @@
         </div>
         } @empty {
         <div class="mt-4 border-l-3 border-primary-900 pl-6 py-2">
-          <p class="text-primary-800 text-lg leading-loose whitespace-pre-line font-light">Nothing there.</p>
+          <p class="text-primary-800 text-lg leading-loose font-light">Nothing there.</p>
         </div>
         }
       </div>
@@ -1532,11 +1530,11 @@
         <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden shrink-0">
           <img [src]="place.image" class="size-full object-cover" />
         </div>
-        <span class="text-sm text-primary-900 dark:text-white">{{ place.name }}</span>
+        <span class="text-sm text-primary-900">{{ place.name }}</span>
       </div>
       } @empty {
       <div class="mt-4 border-l-3 border-primary-900 pl-6 py-2">
-        <p class="text-primary-800 text-lg leading-loose whitespace-pre-line font-light">Nothing there.</p>
+        <p class="text-primary-800 text-lg leading-loose font-light">Nothing there.</p>
       </div>
       }
     </div>
@@ -1548,7 +1546,7 @@
         <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden shrink-0">
           <img [src]="category.image" class="size-full object-cover" />
         </div>
-        <span class="text-sm text-primary-900 dark:text-white">{{ category.name }}</span>
+        <span class="text-sm text-primary-900">{{ category.name }}</span>
       </div>
       }
     </div>
