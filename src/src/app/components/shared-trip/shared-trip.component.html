@@ -1210,8 +1210,8 @@
   <div class="mt-4">
     <div class="text-2xl font-semibold">Notes</div>
 
-    <div class="mt-4 border-l-3 border-primary-900 dark:border-primary-200 pl-6 py-2">
-      <p class="text-sm leading-relaxed text-primary-800 dark:text-primary-400 whitespace-pre-wrap">
+    <div class="mt-4 border-l-3 border-primary-900 pl-6 py-2">
+      <p class="text-sm leading-relaxed text-primary-800 whitespace-pre-wrap">
         {{ trip()?.notes || 'Nothing there.' }}
       </p>
     </div>
@@ -1227,7 +1227,7 @@
       @if (options?.days?.has(group.day.id)) {
       <div class="mb-12">
         <div class="flex items-center gap-4 mb-4">
-          <h2 class="text-xl font-semibold text-primary-900 dark:text-primary-100 whitespace-nowrap">
+          <h2 class="text-xl font-semibold text-primary-900 whitespace-nowrap">
             {{ group.day.label }}
           </h2>
           <div class="flex-1 h-px bg-primary-300"></div>
@@ -1239,8 +1239,8 @@
         </div>
 
         @if (options?.notes && group.day.notes) {
-        <div class="border-l-3 border-primary-900 dark:border-primary-200 pl-6 py-2 mb-4">
-          <p class="text-sm leading-relaxed text-primary-800 dark:text-primary-400 whitespace-pre-wrap">
+        <div class="border-l-3 border-primary-900 pl-6 py-2 mb-4">
+          <p class="text-sm leading-relaxed text-primary-800 whitespace-pre-wrap">
             {{ group.day.notes }}
           </p>
         </div>
@@ -1249,19 +1249,19 @@
         @for (item of group.items; track item.id) {
         <div class="flex gap-4 items-center rounded-lg p-3 -mx-3">
           <span
-            class="px-2.5 py-1 text-xs font-mono font-medium bg-primary-100 dark:bg-primary-800 text-primary-700 dark:text-primary-300 rounded">{{
+            class="px-2.5 py-1 text-xs font-mono font-medium bg-primary-100 text-primary-700 rounded">{{
             item.time }}</span>
 
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2">
               @if (!options?.props?.has('place') || !item.place || item.place.name !== item.text) {
-              <h4 class="font-semibold text-primary-900 dark:text-primary-200">{{ item.text }}</h4>
+              <h4 class="font-semibold text-primary-900">{{ item.text }}</h4>
               }
               @if (options?.props?.has('place') && item.place) {
               <div class="w-fit color-bg-opacity flex items-center gap-2 px-2.5 py-1 rounded-full"
                 [style.--color-bg-opacity]="item.place.category.color">
                 <img [src]="item.place.image || item.place.category.image" class="w-5 h-5 rounded-full object-cover" />
-                <span class="text-sm font-medium text-primary-900 dark:text-white truncate">
+                <span class="text-sm font-medium text-primary-900 truncate">
                   {{ item.place.name }}
                 </span>
               </div>
@@ -1269,7 +1269,7 @@
             </div>
 
             @if (options?.props?.has('comment') && item.comment) {
-            <p class="text-sm text-primary-500 dark:text-primary-400 whitespace-pre-wrap italic">
+            <p class="text-sm text-primary-500 whitespace-pre-wrap italic">
               {{ item.comment }}
             </p>
             }
@@ -1278,12 +1278,12 @@
           <div class="flex items-center">
             @if (options?.props?.has('latlng') && item.lat && item.lng) {
             <span
-              class="text-center bg-primary-100 text-primary-800 text-xs px-2 py-1 rounded-md dark:text-primary-300 dark:bg-primary-800 truncate me-2">{{
+              class="text-center bg-primary-100 text-primary-800 text-xs px-2 py-1 rounded-md truncate me-2">{{
               item.lat }}, {{ item.lng }}</span>
             }
             @if (options?.props?.has('price') && item.price) {
             <span
-              class="flex items-center bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-1 text-xs font-medium rounded whitespace-nowrap me-2">{{
+              class="flex items-center bg-primary-100 text-primary-900 px-2 py-1 text-xs font-medium rounded whitespace-nowrap me-2">{{
               item.price }} {{ trip()?.currency }}</span>
             }
             @if (options?.props?.has('status') && item.status) {
@@ -1315,7 +1315,7 @@
         <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden shrink-0">
           <img [src]="place.image" class="size-full object-cover" />
         </div>
-        <span class="text-sm text-primary-900 dark:text-white">{{ place.name }}</span>
+        <span class="text-sm text-primary-900">{{ place.name }}</span>
       </div>
       } @empty {
       <div class="mt-4 border-l-3 border-primary-900 pl-6 py-2">
@@ -1331,7 +1331,7 @@
         <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden shrink-0">
           <img [src]="category.image" class="size-full object-cover" />
         </div>
-        <span class="text-sm text-primary-900 dark:text-white">{{ category.name }}</span>
+        <span class="text-sm text-primary-900">{{ category.name }}</span>
       </div>
       }
     </div>
@@ -1342,10 +1342,10 @@
 } @else {
 <section class="min-h-screen my-auto flex flex-col items-center justify-center gap-8">
   <div class="mx-auto w-full text-center">
-    <h1 class="text-2xl font-semibold text-primary-800 tracking-tight dark:text-white md:text-4xl">
+    <h1 class="text-2xl font-semibold text-primary-800 tracking-tight md:text-4xl">
       Trip not found
     </h1>
-    <p class="mt-2 text-primary-500 dark:text-primary-400">The requested trip does not exist</p>
+    <p class="mt-2 text-primary-500">The requested trip does not exist</p>
   </div>
 
   <div class="mx-auto">

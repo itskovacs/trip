@@ -22,6 +22,12 @@
   }
 }
 
+@media print {
+  .dark {
+    color-scheme: light !important;
+  }
+}
+
 html {
   font-size: 15px;
   font-family:
