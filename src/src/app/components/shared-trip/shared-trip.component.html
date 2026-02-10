@@ -479,6 +479,7 @@
           </div>
 
           <div class="flex gap-1">
+            <p-button icon="pi pi-expand" text pTooltip="Fly to" (click)="flyTo()" />
             <p-button (click)="selectedPlace.set(null); selectedPlaceActiveTabIndex.set(0)" severity="secondary" text
               icon="pi pi-times" />
           </div>
@@ -507,6 +508,7 @@
           <div class="hidden md:flex gap-1">
             @if (item.lat && item.lng) {
             <p-button icon="pi pi-car" text pTooltip="Navigate" (click)="itemToNavigation()" />
+            <p-button icon="pi pi-expand" text pTooltip="Fly to" (click)="flyTo()" />
             }
             <p-button (click)="selectedPlace.set(null); selectedPlaceActiveTabIndex.set(0)" text icon="pi pi-times" />
           </div>
@@ -705,6 +707,7 @@
           <div class="hidden md:flex gap-1">
             @if (item.lat && item.lng) {
             <p-button icon="pi pi-car" text pTooltip="Navigate" (click)="itemToNavigation()" />
+            <p-button icon="pi pi-expand" text pTooltip="Fly to" (click)="flyTo()" />
             }
             <p-button (click)="selectedItem.set(null)" text icon="pi pi-times" />
           </div>

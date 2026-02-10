@@ -565,6 +565,7 @@
           <div class="flex gap-1">
             <p-button icon="pi pi-link" text pTooltip="Create Plan using this Place" [disabled]="trip()?.archived"
               (click)="addItem(undefined, selection.place.id)" />
+            <p-button icon="pi pi-expand" text pTooltip="Fly to" (click)="flyTo()" />
             <p-button icon="pi pi-pencil" text pTooltip="Edit Place" (click)="editPlace(selection.place)" />
             <p-button icon="pi pi-trash" text pTooltip="Unlink Place from this Trip" [disabled]="trip()?.archived"
               (click)="unlinkPlaceFromTrip(selection.place.id)" />
@@ -596,6 +597,7 @@
           <div class="hidden md:flex gap-1">
             @if (item.lat && item.lng) {
             <p-button icon="pi pi-directions" text pTooltip="Navigate" (click)="itemToNavigation()" />
+            <p-button icon="pi pi-expand" text pTooltip="Fly to" (click)="flyTo()" />
             }
             <p-button icon="pi pi-pencil" text [disabled]="trip()?.archived" pTooltip="Edit Plan"
               (click)="editItem(item)" />
@@ -802,6 +804,7 @@
           <div class="hidden md:flex gap-1">
             @if (item.lat && item.lng) {
             <p-button icon="pi pi-directions" text pTooltip="Navigate" (click)="itemToNavigation()" />
+            <p-button icon="pi pi-expand" text pTooltip="Fly to" (click)="flyTo()" />
             }
             <p-button icon="pi pi-pencil" text [disabled]="trip()?.archived" pTooltip="Edit" (click)="editItem(item)" />
             <p-button icon="pi pi-trash" text severity="danger" [disabled]="trip()?.archived" pTooltip="Delete"

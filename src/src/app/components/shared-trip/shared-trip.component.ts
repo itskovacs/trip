@@ -1199,4 +1199,13 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
         },
       });
   }
+  
+  flyTo(latlng?: [number, number]) {
+    const selected = this.selectedItem() || this.selectedPlace();
+    if (!this.map || (!latlng && (!selected || !selected.lat || !selected.lng))) return;
+
+    const lat: number = latlng ? latlng[0] : selected!.lat!;
+    const lng: number = latlng ? latlng[1] : selected!.lng!;
+    this.map.flyTo([lat, lng], this.map.getZoom() || 9, { duration: 2 });
+  }
 }
