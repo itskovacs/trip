@@ -283,7 +283,7 @@
                 [class.ring-primary-500]="isMultiSelectMode() && selectedItemIds().has(item.id)"
                 (click)="onRowClick(item)"
                 (mouseenter)="onRowEnter(item)"
-                (mouseleave)="clearSelectedItemHighlight()"
+                (mouseleave)="onRowLeave()"
                 >
                 <div class="flex items-center gap-3 p-3 min-w-0 border-primary-500 rounded-s" [class]="
                           (selectedItem()?.id === item.id ||
