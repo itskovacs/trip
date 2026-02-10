@@ -1243,15 +1243,19 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   }
 
   onRowEnter(item: ViewTripItem) {
-    // clear previous highlight
+    if (this.selectedPlace()) return;
     this.clearSelectedItemHighlight();
 
-    // if this row references a place, find its marker and highlight it
     const placeId = item?.place?.id;
     if (!placeId) return;
 
     const marker = this.markers.get(placeId);
     if (marker) this.highlightExistingMarker(marker);
+  }
+
+  onRowLeave() {
+    if (this.selectedPlace()) return;
+    this.clearSelectedItemHighlight();
   }
 
   async centerOnMe() {
