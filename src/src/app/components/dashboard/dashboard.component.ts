@@ -307,6 +307,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       tile_layer: ['', Validators.required],
       _google_apikey: [null, { validators: [Validators.pattern('AIza[0-9A-Za-z\\-_]{35}')] }],
       map_provider: [],
+      duplicate_dist: [null, { validators: [Validators.min(0)] }],
     });
 
     effect(() => {
@@ -925,6 +926,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   updateSettings() {
     const data = { ...this.settingsForm.value };
     delete data['_google_apikey'];
+    if (!this.settingsForm.get('duplicate_dist')?.value) data['duplicate_dist'] = 0;
     if (!this.settings()?.google_apikey && this.settingsForm.get('_google_apikey')?.value) {
       data['google_apikey'] = this.settingsForm.get('_google_apikey')?.value;
     }
@@ -943,6 +945,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           }
           this.resetFilters();
           this.utilsService.toast('success', 'Success', 'Preferences saved');
+          this.settingsForm.reset(settings);
           this.settingsForm.markAsPristine();
         },
       });
@@ -1539,6 +1542,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   checkDuplicatePlace(newPlace: Place): Place | null {
+    const settings = this.settings();
+    if (!settings || settings.duplicate_dist === 0) return null;
+
+    const duplicate_dist = settings.duplicate_dist || 5;
+
     return (
       this.places().find((p) => {
         const source = newPlace.name.toLowerCase();
@@ -1564,7 +1572,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           [previousRow, currentRow] = [currentRow, previousRow];
         }
 
-        const closeName = previousRow[targetLength] < 5;
+        const closeName = previousRow[targetLength] < duplicate_dist;
         const latDiff = Math.abs(p.lat - newPlace.lat);
         const lngDiff = Math.abs(p.lng - newPlace.lng);
         const closeLocation = latDiff < 0.0001 && lngDiff < 0.0001;

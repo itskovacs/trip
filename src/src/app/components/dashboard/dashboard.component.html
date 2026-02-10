@@ -850,6 +850,23 @@
                   </div>
 
                   <div
+                    class="flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                      <i class="pi pi-equals text-primary-600 dark:text-primary-400 shrink-0"></i>
+                      <div class="min-w-0">
+                        <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">Duplicate
+                          distance threshold</span>
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Control how closely
+                          strings must match. Higher values accept more differences; 0 to disable</p>
+                      </div>
+                    </div>
+                    <div class="w-full md:w-68">
+                      <input id="duplicate_dist" formControlName="duplicate_dist" type="number" pInputText fluid
+                        pSize="small" />
+                    </div>
+                  </div>
+
+                  <div
                     class="flex flex-col gap-2 md:flex-row items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700">
                     <div class="flex items-center gap-3 min-w-0 flex-1">
                       <i class="pi pi-filter text-primary-600 dark:text-primary-400 shrink-0"></i>

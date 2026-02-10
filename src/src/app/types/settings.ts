@@ -16,6 +16,7 @@ export interface Settings {
   mode_map_position?: boolean;
   api_token?: boolean;
   map_provider?: string;
+  duplicate_dist?: number;
 }
 
 export interface ImportResponse {
