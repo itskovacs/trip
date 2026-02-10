@@ -699,7 +699,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
     allPlaces.forEach((place) => {
       const isUsed = usedIds.has(place.id);
-      const marker = placeToMarker(place, false, !isUsed, false, () => this.addItem(undefined, place.id));
+      const marker = placeToMarker(place, false, !isUsed, false, () => this.markerRightClickFn(place));
       const itemsUsingPlace = itemsByPlaceId.get(place.id) || [];
 
       marker.on('click', () => {
@@ -988,7 +988,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       dismissableMask: true,
       draggable: false,
       resizable: false,
-      width: '20vw',
+      width: '30vw',
       breakpoints: {
         '960px': '70vw',
         '640px': '90vw',
@@ -2478,5 +2478,44 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     const lat: number = latlng ? latlng[0] : selected!.lat!;
     const lng: number = latlng ? latlng[1] : selected!.lng!;
     this.map.flyTo([lat, lng], this.map.getZoom() || 9, { duration: 2 });
+  }
+
+  markerRightClickFn(to: Place) {
+    if (this.selectedItem() || this.selectedPlace()) return this.markerToMarkerRouting(to);
+    return this.addItem(undefined, to.id);
+  }
+
+  markerToMarkerRouting(to: Place) {
+    const from = this.selectedItem() || this.selectedPlace();
+    if (!from || !from.lat || !from.lng) return;
+
+    const profile = this.routeManager.getProfile([from.lat, from.lng], [to.lat, to.lng]);
+    this.utilsService.setLoading('Calculating route...');
+    this.apiService
+      .completionRouting({
+        coordinates: [
+          { lng: from.lng, lat: from.lat },
+          { lng: to.lng, lat: to.lat },
+        ],
+        profile,
+      })
+      .subscribe({
+        next: (resp) => {
+          this.utilsService.setLoading('');
+          const layer = this.routeManager.addRoute({
+            id: this.routeManager.createRouteId([from.lat!, from.lng!], [to.lat, to.lng], profile),
+            geometry: resp.geometry,
+            distance: resp.distance ?? 0,
+            duration: resp.duration ?? 0,
+            profile,
+          });
+          const currentMap = this.map;
+          if (currentMap) layer.addTo(currentMap);
+        },
+        error: (err) => {
+          this.utilsService.setLoading('');
+          console.error('Routing error:', err);
+        },
+      });
   }
 }
