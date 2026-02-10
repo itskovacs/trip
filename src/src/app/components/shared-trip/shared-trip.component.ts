@@ -1036,13 +1036,19 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   }
 
   onRowEnter(item: ViewTripItem) {
-    // clear previous highlight then highlight the marker for this row's place (if any)
+    if (this.selectedPlace()) return;
     this.clearSelectedItemHighlight();
+
     const placeId = item?.place?.id;
     if (!placeId) return;
 
     const marker = this.markers.get(placeId);
     if (marker) this.highlightExistingMarker(marker);
+  }
+
+  onRowLeave() {
+    if (this.selectedPlace()) return;
+    this.clearSelectedItemHighlight();
   }
 
   async centerOnMe() {
