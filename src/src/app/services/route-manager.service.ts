@@ -44,8 +44,14 @@ export class RouteManagerService {
 
     if (this.routes().has(id)) this.removeRoute(id);
     const availableColors = this.availableColors();
-    const randomIndex = Math.floor(Math.random() * availableColors.length);
-    const color = availableColors[randomIndex];
+    let color: string;
+    if (availableColors.length > 0) {
+      const randomIndex = Math.floor(Math.random() * availableColors.length);
+      color = availableColors[randomIndex];
+    } else {
+      const randomIndex = Math.floor(Math.random() * HIGHLIGHT_COLORS.length);
+      color = HIGHLIGHT_COLORS[randomIndex];
+    }
 
     const icon = this.profileIcons[profile];
     const layer = this.createRouteLayer(geometry, distance, duration, { color, icon }, () => this.removeRoute(id));
@@ -60,14 +66,13 @@ export class RouteManagerService {
 
   removeRoute(id: string): void {
     const route = this.routes().get(id);
-    if (route) {
-      route.layer.remove();
-      this.routes.update((routes) => {
-        const newRoutes = new Map(routes);
-        newRoutes.delete(id);
-        return newRoutes;
-      });
-    }
+    if (!route) return;
+    route.layer.remove();
+    this.routes.update((routes) => {
+      const newRoutes = new Map(routes);
+      newRoutes.delete(id);
+      return newRoutes;
+    });
   }
 
   clearAll(): void {
