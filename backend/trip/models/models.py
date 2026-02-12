@@ -232,7 +232,7 @@ class UserBase(SQLModel):
     mode_display_visited: bool | None = False
     mode_map_position: bool | None = False
     api_token: str | None = None
-    duplicate_dist: int | None = 0
+    duplicate_dist: int | None = None
 
 
 class User(UserBase, table=True):
