@@ -151,7 +151,6 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   @ViewChild('menuPlanDayActions') menuPlanDayActions!: Menu;
   @ViewChild('menuSelectedItemActions') menuSelectedItemActions!: Menu;
   @ViewChild('menuSelectedPlaceActions') menuSelectedPlaceActions!: Menu;
-  @ViewChild('menuSelectedPlaceActions') menuSelectedPlaceActions!: Menu;
   @ViewChild('menuTripDayActions') menuTripDayActions!: Menu;
   @ViewChild('menuSelectedDayActions') menuSelectedDayActions!: Menu;
   @ViewChild('selectedPanel', { read: ElementRef }) selectedPanelRef?: ElementRef;
@@ -451,7 +450,6 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   menuPlanDayActionsItems: MenuItem[] = [];
   menuSelectedItemActionsItems: MenuItem[] = [];
   menuSelectedPlaceActionsItems: MenuItem[] = [];
-  menuSelectedPlaceActionsItems: MenuItem[] = [];
   menuSelectedDayActionsItems: MenuItem[] = [];
   selectedTripDayForMenu?: TripDay;
   statuses: TripStatus[];
@@ -526,7 +524,6 @@ export class TripComponent implements AfterViewInit, OnDestroy {
         data.gpxData.forEach((gpx) => layerGroup.addLayer(gpxToPolyline(gpx)));
 
         this.tripMapAntLayer = layerGroup;
-
         requestAnimationFrame(() => {
           if (this.tripMapAntLayer && this.map) {
             this.tripMapAntLayer.addTo(this.map);
@@ -2480,12 +2477,14 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   dayRouting(day: TripDay) {
     const coords: [number, number][] = [];
+    const markers: any[] = [];
 
     day.items.forEach((item) => {
       const lat = item.lat || item.place?.lat;
       const lng = item.lng || item.place?.lng;
       if (!lat || !lng) return;
       coords.push([lat, lng]);
+      if (!item.place) markers.push(item);
     });
 
     if (coords.length < 2) {
@@ -2493,31 +2492,77 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       return;
     }
 
-    const profile = this.routeManager.getProfile(coords[0], coords[1]);
-    this.utilsService.setLoading('Calculating route...');
-    this.apiService
-      .completionRouting({
-        coordinates: coords.map((c) => ({ lat: c[0], lng: c[1] })),
-        profile,
-      })
-      .subscribe({
-        next: (resp) => {
-          this.utilsService.setLoading('');
-          const layer = this.routeManager.addRoute({
-            id: this.routeManager.createRouteId(coords[0], coords[coords.length - 1], profile),
-            geometry: resp.geometry,
-            distance: resp.distance ?? 0,
-            duration: resp.duration ?? 0,
-            profile,
-          });
-          const currentMap = this.map;
-          if (currentMap) layer.addTo(currentMap);
-        },
-        error: (err) => {
-          this.utilsService.setLoading('');
-          console.error('Routing error:', err);
-        },
+    this.utilsService.setLoading(`Calculating routes (0/${coords.length - 1})...`);
+    const routeSegments: Array<{ start: [number, number]; end: [number, number] }> = [];
+    for (let i = 0; i < coords.length - 1; i++) {
+      routeSegments.push({
+        start: coords[i],
+        end: coords[i + 1],
       });
+    }
+
+    const layerGroup = L.featureGroup();
+    markers.forEach((item) => {
+      const marker = tripDayMarker(item);
+      marker.on('click', () => {
+        if (this.selectedItem()?.id === item.id) {
+          this.selectedItem.set(null);
+          this.selectedPlace.set(null);
+          this.selectedDay.set(null);
+          return;
+        }
+        this.selectedItem.set(this.normalizeItem(item));
+        this.selectedPlace.set(null);
+        this.selectedDay.set(null);
+      });
+      layerGroup.addLayer(marker);
+    });
+
+    this.tripMapAntLayer = layerGroup;
+    requestAnimationFrame(() => {
+      if (!this.tripMapAntLayer || !this.map) return;
+      this.tripMapAntLayer.addTo(this.map);
+    });
+
+    let completedRoutes = 0;
+    routeSegments.forEach((segment, index) => {
+      const profile = this.routeManager.getProfile(segment.start, segment.end);
+      this.apiService
+        .completionRouting({
+          coordinates: [
+            { lat: segment.start[0], lng: segment.start[1] },
+            { lat: segment.end[0], lng: segment.end[1] },
+          ],
+          profile,
+        })
+        .subscribe({
+          next: (resp) => {
+            completedRoutes++;
+            this.utilsService.setLoading(
+              completedRoutes === routeSegments.length
+                ? ''
+                : `Calculating routes (${completedRoutes}/${routeSegments.length})...`,
+            );
+
+            const layer = this.routeManager.addRoute({
+              id: this.routeManager.createRouteId(segment.start, segment.end, profile),
+              geometry: resp.geometry,
+              distance: resp.distance ?? 0,
+              duration: resp.duration ?? 0,
+              profile,
+            });
+
+            const currentMap = this.map;
+            if (currentMap) layer.addTo(currentMap);
+          },
+          error: (err) => {
+            completedRoutes++;
+            if (completedRoutes === routeSegments.length) this.utilsService.setLoading('');
+            this.utilsService.toast('error', 'Routing error', 'Route computation failed');
+            console.error(`Routing error for segment ${index + 1}:`, err);
+          },
+        });
+    });
   }
 
   flyTo(latlng?: [number, number]) {
