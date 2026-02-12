@@ -22,9 +22,11 @@ def _get_user(session: SessionDep, current_user: str):
     return db_user
 
 
-def _raise_missing_apikey(db_user, raise_msg = "") -> bool:
+def _raise_missing_apikey(db_user, raise_msg="") -> bool:
     if not db_user.google_apikey:
-        raise HTTPException(status_code=400, detail=raise_msg if raise_msg else "Google Maps API key not configured")
+        raise HTTPException(
+            status_code=400, detail=raise_msg if raise_msg else "Google Maps API key not configured"
+        )
 
 
 def _get_map_provider(session: SessionDep, current_user: str) -> BaseMapProvider:
