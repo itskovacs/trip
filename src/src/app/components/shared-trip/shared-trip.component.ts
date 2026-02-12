@@ -1215,7 +1215,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
         },
       });
   }
-  
+
   flyTo(latlng?: [number, number]) {
     const selected = this.selectedItem() || this.selectedPlace();
     if (!this.map || (!latlng && (!selected || !selected.lat || !selected.lng))) return;
