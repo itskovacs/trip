@@ -1,6 +1,5 @@
 import { Injectable, signal, computed } from '@angular/core';
 import * as L from 'leaflet';
-import { Place } from '../types/poi';
 import { computeDistLatLng } from '../shared/utils';
 import { RouteData, RouteStyle, RoutingProfile } from '../types/provider';
 
@@ -33,7 +32,6 @@ export class RouteManagerService {
   profileIcons = {
     car: '🚗',
     foot: '🚶',
-    bike: '🚴',
   };
 
   getProfile(from: L.LatLngTuple, to: L.LatLngTuple): RoutingProfile {

@@ -1,4 +1,4 @@
-export type RoutingProfile = 'car' | 'foot' | 'bike';
+export type RoutingProfile = 'car' | 'foot';
 
 export interface ProviderPlaceResult {
   name: string;
