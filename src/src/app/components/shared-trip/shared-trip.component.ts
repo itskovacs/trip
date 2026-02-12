@@ -1036,7 +1036,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   }
 
   onRowEnter(item: ViewTripItem) {
-    if (this.selectedPlace()) return;
+    if (this.selectedPlace() || this.selectedItem()) return;
     this.clearSelectedItemHighlight();
 
     const placeId = item?.place?.id;
@@ -1047,7 +1047,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   }
 
   onRowLeave() {
-    if (this.selectedPlace()) return;
+    if (this.selectedPlace() || this.selectedItem()) return;
     this.clearSelectedItemHighlight();
   }
 
