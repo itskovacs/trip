@@ -95,6 +95,11 @@ class OpenStreetMapProvider(BaseMapProvider):
         ],
     }
     USER_AGENT = "Mozilla/5.0 (compatible; TRIP/1 PyJWKClient; +https://github.com/itskovacs/trip)"
+    OSRM_ENDPOINTS = {
+        "car": "https://routing.openstreetmap.de/routed-car/route/v1/driving",
+        "foot": "https://routing.openstreetmap.de/routed-foot/route/v1/driving",
+        "bike": "https://routing.openstreetmap.de/routed-bike/route/v1/driving",
+    }
 
     def _categorize(self, types: set[str]) -> str | None:
         for cat, keys in self.TYPES_MAPPER.items():
@@ -196,7 +201,8 @@ class OpenStreetMapProvider(BaseMapProvider):
         if data.profile not in ["car", "foot", "bike"]:
             raise HTTPException(status_code=400, detail="Specified profile is not supported")
         coords_str = ";".join(f"{coord.lng},{coord.lat}" for coord in data.coordinates)
-        url = f"https://router.project-osrm.org/route/v1/{data.profile}/{coords_str}"
+
+        url = f"{self.OSRM_ENDPOINTS[data.profile]}/{coords_str}"
         params = {
             "overview": "simplified",
             "geometries": "geojson",
