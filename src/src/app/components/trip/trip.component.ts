@@ -150,6 +150,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   @ViewChild('menuTripActions') menuTripActions!: Menu;
   @ViewChild('menuPlanDayActions') menuPlanDayActions!: Menu;
   @ViewChild('menuSelectedItemActions') menuSelectedItemActions!: Menu;
+  @ViewChild('menuSelectedPlaceActions') menuSelectedPlaceActions!: Menu;
+  @ViewChild('menuSelectedPlaceActions') menuSelectedPlaceActions!: Menu;
   @ViewChild('menuTripDayActions') menuTripDayActions!: Menu;
   @ViewChild('menuSelectedDayActions') menuSelectedDayActions!: Menu;
   @ViewChild('selectedPanel', { read: ElementRef }) selectedPanelRef?: ElementRef;
@@ -448,6 +450,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   menuTripDayActionsItems: MenuItem[] = [];
   menuPlanDayActionsItems: MenuItem[] = [];
   menuSelectedItemActionsItems: MenuItem[] = [];
+  menuSelectedPlaceActionsItems: MenuItem[] = [];
+  menuSelectedPlaceActionsItems: MenuItem[] = [];
   menuSelectedDayActionsItems: MenuItem[] = [];
   selectedTripDayForMenu?: TripDay;
   statuses: TripStatus[];
@@ -805,6 +809,35 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       },
     ];
     this.menuSelectedItemActions.toggle(event);
+  }
+
+  openMenuSelectedPlaceActions(event: any, place: Place) {
+    this.menuSelectedPlaceActionsItems = [
+      {
+        label: 'Actions',
+        items: [
+          {
+            label: 'Create Plan',
+            icon: 'pi pi-link',
+            disabled: this.trip()!.archived,
+            command: () => this.addItem(undefined, place.id),
+          },
+          {
+            label: 'Edit',
+            icon: 'pi pi-pencil',
+            disabled: this.trip()!.archived,
+            command: () => this.editPlace(place),
+          },
+          {
+            label: 'Unlink Place',
+            icon: 'pi pi-trash',
+            disabled: this.trip()!.archived,
+            command: () => this.unlinkPlaceFromTrip(place.id),
+          },
+        ],
+      },
+    ];
+    this.menuSelectedPlaceActions.toggle(event);
   }
 
   openMenuPlanDayActionsItems(event: any, d: TripDay) {

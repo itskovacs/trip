@@ -562,15 +562,20 @@
             </div>
           </div>
 
-          <div class="flex gap-1">
+          <div class="hidden md:flex gap-1">
             <p-button icon="pi pi-link" text pTooltip="Create Plan using this Place" [disabled]="trip()?.archived"
               (click)="addItem(undefined, selection.place.id)" />
             <p-button icon="pi pi-expand" text pTooltip="Fly to" (click)="flyTo()" />
-            <p-button icon="pi pi-pencil" text pTooltip="Edit Place" (click)="editPlace(selection.place)" />
-            <p-button icon="pi pi-trash" text pTooltip="Unlink Place from this Trip" [disabled]="trip()?.archived"
+            <p-button icon="pi pi-pencil" text [disabled]="trip()?.archived" pTooltip="Edit Plan"
+              (click)="editPlace(selection.place)" />
+            <p-button icon="pi pi-trash" text severity="danger" [disabled]="trip()?.archived" pTooltip="Delete Plan"
               (click)="unlinkPlaceFromTrip(selection.place.id)" />
-            <p-button (click)="selectedPlace.set(null); selectedPlaceActiveTabIndex.set(0)" severity="secondary" text
-              icon="pi pi-times" />
+            <p-button (click)="selectedPlace.set(null); selectedPlaceActiveTabIndex.set(0)" text icon="pi pi-times" />
+          </div>
+
+          <div class="flex md:hidden gap-1">
+            <p-button (click)="openMenuSelectedPlaceActions($event, selection.place)" text icon="pi pi-ellipsis-h" />
+            <p-button (click)="selectedPlace.set(null); selectedPlaceActiveTabIndex.set(0)" text icon="pi pi-times" />
           </div>
           } @else {
           @let item = selection.items[selectedPlaceActiveTabIndex()];
@@ -1079,11 +1084,13 @@
           </div>
         </div>
         }
+  <p-menu #menuSelectedPlaceActions [model]="menuSelectedPlaceActionsItems" appendTo="body" [popup]="true" />
       </div>
     </div>
   </div>
   }
   <p-menu #menuSelectedItemActions [model]="menuSelectedItemActionsItems" appendTo="body" [popup]="true" />
+  <p-menu #menuSelectedPlaceActions [model]="menuSelectedPlaceActionsItems" appendTo="body" [popup]="true" />
   <p-menu #menuSelectedDayActions [model]="menuSelectedDayActionsItems" appendTo="body" [popup]="true" />
   <p-menu #menuTripDayActions [model]="menuTripDayActionsItems" appendTo="body" [popup]="true" />
 </div>
