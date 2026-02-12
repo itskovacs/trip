@@ -32,8 +32,10 @@ async def auth_params() -> AuthParams:
     data["oidc"] = uri
 
     response = JSONResponse(content=data)
-    is_secure = 'https://' in settings.OIDC_DISCOVERY_URL
-    response.set_cookie("oidc_state", value=state, httponly=True, secure=is_secure, samesite="Lax", max_age=60)
+    is_secure = "https://" in settings.OIDC_REDIRECT_URI
+    response.set_cookie(
+        "oidc_state", value=state, httponly=True, secure=is_secure, samesite="Lax", max_age=60
+    )
 
     return response
 
