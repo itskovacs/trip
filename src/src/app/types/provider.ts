@@ -14,16 +14,13 @@ export interface ProviderPlaceResult {
   restroom?: boolean;
 }
 
-export interface OSMRoutingResponse {
+export interface RoutingResponse {
   distance: number;
   duration: number;
-  geometry: {
-    type: 'LineString';
-    coordinates: [number, number][];
-  };
+  coordinates: [number, number][];
 }
 
-export interface OSMRoutingQuery {
+export interface RoutingQuery {
   coordinates: { lat: number; lng: number }[];
   profile: RoutingProfile;
 }
@@ -32,7 +29,7 @@ export interface RouteData {
   id: string;
   distance: number;
   duration: number;
-  geometry: any;
+  coordinates: [number, number][];
   profile: RoutingProfile;
   layer: L.LayerGroup;
   color: string;

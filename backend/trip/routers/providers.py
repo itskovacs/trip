@@ -4,9 +4,9 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
 
 from ..deps import SessionDep, get_current_username
-from ..models.models import (LatitudeLongitude, OSMRoutingQuery,
-                             OSMRoutingResponse, ProviderBoundaries,
-                             ProviderPlaceResult, User)
+from ..models.models import (LatitudeLongitude, ProviderBoundaries,
+                             ProviderPlaceResult, RoutingQuery,
+                             RoutingResponse, User)
 from ..utils.csv import iter_csv_lines
 from ..utils.providers import (BaseMapProvider, GoogleMapsProvider,
                                OpenStreetMapProvider)
@@ -149,15 +149,16 @@ async def geocode_search(
     return bounds
 
 
-#####
-## OSM-specific
 @router.post("/route")
 async def get_route(
-    data: OSMRoutingQuery,
+    data: RoutingQuery,
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
-) -> OSMRoutingResponse:
-    return await OpenStreetMapProvider().get_route(data)
+) -> RoutingResponse:
+    if len(data.coordinates) < 2:
+        raise HTTPException(status_code=400, detail="Coordinates required")
+    provider = _get_map_provider(session, current_user)
+    return await provider.get_route(data)
 
 
 #####

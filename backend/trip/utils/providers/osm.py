@@ -2,8 +2,8 @@ from typing import Any
 
 from fastapi import HTTPException
 
-from ...models.models import (LatLng, OSMRoutingQuery, OSMRoutingResponse,
-                              ProviderBoundaries, ProviderPlaceResult)
+from ...models.models import (LatLng, ProviderBoundaries, ProviderPlaceResult,
+                              RoutingQuery, RoutingResponse)
 from .base import BaseMapProvider
 
 
@@ -192,12 +192,7 @@ class OpenStreetMapProvider(BaseMapProvider):
         except (ValueError, TypeError):
             return None
 
-    async def get_route(self, data: OSMRoutingQuery) -> OSMRoutingResponse:
-        if len(data.coordinates) < 2:
-            raise HTTPException(
-                status_code=400, detail="Routing impossible: at least 2 coordinates required"
-            )
-
+    async def get_route(self, data: RoutingQuery) -> RoutingResponse:
         if data.profile not in ["car", "foot", "bike"]:
             raise HTTPException(status_code=400, detail="Specified profile is not supported")
         coords_str = ";".join(f"{coord.lng},{coord.lat}" for coord in data.coordinates)
@@ -205,7 +200,6 @@ class OpenStreetMapProvider(BaseMapProvider):
         url = f"{self.OSRM_ENDPOINTS[data.profile]}/{coords_str}"
         params = {
             "overview": "simplified",
-            "geometries": "geojson",
             "alternatives": False,
             "steps": False,
             "annotations": False,
@@ -221,8 +215,8 @@ class OpenStreetMapProvider(BaseMapProvider):
         route = routes[0]
         if not route.get("geometry"):
             raise HTTPException(status_code=404, detail="No route found")
-        return OSMRoutingResponse(
+        return RoutingResponse(
             distance=route.get("distance", 0),
             duration=route.get("duration", 0),
-            geometry=route.get("geometry"),
+            coordinates=self._decode_encoded_polyline(route.get("geometry")),
         )

@@ -1772,7 +1772,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           this.utilsService.setLoading('');
           const layer = this.routeManager.addRoute({
             id: this.routeManager.createRouteId([from.lat, from.lng], [to.lat, to.lng], profile),
-            geometry: resp.geometry,
+            coordinates: resp.coordinates,
             distance: resp.distance ?? 0,
             duration: resp.duration ?? 0,
             profile,

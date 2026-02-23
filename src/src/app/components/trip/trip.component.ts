@@ -2547,7 +2547,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
             const layer = this.routeManager.addRoute({
               id: this.routeManager.createRouteId(segment.start, segment.end, profile),
-              geometry: resp.geometry,
+              coordinates: resp.coordinates,
               distance: resp.distance ?? 0,
               duration: resp.duration ?? 0,
               profile,
@@ -2599,7 +2599,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           this.utilsService.setLoading('');
           const layer = this.routeManager.addRoute({
             id: this.routeManager.createRouteId([from.lat!, from.lng!], [to.lat, to.lng], profile),
-            geometry: resp.geometry,
+            coordinates: resp.coordinates,
             distance: resp.distance ?? 0,
             duration: resp.duration ?? 0,
             profile,

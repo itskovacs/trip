@@ -40,7 +40,7 @@ export class RouteManagerService {
   }
 
   addRoute(routeData: Omit<RouteData, 'layer' | 'color'>): L.LayerGroup {
-    const { id, geometry, distance, duration, profile } = routeData;
+    const { id, coordinates, distance, duration, profile } = routeData;
 
     if (this.routes().has(id)) this.removeRoute(id);
     const availableColors = this.availableColors();
@@ -54,7 +54,13 @@ export class RouteManagerService {
     }
 
     const icon = this.profileIcons[profile];
-    const layer = this.createRouteLayer(geometry, distance, duration, { color, icon }, () => this.removeRoute(id));
+    const layer = this.createRouteLayer(
+      { coordinates: coordinates, type: 'LineString' },
+      distance,
+      duration,
+      { color, icon },
+      () => this.removeRoute(id),
+    );
     this.routes.update((routes) => {
       const newRoutes = new Map(routes);
       newRoutes.set(id, { ...routeData, layer, color });
@@ -134,7 +140,7 @@ export class RouteManagerService {
   }
 
   createRouteBadge(
-    coordinates: number[][],
+    coordinates: [number, number][],
     distance: number,
     duration: number,
     style: RouteStyle,

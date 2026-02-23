@@ -79,10 +79,6 @@ class AuthParams(BaseModel):
     register_enabled: bool
 
 
-class TripShareURL(BaseModel):
-    url: str
-
-
 class LoginRegisterModel(BaseModel):
     username: Annotated[
         str,
@@ -141,15 +137,15 @@ class ProviderBoundaries(BaseModel):
     southwest: LatLng
 
 
-class OSMRoutingQuery(BaseModel):
+class RoutingQuery(BaseModel):
     coordinates: list[LatLng]
     profile: str
 
 
-class OSMRoutingResponse(BaseModel):
+class RoutingResponse(BaseModel):
     distance: float | None
     duration: float | None
-    geometry: dict | None
+    coordinates: list[tuple[float, float]]
 
 
 class ImageBase(SQLModel):
@@ -663,12 +659,87 @@ class TripItemRead(TripItemBase):
         )
 
 
+class TripShareDetails(BaseModel):
+    url: str
+    is_full_access: bool | None
+
+
+class TripShareCreate(BaseModel):
+    is_full_access: bool | None
+
+
 class TripShare(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     token: str = Field(index=True, unique=True)
+    is_full_access: bool | None = None
 
     trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE")
     trip: Trip | None = Relationship(back_populates="shares")
+
+
+class TripShareItemRead(TripItemRead):
+    id: int
+    place: PlaceRead | None
+    day_id: int
+    status: TripItemStatusEnum | None
+    image: str | None
+    image_id: int | None
+    paid_by: str | None
+
+    @classmethod
+    def serialize(cls, obj: TripItem) -> "TripShareItemRead":
+        return cls(
+            id=obj.id,
+            time=obj.time,
+            text=obj.text,
+            comment=obj.comment,
+            lat=obj.lat,
+            lng=obj.lng,
+            price=obj.price,
+            day_id=obj.day_id,
+            status=obj.status,
+            place=PlaceRead.serialize(obj.place) if obj.place else None,
+            image=None,
+            image_id=None,
+            gpx=obj.gpx,
+            paid_by=None,
+        )
+
+
+class TripShareDayRead(TripDayBase):
+    id: int
+    items: list["TripShareItemRead"]
+
+    @classmethod
+    def serialize(cls, obj: TripDay) -> "TripShareDayRead":
+        return cls(
+            id=obj.id,
+            dt=obj.dt,
+            label=obj.label,
+            items=[TripShareItemRead.serialize(item) for item in obj.items],
+            notes=obj.notes,
+        )
+
+
+class TripShareRead(TripBase):
+    id: int
+    image: str | None
+    image_id: int | None
+    days: list["TripShareDayRead"]
+    places: list["PlaceRead"]
+
+    @classmethod
+    def serialize(cls, obj: Trip) -> "TripShareRead":
+        return cls(
+            id=obj.id,
+            name=obj.name,
+            archived=obj.archived,
+            image=_prefix_assets_url(obj.image.filename) if obj.image else None,
+            image_id=obj.image_id,
+            days=[TripDayRead.serialize(day) for day in obj.days],
+            places=[PlaceRead.serialize(place) for place in obj.places],
+            currency=obj.currency if obj.currency else settings.DEFAULT_CURRENCY,
+        )
 
 
 class TripPackingListItemBase(SQLModel):
