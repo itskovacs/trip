@@ -19,7 +19,8 @@ from ..models.models import (Image, Place, Trip, TripAttachment,
                              TripPackingListItemCreate,
                              TripPackingListItemRead,
                              TripPackingListItemUpdate, TripRead, TripReadBase,
-                             TripShare, TripShareURL, TripUpdate, User)
+                             TripShare, TripShareCreate, TripShareDetails,
+                             TripShareRead, TripUpdate, User)
 from ..utils.date import dt_utc
 from ..utils.utils import (attachments_trip_folder_path, b64img_decode,
                            generate_urlsafe, save_attachment,
@@ -553,36 +554,39 @@ def delete_tripitem(
     return {}
 
 
-@router.get("/shared/{token}", response_model=TripRead)
+@router.get("/shared/{token}", response_model=TripRead | TripShareRead)
 def read_shared_trip(
     session: SessionDep,
     token: str,
-) -> TripRead:
-    db_trip = session.get(Trip, _trip_from_token_or_404(session, token).trip_id)
-    return TripRead.serialize(db_trip)
+) -> TripRead | TripShareRead:
+    share = _trip_from_token_or_404(session, token)
+    db_trip = session.get(Trip, share.trip_id)
+
+    return TripRead.serialize(db_trip) if share.is_full_access else TripShareRead.serialize(db_trip)
 
 
-@router.get("/{trip_id}/share", response_model=TripShareURL)
-def get_shared_trip_url(
+@router.get("/{trip_id}/share", response_model=TripShareDetails)
+def get_shared_trip_details(
     session: SessionDep,
     trip_id: int,
     current_user: Annotated[str, Depends(get_current_username)],
-) -> TripShareURL:
+) -> TripShareDetails:
     _get_verified_trip(session, trip_id, current_user)
 
     share = session.exec(select(TripShare).where(TripShare.trip_id == trip_id)).first()
     if not share:
         raise HTTPException(status_code=404, detail="Not found")
 
-    return {"url": f"/s/t/{share.token}"}
+    return {"url": f"/s/t/{share.token}", "is_full_access": share.is_full_access}
 
 
-@router.post("/{trip_id}/share", response_model=TripShareURL)
+@router.post("/{trip_id}/share", response_model=TripShareDetails)
 def create_shared_trip(
     session: SessionDep,
     trip_id: int,
+    data: TripShareCreate,
     current_user: Annotated[str, Depends(get_current_username)],
-) -> TripShareURL:
+) -> TripShareDetails:
     _get_verified_trip(session, trip_id, current_user)
 
     shared = session.exec(select(TripShare).where(TripShare.trip_id == trip_id)).first()
@@ -590,10 +594,12 @@ def create_shared_trip(
         raise HTTPException(status_code=409, detail="The resource already exists")
 
     token = generate_urlsafe()
-    trip_share = TripShare(token=token, trip_id=trip_id)
-    session.add(trip_share)
+    if data.is_full_access:
+        token = f"{token[:-3]}ful"
+    share = TripShare(token=token, trip_id=trip_id, is_full_access=data.is_full_access)
+    session.add(share)
     session.commit()
-    return {"url": f"/s/t/{token}"}
+    return {"url": f"/s/t/{token}", "is_full_access": share.is_full_access}
 
 
 @router.delete("/{trip_id}/share")

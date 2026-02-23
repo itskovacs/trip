@@ -1,14 +1,14 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Category, ProviderBoundaries, Place } from '../types/poi';
-import { OSMRoutingQuery, OSMRoutingResponse, ProviderPlaceResult } from '../types/provider';
+import { RoutingQuery, RoutingResponse, ProviderPlaceResult } from '../types/provider';
 import { BehaviorSubject, map, Observable, shareReplay, take, tap } from 'rxjs';
 import { Info } from '../types/info';
 import { Backup, ImportResponse, Settings } from '../types/settings';
 import {
   ChecklistItem,
   PackingItem,
-  SharedTripURL,
+  SharedTripDetails,
   Trip,
   TripAttachment,
   TripBase,
@@ -158,17 +158,17 @@ export class ApiService {
     return this.httpClient.get<Trip>(`${this.apiBaseUrl}/trips/shared/${token}`, { headers: NO_AUTH_HEADER });
   }
 
-  getSharedTripURL(tripId: number): Observable<string> {
-    return this.httpClient.get<SharedTripURL>(`${this.apiBaseUrl}/trips/${tripId}/share`).pipe(
-      map((t) => window.location.origin + t.url),
+  getSharedTripDetails(tripId: number): Observable<SharedTripDetails> {
+    return this.httpClient.get<SharedTripDetails>(`${this.apiBaseUrl}/trips/${tripId}/share`).pipe(
+      map((resp) => ({ ...resp, url: window.location.origin + resp.url })),
       shareReplay(),
     );
   }
 
-  createSharedTrip(tripId: number): Observable<string> {
+  createSharedTrip(tripId: number, is_full_access: boolean): Observable<SharedTripDetails> {
     return this.httpClient
-      .post<SharedTripURL>(`${this.apiBaseUrl}/trips/${tripId}/share`, {})
-      .pipe(map((t) => window.location.origin + t.url));
+      .post<SharedTripDetails>(`${this.apiBaseUrl}/trips/${tripId}/share`, { is_full_access })
+      .pipe(map((resp) => ({ ...resp, url: window.location.origin + resp.url })));
   }
 
   deleteSharedTrip(tripId: number): Observable<null> {
@@ -347,8 +347,8 @@ export class ApiService {
     return this.httpClient.get<ProviderBoundaries>(`${this.apiBaseUrl}/completions/geocode`, { params: { q } });
   }
 
-  completionRouting(data: OSMRoutingQuery): Observable<OSMRoutingResponse> {
-    return this.httpClient.post<OSMRoutingResponse>(`${this.apiBaseUrl}/completions/route`, data);
+  completionRouting(data: RoutingQuery): Observable<RoutingResponse> {
+    return this.httpClient.post<RoutingResponse>(`${this.apiBaseUrl}/completions/route`, data);
   }
 
   completionBulk(data: string[]): Observable<ProviderPlaceResult[]> {

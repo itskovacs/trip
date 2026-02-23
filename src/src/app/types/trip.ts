@@ -108,8 +108,9 @@ export interface TripInvitation extends TripBase {
   invited_at: string;
 }
 
-export interface SharedTripURL {
+export interface SharedTripDetails {
   url: string;
+  is_full_access?: boolean;
 }
 
 export interface PackingItem {

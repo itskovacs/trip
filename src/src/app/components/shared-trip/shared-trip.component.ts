@@ -170,6 +170,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   isArchiveWarningVisible = signal<boolean>(true);
   tooltipCopied = signal(false);
   selectedDay = signal<TripDay | null>(null);
+  isFullAccess = signal(false);
 
   panelWidth = signal<number | null>(null);
   panelDeltaX = 0;
@@ -556,6 +557,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
       const token = params.get('token');
       if (!token) return;
       this.token = token;
+      if (token.endsWith('ful')) this.isFullAccess.set(true);
       this.loadTripData(token);
     });
   }
@@ -766,9 +768,8 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
         {
           label: 'Attachments',
           icon: 'pi pi-paperclip',
-          command: () => {
-            this.openAttachmentsModal();
-          },
+          command: () => this.openAttachmentsModal(),
+          disabled: !this.isFullAccess(),
         },
         {
           label: 'Checklist',

@@ -1378,31 +1378,58 @@
   </section>
 </p-dialog>
 <p-dialog header="Share" [draggable]="false" [dismissableMask]="true" [modal]="true" [(visible)]="isShareDialogVisible"
-  [style]="{ width: '25rem' }">
-  @if (isShareDialogVisible) {
+  styleClass="w-[95%] md:w-[70%] lg:w-[50%] xl:w-[30%]">
   @let t = trip();
+  @let shared_full_access = (tripSharedDetails$ | async)?.is_full_access;
   <ng-container>
     @if (t?.shared) {
     <div class="flex items-center flex-col gap-2">
-      <span>{{ t?.name }} is shared on this link:</span>
-
+      <div>{{ t?.name }} is <span class="font-medium" [class.text-red-500]="shared_full_access">{{ shared_full_access ?
+          'fully' : 'partially' }}</span> shared
+        on this link:</div>
       <div
-        class="flex items-center w-full rounded-xl border border-primary-300 bg-white dark:bg-black p-2 pl-3 pr-2 shadow-sm">
+        class="flex justify-between items-center w-full rounded-xl border border-primary-300 bg-white dark:bg-black p-2 pl-3 pr-2 shadow-sm">
         <p-button text icon="pi pi-trash" severity="danger" (click)="unshareTrip()" />
         <span class="text-sm font-semibold text-primary-800 dark:text-primary-300 truncate">
-          {{ (tripSharedURL$ | async) || '' }}
+          {{ (tripSharedDetails$ | async)?.url || '' }}
         </span>
-        <p-button text icon="pi pi-copy" [cdkCopyToClipboard]="(tripSharedURL$ | async) || ''" />
+        <p-button text icon="pi pi-copy" [cdkCopyToClipboard]="(tripSharedDetails$ | async)?.url || ''" />
       </div>
     </div>
     } @else {
-    <div class="flex items-center flex-col gap-2">
-      <span>{{ t?.name }} is not currently shared.</span>
-      <p-button (click)="shareTrip()" class="mt-4" text label="Share" icon="pi pi-share-alt" />
+    <div class="space-y-4">
+      <div class="text-center">{{ t?.name }} is not currently shared.</div>
+
+      <div
+        class="flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700">
+        <div class="flex items-center gap-3 min-w-0 flex-1">
+          <i class="pi pi-share-alt text-primary-600 dark:text-primary-400 shrink-0"></i>
+          <div class="min-w-0 flex-1">
+            <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">Base share</span>
+            <p class="text-xs text-primary-500 dark:text-primary-400 block">Include basic details: days, places, time,
+              text...
+            </p>
+          </div>
+        </div>
+        <p-button (click)="shareTrip(false)" [outlined]="true" label="Base Share" />
+      </div>
+
+      <div
+        class="flex items-center justify-between py-3 px-4 rounded-lg bg-red-50 dark:bg-black/50 border border-red-100 dark:border-red-700">
+        <div class="flex items-center gap-3 min-w-0 flex-1">
+          <i class="pi pi-share-alt text-red-600 dark:text-red-400 shrink-0"></i>
+          <div class="min-w-0 flex-1">
+            <span class="font-medium text-sm text-red-900 dark:text-red-100 block">Complete share</span>
+            <p class="text-xs text-red-500 dark:text-red-400 block">Include everything (documents, descriptions, etc.)
+            </p>
+          </div>
+        </div>
+        <p-button (click)="shareTrip()" [outlined]="true" severity="danger" label="Full Share" />
+      </div>
+
     </div>
     }
   </ng-container>
-  }
 </p-dialog>
 
 @if (printOptions()) {
