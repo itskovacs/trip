@@ -159,10 +159,12 @@ export class ApiService {
   }
 
   getSharedTripDetails(tripId: number): Observable<SharedTripDetails> {
-    return this.httpClient.get<SharedTripDetails>(`${this.apiBaseUrl}/trips/${tripId}/share`).pipe(
-      map((resp) => ({ ...resp, url: window.location.origin + resp.url })),
-      shareReplay(),
-    );
+    return this.httpClient
+      .get<SharedTripDetails>(`${this.apiBaseUrl}/trips/${tripId}/share`, { headers: { ignore_not_found: 'true' } })
+      .pipe(
+        map((resp) => ({ ...resp, url: window.location.origin + resp.url })),
+        shareReplay(),
+      );
   }
 
   createSharedTrip(tripId: number, is_full_access: boolean): Observable<SharedTripDetails> {

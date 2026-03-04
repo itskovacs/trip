@@ -51,6 +51,7 @@ export const Interceptor = (req: HttpRequest<unknown>, next: HttpHandlerFn): Obs
 
   return next(req).pipe(
     catchError((err: HttpErrorResponse) => {
+      if (err.status === 404 && req.headers.has('ignore_not_found')) return throwError(() => err); //ignore 404
       const errDetails = ERROR_CONFIG[err.status];
       if (errDetails) {
         console.error(err);
