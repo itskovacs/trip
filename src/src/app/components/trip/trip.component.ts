@@ -453,7 +453,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   menuSelectedDayActionsItems: MenuItem[] = [];
   selectedTripDayForMenu?: TripDay;
   statuses: TripStatus[];
-  availableItemProps = ['place', 'comment', 'latlng', 'price', 'status', 'distance'];
+  availableItemProps = ['text', 'place', 'comment', 'latlng', 'price', 'status', 'distance'];
 
   map?: L.Map;
   markerClusterGroup?: L.MarkerClusterGroup;

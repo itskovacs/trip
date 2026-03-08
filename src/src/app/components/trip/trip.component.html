@@ -303,6 +303,11 @@
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 min-w-0">
                       @if (item.place && visibleProps.has('place')) {
+                        @if (visibleProps.has('text') && item.text != item.place.name) {
+                        <span class="pointer-events-none text-sm font-medium text-primary-900 dark:text-white truncate">
+                          {{ item.text }}
+                        </span>
+                        }
                       <div class="flex color-bg-opacity items-center gap-2 px-2.5 py-1 rounded-lg min-w-0 max-w-full"
                         [style.--color-bg-opacity]="item.place.category.color">
                         <img [src]="item.place.image || item.place.category.image"
