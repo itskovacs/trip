@@ -677,7 +677,7 @@ class TripShare(SQLModel, table=True):
     trip: Trip | None = Relationship(back_populates="shares")
 
 
-class TripShareItemRead(TripItemRead):
+class TripShareItemRead(TripItemBase):
     id: int
     place: PlaceRead | None
     day_id: int
