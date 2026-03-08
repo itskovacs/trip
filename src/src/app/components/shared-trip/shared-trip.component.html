@@ -1124,59 +1124,6 @@
     </div>
   </section>
 </p-dialog>
-<p-dialog header="BETA Trip" [draggable]="false" [dismissableMask]="true" [modal]="true"
-  [(visible)]="isBetaDialogVisible" styleClass="w-[95%] md:w-[70%] lg:w-[50%] xl:w-[30%]">
-  <section class="p-5 md:p-6 space-y-8 text-sm text-primary-800 dark:text-primary-100">
-    <div class="flex items-center gap-4">
-      <div
-        class="hidden md:flex w-fit mt-0.5 items-center gap-1.5 rounded bg-purple-100 dark:bg-purple-900/40 px-2.5 py-1">
-        <span class="text-[11px] font-semibold uppercase tracking-[0.16em] text-purple-700 dark:text-purple-300">
-          Beta
-        </span>
-      </div>
-
-      <div class="flex-1 min-w-0">
-        <h2 class="text-base md:text-lg font-semibold leading-snug">Welcome to Trip BETA!</h2>
-        <p class="mt-1 text-xs md:text-sm text-primary-500 dark:text-primary-400">
-          This redesigned UI is still in progress. Things may move, break, or change as it evolves.
-        </p>
-      </div>
-    </div>
-
-    <div class="grid gap-3 md:grid-cols-2">
-      <div class="space-y-1.5">
-        <h3 class="text-red-500 text-xs font-semibold uppercase tracking-wide">Found a bug?</h3>
-        <p class="text-xs md:text-sm text-primary-600 dark:text-primary-300">
-          Open an <a href="https://github.com/itskovacs/trip" target="_blank" class="text-blue-600">issue</a> and
-          follow the steps. Thanks!
-        </p>
-      </div>
-
-      <div class="space-y-1.5">
-        <h3 class="text-green-500 text-xs font-semibold uppercase tracking-wide">Have an idea?</h3>
-        <p class="text-xs md:text-sm text-primary-600 dark:text-primary-300">
-          Head to
-          <a href="https://github.com/itskovacs/trip/discussions" target="_blank" class="text-blue-600">discussions</a>
-          and share it.
-        </p>
-      </div>
-    </div>
-
-    <div
-      class="mt-2 rounded-xl border border-primary-200 dark:border-primary-800 bg-primary-50/80 dark:bg-primary-900/60 px-3.5 py-3 flex items-center gap-3">
-      <span class="mt-0.5 text-3xl">☕</span>
-      <p class="text-xs md:text-sm text-primary-600 dark:text-primary-300">
-        If TRIP makes your trips planning easier and you'd like to support me and its development, you're welcome
-        (but never expected) to
-        <a href="https://ko-fi.com/itskovacs" target="_blank" class="text-blue-600">buy me a coffee</a>. Thank you!
-      </p>
-    </div>
-
-    <div class="flex flex-wrap items-center justify-end gap-2 pt-1">
-      <p-button label="Continue" icon="pi pi-arrow-right" size="small" (click)="isBetaDialogVisible = false" />
-    </div>
-  </section>
-</p-dialog>
 
 @if (printOptions()) {
 @let options = printOptions();
@@ -1185,9 +1132,7 @@
     <div class="flex flex-col items-center max-w-[55vw] md:max-w-full">
       <div class="flex flex-col items-center">
         <img src="favicon.png" class="size-20" />
-        <div class="flex gap-2 items-center text-xs text-primary-500">
-          <i class="pi pi-github"></i>itskovacs/trip
-        </div>
+        <div class="flex gap-2 items-center text-xs text-primary-500"><i class="pi pi-github"></i>itskovacs/trip</div>
       </div>
 
       <h1 class="mt-4 tracking-tight text-3xl font-semibold truncate p-2">{{ trip()?.name }}</h1>

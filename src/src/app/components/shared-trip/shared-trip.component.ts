@@ -181,7 +181,6 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   isPackingDialogVisible = false;
   isAttachmentsDialogVisible = false;
   isChecklistDialogVisible = false;
-  isBetaDialogVisible = true;
   selectedItemProps = signal<string[]>(['place', 'comment', 'price']);
 
   tripSharedURL$?: Observable<string>;
@@ -849,7 +848,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
       dismissableMask: true,
       draggable: false,
       resizable: false,
-      width: '20vw',
+      width: '30vw',
       breakpoints: {
         '960px': '70vw',
         '640px': '90vw',
