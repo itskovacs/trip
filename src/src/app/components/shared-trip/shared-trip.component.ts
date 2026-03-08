@@ -868,7 +868,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
       setTimeout(() => {
         window.print();
         this.printOptions.set(null);
-      }, 400); //increased after primeng21 migration
+      }, 600); //increased after primeng21 migration
     });
   }
 
