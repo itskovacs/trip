@@ -199,7 +199,6 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   isMembersDialogVisible = false;
   isAttachmentsDialogVisible = false;
   isChecklistDialogVisible = false;
-  isBetaDialogVisible = true;
   selectedItemProps = signal<string[]>(['place', 'comment', 'price']);
 
   tripSharedDetails$?: Observable<SharedTripDetails>;
