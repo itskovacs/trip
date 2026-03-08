@@ -4,10 +4,11 @@ import { ButtonModule } from 'primeng/button';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { TextareaModule } from 'primeng/textarea';
+import { LinkifyPipe } from '../../shared/pipes/linkify.pipe';
 
 @Component({
   selector: 'app-trip-notes-modal',
-  imports: [FloatLabelModule, TextareaModule, ButtonModule, ReactiveFormsModule],
+  imports: [FloatLabelModule, TextareaModule, ButtonModule, ReactiveFormsModule, LinkifyPipe],
   standalone: true,
   templateUrl: './trip-notes-modal.component.html',
   styleUrl: './trip-notes-modal.component.scss',
