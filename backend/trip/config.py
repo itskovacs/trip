@@ -1,9 +1,15 @@
+import re
 import secrets
 
-from pydantic_settings import BaseSettings
+from pydantic import field_validator
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    model_config = SettingsConfigDict(
+        env_file=["storage/config.yml", "storage/config.env"],
+    )
+
     FRONTEND_FOLDER: str = "frontend"
     SQLITE_FILE: str = "storage/trip.sqlite"
     ASSETS_FOLDER: str = "storage/assets"
@@ -30,8 +36,16 @@ class Settings(BaseSettings):
     DEFAULT_MAP_LAT: float = 48.107
     DEFAULT_MAP_LNG: float = -2.988
 
-    class Config:
-        env_file = "storage/config.yml"
+    @field_validator("OIDC_CLIENT_SECRET", mode="before")
+    @classmethod
+    def validate_oidc_secret_client(cls, value: str) -> str:
+        if not value:
+            return value
+        if re.search(r'[#$\\"]', value):
+            raise ValueError(
+                "Config file unsupported characters: OIDC_CLIENT_SECRET contains unsupported characters ('#', '$', '\\', '\"'). Wrap the value in single quotes (like OIDC_CLIENT_SECRET='your_secret_here')"
+            )
+        return value
 
 
 settings = Settings()
