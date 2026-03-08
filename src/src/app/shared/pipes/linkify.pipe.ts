@@ -5,7 +5,16 @@ import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 export class LinkifyPipe implements PipeTransform {
   constructor(private sanitizer: DomSanitizer) {}
 
-  private basicEscape(text: string): string {
+  private isSafeUrl(url: string): boolean {
+    try {
+      const parsed = new URL(url);
+      return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+    } catch {
+      return false;
+    }
+  }
+
+  private escape(text: string): string {
     return text.replace(
       /[&<>"']/g,
       (char) =>
@@ -21,15 +30,24 @@ export class LinkifyPipe implements PipeTransform {
 
   transform(text: string): SafeHtml {
     if (!text) return text;
+    const urlRegex = /((https?:\/\/|www\.)[^\s"'<>)]+?)([.,;:!?)'">]*?)(?=\s|$)/g;
+    const parts: string[] = [];
+    let lastIndex = 0;
 
-    const urlRegex = /((https?:\/\/|www\.)[^\s]+)/g;
-    const safeText = this.basicEscape(text);
+    for (const match of text.matchAll(urlRegex)) {
+      const [, url] = match;
+      const index = match.index!;
 
-    const html = safeText.replace(urlRegex, (url) => {
+      parts.push(this.escape(text.slice(lastIndex, index)));
       const href = url.startsWith('http') ? url : `https://${url}`;
-      return `<a href="${href}" target="_blank">${url}</a>`;
-    });
 
-    return this.sanitizer.bypassSecurityTrustHtml(html);
+      if (this.isSafeUrl(href))
+        parts.push(`<a href="${this.escape(href)}" target="_blank" rel="noopener noreferrer">${this.escape(url)}</a>`);
+      else parts.push(this.escape(url));
+      lastIndex = index + url.length;
+    }
+
+    parts.push(this.escape(text.slice(lastIndex)));
+    return this.sanitizer.bypassSecurityTrustHtml(parts.join(''));
   }
 }
