@@ -60,6 +60,7 @@ import { Settings } from '../../types/settings';
 import { DialogModule } from 'primeng/dialog';
 import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
 import { TooltipModule } from 'primeng/tooltip';
+import { ToggleButtonModule } from 'primeng/togglebutton';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { CheckboxChangeEvent, CheckboxModule } from 'primeng/checkbox';
 import { TripCreatePackingModalComponent } from '../../modals/trip-create-packing-modal/trip-create-packing-modal.component';
@@ -141,6 +142,7 @@ const HIGHLIGHT_COLORS = [
     TabsModule,
     PlaceBoxContentComponent,
     PlaceListItemComponent,
+    ToggleButtonModule,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './trip.component.html',
@@ -189,6 +191,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   isMultiSelectMode = signal<boolean>(false);
   selectedItemIds = signal<Set<number>>(new Set());
   selectedDay = signal<TripDay | null>(null);
+  isTextAndPlaceToggled = signal<boolean>(false);
 
   panelWidth = signal<number | null>(null);
   panelDeltaX = 0;
@@ -286,9 +289,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           );
         }
 
-        if (filteredItems.length === 0 && hasQuery) {
-          return null;
-        }
+        if (filteredItems.length === 0 && hasQuery) return null;
         filteredItems.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
 
         let prevLat: number | null = null;
@@ -421,6 +422,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     return bounds.length >= 2 || paths.length > 0 ? { paths, markers, gpxData, bounds } : null;
   });
   selectedItemPropsSet = computed(() => new Set(this.selectedItemProps()));
+  canToggleTextAndPlace = computed(() => this.selectedItemPropsSet().has('place'));
 
   menuTripExportItems: MenuItem[] = [
     {

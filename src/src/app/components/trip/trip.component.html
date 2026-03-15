@@ -219,11 +219,15 @@
             }
 
             @if (isFilteringMode()) {
-            <div class="z-30 mt-3 grid sm:grid-cols-2 gap-2" animate.enter="slide-y" animate.leave="a-slide-y">
+            <div class="z-30 mt-3 grid sm:grid-cols-3 gap-2" animate.enter="slide-y" animate.leave="a-slide-y">
               <p-multiselect display="chip" fluid [options]="availableItemProps" [(ngModel)]="selectedItemProps"
-                placeholder="Cols" class="text-sm" appendTo="body" />
+                placeholder="Cols" class="sm:col-span-2" appendTo="body" size="small" />
 
-              <div class="relative">
+              <p-togglebutton onLabel="Show Text + Place" offLabel="Show Place" size="small"
+                [ngModel]="isTextAndPlaceToggled()" (ngModelChange)="isTextAndPlaceToggled.set($event)"
+                [disabled]="!canToggleTextAndPlace()" [pt]="{ content: 'min-w-0', label: 'truncate' }" />
+
+              <div class="relative col-span-full">
                 <input pInputText [formControl]="plansSearchInput" placeholder="Search..." class="h-full" pSize="small"
                   fluid />
                 @if (plansSearchInput.value) {
@@ -285,10 +289,7 @@
                 <div class="flex items-center gap-3 p-3 min-w-0 border-primary-500 rounded-s" [class]="
                           (selectedItem()?.id === item.id ||
                             selectedPlaceItems()[selectedPlaceActiveTabIndex()]?.id === item.id) &&
-                          !isMultiSelectMode()
-                            ? 'border-l-4'
-                            : 'border-l-0'
-                        ">
+                          !isMultiSelectMode() ? 'border-l-4' : 'border-l-0'">
                   <div class="relative shrink-0 flex items-center">
                     @if (item.status) {
                     <span class="absolute -top-1 -right-1 w-3 h-3 rounded-full"
@@ -302,17 +303,36 @@
 
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 min-w-0">
+
                       @if (item.place && visibleProps.has('place')) {
-                      <div class="flex color-bg-opacity items-center gap-2 px-2.5 py-1 rounded-lg min-w-0 max-w-full"
+                      @if (isTextAndPlaceToggled()) {
+                      <div class="flex flex-row items-center justify-between gap-2 min-w-0 w-full">
+                        @if (item.text !== item.place.name) {
+                        <span class="text-sm font-medium text-primary-900 dark:text-white truncate min-w-0">
+                          {{ item.text }}
+                        </span>
+                        }
+                        <div class="flex color-bg-opacity items-center gap-2 px-2.5 py-1 min-w-0 rounded-lg"
+                          [style.--color-bg-opacity]="item.place.category.color">
+                          <img [src]="item.place.image || item.place.category.image"
+                            class="shrink-0 w-5 h-5 rounded-full object-cover" />
+                          <span class="text-sm font-medium truncate">
+                            {{ item.place.name }}
+                          </span>
+                        </div>
+                      </div>
+                      } @else {
+                      <div class="flex color-bg-opacity items-center gap-2 px-2.5 py-1 min-w-0 rounded-lg"
                         [style.--color-bg-opacity]="item.place.category.color">
                         <img [src]="item.place.image || item.place.category.image"
                           class="shrink-0 w-5 h-5 rounded-full object-cover" />
-                        <span class="pointer-events-none text-sm font-medium truncate">
+                        <span class="text-sm font-medium truncate">
                           {{ item.place.name }}
                         </span>
                       </div>
+                      }
                       } @else {
-                      <span class="pointer-events-none text-sm font-medium text-primary-900 dark:text-white truncate">
+                      <span class="text-sm font-medium text-primary-900 dark:text-white truncate">
                         {{ item.text }}
                       </span>
                       }
@@ -320,14 +340,8 @@
                       @if (item.attachments?.length) {
                       <i class="shrink-0 pi pi-paperclip text-xs text-primary-400"></i>
                       }
-                    </div>
 
-                    @if (item.comment && visibleProps.has('comment')) {
-                    <p
-                      class="pointer-events-none mt-1 text-xs text-primary-500 dark:text-primary-400 line-clamp-1 whitespace-pre-wrap">
-                      {{ item.comment }}
-                    </p>
-                    }
+                    </div>
                   </div>
 
                   <div class="flex items-center gap-2 max-w-1/4 min-w-0">
@@ -373,7 +387,7 @@
               <div class="flex flex-col items-center justify-center py-4">
                 <h3 class="text-lg font-semibold text-primary-900 dark:text-white mb-2">No plans yet</h3>
                 <p-button icon="pi pi-plus" text size="small" label="Add Item" [disabled]="trip()?.archived"
-                  (click)="addItem()" />
+                  (click)="addItem(group.day.id)" />
               </div>
               }
             </div>
