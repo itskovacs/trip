@@ -176,7 +176,7 @@ def patch_image(fp: str, size: int = 400) -> bool:
     return False
 
 
-def save_image_to_file(content: bytes, size: int = 600) -> str:
+def save_image_to_file(content: bytes, size: int = 600) -> tuple[str, int]:
     filepath = None
     try:
         with Image.open(BytesIO(content)) as im:
@@ -224,7 +224,9 @@ def save_image_to_file(content: bytes, size: int = 600) -> str:
     return ""
 
 
+def save_attachment(trip_id: int, file: UploadFile) -> str:
 async def save_attachment(trip_id: int, file: UploadFile) -> str:
+def save_attachment(trip_id: int, file: UploadFile) -> str:
     if file.content_type != "application/pdf":
         raise ValueError("Unsupported attachment format")
 

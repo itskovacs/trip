@@ -1,13 +1,21 @@
+import logging
 import re
 import secrets
+from functools import lru_cache
+from pathlib import Path
 
 from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+logger = logging.getLogger(__name__)
+
+LEGACY_CONFIG_FILE = Path("storage/config.yml")
+CONFIG_FILE = Path("storage/config.env")
+
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=["storage/config.yml", "storage/config.env"],
+        env_file=CONFIG_FILE,
     )
 
     FRONTEND_FOLDER: str = "frontend"
@@ -48,4 +56,71 @@ class Settings(BaseSettings):
         return value
 
 
-settings = Settings()
+# hot reload through cache
+@lru_cache
+def get_settings() -> Settings:
+    return Settings()
+
+
+def reload_settings() -> Settings:
+    get_settings.cache_clear()
+    return get_settings()
+
+
+def update_config(updates: dict) -> Settings:
+    if not updates:
+        return get_settings()
+
+    # preserve lines/comments
+    lines: list[str] = []
+    existing: dict[str, str] = {}
+
+    if CONFIG_FILE.exists():
+        for line in CONFIG_FILE.read_text().splitlines():
+            stripped = line.strip()
+            if stripped and not stripped.startswith("#") and "=" in stripped:
+                k, _, v = stripped.partition("=")
+                existing[k.strip()] = v.strip()
+            lines.append(line)
+
+    for key, value in updates.items():
+        str_value = str(value)
+        field = Settings.model_fields.get(key)
+        # not set default values in config file
+        default = str(field.default) if field is not None else None
+
+        if key in existing or str_value != default:
+            if key in existing:
+                lines = [
+                    f"{key}={str_value}"
+                    if (line.strip().startswith(f"{key}=") or line.strip().split("=")[0].strip() == key)
+                    else line
+                    for line in lines
+                ]
+            else:
+                lines.append(f"{key}={str_value}")
+
+    CONFIG_FILE.parent.mkdir(parents=True, exist_ok=True)
+    CONFIG_FILE.write_text("\n".join(lines) + "\n")
+
+    return reload_settings()
+
+
+def migrate_config_file():
+    if not LEGACY_CONFIG_FILE.exists():
+        return
+
+    from .utils.utils import backup_file
+    dst = backup_file(LEGACY_CONFIG_FILE)
+    logger.warn(f"[CONFIG] Legacy config file (config.yml) backed up to {dst}")
+
+    if CONFIG_FILE.exists():
+        LEGACY_CONFIG_FILE.unlink()
+        logger.warn("[CONFIG] Legacy config file (config.yml) deleted")
+        return
+
+    LEGACY_CONFIG_FILE.rename(CONFIG_FILE)
+    logger.warn("[CONFIG] Legacy config file (config.yml) renamed to config.env")
+
+
+migrate_config_file()
