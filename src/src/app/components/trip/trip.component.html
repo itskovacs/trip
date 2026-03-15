@@ -303,7 +303,6 @@
 
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 min-w-0">
-
                       @if (item.place && visibleProps.has('place')) {
                       @if (isTextAndPlaceToggled()) {
                       <div class="flex flex-row items-center justify-between gap-2 min-w-0 w-full">
@@ -340,8 +339,14 @@
                       @if (item.attachments?.length) {
                       <i class="shrink-0 pi pi-paperclip text-xs text-primary-400"></i>
                       }
-
                     </div>
+
+                    @if (item.comment && visibleProps.has('comment')) {
+                    <p
+                      class="pointer-events-none mt-1 text-xs text-primary-500 dark:text-primary-400 line-clamp-1 whitespace-pre-wrap">
+                      {{ item.comment }}
+                    </p>
+                    }
                   </div>
 
                   <div class="flex items-center gap-2 max-w-1/4 min-w-0">
