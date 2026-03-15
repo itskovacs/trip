@@ -1,4 +1,5 @@
 import asyncio
+import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
@@ -15,14 +16,17 @@ from ..utils.zip import parse_mymaps_kmz
 router = APIRouter(prefix="/api/completions", tags=["completions"])
 
 
-def _get_user(session: SessionDep, current_user: str):
+logger = logging.getLogger(__name__)
+
+
+def _get_user(session: SessionDep, current_user: str) -> User:
     db_user = session.get(User, current_user)
     if not db_user:
         raise HTTPException(status_code=404, detail="User not found")
     return db_user
 
 
-def _raise_missing_apikey(db_user, raise_msg="") -> bool:
+def _raise_missing_apikey(db_user, raise_msg=""):
     if not db_user.google_apikey:
         raise HTTPException(
             status_code=400, detail=raise_msg if raise_msg else "Google Maps API key not configured"
@@ -58,7 +62,14 @@ async def _process_batch(
         return_exceptions=True,
     )
 
-    return [r for r in results if isinstance(r, ProviderPlaceResult)]
+    valid_results = []
+    for r in results:
+        if isinstance(r, ProviderPlaceResult):
+            valid_results.append(r)
+        elif isinstance(r, Exception):
+            logger.error(f"[PROCESS BATCH]: A item failed, {r}")
+
+    return valid_results
 
 
 @router.post("/bulk")
@@ -176,8 +187,7 @@ async def google_mymaps_kmz_import(
     if not file.filename or not file.filename.lower().endswith(".kmz"):
         raise HTTPException(status_code=400, detail="Invalid KMZ file")
 
-    places = await parse_mymaps_kmz(file)
-
+    places = await asyncio.to_thread(parse_mymaps_kmz, file)
     async def _process_kml_place(place: dict, provider: BaseMapProvider) -> ProviderPlaceResult | None:
         try:
             if url := place.get("url"):
