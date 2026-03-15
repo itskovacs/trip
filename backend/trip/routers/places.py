@@ -4,12 +4,12 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
-from ..config import settings
+from ..config import get_settings
 from ..deps import SessionDep, get_current_username
 from ..models.models import Image, Place, PlaceCreate, PlaceRead, PlaceUpdate
 from ..security import verify_exists_and_owns
 from ..utils.utils import (b64img_decode, download_file, patch_image,
-                           save_image_to_file)
+                           remove_image, save_image_to_file)
 
 router = APIRouter(prefix="/api/places", tags=["places"])
 
@@ -46,30 +46,31 @@ async def create_place(
         user=current_user,
     )
 
+    filename = None
     if place.image:
         if place.image[:4] == "http":
-            fp = await download_file(place.image)
+            fp, file_size = await download_file(place.image)
             if fp:
                 patch_image(fp)
-                image = Image(filename=fp.split("/")[-1], user=current_user)
-                session.add(image)
-                session.flush()
-                session.refresh(image)
-                new_place.image_id = image.id
+                image = Image(filename=fp.split("/")[-1], file_size=file_size, user=current_user)
         else:
             image_bytes = b64img_decode(place.image)
-            filename = save_image_to_file(image_bytes, settings.PLACE_IMAGE_SIZE)
+            filename, file_size = save_image_to_file(image_bytes, get_settings().PLACE_IMAGE_SIZE)
             if not filename:
                 raise HTTPException(status_code=400, detail="Bad request")
-            image = Image(filename=filename, user=current_user)
-            session.add(image)
-            session.commit()
-            session.refresh(image)
-            new_place.image_id = image.id
+            image = Image(filename=filename, file_size=file_size, user=current_user)
+        session.add(image)
+        session.flush()
+        new_place.image_id = image.id
 
-    session.add(new_place)
-    session.commit()
-    session.refresh(new_place)
+    try:
+        session.add(new_place)
+        session.commit()
+    except Exception:
+        session.rollback()
+        if filename:
+            remove_image(filename)
+        raise HTTPException(status_code=500, detail="Failed to create")
     return PlaceRead.serialize(new_place)
 
 
@@ -85,26 +86,26 @@ async def update_place(
 
     place_data = place.model_dump(exclude_unset=True)
     image = place_data.pop("image", None)
+    filename = None
     if image:
         image_updated = False
         if image[:4] == "http":
-            fp = await download_file(place.image)
+            fp, file_size = await download_file(place.image)
             if fp:
                 patch_image(fp)
-                image = Image(filename=fp.split("/")[-1], user=current_user)
+                image = Image(filename=fp.split("/")[-1], file_size=file_size, user=current_user)
                 session.add(image)
                 session.flush()
-                session.refresh(image)
                 image_updated = True
         else:
             image_bytes = b64img_decode(place.image)
-            filename = save_image_to_file(image_bytes, settings.PLACE_IMAGE_SIZE)
+            filename, file_size = save_image_to_file(image_bytes, get_settings().PLACE_IMAGE_SIZE)
             if not filename:
                 raise HTTPException(status_code=400, detail="Bad request")
-            image = Image(filename=filename, user=current_user)
+            image = Image(filename=filename, file_size=file_size, user=current_user)
             session.add(image)
-            session.commit()
-            session.refresh(image)
+            session.flush()
+            session.refresh(db_place)
             image_updated = True
 
         if image_updated:
@@ -121,9 +122,14 @@ async def update_place(
     for key, value in place_data.items():
         setattr(db_place, key, value)
 
-    session.add(db_place)
-    session.commit()
-    session.refresh(db_place)
+    try:
+        session.add(db_place)
+        session.commit()
+    except Exception:
+        session.rollback()
+        if filename:
+            remove_image(filename)
+        raise HTTPException(status_code=500, detail="Failed to update")
     return PlaceRead.serialize(db_place)
 
 
