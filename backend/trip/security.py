@@ -8,7 +8,7 @@ from authlib.integrations.httpx_client import OAuth2Client
 from fastapi import HTTPException
 from sqlmodel import Session, select
 
-from .config import settings
+from .config import get_settings
 from .models.models import Token, User
 from .utils.utils import httpx_get
 
@@ -42,16 +42,16 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def create_access_token(data: dict) -> str:
     to_encode = data.copy()
-    expire = datetime.now(UTC) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(UTC) + timedelta(minutes=get_settings().ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire})
-    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    return jwt.encode(to_encode, get_settings().SECRET_KEY, algorithm=get_settings().ALGORITHM)
 
 
 def create_refresh_token(data: dict) -> str:
     to_encode = data.copy()
-    expire = datetime.now(UTC) + timedelta(minutes=settings.REFRESH_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(UTC) + timedelta(minutes=get_settings().REFRESH_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"exp": expire.timestamp()})
-    return jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    return jwt.encode(to_encode, get_settings().SECRET_KEY, algorithm=get_settings().ALGORITHM)
 
 
 def create_tokens(data: dict) -> Token:
@@ -80,10 +80,10 @@ def api_token_to_user(session: Session, api_token: str) -> User | None:
 
 def get_oidc_client():
     return OAuth2Client(
-        client_id=settings.OIDC_CLIENT_ID,
-        client_secret=settings.OIDC_CLIENT_SECRET,
+        client_id=get_settings().OIDC_CLIENT_ID,
+        client_secret=get_settings().OIDC_CLIENT_SECRET,
         scope="openid profile",
-        redirect_uri=settings.OIDC_REDIRECT_URI,
+        redirect_uri=get_settings().OIDC_REDIRECT_URI,
     )
 
 
@@ -92,7 +92,7 @@ async def get_oidc_config():
     if OIDC_CONFIG:
         return OIDC_CONFIG
 
-    discovery_url = settings.OIDC_DISCOVERY_URL
+    discovery_url = get_settings().OIDC_DISCOVERY_URL
     if not discovery_url:
         raise HTTPException(status_code=500, detail="OIDC_DISCOVERY_URL not configured")
 
