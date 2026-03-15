@@ -1,15 +1,16 @@
-import io
 import json
+import logging
 from pathlib import Path
 from typing import Annotated
 from zipfile import ZIP_DEFLATED, ZipFile
 
 from fastapi import Depends, HTTPException, UploadFile
 from sqlalchemy.orm import selectinload
-from sqlmodel import select
+from sqlmodel import Session, select
 
 from .. import __version__ as trip_version
-from ..config import settings
+from ..config import get_settings
+from ..db.core import get_engine
 from ..deps import SessionDep, get_current_username
 from ..models.models import (Backup, BackupStatus, Category, CategoryRead,
                              Image, Place, PlaceRead, Trip, TripAttachment,
@@ -22,134 +23,142 @@ from .utils import (assets_folder_path, attachments_trip_folder_path,
                     b64img_decode, remove_image, save_image_to_file)
 from .xml import parse_mymaps_kml
 
+logger = logging.getLogger(__name__)
 
-def process_backup_export(session: SessionDep, backup_id: int):
-    db_backup = session.get(Backup, backup_id)
-    if not db_backup:
-        return
 
-    try:
-        db_backup.status = BackupStatus.PROCESSING
-        session.commit()
+def process_backup_export(backup_id: int):
+    engine = get_engine()
+    with Session(engine) as session:
+        db_backup = session.get(Backup, backup_id)
+        if not db_backup:
+            return
 
-        trips_query = (
-            select(Trip)
-            .where(Trip.user == db_backup.user)
-            .options(
-                selectinload(Trip.days)
-                .selectinload(TripDay.items)
+        try:
+            db_backup.status = BackupStatus.PROCESSING
+            session.commit()
+
+            trips_query = (
+                select(Trip)
+                .where(Trip.user == db_backup.user)
                 .options(
-                    selectinload(TripItem.place).selectinload(Place.category).selectinload(Category.image),
-                    selectinload(TripItem.place).selectinload(Place.image),
-                    selectinload(TripItem.image),
-                ),
-                selectinload(Trip.places).options(
-                    selectinload(Place.category).selectinload(Category.image),
-                    selectinload(Place.image),
-                ),
-                selectinload(Trip.image),
-                selectinload(Trip.memberships),
-                selectinload(Trip.shares),
-                selectinload(Trip.packing_items),
-                selectinload(Trip.checklist_items),
-                selectinload(Trip.attachments),
+                    selectinload(Trip.days)
+                    .selectinload(TripDay.items)
+                    .options(
+                        selectinload(TripItem.place)
+                        .selectinload(Place.category)
+                        .selectinload(Category.image),
+                        selectinload(TripItem.place).selectinload(Place.image),
+                        selectinload(TripItem.image),
+                    ),
+                    selectinload(Trip.places).options(
+                        selectinload(Place.category).selectinload(Category.image),
+                        selectinload(Place.image),
+                    ),
+                    selectinload(Trip.image),
+                    selectinload(Trip.memberships),
+                    selectinload(Trip.shares),
+                    selectinload(Trip.packing_items),
+                    selectinload(Trip.checklist_items),
+                    selectinload(Trip.attachments),
+                )
             )
-        )
 
-        user_settings = UserRead.serialize(session.get(User, db_backup.user)).model_dump(mode="json")
-        categories = session.exec(select(Category).where(Category.user == db_backup.user)).all()
-        places = session.exec(select(Place).where(Place.user == db_backup.user)).all()
-        trips = session.exec(trips_query).all()
-        images = session.exec(select(Image).where(Image.user == db_backup.user)).all()
+            user_settings = UserRead.serialize(session.get(User, db_backup.user)).model_dump(mode="json")
+            categories = session.exec(select(Category).where(Category.user == db_backup.user)).all()
+            places = session.exec(select(Place).where(Place.user == db_backup.user)).all()
+            trips = session.exec(trips_query).all()
+            images = session.exec(select(Image).where(Image.user == db_backup.user)).all()
 
-        backup_datetime = dt_utc()
-        iso_date = backup_datetime.strftime("%Y-%m-%dT%H-%M-%S")
-        filename = f"TRIP_{db_backup.user}_{iso_date}_backup.zip"
-        zip_fp = Path(settings.BACKUPS_FOLDER) / filename
-        Path(settings.BACKUPS_FOLDER).mkdir(parents=True, exist_ok=True)
+            backup_datetime = dt_utc()
+            iso_date = backup_datetime.strftime("%Y-%m-%dT%H-%M-%S")
+            filename = f"TRIP_{db_backup.user}_{iso_date}_backup.zip"
+            zip_fp = Path(get_settings().BACKUPS_FOLDER) / filename
+            Path(get_settings().BACKUPS_FOLDER).mkdir(parents=True, exist_ok=True)
 
-        with ZipFile(zip_fp, "w", ZIP_DEFLATED) as zipf:
-            data = {
-                "_": {
-                    "version": trip_version,
-                    "at": backup_datetime.isoformat(),
-                    "user": db_backup.user,
-                },
-                "settings": user_settings,
-                "categories": [CategoryRead.serialize(c).model_dump(mode="json") for c in categories],
-                "places": [
-                    PlaceRead.serialize(p, exclude_gpx=False).model_dump(mode="json") for p in places
-                ],
-                "trips": [
-                    {
-                        **TripRead.serialize(t).model_dump(mode="json"),
-                        "packing_items": [
-                            TripPackingListItemRead.serialize(item).model_dump(mode="json")
-                            for item in t.packing_items
-                        ],
-                        "checklist_items": [
-                            TripChecklistItemRead.serialize(item).model_dump(mode="json")
-                            for item in t.checklist_items
-                        ],
-                    }
-                    for t in trips
-                ],
-            }
-            zipf.writestr("data.json", json.dumps(data, ensure_ascii=False))
+            with ZipFile(zip_fp, "w", ZIP_DEFLATED) as zipf:
+                data = {
+                    "_": {
+                        "version": trip_version,
+                        "at": backup_datetime.isoformat(),
+                        "user": db_backup.user,
+                    },
+                    "settings": user_settings,
+                    "categories": [CategoryRead.serialize(c).model_dump(mode="json") for c in categories],
+                    "places": [
+                        PlaceRead.serialize(p, exclude_gpx=False).model_dump(mode="json") for p in places
+                    ],
+                    "trips": [
+                        {
+                            **TripRead.serialize(t).model_dump(mode="json"),
+                            "packing_items": [
+                                TripPackingListItemRead.serialize(item).model_dump(mode="json")
+                                for item in t.packing_items
+                            ],
+                            "checklist_items": [
+                                TripChecklistItemRead.serialize(item).model_dump(mode="json")
+                                for item in t.checklist_items
+                            ],
+                        }
+                        for t in trips
+                    ],
+                }
+                zipf.writestr("data.json", json.dumps(data, ensure_ascii=False))
 
-            for db_image in images:
-                try:
-                    filepath = assets_folder_path() / db_image.filename
-                    if filepath.exists() and filepath.is_file():
-                        zipf.write(filepath, f"images/{db_image.filename}")
-                except Exception:
-                    continue
-
-            for trip in trips:
-                if not trip.attachments:
-                    continue
-
-                for attachment in trip.attachments:
+                for db_image in images:
                     try:
-                        filepath = attachments_trip_folder_path(trip.id) / attachment.stored_filename
+                        filepath = assets_folder_path() / db_image.filename
                         if filepath.exists() and filepath.is_file():
-                            zipf.write(filepath, f"attachments/{trip.id}/{attachment.stored_filename}")
+                            zipf.write(filepath, f"images/{db_image.filename}")
                     except Exception:
                         continue
 
-        db_backup.file_size = zip_fp.stat().st_size
-        db_backup.status = BackupStatus.COMPLETED
-        db_backup.completed_at = dt_utc()
-        db_backup.filename = filename
-        session.commit()
-    except Exception as exc:
-        db_backup.status = BackupStatus.FAILED
-        db_backup.error_message = str(exc)[:200]
-        session.commit()
+                for trip in trips:
+                    if not trip.attachments:
+                        continue
 
-        try:
-            if filepath.exists():
-                filepath.unlink()
-        except Exception:
-            pass
+                    for attachment in trip.attachments:
+                        try:
+                            filepath = attachments_trip_folder_path(trip.id) / attachment.stored_filename
+                            if filepath.exists() and filepath.is_file():
+                                zipf.write(filepath, f"attachments/{trip.id}/{attachment.stored_filename}")
+                        except Exception:
+                            continue
+
+            db_backup.file_size = zip_fp.stat().st_size
+            db_backup.status = BackupStatus.COMPLETED
+            db_backup.completed_at = dt_utc()
+            db_backup.filename = filename
+            session.commit()
+        except Exception as exc:
+            logger.error(f"[BACKUP EXPORT]: {exc}")
+            db_backup.status = BackupStatus.FAILED
+            db_backup.error_message = str(exc)[:200]
+            session.commit()
+
+            try:
+                if filepath.exists():
+                    filepath.unlink()
+            except Exception:
+                pass
 
 
-async def process_backup_import(
+# use def instead of async def https://fastapi.tiangolo.com/async/#path-operation-functions
+def process_backup_import(
     session: SessionDep, current_user: Annotated[str, Depends(get_current_username)], file: UploadFile
 ):
     # basic check if zip https://en.wikipedia.org/wiki/ZIP_(file_format)#Local_file_header
-    file_header = await file.read(4)
+    file_header = file.file.read(4)
     if not file_header == b"PK\x03\x04":
         raise HTTPException(status_code=415, detail="File must be a ZIP archive")
 
-    await file.seek(0)
-    try:
-        zip_content = await file.read()
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid file")
+    file.file.seek(0)
+    with ZipFile(file.file, "r") as zipf:
+        zip_filenames = []
+        for name in zipf.namelist():
+            if ".." in name or name.startswith("/"):
+                raise HTTPException(status_code=400, detail="Bad Request :)")
+            zip_filenames.append(name)
 
-    with ZipFile(io.BytesIO(zip_content), "r") as zipf:
-        zip_filenames = zipf.namelist()
         if "data.json" not in zip_filenames:
             raise HTTPException(status_code=400, detail="Invalid file")
 
@@ -193,9 +202,9 @@ async def process_backup_import(
                         if category_filename and category_filename in image_files:
                             try:
                                 image_bytes = zipf.read(image_files[category_filename])
-                                filename = save_image_to_file(image_bytes, settings.PLACE_IMAGE_SIZE)
+                                filename, file_size = save_image_to_file(image_bytes, get_settings().PLACE_IMAGE_SIZE)
                                 if filename:
-                                    image = Image(filename=filename, user=current_user)
+                                    image = Image(filename=filename, file_size=file_size, user=current_user)
                                     session.add(image)
                                     session.flush()
                                     session.refresh(image)
@@ -226,9 +235,9 @@ async def process_backup_import(
                     if category_filename and category_filename in image_files:
                         try:
                             image_bytes = zipf.read(image_files[category_filename])
-                            filename = save_image_to_file(image_bytes, settings.PLACE_IMAGE_SIZE)
+                            filename, file_size = save_image_to_file(image_bytes, get_settings().PLACE_IMAGE_SIZE)
                             if filename:
-                                image = Image(filename=filename, user=current_user)
+                                image = Image(filename=filename, file_size=file_size, user=current_user)
                                 session.add(image)
                                 session.flush()
                                 session.refresh(image)
@@ -267,9 +276,9 @@ async def process_backup_import(
                     if place_filename and place_filename in image_files:
                         try:
                             image_bytes = zipf.read(image_files[place_filename])
-                            filename = save_image_to_file(image_bytes, settings.PLACE_IMAGE_SIZE)
+                            filename, file_size = save_image_to_file(image_bytes, get_settings().PLACE_IMAGE_SIZE)
                             if filename:
-                                image = Image(filename=filename, user=current_user)
+                                image = Image(filename=filename, file_size=file_size, user=current_user)
                                 session.add(image)
                                 session.flush()
                                 session.refresh(image)
@@ -339,9 +348,9 @@ async def process_backup_import(
                     if trip_filename and trip_filename in image_files:
                         try:
                             image_bytes = zipf.read(image_files[trip_filename])
-                            filename = save_image_to_file(image_bytes, settings.TRIP_IMAGE_SIZE)
+                            filename, file_size = save_image_to_file(image_bytes, get_settings().TRIP_IMAGE_SIZE)
                             if filename:
-                                image = Image(filename=filename, user=current_user)
+                                image = Image(filename=filename, file_size=file_size, user=current_user)
                                 session.add(image)
                                 session.flush()
                                 session.refresh(image)
@@ -427,9 +436,11 @@ async def process_backup_import(
                             if place_filename and place_filename in image_files:
                                 try:
                                     image_bytes = zipf.read(image_files[place_filename])
-                                    filename = save_image_to_file(image_bytes, settings.PLACE_IMAGE_SIZE)
+                                    filename, file_size = save_image_to_file(
+                                        image_bytes, get_settings().PLACE_IMAGE_SIZE
+                                    )
                                     if filename:
-                                        image = Image(filename=filename, user=current_user)
+                                        image = Image(filename=filename, file_size=file_size, user=current_user)
                                         session.add(image)
                                         session.flush()
                                         session.refresh(image)
@@ -495,7 +506,8 @@ async def process_backup_import(
                 "settings": UserRead.serialize(session.get(User, current_user)),
             }
 
-        except Exception:
+        except Exception as exc:
+            logger.error(f"[BACKUP IMPORT]: {exc}")
             session.rollback()
             for filename in created_image_filenames:
                 remove_image(filename)
@@ -503,7 +515,7 @@ async def process_backup_import(
                 try:
                     folder = attachments_trip_folder_path(trip_id)
                     if not folder.exists():
-                        return
+                        continue
                     for file in folder.iterdir():
                         file.unlink()
                     folder.rmdir()
@@ -512,13 +524,13 @@ async def process_backup_import(
             raise HTTPException(status_code=400, detail=error_details)
 
 
-async def process_legacy_import(
+def process_legacy_import(
     session: SessionDep, current_user: Annotated[str, Depends(get_current_username)], file: UploadFile
 ):
     # support previous improt format, json file
     # no packing list, no checklist, no attachments
     try:
-        content = await file.read()
+        content = file.file.read()
         data = json.loads(content)
     except Exception:
         raise HTTPException(status_code=400, detail="Invalid file")
@@ -543,11 +555,11 @@ async def process_legacy_import(
                 b64_image = data.get("images", {}).get(str(category.get("image_id")))
                 if b64_image:
                     image_bytes = b64img_decode(b64_image)
-                    filename = save_image_to_file(image_bytes, settings.PLACE_IMAGE_SIZE)
+                    filename, file_size = save_image_to_file(image_bytes, get_settings().PLACE_IMAGE_SIZE)
                     if not filename:
                         raise HTTPException(status_code=500, detail="Error saving image")
 
-                    image = Image(filename=filename, user=current_user)
+                    image = Image(filename=filename, file_size=file_size, user=current_user)
                     session.add(image)
                     session.flush()
                     session.refresh(image)
@@ -580,9 +592,9 @@ async def process_legacy_import(
                 continue
 
             image_bytes = b64img_decode(b64_image)
-            filename = save_image_to_file(image_bytes, settings.PLACE_IMAGE_SIZE)
+            filename, file_size = save_image_to_file(image_bytes, get_settings().PLACE_IMAGE_SIZE)
             if filename:
-                image = Image(filename=filename, user=current_user)
+                image = Image(filename=filename, file_size=file_size, user=current_user)
                 session.add(image)
                 session.flush()
                 session.refresh(image)
@@ -617,9 +629,9 @@ async def process_legacy_import(
             b64_image = data.get("images", {}).get(str(place.get("image_id")))
             if b64_image:
                 image_bytes = b64img_decode(b64_image)
-                filename = save_image_to_file(image_bytes, settings.PLACE_IMAGE_SIZE)
+                filename, file_size = save_image_to_file(image_bytes, get_settings().PLACE_IMAGE_SIZE)
                 if filename:
-                    image = Image(filename=filename, user=current_user)
+                    image = Image(filename=filename, file_size=file_size, user=current_user)
                     session.add(image)
                     session.flush()
                     session.refresh(image)
@@ -670,9 +682,9 @@ async def process_legacy_import(
             b64_image = data.get("images", {}).get(str(trip.get("image_id")))
             if b64_image:
                 image_bytes = b64img_decode(b64_image)
-                filename = save_image_to_file(image_bytes, settings.TRIP_IMAGE_SIZE)
+                filename, file_size = save_image_to_file(image_bytes, get_settings().TRIP_IMAGE_SIZE)
                 if filename:
-                    image = Image(filename=filename, user=current_user)
+                    image = Image(filename=filename, file_size=file_size, user=current_user)
                     session.add(image)
                     session.flush()
                     session.refresh(image)
@@ -717,9 +729,9 @@ async def process_legacy_import(
                     b64_image = data.get("images", {}).get(str(item.get("image_id")))
                     if b64_image:
                         image_bytes = b64img_decode(b64_image)
-                        filename = save_image_to_file(image_bytes, settings.TRIP_IMAGE_SIZE)
+                        filename, file_size = save_image_to_file(image_bytes, get_settings().TRIP_IMAGE_SIZE)
                         if filename:
-                            image = Image(filename=filename, user=current_user)
+                            image = Image(filename=filename, file_size=file_size, user=current_user)
                             session.add(image)
                             session.flush()
                             session.refresh(image)
@@ -732,7 +744,6 @@ async def process_legacy_import(
         session.add_all(items_to_add)
 
     session.commit()
-
     return {
         "places": [PlaceRead.serialize(p) for p in places],
         "categories": [
@@ -745,20 +756,15 @@ async def process_legacy_import(
     }
 
 
-async def parse_mymaps_kmz(file: UploadFile) -> list[dict]:
-    file_header = await file.read(4)
+def parse_mymaps_kmz(file: UploadFile) -> list[dict]:
+    file_header = file.file.read(4)
     if not file_header == b"PK\x03\x04":
         raise HTTPException(status_code=415, detail="Invalid KMZ file")
 
-    await file.seek(0)
-    try:
-        kmz_content = await file.read()
-    except Exception:
-        raise HTTPException(status_code=400, detail="Invalid KMZ file")
-
+    file.file.seek(0)
     places = []
     try:
-        with ZipFile(io.BytesIO(kmz_content), "r") as kmz:
+        with ZipFile(file.file, "r") as kmz:
             kml_files = [name for name in kmz.namelist() if name.endswith(".kml")]
             if not kml_files:
                 raise ValueError("Invalid KMZ file: missing KML file")
@@ -766,7 +772,7 @@ async def parse_mymaps_kmz(file: UploadFile) -> list[dict]:
                 with kmz.open(kml_filename, "r") as kml_file:
                     kml_content = kml_file.read().decode("utf-8")
                     places.extend(parse_mymaps_kml(kml_content))
-    except Exception:
+    except Exception as exc:
+        logger.error(f"[KMZ IMPORT]: {exc}")
         raise HTTPException(status_code=400, detail="Failed to parse KMZ file")
-
     return places
