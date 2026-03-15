@@ -2,14 +2,14 @@ from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import selectinload
-from sqlmodel import func, select
+from sqlmodel import select
 
-from ..config import settings
+from ..config import get_settings
 from ..deps import SessionDep, get_current_username
 from ..models.models import (Category, CategoryCreate, CategoryRead,
                              CategoryUpdate, Image, Place)
 from ..security import verify_exists_and_owns
-from ..utils.utils import b64img_decode, save_image_to_file
+from ..utils.utils import b64img_decode, remove_image, save_image_to_file
 
 router = APIRouter(prefix="/api/categories", tags=["categories"])
 
@@ -32,21 +32,27 @@ def post_category(
 ) -> CategoryRead:
     new_category = Category(name=category.name, color=category.color, user=current_user)
 
+    filename = None
     if category.image:
         image_bytes = b64img_decode(category.image)
-        filename = save_image_to_file(image_bytes, settings.PLACE_IMAGE_SIZE)
+        filename, file_size = save_image_to_file(image_bytes, get_settings().PLACE_IMAGE_SIZE)
         if not filename:
             raise HTTPException(status_code=400, detail="Bad request")
 
-        image = Image(filename=filename, user=current_user)
+        image = Image(filename=filename, file_size=file_size, user=current_user)
         session.add(image)
-        session.commit()
+        session.flush()
         session.refresh(image)
         new_category.image_id = image.id
 
-    session.add(new_category)
-    session.commit()
-    session.refresh(new_category)
+    try:
+        session.add(new_category)
+        session.commit()
+    except Exception:
+        session.rollback()
+        if filename:
+            remove_image(filename)
+        raise HTTPException(status_code=500, detail="Failed to create")
     return CategoryRead.serialize(new_category)
 
 
@@ -62,38 +68,34 @@ def update_category(
 
     category_data = category.model_dump(exclude_unset=True)
     category_image = category_data.pop("image", None)
+    filename = None
     if category_image:
-        try:
-            image_bytes = b64img_decode(category_image)
-        except Exception:
-            raise HTTPException(status_code=400, detail="Bad request")
-
-        filename = save_image_to_file(image_bytes, settings.PLACE_IMAGE_SIZE)
+        image_bytes = b64img_decode(category_image)
+        filename, file_size = save_image_to_file(image_bytes, get_settings().PLACE_IMAGE_SIZE)
         if not filename:
             raise HTTPException(status_code=400, detail="Bad request")
 
-        image = Image(filename=filename, user=current_user)
+        if db_category.image:
+            session.delete(db_category.image)
+            session.flush()
+
+        image = Image(filename=filename, file_size=file_size, user=current_user)
         session.add(image)
-        session.commit()
-        session.refresh(image)
-
-        if db_category.image_id:
-            old_image = session.get(Image, db_category.image_id)
-            try:
-                session.delete(old_image)
-                db_category.image_id = None
-                session.refresh(db_category)
-            except Exception:
-                raise HTTPException(status_code=400, detail="Bad request")
-
+        session.flush()
+        session.refresh(db_category)
         db_category.image_id = image.id
 
     for key, value in category_data.items():
         setattr(db_category, key, value)
 
-    session.add(db_category)
-    session.commit()
-    session.refresh(db_category)
+    try:
+        session.add(db_category)
+        session.commit()
+    except Exception:
+        session.rollback()
+        if filename:
+            remove_image(filename)
+        raise HTTPException(status_code=500, detail="Failed to update")
     return CategoryRead.serialize(db_category)
 
 
@@ -103,15 +105,15 @@ def delete_category(
     category_id: int,
     current_user: Annotated[str, Depends(get_current_username)],
 ) -> dict:
-    db_category = session.get(Category, category_id)
-    verify_exists_and_owns(current_user, db_category)
+    db_category = session.exec(
+        select(Category)
+        .options(selectinload(Category.image), selectinload(Category.places).selectinload(Place.image))
+        .where(Category.id == category_id)
+    ).first()
 
-    places_count = session.exec(
-        select(func.count(Place.id)).where(Place.category_id == category_id, Place.user == current_user)
-    ).one()
-
-    if places_count > 0:
-        raise HTTPException(status_code=409, detail="The resource is not orphan")
+    for place in db_category.places:
+        if place.image:
+            session.delete(place.image)
 
     if db_category.image:
         try:
