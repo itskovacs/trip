@@ -471,15 +471,7 @@ def update_tripitem(
             image = Image(filename=filename, file_size=file_size, user=current_user)
             session.add(image)
             session.flush()
-                    session.refresh(db_item)
-                    session.refresh(db_item)
-                except Exception:
-                    raise HTTPException(status_code=400, detail="Bad request")
-
             session.refresh(db_item)
-                except Exception:
-                    raise HTTPException(status_code=400, detail="Bad request")
-
             db_item.image_id = image.id
 
         else:  # image=none: remove if previous
