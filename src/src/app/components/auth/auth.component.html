@@ -3,7 +3,7 @@
     class="relative bg-white dark:bg-primary-900 w-full md:max-w-md lg:max-w-full md:mx-auto md:w-1/2 xl:w-1/3 h-screen px-6 lg:px-16 xl:px-12 flex items-center justify-center">
     <div class="max-w-xl w-full mx-auto">
       <div class="max-w-32 mx-auto">
-        <img src="favicon.png" />
+        <img src="favicon.png" class="drop-shadow-sm" />
       </div>
 
       <div class="block lg:hidden w-full">
@@ -15,17 +15,29 @@
         </div>
       </div>
 
-      <div class="text-xl md:text-2xl font-bold leading-tight mt-10">
-        {{ isRegistering ? 'Register' : 'Sign in' }}
+      @if (magicToken()) {
+      <div
+        class="mt-6 mb-4 flex items-start gap-3 px-4 py-3.5 rounded bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50">
+        <i class="pi pi-link text-green-500 text-xs shrink-0"></i>
+        <span class="text-xs text-green-700 dark:text-green-300">You have been invited to register</span>
       </div>
+      } @else {
+      <h1 class="text-2xl font-bold text-primary-900 dark:text-white tracking-tight">
+        {{ isRegistering() ? 'Create account' : 'Sign in' }}
+      </h1>
+      <p class="mt-1 mb-7 text-sm text-primary-400 dark:text-primary-500">
+        {{ isRegistering() ? 'Choose a username and password' : 'Enter your credentials to continue' }}
+      </p>
+      }
 
-      @if (error) {
+
+      @if (error()) {
       <div class="mt-4">
-        <p-message severity="error" variant="outlined" [life]="3000">{{ error }}</p-message>
+        <p-message severity="error" variant="outlined" [life]="3000">{{ error() }}</p-message>
       </div>
       }
 
-      @if (pendingOTP) {
+      @if (pendingOTP()) {
       <div pFocusTrap>
         <p class="mt-8 text-center font-light text-primary-500">Enter your TOTP code</p>
 
@@ -36,7 +48,7 @@
       </div>
       } @else {
       @defer {
-      @if (authParams?.oidc) {
+      @if (authParams()?.oidc) {
       <div class="mt-8 text-center">
         <p-button variant="outlined" severity="primary" size="large" icon="pi pi-key" label="Sign in"
           (click)="authenticate()" />
@@ -62,7 +74,7 @@
         }
 
         <div class="mt-4 text-right">
-          @if (isRegistering) {
+          @if (isRegistering()) {
           <p-button [disabled]="!authForm.valid" (click)="register()"> Register </p-button>
           } @else {
           <p-button [disabled]="!authForm.valid" (click)="authenticate()"> Sign in </p-button>
@@ -70,22 +82,24 @@
         </div>
       </div>
 
-      @if (authParams?.register_enabled) {
+      @if (authParams()?.register_enabled) {
       <hr class="my-6 border-primary-300 w-full" />
-      @if (isRegistering) {
-      <p class="mt-8">
+      @if (isRegistering()) {
+      <p class="mt-4 select-none">
         Have an account?
-        <a (click)="isRegistering = false"
+        <a (click)="isRegistering.set(false); magicToken.set(null)"
           class="text-blue-500 hover:text-blue-700 font-semibold cursor-pointer">Login</a>
       </p>
       } @else {
-      <p class="mt-8">
+      <p class="mt-4 select-none">
         First time?
-        <a (click)="isRegistering = true" class="text-blue-500 hover:text-blue-700 font-semibold cursor-pointer">Create
+        <a (click)="isRegistering.set(true)"
+          class="text-blue-500 hover:text-blue-700 font-semibold cursor-pointer">Create
           an account</a>
       </p>
       }
       }
+
       }
       } @placeholder (minimum 0.4s) {
       <div class="mt-4">
@@ -107,14 +121,13 @@
       <span class="font-light text-primary-500 text-xs">Made with ❤️ in BZH</span>
     </div>
   </div>
-  <div class="hidden lg:block w-full md:w-1/2 xl:w-2/3 h-full cover-auth">
-    <div class="h-full flex items-center">
-      <div class="ml-20 mt-12">
-        <div class="text-7xl font-bold leading-none text-primary-100">Welcome to TRIP</div>
-        <div class="mt-6 text-lg tracking-tight leading-6 text-primary-400">
-          Tourism and Recreational Interest Points.
-        </div>
-      </div>
+
+  <div class="hidden lg:block flex-1 h-full cover-auth relative overflow-hidden">
+    <div class="absolute inset-0 bg-linear-to-t from-black/50 via-black/10 to-transparent"></div>
+    <div class="absolute bottom-12 xl:bottom-16 left-12 xl:left-16 right-12">
+      <span class="text-xs font-bold tracking-[0.25em] uppercase text-white/35 mb-4">MAP TRACKER &middot; TRIPS
+        PLANNER</span>
+      <div class="text-4xl lg:text-5xl font-bold leading-tight text-white/85">Welcome to TRIP</div>
     </div>
   </div>
 </section>
