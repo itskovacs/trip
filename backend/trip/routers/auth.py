@@ -1,14 +1,16 @@
+import logging
 from typing import Annotated
 
 import jwt
 from fastapi import APIRouter, Body, Cookie, Depends, HTTPException
 from fastapi.responses import JSONResponse
+from sqlmodel import select
 
-from ..config import settings
+from ..config import get_settings
 from ..db.core import init_user_data
 from ..deps import SessionDep, get_current_username
-from ..models.models import (AuthParams, LoginRegisterModel, PendingTOTP,
-                             Token, UpdateUserPassword, User)
+from ..models.models import (AuthParams, LoginRegisterModel, MagicLink,
+                             PendingTOTP, Token, UpdateUserPassword, User)
 from ..security import (create_access_token, create_tokens,
                         generate_totp_secret, get_oidc_client, get_oidc_config,
                         hash_password, verify_password, verify_totp_code)
@@ -16,15 +18,16 @@ from ..utils.date import dt_utc, dt_utc_offset
 from ..utils.utils import generate_filename
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
+logger = logging.getLogger(__name__)
 pending_totp_usernames = {}
 
 
 @router.get("/params", response_model=AuthParams)
 async def auth_params() -> AuthParams:
-    data = {"oidc": None, "register_enabled": settings.REGISTER_ENABLE}
+    data = {"oidc": None, "register_enabled": get_settings().REGISTER_ENABLE}
 
-    if not (settings.OIDC_CLIENT_ID and settings.OIDC_CLIENT_SECRET):
-        return {"oidc": None, "register_enabled": settings.REGISTER_ENABLE}
+    if not (get_settings().OIDC_CLIENT_ID and get_settings().OIDC_CLIENT_SECRET):
+        return {"oidc": None, "register_enabled": get_settings().REGISTER_ENABLE}
 
     oidc_config = await get_oidc_config()
     auth_endpoint = oidc_config.get("authorization_endpoint")
@@ -32,7 +35,7 @@ async def auth_params() -> AuthParams:
     data["oidc"] = uri
 
     response = JSONResponse(content=data)
-    is_secure = "https://" in settings.OIDC_REDIRECT_URI
+    is_secure = "https://" in get_settings().OIDC_REDIRECT_URI
     response.set_cookie(
         "oidc_state", value=state, httponly=True, secure=is_secure, samesite="Lax", max_age=60
     )
@@ -47,7 +50,7 @@ async def oidc_login(
     state: str = Body(..., embed=True),
     oidc_state: str = Cookie(None),
 ) -> Token:
-    if not (settings.OIDC_CLIENT_ID or settings.OIDC_CLIENT_SECRET):
+    if not (get_settings().OIDC_CLIENT_ID or get_settings().OIDC_CLIENT_SECRET):
         raise HTTPException(status_code=400, detail="Partial OIDC config")
 
     if not oidc_state or state != oidc_state:
@@ -66,40 +69,28 @@ async def oidc_login(
         raise HTTPException(status_code=401, detail="OIDC login failed")
 
     id_token = token.get("id_token")
-    alg = jwt.get_unverified_header(id_token).get("alg")
+    jwks_uri = oidc_config.get("jwks_uri")
+    issuer = oidc_config.get("issuer")
+    jwks_client = jwt.PyJWKClient(
+        jwks_uri,
+        headers={
+            "User-Agent": "Mozilla/5.0 (compatible; TRIP/1 PyJWKClient; +https://github.com/itskovacs/trip)",
+            "Accept": "application/json",
+        },
+    )
 
-    match alg:
-        case "HS256":
-            decoded = jwt.decode(
-                id_token,
-                settings.OIDC_CLIENT_SECRET,
-                algorithms=["HS256"],
-                audience=settings.OIDC_CLIENT_ID,
-            )
-        case "RS256":
-            jwks_uri = oidc_config.get("jwks_uri")
-            issuer = oidc_config.get("issuer")
-            jwks_client = jwt.PyJWKClient(
-                jwks_uri,
-                headers={
-                    "User-Agent": "Mozilla/5.0 (compatible; TRIP/1 PyJWKClient; +https://github.com/itskovacs/trip)",
-                    "Accept": "application/json",
-                },
-            )
-
-            try:
-                signing_key = jwks_client.get_signing_key_from_jwt(id_token)
-                decoded = jwt.decode(
-                    id_token,
-                    key=signing_key.key,
-                    algorithms=["RS256"],
-                    audience=settings.OIDC_CLIENT_ID,
-                    issuer=issuer,
-                )
-            except Exception:
-                raise HTTPException(status_code=401, detail="Invalid ID token")
-        case _:
-            raise HTTPException(status_code=500, detail="OIDC login failed, algorithm not handled")
+    try:
+        signing_key = jwks_client.get_signing_key_from_jwt(id_token)
+        decoded = jwt.decode(
+            id_token,
+            key=signing_key.key,
+            algorithms=["RS256"],
+            audience=get_settings().OIDC_CLIENT_ID,
+            issuer=issuer,
+        )
+    except Exception as exc:
+        logger.error(f"[OIDC LOGIN]: {exc}")
+        raise HTTPException(status_code=401, detail="Invalid ID token")
 
     if not decoded:
         raise HTTPException(status_code=401, detail="Invalid ID token")
@@ -121,7 +112,7 @@ async def oidc_login(
 
 @router.post("/login", response_model=Token | PendingTOTP)
 def login(req: LoginRegisterModel, session: SessionDep) -> Token | PendingTOTP:
-    if settings.OIDC_CLIENT_ID or settings.OIDC_CLIENT_SECRET:
+    if get_settings().OIDC_CLIENT_ID or get_settings().OIDC_CLIENT_SECRET:
         raise HTTPException(status_code=400, detail="OIDC is configured")
 
     db_user = session.get(User, req.username)
@@ -163,11 +154,22 @@ async def login_verify_totp(
 
 @router.post("/register", response_model=Token)
 def register(req: LoginRegisterModel, session: SessionDep) -> Token:
-    if not settings.REGISTER_ENABLE:
-        raise HTTPException(status_code=400, detail="Registration disabled")
-
-    if settings.OIDC_CLIENT_ID or settings.OIDC_CLIENT_SECRET:
+    if get_settings().OIDC_CLIENT_ID or get_settings().OIDC_CLIENT_SECRET:
         raise HTTPException(status_code=400, detail="OIDC is configured")
+
+    if not get_settings().REGISTER_ENABLE:
+        if not req.magicToken:
+            raise HTTPException(status_code=400, detail="Registration disabled")
+
+        db_token = session.exec(select(MagicLink).where(MagicLink.token == req.magicToken)).first()
+        if not db_token:
+            raise HTTPException(status_code=404, detail="Invalid token: not found")
+
+        if db_token.expires < dt_utc():
+            session.delete(db_token)
+            session.commit()
+            raise HTTPException(status_code=404, detail="Invalid token: expired")
+        session.delete(db_token)
 
     db_user = session.get(User, req.username)
     if db_user:
@@ -188,7 +190,7 @@ def refresh_token(refresh_token: str = Body(..., embed=True)):
         raise HTTPException(status_code=400, detail="Refresh token expected")
 
     try:
-        payload = jwt.decode(refresh_token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        payload = jwt.decode(refresh_token, get_settings().SECRET_KEY, algorithms=[get_settings().ALGORITHM])
         username = payload.get("sub", None)
 
         if not username:
@@ -210,7 +212,7 @@ async def update_password(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    if settings.OIDC_CLIENT_ID and settings.OIDC_CLIENT_SECRET:
+    if get_settings().OIDC_CLIENT_ID and get_settings().OIDC_CLIENT_SECRET:
         raise HTTPException(status_code=400, detail="Bad request")
 
     db_user = session.get(User, current_user)
