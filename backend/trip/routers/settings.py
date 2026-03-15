@@ -6,7 +6,7 @@ from fastapi import (APIRouter, BackgroundTasks, Body, Depends, File,
 from fastapi.responses import FileResponse
 from sqlmodel import select
 
-from ..config import settings
+from ..config import get_settings
 from ..deps import SessionDep, get_current_username
 from ..models.models import (Backup, BackupRead, BackupStatus, User, UserRead,
                              UserUpdate)
@@ -60,7 +60,6 @@ async def enable_totp(session: SessionDep, current_user: Annotated[str, Depends(
     db_user.totp_secret = totp_secret
     session.add(db_user)
     session.commit()
-
     return {"secret": totp_secret}
 
 
@@ -79,15 +78,11 @@ async def verify_totp(
 
     success = verify_totp_code(db_user.totp_secret, code)
     if not success:
-        db_user.totp_secret = None
-        session.add(db_user)
-        session.commit()
         raise HTTPException(status_code=403, detail="Invalid code")
 
     db_user.totp_enabled = True
     session.add(db_user)
     session.commit()
-
     return {}
 
 
@@ -108,7 +103,6 @@ async def delete_totp(
 
     session.add(db_user)
     session.commit()
-
     return {}
 
 
@@ -127,7 +121,7 @@ def create_backup_export(
     session.add(db_backup)
     session.commit()
     session.refresh(db_backup)
-    background_tasks.add_task(process_backup_export, session, db_backup.id)
+    background_tasks.add_task(process_backup_export, db_backup.id)
     return BackupRead.serialize(db_backup)
 
 
@@ -151,7 +145,7 @@ def download_backup(
     if not db_backup or not db_backup.filename:
         raise HTTPException(status_code=404, detail="Not found")
 
-    file_path = Path(settings.BACKUPS_FOLDER) / db_backup.filename
+    file_path = Path(get_settings().BACKUPS_FOLDER) / Path(db_backup.filename).name
     if not file_path.exists():
         raise HTTPException(status_code=404, detail="Not found")
 
@@ -165,6 +159,8 @@ async def delete_backup(
     backup_id: int, session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]
 ):
     db_backup = session.get(Backup, backup_id)
+    if not db_backup:
+        raise HTTPException(status_code=404, detail="Not found")
     if not db_backup.user == current_user:
         raise HTTPException(status_code=403, detail="Forbidden")
 
@@ -174,17 +170,17 @@ async def delete_backup(
 
 
 @router.post("/backups/import")
-async def backup_import(
+def backup_import(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
     file: UploadFile = File(...),
 ):
     content_type = file.content_type
     if content_type == "application/json":
-        return await process_legacy_import(session, current_user, file)
+        return process_legacy_import(session, current_user, file)
 
     elif content_type == "application/x-zip-compressed" or content_type == "application/zip":
-        return await process_backup_import(session, current_user, file)
+        return process_backup_import(session, current_user, file)
 
     raise HTTPException(status_code=400, detail="Bad request, invalid file")
 
