@@ -1,14 +1,15 @@
 import re
 from datetime import UTC, date, datetime
 from enum import Enum
+from types import SimpleNamespace
 from typing import Annotated
 
 from pydantic import BaseModel, StringConstraints, field_validator
-from sqlalchemy import Index, MetaData, event
+from sqlalchemy import Index, MetaData, UniqueConstraint, event, select
 from sqlalchemy.orm import Session, object_session
 from sqlmodel import Field, Relationship, SQLModel
 
-from ..config import settings
+from ..config import get_settings
 from ..utils.utils import remove_attachment, remove_backup, remove_image
 
 convention = {
@@ -41,7 +42,7 @@ def cleanup_after_commit(session):
 
 
 def _prefix_assets_url(filename: str) -> str:
-    base = settings.ASSETS_URL
+    base = get_settings().ASSETS_URL
     if not base.endswith("/"):
         base += "/"
     return base + filename
@@ -85,6 +86,7 @@ class LoginRegisterModel(BaseModel):
         StringConstraints(min_length=1, max_length=19, pattern=r"^[a-zA-Z0-9_-]+$"),
     ]
     password: str
+    magicToken: str | None = None
 
 
 class UpdateUserPassword(BaseModel):
@@ -148,8 +150,63 @@ class RoutingResponse(BaseModel):
     coordinates: list[tuple[float, float]]
 
 
+class ConfigRead(BaseModel):
+    PLACE_IMAGE_SIZE: int
+    TRIP_IMAGE_SIZE: int
+    ATTACHMENT_MAX_SIZE: int
+    ACCESS_TOKEN_EXPIRE_MINUTES: int
+    REFRESH_TOKEN_EXPIRE_MINUTES: int
+    REGISTER_ENABLE: bool
+    OIDC_DISCOVERY_URL: str
+    OIDC_CLIENT_ID: str
+    OIDC_CLIENT_SECRET: str
+    OIDC_REDIRECT_URI: str
+    DEFAULT_TILE: str
+    DEFAULT_CURRENCY: str
+    DEFAULT_MAP_LAT: float
+    DEFAULT_MAP_LNG: float
+
+
+class ConfigUpdate(BaseModel):
+    PLACE_IMAGE_SIZE: int | None = None
+    TRIP_IMAGE_SIZE: int | None = None
+    ATTACHMENT_MAX_SIZE: int | None = None
+    ACCESS_TOKEN_EXPIRE_MINUTES: int | None = None
+    REFRESH_TOKEN_EXPIRE_MINUTES: int | None = None
+    REGISTER_ENABLE: bool | None = None
+    OIDC_DISCOVERY_URL: str | None = None
+    OIDC_CLIENT_ID: str | None = None
+    OIDC_CLIENT_SECRET: str | None = None
+    OIDC_REDIRECT_URI: str | None = None
+    DEFAULT_TILE: str | None = None
+    DEFAULT_CURRENCY: str | None = None
+    DEFAULT_MAP_LAT: float | None = None
+    DEFAULT_MAP_LNG: float | None = None
+
+
+class TempPasswordRead(BaseModel):
+    temporary: str
+
+
+class MagicLinkBase(SQLModel):
+    token: str = Field(index=True, unique=True)
+    expires: datetime
+
+
+class MagicLink(MagicLinkBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    user: str = Field(foreign_key="user.username", ondelete="CASCADE", index=True)
+
+
+class MagicLinkRead(MagicLinkBase):
+    @classmethod
+    def serialize(cls, obj: MagicLink) -> "MagicLinkRead":
+        return cls(token=obj.token, expires=obj.expires)
+
+
 class ImageBase(SQLModel):
     filename: str
+    file_size: int | None = 0
 
 
 class Image(ImageBase, table=True):
@@ -217,9 +274,9 @@ class BackupRead(BackupBase):
 
 
 class UserBase(SQLModel):
-    map_lat: float = settings.DEFAULT_MAP_LAT
-    map_lng: float = settings.DEFAULT_MAP_LNG
-    currency: str = settings.DEFAULT_CURRENCY
+    map_lat: float = get_settings().DEFAULT_MAP_LAT
+    map_lng: float = get_settings().DEFAULT_MAP_LNG
+    currency: str = get_settings().DEFAULT_CURRENCY
     do_not_display: str = ""
     tile_layer: str | None = None
     mode_low_network: bool | None = True
@@ -238,6 +295,53 @@ class User(UserBase, table=True):
     totp_secret: str | None = None
     google_apikey: str | None = None
     map_provider: MapProvider = Field(default=MapProvider.OPENSTREETMAP)
+    is_admin: bool | None = False
+
+
+@event.listens_for(User, "before_delete")
+def user_delete_assets(mapper, connection, target: User):
+    session = object_session(target)
+
+    image_filenames = (
+        connection.execute(
+            select(Image.__table__.c.filename).where(Image.__table__.c.user == target.username)
+        )
+        .scalars()
+        .all()
+    )
+    if session and image_filenames:
+        if not hasattr(session, "_images_to_delete"):
+            session._images_to_delete = []
+        session._images_to_delete.extend(image_filenames)
+
+    backup_filenames = (
+        connection.execute(
+            select(Backup.__table__.c.filename)
+            .where(Backup.__table__.c.user == target.username)
+            .where(Backup.__table__.c.filename.isnot(None))
+        )
+        .scalars()
+        .all()
+    )
+    if session and backup_filenames:
+        if not hasattr(session, "_backups_to_delete"):
+            session._backups_to_delete = []
+        session._backups_to_delete.extend(backup_filenames)
+
+    attachment_rows = connection.execute(
+        select(
+            TripAttachment.__table__.c.trip_id,
+            TripAttachment.__table__.c.stored_filename,
+        ).where(TripAttachment.__table__.c.uploaded_by == target.username)
+    ).all()
+    if session and attachment_rows:
+        if not hasattr(session, "_attachments_to_delete"):
+            session._attachments_to_delete = []
+        # remove_attachment expects (trip_id, stored_filename) so we SimpleNamespace to fake
+        session._attachments_to_delete.extend(
+            SimpleNamespace(trip_id=attachment.trip_id, stored_filename=attachment.stored_filename)
+            for attachment in attachment_rows
+        )
 
 
 class UserUpdate(UserBase):
@@ -256,6 +360,7 @@ class UserRead(UserBase):
     google_apikey: bool
     api_token: bool
     map_provider: str
+    is_admin: bool
 
     @classmethod
     def serialize(cls, obj: User) -> "UserRead":
@@ -265,7 +370,7 @@ class UserRead(UserBase):
             map_lng=obj.map_lng,
             currency=obj.currency,
             do_not_display=obj.do_not_display.split(",") if obj.do_not_display else [],
-            tile_layer=obj.tile_layer if obj.tile_layer else settings.DEFAULT_TILE,
+            tile_layer=obj.tile_layer if obj.tile_layer else get_settings().DEFAULT_TILE,
             mode_low_network=obj.mode_low_network,
             mode_dark=obj.mode_dark,
             mode_gpx_in_place=obj.mode_gpx_in_place,
@@ -276,6 +381,29 @@ class UserRead(UserBase):
             api_token=True if obj.api_token else False,
             map_provider=obj.map_provider.value,
             duplicate_dist=obj.duplicate_dist,
+            is_admin=obj.is_admin if obj.is_admin else False,
+        )
+
+
+class AdminUserRead(UserBase):
+    username: str
+    quota_bytes: int
+    quota_places: int
+    totp_enabled: bool
+    google_apikey: bool
+    api_token: bool
+    is_admin: bool
+
+    @classmethod
+    def serialize(cls, obj: User, places_count: int = 0, storage_bytes: int = 0) -> "AdminUserRead":
+        return cls(
+            username=obj.username,
+            totp_enabled=obj.totp_enabled,
+            quota_bytes=storage_bytes,
+            quota_places=places_count,
+            google_apikey=True if obj.google_apikey else False,
+            api_token=True if obj.api_token else False,
+            is_admin=obj.is_admin if obj.is_admin else False,
         )
 
 
@@ -288,7 +416,7 @@ class Category(CategoryBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     image_id: int | None = Field(default=None, foreign_key="image.id", ondelete="CASCADE")
     image: Image | None = Relationship(back_populates="categories")
-    places: list["Place"] = Relationship(back_populates="category")
+    places: list["Place"] = Relationship(back_populates="category", cascade_delete=True)
     user: str = Field(foreign_key="user.username", ondelete="CASCADE", index=True)
 
 
@@ -322,8 +450,8 @@ class CategoryRead(CategoryBase):
 
 
 class TripPlaceLink(SQLModel, table=True):
-    trip_id: int = Field(foreign_key="trip.id", primary_key=True)
-    place_id: int = Field(foreign_key="place.id", primary_key=True, index=True)
+    trip_id: int = Field(foreign_key="trip.id", primary_key=True, ondelete="CASCADE")
+    place_id: int = Field(foreign_key="place.id", primary_key=True, index=True, ondelete="CASCADE")
 
 
 class PlaceBase(SQLModel):
@@ -349,7 +477,7 @@ class Place(PlaceBase, table=True):
     image_id: int | None = Field(default=None, foreign_key="image.id", ondelete="CASCADE")
     image: Image | None = Relationship(back_populates="places")
 
-    category_id: int = Field(foreign_key="category.id", index=True)
+    category_id: int = Field(foreign_key="category.id", index=True, ondelete="CASCADE")
     category: Category | None = Relationship(back_populates="places")
 
     trip_items: list["TripItem"] = Relationship(back_populates="place")
@@ -413,7 +541,7 @@ class PlaceRead(PlaceBase):
 class TripBase(SQLModel):
     name: str
     archived: bool | None = None
-    currency: str | None = settings.DEFAULT_CURRENCY
+    currency: str | None = get_settings().DEFAULT_CURRENCY
     notes: str | None = None
     archival_review: str | None = None
 
@@ -467,7 +595,7 @@ class TripReadBase(TripBase):
             image_id=obj.image_id,
             days=len(obj.days),
             collaborators=[TripMemberRead.serialize(m) for m in obj.memberships],
-            currency=obj.currency if obj.currency else settings.DEFAULT_CURRENCY,
+            currency=obj.currency if obj.currency else get_settings().DEFAULT_CURRENCY,
         )
 
 
@@ -493,7 +621,7 @@ class TripRead(TripBase):
             places=[PlaceRead.serialize(place) for place in obj.places],
             collaborators=[TripMemberRead.serialize(m) for m in obj.memberships],
             shared=bool(obj.shares),
-            currency=obj.currency if obj.currency else settings.DEFAULT_CURRENCY,
+            currency=obj.currency if obj.currency else get_settings().DEFAULT_CURRENCY,
             notes=obj.notes,
             archival_review=obj.archival_review,
             attachments=[TripAttachmentRead.serialize(att) for att in obj.attachments],
@@ -510,7 +638,10 @@ class TripMember(SQLModel, table=True):
     trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE", index=True)
     trip: Trip | None = Relationship(back_populates="memberships")
 
-    __table_args__ = (Index("idx_tripmember_trip_user_joined", "trip_id", "user", "joined_at"),)
+    __table_args__ = (
+        Index("idx_tripmember_trip_user_joined", "trip_id", "user", "joined_at"),
+        UniqueConstraint("trip_id", "user", name="uq_tripmember_trip_user"),
+    )
 
 
 class TripMemberCreate(BaseModel):
@@ -595,7 +726,7 @@ class TripItemBase(SQLModel):
 class TripItem(TripItemBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
 
-    place_id: int | None = Field(default=None, foreign_key="place.id")
+    place_id: int | None = Field(default=None, foreign_key="place.id", ondelete="SET NULL")
     place: Place | None = Relationship(back_populates="trip_items")
 
     image_id: int | None = Field(default=None, foreign_key="image.id", ondelete="CASCADE")
@@ -604,7 +735,7 @@ class TripItem(TripItemBase, table=True):
     day_id: int = Field(foreign_key="tripday.id", ondelete="CASCADE", index=True)
     day: TripDay | None = Relationship(back_populates="items")
 
-    paid_by: int | None = Field(default=None, foreign_key="user.username", ondelete="SET NULL")
+    paid_by: str | None = Field(default=None, foreign_key="user.username", ondelete="SET NULL")
 
     attachments: list["TripAttachment"] = Relationship(
         back_populates="items", link_model=TripItemAttachmentLink
@@ -738,9 +869,9 @@ class TripShareRead(TripBase):
             archived=obj.archived,
             image=_prefix_assets_url(obj.image.filename) if obj.image else None,
             image_id=obj.image_id,
-            days=[TripDayRead.serialize(day) for day in obj.days],
+            days=[TripShareDayRead.serialize(day) for day in obj.days],
             places=[PlaceRead.serialize(place) for place in obj.places],
-            currency=obj.currency if obj.currency else settings.DEFAULT_CURRENCY,
+            currency=obj.currency if obj.currency else get_settings().DEFAULT_CURRENCY,
         )
 
 
