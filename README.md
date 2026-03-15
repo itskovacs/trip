@@ -6,12 +6,9 @@
 [![Sponsor](https://img.shields.io/badge/sponsor-30363D?style=for-the-badge&logo=GitHub-Sponsors)](https://ko-fi.com/itskovacs)
 ![Status](https://img.shields.io/badge/status-active-success?style=for-the-badge)
 [![GitHub Issues](https://img.shields.io/github/issues/itskovacs/trip?style=for-the-badge&color=ededed)](https://github.com/itskovacs/trip/issues)
-![Pulls](https://img.shields.io/badge/pulls-100k+-2596be?style=for-the-badge)
+![Pulls](https://img.shields.io/badge/pulls-125k+-2596be?style=for-the-badge)
 
 </div>
-
-<p align="center">🗺️ Tourism and Recreational Interest Points</p>
-<br>
 
 <div align="center">
 
@@ -24,13 +21,11 @@
 - 📦 [About](#about)
 - 🌱 [Getting Started](#getting_started)
 - 📸 [Demo](#demo)
-- 🤝 [Contributing](#contributing)
 - 📜 [License](#license)
-- 🛠️ [Tech Stack](#techstack)
 
 ## 📦 About <a name = "about"></a>
 
-TRIP is a self-hostable **minimalist Map tracker** and **Trip planner** to visualize your points of interest (POI) and organize your next adventure details.
+TRIP (*Tourism and Recreational Interest Points*) is a self-hostable **minimalist Map tracker** and **Trip planner** to visualize your points of interest (POI) and organize your next adventure details.
 
 **Core Features:**
 - Map and manage POIs on interactive maps
@@ -93,14 +88,6 @@ A demo is available at [itskovacs-trip.netlify.app](https://itskovacs-trip.netli
 
 <br>
 
-## 🤝 Contributing <a name = "contributing"></a>
-
-Contributions are welcome! See [CONTRIBUTING.md](https://github.com/itskovacs/trip/blob/main/CONTRIBUTING.md) for details.
-
-Love using TRIP? Support the project and its development by [☕ buying me a coffee](https://ko-fi.com/itskovacs).
-
-<br>
-
 ## 📜 License <a name = "license"></a>
 
 ~~TRIP is licensed under the **CC-BY-NC-4.0**. You may use, modify, and share freely with attribution, but **commercial use is strictly prohibited**.~~
@@ -109,26 +96,8 @@ In the spirit of free and open-source software, TRIP is now licensed under the M
 
 <br>
 
-## 🛠️ Tech Stack <a name = "techstack"></a>
-
-### **Frontend**
-
-- 🅰️ Angular 21
-- 🏗️ PrimeNG 21
-- 🎨 Tailwind CSS 4
-- 🗺️ Leaflet 1.9 (plugins: [Leaflet.markercluster](https://github.com/Leaflet/Leaflet.markercluster), [Leaflet.contextmenu](https://github.com/aratcliffe/Leaflet.contextmenu))
-
-### **Backend**
-
-- 🐍 FastAPI, SQLModel
-- 🗃️ SQLite
-
-<br>
-
-
 <div align="center">
 
-If you like TRIP, consider giving it a ⭐ for visibility!  
 Made with ❤️ in BZH  
 
 <a href='https://ko-fi.com/itskovacs' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi1.png' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>  
