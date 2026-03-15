@@ -80,6 +80,9 @@ import { Trip } from '../../types/trip';
 import { PlaceListItemComponent } from '../../shared/place-list-item/place-list-item.component';
 import { PopoverModule } from 'primeng/popover';
 import { RouteManagerService } from '../../services/route-manager.service';
+import { AdminUser, AppConfig, MagicLink } from '../../types/admin';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { ClipboardModule } from '@angular/cdk/clipboard';
 
 export interface ContextMenuItem {
   text: string;
@@ -118,6 +121,8 @@ export interface MarkerOptions extends L.MarkerOptions {
     MenuModule,
     PlaceListItemComponent,
     PopoverModule,
+    InputNumberModule,
+    ClipboardModule,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.component.html',
@@ -147,6 +152,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   mapBounds = signal<L.LatLngBounds | null>(null);
 
   viewSettings = signal(false);
+  viewAdmin = signal(false);
   mapParamsExpanded = signal(false);
   displaySettingsExpanded = signal(false);
   dataFiltersExpanded = signal(false);
@@ -186,6 +192,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     ),
     { initialValue: '' },
   );
+
+  adminUsers = signal<AdminUser[]>([]);
+  adminConfig = signal<AppConfig | null>(null);
+  adminMagicLinks = signal<MagicLink[]>([]);
+  adminConfigForm: FormGroup;
+  username: string;
 
   map?: L.Map;
   markerClusterGroup?: L.MarkerClusterGroup;
@@ -239,6 +251,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       items: this.categories().map((c) => ({ label: c.name, value: c.name })),
     },
   ]);
+
   collator = new Intl.Collator(undefined, { sensitivity: 'base' });
   menuCreatePlaceItems: MenuItem[] = [
     {
@@ -286,6 +299,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.activatedRoute = inject(ActivatedRoute);
     this.routeManager = inject(RouteManagerService);
 
+    this.username = this.utilsService.loggedUser;
     this.settingsForm = this.fb.group({
       map_lat: [
         '',
@@ -308,6 +322,26 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       _google_apikey: [null, { validators: [Validators.pattern('AIza[0-9A-Za-z\\-_]{35}')] }],
       map_provider: [],
       duplicate_dist: [null, { validators: [Validators.min(0)] }],
+    });
+
+    this.adminConfigForm = this.fb.group({
+      REGISTER_ENABLE: [],
+      ATTACHMENT_MAX_SIZE: [0, [Validators.required, Validators.min(1)]],
+      PLACE_IMAGE_SIZE: [0, [Validators.required]],
+      TRIP_IMAGE_SIZE: [0, [Validators.required]],
+      ACCESS_TOKEN_EXPIRE_MINUTES: [0, [Validators.required]],
+      REFRESH_TOKEN_EXPIRE_MINUTES: [0, [Validators.required]],
+      OIDC_DISCOVERY_URL: [''],
+      OIDC_CLIENT_ID: [''],
+      OIDC_CLIENT_SECRET: [''],
+      OIDC_REDIRECT_URI: [''],
+      DEFAULT_TILE: ['', [Validators.required]],
+      DEFAULT_CURRENCY: ['€', [Validators.required]],
+      DEFAULT_MAP_LAT: [0, [Validators.required, Validators.pattern('-?(90(\\.0+)?|[1-8]?\\d(\\.\\d+)?)')]],
+      DEFAULT_MAP_LNG: [
+        0,
+        [Validators.required, Validators.pattern('-?(180(\\.0+)?|1[0-7]\\d(\\.\\d+)?|[1-9]?\\d(\\.\\d+)?)')],
+      ],
     });
 
     effect(() => {
@@ -796,6 +830,14 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.mapParamsExpanded.set(false);
     this.dataFiltersExpanded.set(false);
     this.displaySettingsExpanded.set(false);
+  }
+
+  toggleAdminMode() {
+    this.toggleSettings();
+    this.loadUsers();
+    this.loadMagicLinks();
+    this.loadConfig();
+    this.viewAdmin.set(true);
   }
 
   toggleFilters() {
@@ -1785,5 +1827,140 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           console.error('Routing error:', err);
         },
       });
+  }
+
+  loadUsers() {
+    this.apiService
+      .adminGetUsers()
+      .pipe(take(1))
+      .subscribe({
+        next: (users) => this.adminUsers.set(users),
+        error: () => this.utilsService.toast('error', 'Error', 'Failed to load users'),
+      });
+  }
+
+  loadConfig() {
+    this.apiService
+      .adminGetConfig()
+      .pipe(take(1))
+      .subscribe({
+        next: (config) => {
+          this.adminConfig.set(config);
+          this.adminConfigForm.patchValue(config);
+          console.log(this.adminConfigForm.value);
+        },
+        error: () => this.utilsService.toast('error', 'Error', 'Failed to load configuration'),
+      });
+  }
+
+  loadMagicLinks() {
+    this.apiService
+      .adminGetMagic()
+      .pipe(take(1))
+      .subscribe({
+        next: (links) => this.adminMagicLinks.set(links),
+        error: () => this.utilsService.toast('error', 'Error', 'Failed to load magic links'),
+      });
+  }
+
+  createMagicLink() {
+    this.apiService
+      .adminPostMagic()
+      .pipe(take(1))
+      .subscribe({
+        next: (link) => this.adminMagicLinks.update((links) => [...links, link]),
+        error: () => this.utilsService.toast('error', 'Error', 'Failed to create magic link'),
+      });
+  }
+
+  deleteMagicLink(token: string) {
+    this.apiService
+      .adminDeleteMagic(token)
+      .pipe(take(1))
+      .subscribe({
+        next: () => this.adminMagicLinks.update((links) => links.filter((l) => l.token !== token)),
+        error: () => this.utilsService.toast('error', 'Error', 'Failed to delete magic link'),
+      });
+  }
+
+  resetUserPassword(user: AdminUser) {
+    const confirmModal = this.dialogService.open(YesNoModalComponent, {
+      header: 'Reset user password',
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      draggable: false,
+      resizable: false,
+      data: `Reset password for ${user.username}? A temporary password will be displayed.`,
+    })!;
+
+    confirmModal.onClose.pipe(take(1)).subscribe({
+      next: (confirmed: boolean) => {
+        if (confirmed)
+          this.apiService
+            .adminResetUserPassword(user.username)
+            .pipe(take(1))
+            .subscribe({
+              next: (temporary) =>
+                this.dialogService.open(SettingsViewTokenComponent, {
+                  header: 'Temporary Password',
+                  modal: true,
+                  closable: true,
+                  dismissableMask: true,
+                  draggable: false,
+                  resizable: false,
+                  data: {
+                    token: temporary,
+                    msg: `New password for ${user.username} is:`,
+                  },
+                }),
+              error: () => this.utilsService.toast('error', 'Error', 'Failed to reset user password'),
+            });
+      },
+    });
+  }
+
+  deleteUser(user: AdminUser) {
+    const confirmModal = this.dialogService.open(YesNoModalComponent, {
+      header: 'Delete user',
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      draggable: false,
+      resizable: false,
+      data: `Permanently delete ${user.username} and all their data? This cannot be undone.`,
+    })!;
+
+    confirmModal.onClose.pipe(take(1)).subscribe({
+      next: (confirmed: boolean) => {
+        if (confirmed)
+          this.apiService
+            .adminDeleteUser(user.username)
+            .pipe(take(1))
+            .subscribe({
+              next: () => this.adminUsers.update((users) => users.filter((u) => u.username !== user.username)),
+              error: () => this.utilsService.toast('error', 'Error', 'Failed to delete user'),
+            });
+      },
+    });
+  }
+
+  saveConfig() {
+    if (!this.adminConfigForm.valid) return;
+    this.apiService
+      .adminPutConfig(this.adminConfigForm.value)
+      .pipe(take(1))
+      .subscribe({
+        next: (config) => {
+          this.adminConfig.set(config);
+          this.utilsService.toast('success', 'Success', 'Config updates are applied');
+        },
+        error: () => this.utilsService.toast('error', 'Error', 'Failed to save configuration'),
+      });
+  }
+
+  resetConfigForm() {
+    const current = this.adminConfig();
+    if (current) this.adminConfigForm.patchValue(current);
   }
 }

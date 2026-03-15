@@ -114,7 +114,7 @@
   class="pointer-events-none fixed top-20 md:top-22 bottom-20 md:bottom-22 right-4 md:right-6 z-30 flex w-[calc(100%-2rem)] flex-col gap-3 md:w-64 lg:w-88">
   @if (viewFilters()) {
   <div animate.enter="slide-y-no-opacity" animate.leave="a-slide-y"
-    class="pointer-events-auto ring-1 ring-black/5 dark:ring-white/10 bg-white/70 dark:bg-primary-900/70 backdrop-blur-xl rounded-lg w-full shadow-2xl flex flex-col"
+    class="pointer-events-auto min-h-0 ring-1 ring-black/5 dark:ring-white/10 bg-white/70 dark:bg-primary-900/70 backdrop-blur-xl rounded-lg w-full shadow-2xl flex flex-col"
     [class.h-1/3]="viewPlacesList()">
     <div class="flex items-center justify-between gap-4 p-4 border-b border-primary-200 dark:border-primary-800">
       <h2 class="text-base font-semibold text-primary-900 dark:text-white">Filters</h2>
@@ -216,7 +216,7 @@
             [class]="activeCategories().has(category.name) ? 'ring-2 ring-white' : undefined"
             [style.background-color]="category.color"></div>
 
-          <span class="pointer-events-none text-sm font-medium flex-1 text-left truncate" [class]="
+          <span class="text-sm font-medium flex-1 text-left truncate" [class]="
                   activeCategories().has(category.name)
                     ? 'text-white dark:text-white'
                     : 'text-primary-900 dark:text-white'
@@ -367,18 +367,24 @@
 @if (viewSettings()) {
 <section class="absolute inset-0 flex items-center justify-center z-40 bg-primary-900/30 backdrop-blur-xl">
   <div
-    class="w-10/12 max-w-screen md:max-w-3xl h-fit max-h-screen bg-white rounded-xl shadow-2xl p-4 md:p-8 z-50 dark:bg-primary-900">
+    class="w-10/12 max-w-screen md:max-w-3xl h-fit max-h-[90vh] bg-white rounded-xl shadow-2xl z-50 dark:bg-primary-900 flex flex-col overflow-clip">
     <div
-      class="flex-none flex items-center justify-between gap-4 p-4 border-b border-primary-200 dark:border-primary-800">
-      <div>
-        <h2 class="text-xl font-bold text-primary-900 dark:text-white">Settings</h2>
-        <p class="text-xs text-primary-600 dark:text-primary-400 mt-0.5">Customize your experience</p>
+      class="flex-none flex items-center justify-between gap-4 p-4 md:p-6 border-b border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-800">
+      <div class="flex items-center gap-3">
+        <div
+          class="flex items-center justify-center size-9 rounded-lg bg-primary-100 dark:bg-primary-900/40 border border-primary-200 dark:border-primary-800">
+          <i class="pi pi-cog text-primary-600 dark:text-primary-400 text-sm"></i>
+        </div>
+        <div>
+          <h2 class="text-lg font-bold text-primary-900 dark:text-white leading-none">Settings</h2>
+          <p class="text-xs text-primary-500 dark:text-primary-400 mt-0.5">Customize your experience</p>
+        </div>
       </div>
 
       <div class="flex items-center gap-1">
         <p-button (click)="toggleDarkMode()" pTooltip="Dark mode" text
           [icon]="settings()?.mode_dark ? 'pi pi-sun' : 'pi pi-moon'" />
-        <p-button (click)="toGithub()" pTooltip="Open Github" text severity="primary" icon="pi pi-github" />
+        <p-button (click)="toGithub()" pTooltip="Github TRIP" text severity="primary" icon="pi pi-github" />
         <p-button (click)="logout()" pTooltip="Logout" text severity="primary" icon="pi pi-sign-out" />
         <p-button (click)="toggleSettings()" text severity="danger" icon="pi pi-times" />
       </div>
@@ -406,7 +412,7 @@
         <p-tabpanel [value]="0">
           <div class="mt-4 grid md:grid-cols-2 gap-4">
             <a href="https://itskovacs.github.io/trip/docs/intro" target="_blank"
-              class="group relative p-6 bg-linear-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-hidden">
+              class="group relative p-6 bg-linear-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-clip">
               <div class="flex gap-4 items-center relative z-10">
                 <div class="text-4xl">📘</div>
                 <div>
@@ -420,7 +426,7 @@
             </a>
 
             <a href="https://ko-fi.com/itskovacs" target="_blank"
-              class="group relative p-6 bg-linear-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-hidden">
+              class="group relative p-6 bg-linear-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-clip">
               <div class="flex gap-4 items-center relative z-10">
                 <div class="text-4xl">☕</div>
                 <div>
@@ -433,40 +439,8 @@
               </div>
             </a>
 
-            @if (info()?.update) {
-            <div (click)="toGithub()"
-              class="cursor-pointer group relative p-6 bg-linear-to-br from-red-50 to-red-200 dark:from-red-900/20 dark:to-red-900/40 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-hidden">
-              <div class="flex gap-4 items-center relative z-10">
-                <div class="text-4xl">🚀</div>
-                <div>
-                  <h3 class="text-lg font-semibold text-primary-900 dark:text-white mb-1">
-                    TRIP {{ info()?.update }}
-                  </h3>
-                  <p class="text-sm text-primary-600 dark:text-primary-400">New version available</p>
-                </div>
-              </div>
-              <div
-                class="absolute top-0 right-0 w-32 h-32 bg-red-500/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500">
-              </div>
-            </div>
-            } @else {
-            <div (click)="checkUpdate()"
-              class="cursor-pointer group relative p-6 bg-linear-to-br from-purple-50 to-rose-50 dark:from-purple-900/20 dark:to-rose-900/20 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-hidden">
-              <div class="flex gap-4 items-center relative z-10">
-                <div class="text-4xl">👀</div>
-                <div>
-                  <h3 class="text-lg font-semibold text-primary-900 dark:text-white mb-1">Check update</h3>
-                  <p class="text-sm text-primary-600 dark:text-primary-400">Current: TRIP {{ info()?.version }}</p>
-                </div>
-              </div>
-              <div
-                class="absolute top-0 right-0 w-32 h-32 bg-purple-500/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500">
-              </div>
-            </div>
-            }
-
             <div (click)="tabsIndex = 4"
-              class="cursor-pointer group relative p-6 bg-primary-100 dark:bg-primary-800 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-hidden">
+              class="cursor-pointer group relative p-6 bg-primary-100 dark:bg-primary-800 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-clip">
               <div class="flex gap-4 items-center relative z-10">
                 <div class="text-4xl">🗃️</div>
                 <div>
@@ -478,18 +452,31 @@
                 class="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500">
               </div>
             </div>
+
+            @if (settings()?.is_admin) {
+            <div (click)="toggleAdminMode()"
+              class="cursor-pointer group relative p-6 bg-linear-to-br from-red-50 to-red-200 dark:from-red-900/20 dark:to-red-900/40 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-clip">
+              <div class="flex gap-4 items-center relative z-10">
+                <div class="text-4xl">🛡️</div>
+                <div>
+                  <h3 class="text-lg font-semibold text-primary-900 dark:text-white mb-1">Administration</h3>
+                  <p class="text-sm text-primary-600 dark:text-primary-400">Administrate TRIP</p>
+                </div>
+              </div>
+              <div
+                class="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500">
+              </div>
+            </div>
+            }
           </div>
 
-          <div class="mt-8 text-center text-xs text-primary-500 dark:text-primary-400">
-            TRIP {{ info()?.version }}
-          </div>
-          <div class="text-center text-sm text-primary-500 dark:text-primary-400">Made with ❤️ in BZH</div>
+          <div class="mt-6 text-center text-sm text-primary-500 dark:text-primary-400">Made with ❤️ in BZH</div>
         </p-tabpanel>
         <p-tabpanel [value]="1">
           <div class="max-h-[60vh] overflow-y-auto overscroll-contain">
-            <div class="select-none mx-auto pt-4 space-y-4">
+            <div class="select-none mx-auto py-4 space-y-4">
               <section
-                class="rounded-xl bg-white dark:bg-primary-800 shadow-sm border border-primary-200 dark:border-primary-700 overflow-hidden transition-all duration-200">
+                class="rounded-xl bg-white dark:bg-primary-800 shadow-sm border border-primary-200 dark:border-primary-700 overflow-clip transition-all duration-200">
                 <div (click)="accountSecurityExpanded.set(!accountSecurityExpanded())"
                   class="select-none w-full flex items-center justify-between p-4 hover:bg-primary-50 dark:hover:bg-primary-700/50 transition-colors cursor-pointer">
                   <div class="flex items-center gap-3">
@@ -552,7 +539,7 @@
               </section>
 
               <section
-                class="rounded-xl bg-white dark:bg-primary-800 shadow-sm border border-primary-200 dark:border-primary-700 overflow-hidden transition-all duration-200">
+                class="rounded-xl bg-white dark:bg-primary-800 shadow-sm border border-primary-200 dark:border-primary-700 overflow-clip transition-all duration-200">
                 <div (click)="accountIntegrationsExpanded.set(!accountIntegrationsExpanded())"
                   class="select-none w-full flex items-center justify-between p-4 hover:bg-primary-50 dark:hover:bg-primary-700/50 transition-colors cursor-pointer">
                   <div class="flex items-center gap-3">
@@ -671,7 +658,7 @@
         </p-tabpanel>
         <p-tabpanel [value]="2">
           <div class="max-h-[60vh] overflow-y-auto overscroll-contain">
-            <div class="select-none mx-auto pt-4 space-y-4">
+            <div class="select-none mx-auto py-4 space-y-4">
               <section [formGroup]="settingsForm"
                 class="rounded-xl bg-white dark:bg-primary-800 shadow-sm border border-primary-200 dark:border-primary-700">
                 <div (click)="mapParamsExpanded.set(!mapParamsExpanded())"
@@ -914,7 +901,7 @@
         </p-tabpanel>
         <p-tabpanel [value]="3">
           <div class="max-h-[60vh] overflow-y-auto overscroll-contain">
-            <div class="flex flex-col gap-4 pt-4 mx-auto">
+            <div class="flex flex-col gap-4 py-4 mx-auto">
               <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 <div (click)="addCategory()"
                   class="group relative flex items-center gap-3 p-3 rounded-lg border-2 border-dashed border-primary-300 dark:border-primary-600 bg-primary-50/50 dark:bg-black/50 hover:bg-primary-50 dark:hover:bg-primary-900/20 hover:border-primary-400 dark:hover:border-primary-500 transition-all duration-200 cursor-pointer">
@@ -967,7 +954,7 @@
         </p-tabpanel>
         <p-tabpanel [value]="4">
           <div class="max-h-[60vh] overflow-y-auto overscroll-contain">
-            <div class="flex flex-col gap-4 pt-4 mx-auto">
+            <div class="flex flex-col gap-4 py-4 mx-auto">
               <div
                 class="flex flex-col md:flex-row gap-4 p-5 rounded-xl bg-linear-to-r from-blue-50 to-indigo-50 dark:from-primary-800 dark:to-primary-800 border border-blue-100 dark:border-primary-700">
                 <div class="flex items-center gap-3 sm:gap-4 min-w-0">
@@ -1017,72 +1004,470 @@
                     </div>
                     }
                   </div>
-
                   <div class="flex flex-col min-w-0">
-                    <div class="flex items-center gap-2 mb-1">
-                      @if (backup.status === 'processing') {
-                      <span
-                        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
-                        Processing
-                      </span>
-                      } @else if (backup.status === 'pending') {
-                      <span
-                        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-primary-50 text-primary-700 dark:bg-black/30 dark:text-primary-300">
-                        Starting
-                      </span>
-                      } @else if (backup.status === 'failed') {
-                      <span
-                        class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-xs font-medium bg-red-50 text-red-700 dark:bg-red-900/30 dark:text-red-300">
-                        Failed
-                      </span>
-                      } @else {
-                      <span
-                        class="font-medium text-sm text-primary-900 group-hover:font-semibold dark:text-white truncate">
-                        {{ backup.filename }}
-                      </span>
-                      }
-                    </div>
 
-                    <div
-                      class="flex flex-col md:flex-row md:items-center gap-2 text-xs text-primary-500 dark:text-primary-400">
-                      <span class="font-mono">{{ backup.file_size || 0 | fileSize }}</span>
+                    @switch (backup.status) {
+                    @case ('processing') {
+                    <div class="flex items-center gap-2">
+                      <span class="size-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+                      <span class="text-xs font-medium text-blue-600 dark:text-blue-400">Processing…</span>
+                    </div>
+                    }
+                    @case ('pending') {
+                    <div class="flex items-center gap-2">
+                      <span class="size-1.5 rounded-full bg-primary-300 dark:bg-primary-600 animate-pulse"></span>
+                      <span class="text-xs font-medium text-primary-500 dark:text-primary-400">Starting…</span>
+                    </div>
+                    }
+                    @case ('failed') {
+                    <div class="flex items-center gap-2">
+                      <span class="size-1.5 rounded-full bg-red-400"></span>
+                      <span class="text-xs font-medium text-red-600 dark:text-red-400">Failed</span>
+                    </div>
+                    }
+                    @default {
+                    <span class="text-sm font-medium text-primary-900 dark:text-white truncate">
+                      {{ backup.filename }}
+                    </span>
+                    }
+                    }
+
+                    <div class="mt-1 flex items-center gap-2 text-xs text-primary-400 dark:text-primary-500">
+                      <span class="font-mono tabular-nums">{{ backup.file_size || 0 | fileSize }}</span>
                       @if (backup.created_at) {
-                      <div class="hidden md:inline-flex w-px h-4 bg-primary-200 dark:bg-primary-800"></div>
-                      <span class="hidden md:inline-flex text-xs">Created {{ backup.created_at | date: 'd MMM. y'
-                        }}</span>
+                      <span class="opacity-40">·</span>
+                      <span>{{ backup.created_at | date: 'd MMM y' }}</span>
                       }
                       @if (backup.status === 'failed' && backup.error_message) {
-                      <span class="text-red-600 dark:text-red-400 truncate">• {{ backup.error_message }}</span>
+                      <span class="opacity-40">·</span>
+                      <span class="text-red-500 dark:text-red-400 truncate">{{ backup.error_message }}</span>
                       }
                     </div>
+
                   </div>
 
-                  <div class="flex grow items-center justify-end gap-1">
+                  <div class="flex items-center gap-1 ml-auto shrink-0">
                     @if (backup.status === 'completed') {
-                    <p-button (click)="downloadBackup(backup)" severity="primary" text icon="pi pi-download" />
+                    <p-button (click)="downloadBackup(backup)" severity="primary" text icon="pi pi-download"
+                      size="small" />
                     }
                     @if (backup.status === 'completed' || backup.status === 'failed') {
-                    <p-button (click)="deleteBackup(backup)" severity="danger" text icon="pi pi-trash" />
+                    <p-button (click)="deleteBackup(backup)" severity="danger" text icon="pi pi-trash" size="small" />
                     }
                   </div>
                 </div>
                 } @empty {
-                <div
-                  class="flex flex-col items-center justify-center py-16 px-6 text-center rounded-lg border border-dashed border-primary-300 dark:border-primary-700 bg-primary-50/50 dark:bg-primary-800/30">
-                  <h3 class="text-base font-semibold text-primary-900 dark:text-white mb-1">No backups</h3>
-                  <p class="text-sm text-primary-600 dark:text-primary-400 mb-6 max-w-xs">
-                    Create your first backup to safeguard your data
+                <div class="flex flex-col items-center justify-center py-14 text-center rounded-xl border border-dashed
+            border-primary-200 dark:border-primary-700/60">
+                  <div
+                    class="size-10 rounded-full bg-primary-100 dark:bg-primary-800 flex items-center justify-center mb-4">
+                    <i class="pi pi-database text-primary-400 dark:text-primary-500"></i>
+                  </div>
+                  <p class="text-sm font-medium text-primary-900 dark:text-white mb-1">No backups yet</p>
+                  <p class="text-xs text-primary-400 dark:text-primary-500 mb-5 max-w-[18rem]">
+                    Create a backup to safeguard your data
                   </p>
-
-                  <button (click)="createBackup()"
-                    class="cursor-pointer flex items-center gap-2 px-5 py-2.5 rounded-lg bg-blue-500 hover:bg-blue-600 text-white font-medium text-sm shadow-sm hover:shadow transition-all duration-200">
-                    <i class="pi pi-plus text-xs"></i>
-                    <span>Create Backup</span>
+                  <button (click)="createBackup()" class="cursor-pointer inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary-900 dark:bg-white
+           text-white dark:text-primary-900 text-xs font-semibold hover:opacity-80 transition-opacity">
+                    <i class="pi pi-plus text-[10px]"></i>
+                    Create backup
                   </button>
                 </div>
+
                 }
               </div>
             </div>
+          </div>
+        </p-tabpanel>
+      </p-tabpanels>
+    </p-tabs>
+  </div>
+</section>
+}
+
+@if (viewAdmin()) {
+<section class="absolute inset-0 flex items-center justify-center z-40 bg-primary-900/30 backdrop-blur-xl">
+  <div
+    class="w-10/12 max-w-screen md:max-w-3xl h-fit max-h-[90vh] bg-white rounded-xl shadow-2xl z-50 dark:bg-primary-900 flex flex-col overflow-clip">
+
+    <div
+      class="flex-none flex items-center justify-between gap-4 p-4 md:p-6 border-b border-primary-200 dark:border-primary-800 bg-linear-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/10">
+      <div class="flex items-center gap-3">
+        <div
+          class="flex items-center justify-center size-9 rounded-lg bg-red-100 dark:bg-red-900/40 border border-red-200 dark:border-red-800">
+          <i class="pi pi-shield text-red-600 dark:text-red-400 text-sm"></i>
+        </div>
+        <div>
+          <h2 class="text-lg font-bold text-primary-900 dark:text-white leading-none">Administration</h2>
+          <p class="text-xs text-primary-500 dark:text-primary-400 mt-0.5">Handle with care</p>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-1">
+        <p-button (click)="viewAdmin.set(false)" text severity="danger" icon="pi pi-times" />
+      </div>
+    </div>
+
+    <p-tabs value="0" scrollable>
+      <p-tablist>
+        <p-tab value="0" class="flex items-center gap-2">
+          <i class="pi pi-users"></i><span class="font-bold whitespace-nowrap">Users</span>
+        </p-tab>
+        <p-tab value="1" class="flex items-center gap-2">
+          <i class="pi pi-cog"></i><span class="font-bold whitespace-nowrap">Configuration</span>
+        </p-tab>
+      </p-tablist>
+
+      <p-tabpanels>
+        <p-tabpanel value="0">
+          <div class="max-h-[60vh] overflow-y-auto overscroll-contain">
+            <div class="py-4 space-y-4">
+              @if (!adminConfig()?.REGISTER_ENABLE) {
+              <section
+                class="rounded-xl bg-white dark:bg-primary-800 border border-primary-200 dark:border-primary-700">
+                <div class="flex items-center justify-between gap-4 p-4">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div
+                      class="flex items-center justify-center size-9 rounded-lg bg-primary-50 dark:bg-primary-900/30 border border-primary-200 dark:border-primary-700/60 shrink-0">
+                      <i class="pi pi-link text-sm text-primary-500 dark:text-primary-400"></i>
+                    </div>
+                    <div class="min-w-0">
+                      <h2 class="text-sm font-semibold text-primary-900 dark:text-primary-100">Magic Link</h2>
+                      <p class="text-xs text-primary-400 dark:text-primary-500 mt-0.5 min-w-0 truncate">
+                        One-time invite, expires after 24h or first use
+                      </p>
+                    </div>
+                  </div>
+
+                  <p-button icon="pi pi-plus" label="Generate" size="small" text (click)="createMagicLink()" />
+                </div>
+
+                @if (adminMagicLinks().length) {
+                <div class="px-4 pb-4 flex flex-col gap-2">
+                  @for (link of adminMagicLinks(); track link.token) {
+                  <div class="flex items-center gap-2 min-w-0">
+                    <div
+                      class="flex-1 min-w-0 flex items-center h-8 px-3 rounded-lg bg-primary-50 dark:bg-black/30 border border-primary-200 dark:border-primary-700">
+                      <span class="text-xs text-primary-500 dark:text-primary-400 truncate font-mono">{{ link.url
+                        }}</span>
+                    </div>
+                    <div
+                      class="hidden sm:flex items-center gap-1.5 text-xs text-primary-400 dark:text-primary-500 shrink-0">
+                      <span class="size-1.5 rounded-full bg-emerald-500"></span>
+                      <span class="tabular-nums whitespace-nowrap">{{ link.expires | date: 'd MMM y, HH:mm' }}</span>
+                    </div>
+                    <div class="flex items-center gap-0.5 shrink-0">
+                      <p-button icon="pi pi-copy" size="small" text [cdkCopyToClipboard]="link.url" />
+                      <p-button icon="pi pi-trash" severity="danger" size="small" text
+                        (click)="deleteMagicLink(link.token)" />
+                    </div>
+                  </div>
+                  }
+                </div>
+                }
+              </section>
+              }
+
+              @if (adminUsers().length === 0) {
+              <div
+                class="flex flex-col items-center justify-center py-14 text-center rounded-xl border border-dashed border-primary-200 dark:border-primary-700/60">
+                <div
+                  class="size-10 rounded-full bg-primary-100 dark:bg-primary-800 flex items-center justify-center mb-4">
+                  <i class="pi pi-users text-primary-400 dark:text-primary-500"></i>
+                </div>
+                <p class="text-sm font-medium text-primary-900 dark:text-white mb-1">No users found</p>
+                <p class="text-xs text-primary-400 dark:text-primary-500">Registered accounts will appear here</p>
+              </div>
+              } @else {
+              @for (user of adminUsers(); track user.username) {
+              <div
+                class="relative flex flex-col gap-3 p-4 rounded-xl bg-white dark:bg-primary-900 border border-primary-100 dark:border-primary-800 hover:border-primary-300 dark:hover:border-primary-600 hover:shadow-sm transition-all duration-200">
+                <div class="flex items-center justify-between gap-3 min-w-0">
+                  <div class="flex items-center gap-3 min-w-0">
+                    <div class="relative shrink-0">
+                      <div
+                        class="size-9 rounded-full bg-linear-to-br from-primary-200 to-primary-400 dark:from-primary-700 dark:to-primary-500 flex items-center justify-center text-sm font-bold text-primary-800 dark:text-white select-none">
+                        {{ user.username.charAt(0).toUpperCase() }}
+                      </div>
+                    </div>
+
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-2">
+                        <span class="text-sm font-semibold text-primary-900 dark:text-white truncate">{{ user.username
+                          }}</span>
+                        @if (user.is_admin) {
+                        <span
+                          class="shrink-0 text-[10px] font-bold tracking-wider uppercase text-amber-600 dark:text-amber-400">Admin</span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+
+                  @if (user.username !== username) {
+                  <div class="flex items-center gap-0.5 shrink-0">
+                    <p-button icon="pi pi-key" severity="warn" size="small" text pTooltip="Reset password"
+                      tooltipPosition="left" (click)="resetUserPassword(user)" />
+                    <p-button icon="pi pi-trash" severity="danger" size="small" text pTooltip="Delete"
+                      tooltipPosition="left" (click)="deleteUser(user)" />
+                  </div>
+                  }
+                </div>
+
+                <div class="h-px bg-primary-100 dark:bg-primary-800"></div>
+
+                <div class="grid grid-cols-2 gap-x-4 gap-y-2">
+                  <div class="flex items-center gap-2">
+                    <i class="pi pi-map-marker text-[11px] text-primary-300 dark:text-primary-600 shrink-0"></i>
+                    <span class="text-xs text-primary-500 dark:text-primary-400 shrink-0">Places</span>
+                    <span class="text-xs font-semibold text-primary-900 dark:text-white ml-auto tabular-nums">{{
+                      user.quota_places }}</span>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    <i class="pi pi-database text-[11px] text-primary-300 dark:text-primary-600 shrink-0"></i>
+                    <span class="text-xs text-primary-500 dark:text-primary-400 shrink-0">Storage</span>
+                    <span class="text-xs font-semibold text-primary-900 dark:text-white ml-auto tabular-nums">{{
+                      user.quota_bytes | fileSize }}</span>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    <i class="pi pi-google text-[11px] text-primary-300 dark:text-primary-600 shrink-0"></i>
+                    <span class="text-xs text-primary-500 dark:text-primary-400 shrink-0">Google API</span>
+                    <span class="ml-auto">
+                      <i class="text-[11px]"
+                        [class]="user.google_apikey ? 'pi pi-check text-emerald-500' : 'pi pi-minus text-primary-300 dark:text-primary-700'"></i>
+                    </span>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    <i class="pi pi-key text-[11px] text-primary-300 dark:text-primary-600 shrink-0"></i>
+                    <span class="text-xs text-primary-500 dark:text-primary-400 shrink-0">API token</span>
+                    <span class="ml-auto">
+                      <i class="text-[11px]"
+                        [class]="user.api_token ? 'pi pi-check text-emerald-500' : 'pi pi-minus text-primary-300 dark:text-primary-700'"></i>
+                    </span>
+                  </div>
+                </div>
+              </div>
+              }
+              }
+            </div>
+          </div>
+        </p-tabpanel>
+
+        <p-tabpanel value="1">
+          <div class="max-h-[60vh] overflow-y-auto overscroll-contain">
+            <form [formGroup]="adminConfigForm" class="py-4 space-y-6">
+
+              <div>
+                <h3 class="mb-3 text-xs font-bold uppercase tracking-widest text-primary-400 dark:text-primary-500">
+                  Version</h3>
+                <div
+                  class="flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/30 border border-primary-100 dark:border-primary-700">
+                  @if (info()?.update) {
+                  <div class="flex items-center gap-3 min-w-0 flex-1">
+                    <i class="pi pi-sync shrink-0 text-red-500"></i>
+                    <div class="min-w-0">
+                      <span class="text-sm font-medium text-primary-900 dark:text-primary-100 block">TRIP {{
+                        info()?.update }}</span>
+                      <p class="text-xs text-primary-400 dark:text-primary-500">New version available !</p>
+                    </div>
+                  </div>
+                  <p-button icon="pi pi-github" label="Open" size="small" (click)="toGithub()" text />
+                  } @else {
+                  <div class="flex items-center gap-3 min-w-0 flex-1">
+                    <i class="pi pi-sync shrink-0 text-emerald-500"></i>
+                    <div class="min-w-0">
+                      <span class="text-sm font-medium text-primary-900 dark:text-primary-100 block">TRIP {{
+                        info()?.version }}</span>
+                      <p class="text-xs text-primary-400 dark:text-primary-500">Ensure you're running latest version</p>
+                    </div>
+                  </div>
+                  <p-button label="Check update" size="small" (click)="checkUpdate()" text severity="success" />
+                  }
+                </div>
+              </div>
+
+              <div>
+                <h3 class="mb-3 text-xs font-bold uppercase tracking-widest text-primary-400 dark:text-primary-500">
+                  Registration</h3>
+                <div
+                  class="flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/30 border border-primary-100 dark:border-primary-700">
+                  <div class="flex items-center gap-3 min-w-0 flex-1">
+                    <i class="pi pi-user-plus shrink-0"
+                      [class]="adminConfigForm.value.REGISTER_ENABLE ? 'text-emerald-500' : 'text-red-500'"></i>
+                    <div class="min-w-0">
+                      <span class="text-sm font-medium text-primary-900 dark:text-primary-100 block">Open
+                        Registration</span>
+                      <p class="text-xs text-primary-400 dark:text-primary-500">Allow users to self-register</p>
+                    </div>
+                  </div>
+                  <p-toggleswitch formControlName="REGISTER_ENABLE" class="shrink-0 ml-4" />
+                </div>
+              </div>
+
+              <div>
+                <h3 class="mb-3 text-xs font-bold uppercase tracking-widest text-primary-400 dark:text-primary-500">
+                  Defaults</h3>
+                <div class="space-y-2">
+                  <div
+                    class="flex flex-col gap-2 md:flex-row md:items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/30 border border-primary-100 dark:border-primary-700">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                      <i class="pi pi-map text-amber-600 dark:text-amber-400 shrink-0"></i>
+                      <div class="min-w-0">
+                        <span class="text-sm font-medium text-primary-900 dark:text-primary-100 block">Tile URL</span>
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Default map tile layer
+                        </p>
+                      </div>
+                    </div>
+                    <div class="w-full md:w-68">
+                      <input pInputText formControlName="DEFAULT_TILE" pSize="small" fluid />
+                    </div>
+                  </div>
+
+                  <div
+                    class="flex flex-col gap-2 md:flex-row md:items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/30 border border-primary-100 dark:border-primary-700">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                      <i class="pi pi-map text-blue-600 dark:text-blue-400 shrink-0"></i>
+                      <div class="min-w-0">
+                        <span class="text-sm font-medium text-primary-900 dark:text-primary-100 block">Map center</span>
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Default latitude &
+                          longitude</p>
+                      </div>
+                    </div>
+                    <div class="w-full md:w-68 grid grid-cols-2 gap-2">
+                      <input pInputText formControlName="DEFAULT_MAP_LAT" placeholder="Lat" pSize="small" fluid />
+                      <input pInputText formControlName="DEFAULT_MAP_LNG" placeholder="Lng" pSize="small" fluid />
+                    </div>
+                  </div>
+
+                  <div
+                    class="flex flex-col gap-2 md:flex-row md:items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/30 border border-primary-100 dark:border-primary-700">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                      <i class="pi pi-wallet text-primary-600 dark:text-primary-400 shrink-0"></i>
+                      <div class="min-w-0">
+                        <span class="text-sm font-medium text-primary-900 dark:text-primary-100 block">Currency</span>
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Default currency
+                          symbol</p>
+                      </div>
+                    </div>
+                    <div class="w-full md:w-68">
+                      <input pInputText formControlName="DEFAULT_CURRENCY" pSize="small" fluid />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 class="mb-3 text-xs font-bold uppercase tracking-widest text-primary-400 dark:text-primary-500">
+                  Limits</h3>
+                <div class="space-y-2">
+
+                  <div
+                    class="flex flex-col gap-2 md:flex-row md:items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/30 border border-primary-100 dark:border-primary-700">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                      <i class="pi pi-upload text-primary-600 dark:text-primary-400 shrink-0"></i>
+                      <div class="min-w-0">
+                        <span class="text-sm font-medium text-primary-900 dark:text-primary-100 block">Attachments max
+                          (MB)</span>
+                      </div>
+                    </div>
+                    <div class="w-full md:w-68">
+                      <p-inputnumber formControlName="ATTACHMENT_MAX_SIZE" [min]="1" [max]="500" pSize="small" fluid
+                        [showButtons]="false" />
+                    </div>
+                  </div>
+
+                  <div
+                    class="flex flex-col gap-2 md:flex-row md:items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/30 border border-primary-100 dark:border-primary-700">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                      <i class="pi pi-image text-primary-600 dark:text-primary-400 shrink-0"></i>
+                      <div class="min-w-0">
+                        <span class="text-sm font-medium text-primary-900 dark:text-primary-100 block">Image sizes
+                          (px)</span>
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Place · Trip</p>
+                      </div>
+                    </div>
+                    <div class="w-full md:w-68 grid grid-cols-2 gap-2">
+                      <p-inputnumber formControlName="PLACE_IMAGE_SIZE" [min]="100" [max]="4096" placeholder="Place"
+                        pSize="small" fluid [showButtons]="false" />
+                      <p-inputnumber formControlName="TRIP_IMAGE_SIZE" [min]="100" [max]="4096" placeholder="Trip"
+                        pSize="small" fluid [showButtons]="false" />
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <div>
+                <h3 class="mb-3 text-xs font-bold uppercase tracking-widest text-primary-400 dark:text-primary-500">
+                  Authentication</h3>
+                <div class="space-y-2">
+
+                  <div
+                    class="flex flex-col gap-2 md:flex-row md:items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/30 border border-primary-100 dark:border-primary-700">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                      <i class="pi pi-key text-blue-600 dark:text-blue-400 shrink-0"></i>
+                      <div class="min-w-0">
+                        <span class="text-sm font-medium text-primary-900 dark:text-primary-100 block">Token expiry
+                          (min)</span>
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Access · Refresh</p>
+                      </div>
+                    </div>
+                    <div class="w-full md:w-68 grid grid-cols-2 gap-2">
+                      <p-inputnumber formControlName="ACCESS_TOKEN_EXPIRE_MINUTES" [min]="1" placeholder="Access"
+                        pSize="small" fluid [showButtons]="false" />
+                      <p-inputnumber formControlName="REFRESH_TOKEN_EXPIRE_MINUTES" [min]="1" placeholder="Refresh"
+                        pSize="small" fluid [showButtons]="false" />
+                    </div>
+                  </div>
+
+                  <div
+                    class="flex flex-col gap-2 md:flex-row md:items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/30 border border-primary-100 dark:border-primary-700">
+                    <div class="flex items-center gap-3 min-w-0 flex-1">
+                      <i class="pi pi-link text-indigo-600 dark:text-indigo-400 shrink-0"></i>
+                      <div class="min-w-0">
+                        <span class="text-sm font-medium text-primary-900 dark:text-primary-100 block">OIDC</span>
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">OpenID Connect
+                          configuration</p>
+                      </div>
+                    </div>
+                    <div class="w-full md:w-68 space-y-2">
+                      <input pInputText formControlName="OIDC_DISCOVERY_URL" placeholder="Discovery URL" pSize="small"
+                        fluid />
+                      <input pInputText formControlName="OIDC_CLIENT_ID" placeholder="Client ID" pSize="small" fluid />
+                      <input pInputText formControlName="OIDC_CLIENT_SECRET" placeholder="Client Secret" pSize="small"
+                        fluid />
+                      <input pInputText formControlName="OIDC_REDIRECT_URI" placeholder="Redirect URI" pSize="small"
+                        fluid />
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+
+              <div
+                class="select-none flex items-center justify-between p-4 rounded-xl bg-linear-to-r from-blue-50 to-indigo-50 dark:from-primary-800 dark:to-primary-800 border border-blue-100 dark:border-primary-700 shadow-sm">
+                <div class="flex items-center gap-3 min-w-0 flex-1 pr-4">
+                  <i class="pi pi-info-circle text-blue-600 dark:text-blue-400 shrink-0"></i>
+                  <span class="text-sm text-primary-700 dark:text-primary-300 truncate">
+                    @if (adminConfigForm.pristine) {
+                    No changes to save
+                    } @else if (!adminConfigForm.valid) {
+                    Please fix validation errors
+                    } @else {
+                    You have unsaved changes
+                    }
+                  </span>
+                </div>
+
+                <div class="flex gap-2 shrink-0">
+                  <p-button [label]="adminConfigForm.pristine ? 'Saved' : 'Save'" icon="pi pi-check"
+                    (click)="saveConfig()" [disabled]="!adminConfigForm.valid || adminConfigForm.pristine"
+                    size="small" />
+                </div>
+              </div>
+            </form>
           </div>
         </p-tabpanel>
       </p-tabpanels>
