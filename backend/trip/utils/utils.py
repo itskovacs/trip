@@ -1,5 +1,6 @@
 import base64
 import logging
+import shutil
 from io import BytesIO
 from pathlib import Path
 from secrets import token_urlsafe
@@ -12,12 +13,7 @@ from PIL import Image
 from .. import __version__
 from ..config import get_settings
 from .date import dt_utc
-from ..config import Settings
-from ..config import get_settings
-from .date import dt_utc
 
-logger = logging.getLogger(__name__)
-settings = Settings()
 logger = logging.getLogger(__name__)
 
 
@@ -31,13 +27,9 @@ def generate_filename(format: str) -> str:
 
 def assets_folder_path() -> Path:
     return Path(get_settings().ASSETS_FOLDER)
-    return Path(settings.ASSETS_FOLDER)
-    return Path(get_settings().ASSETS_FOLDER)
 
 
 def attachments_folder_path() -> Path:
-    return Path(get_settings().ATTACHMENTS_FOLDER)
-    return Path(settings.ATTACHMENTS_FOLDER)
     return Path(get_settings().ATTACHMENTS_FOLDER)
 
 
@@ -59,16 +51,6 @@ def remove_attachment(trip_id: int, filename: str):
         att_fp = folder / filename
         if att_fp.exists():
             att_fp.unlink()
-        att_fp = attachments_trip_folder_path(trip_id) / filename
-        if not att_fp.exists():
-            return
-        att_fp.unlink()
-        folder = attachments_trip_folder_path(trip_id)
-        att_fp = folder / filename
-        if att_fp.exists():
-            att_fp.unlink()
-        if folder.exists() and not any(folder.iterdir()):
-            folder.rmdir()
         if folder.exists() and not any(folder.iterdir()):
             folder.rmdir()
     except OSError:
@@ -79,8 +61,6 @@ def remove_backup(filename: str):
     if not filename:
         return
     try:
-        backup_fp = Path(get_settings().BACKUPS_FOLDER) / filename
-        backup_fp = Path(settings.BACKUPS_FOLDER) / filename
         backup_fp = Path(get_settings().BACKUPS_FOLDER) / filename
         if not backup_fp.exists():
             return
@@ -102,8 +82,6 @@ def remove_image(filename: str):
 async def httpx_get(link: str) -> str:
     headers = {
         "User-Agent": "Mozilla/5.0 (compatible; TRIP/1 PyJWKClient; +https://github.com/itskovacs/trip)",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36",
-        "User-Agent": "Mozilla/5.0 (compatible; TRIP/1 PyJWKClient; +https://github.com/itskovacs/trip)",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.5",
         "Referer": link,
@@ -119,14 +97,10 @@ async def httpx_get(link: str) -> str:
 
 
 async def download_file(link: str) -> tuple[str, int]:
-async def download_file(link: str, raise_on_error: bool = False) -> str:
-async def download_file(link: str) -> tuple[str, int]:
     if not link[:4] == "http":
         raise HTTPException(status_code=400, detail="Bad Request")
 
     headers = {
-        "User-Agent": "Mozilla/5.0 (compatible; TRIP/1 PyJWKClient; +https://github.com/itskovacs/trip)",
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/137.0.0.0 Safari/537.36",
         "User-Agent": "Mozilla/5.0 (compatible; TRIP/1 PyJWKClient; +https://github.com/itskovacs/trip)",
         "Accept": "image/*",
         "Accept-Language": "en-US,en;q=0.5",
@@ -146,20 +120,7 @@ async def download_file(link: str) -> tuple[str, int]:
             if not infer_extension:
                 infer_extension = "jpg"
             file_size = len(response.content)
-            file_size = len(response.content)
             path = assets_folder_path() / generate_filename(infer_extension)
-            path.write_bytes(response.content)
-            return str(path), file_size
-    except Exception as exc:
-        logger.error(f"[IMAGE FETCH]: {exc}")
-        return "", 0
-            with open(path, "wb") as f:
-                f.write(response.content)
-            return str(path)
-    except Exception as e:
-        if raise_on_error:
-            raise HTTPException(status_code=400, detail=f"Failed to download file: {e}")
-        return ""
             path.write_bytes(response.content)
             return str(path), file_size
     except Exception as exc:
@@ -267,13 +228,9 @@ def save_image_to_file(content: bytes, size: int = 600) -> tuple[str, int]:
 
 
 def save_attachment(trip_id: int, file: UploadFile) -> str:
-async def save_attachment(trip_id: int, file: UploadFile) -> str:
-def save_attachment(trip_id: int, file: UploadFile) -> str:
     if file.content_type != "application/pdf":
         raise ValueError("Unsupported attachment format")
 
-    if file.size > get_settings().ATTACHMENT_MAX_SIZE:
-    if file.size > settings.ATTACHMENT_MAX_SIZE:
     if file.size > get_settings().ATTACHMENT_MAX_SIZE:
         raise ValueError("File size is above ATTACHMENT_MAX_SIZE")
 
@@ -281,8 +238,6 @@ def save_attachment(trip_id: int, file: UploadFile) -> str:
     filepath = attachments_trip_folder_path(trip_id) / filename
     try:
         with open(filepath, "wb") as buf:
-            while chunk := file.file.read(8192):
-            while chunk := await file.read(8192):
             while chunk := file.file.read(8192):
                 buf.write(chunk)
         return filename
