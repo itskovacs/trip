@@ -2,11 +2,11 @@ from datetime import UTC, date, datetime, timedelta
 
 
 def dt_utc() -> datetime:
-    return datetime.now(UTC)
+    return datetime.now(UTC).replace(tzinfo=None)
 
 
 def dt_utc_offset(min: int) -> datetime:
-    return datetime.now(UTC) + timedelta(minutes=min)
+    return (datetime.now(UTC) + timedelta(minutes=min)).replace(tzinfo=None)
 
 
 def iso_to_dt(str: str) -> date:
