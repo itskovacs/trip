@@ -295,3 +295,14 @@ def save_attachment(trip_id: int, file: UploadFile) -> str:
 def silence_http_logging():
     logging.getLogger("httpx").setLevel(logging.WARNING)
     logging.getLogger("httpcore").setLevel(logging.WARNING)
+
+
+def backup_file(fp: Path) -> str:
+    if not fp.exists():
+        return
+
+    ts = dt_utc().strftime("%Y%m%d_%H%M%S")
+    dst = fp.with_name(f"{fp.stem}{fp.suffix}_{ts}.backup")
+
+    shutil.copy2(fp, dst)
+    return dst
