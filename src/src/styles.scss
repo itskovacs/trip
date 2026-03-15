@@ -45,6 +45,21 @@ html {
   line-height: normal;
 }
 
+span,
+h1,
+h2,
+h3,
+h4,
+i {
+  pointer-events: none;
+}
+
+[class^='p-'],
+[class*=' p-'] {
+  pointer-events: auto;
+  pointer-events: all;
+}
+
 // Leaflet override et custom classes
 .class-tooltip {
   border-radius: 8px;
