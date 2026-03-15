@@ -8,18 +8,17 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.gzip import GZipMiddleware
 
 from . import __version__
-from .config import settings
+from .config import get_settings
 from .db.core import init_and_migrate_db
-from .routers import auth, categories, places, providers
-from .routers import settings as settings_r
-from .routers import token, trips
+from .routers import (admin, auth, categories, places, providers, settings,
+                      token, trips)
 from .utils.utils import silence_http_logging
 
-if not Path(settings.FRONTEND_FOLDER).is_dir():
+if not Path(get_settings().FRONTEND_FOLDER).is_dir():
     raise ValueError()
 
-Path(settings.ASSETS_FOLDER).mkdir(parents=True, exist_ok=True)
-Path(settings.ATTACHMENTS_FOLDER).mkdir(parents=True, exist_ok=True)
+Path(get_settings().ASSETS_FOLDER).mkdir(parents=True, exist_ok=True)
+Path(get_settings().ATTACHMENTS_FOLDER).mkdir(parents=True, exist_ok=True)
 
 
 @asynccontextmanager
@@ -44,10 +43,11 @@ app.add_middleware(GZipMiddleware, minimum_size=1000)
 app.include_router(auth.router)
 app.include_router(categories.router)
 app.include_router(places.router)
-app.include_router(settings_r.router)
+app.include_router(settings.router)
 app.include_router(trips.router)
 app.include_router(token.router)
 app.include_router(providers.router)
+app.include_router(admin.router)
 
 
 @app.get("/api/info")
@@ -59,9 +59,9 @@ def info():
 async def not_found_to_spa(request: Request, call_next):
     response = await call_next(request)
     if response.status_code == 404 and not request.url.path.startswith(("/api", "/assets")):
-        return FileResponse(Path(settings.FRONTEND_FOLDER) / "index.html")
+        return FileResponse(Path(get_settings().FRONTEND_FOLDER) / "index.html")
     return response
 
 
-app.mount("/api/assets", StaticFiles(directory=settings.ASSETS_FOLDER), name="static")
-app.mount("/", StaticFiles(directory=settings.FRONTEND_FOLDER, html=True), name="frontend")
+app.mount("/api/assets", StaticFiles(directory=get_settings().ASSETS_FOLDER), name="static")
+app.mount("/", StaticFiles(directory=get_settings().FRONTEND_FOLDER, html=True), name="frontend")
