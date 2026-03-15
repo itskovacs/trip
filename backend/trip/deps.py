@@ -5,7 +5,7 @@ from fastapi import Depends, HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from sqlmodel import Session
 
-from .config import settings
+from .config import get_settings
 from .db.core import get_engine
 from .models.models import User
 
@@ -23,7 +23,7 @@ SessionDep = Annotated[Session, Depends(get_session)]
 
 def get_current_username(token: Annotated[str, Depends(oauth_password_scheme)], session: SessionDep) -> str:
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        payload = jwt.decode(token, get_settings().SECRET_KEY, algorithms=[get_settings().ALGORITHM])
         username = payload.get("sub")
         if not username:
             raise HTTPException(status_code=401, detail="Invalid Token")
@@ -34,3 +34,10 @@ def get_current_username(token: Annotated[str, Depends(oauth_password_scheme)], 
     if not user:
         raise HTTPException(status_code=401, detail="Invalid Token")
     return user.username
+
+
+def require_admin(session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]) -> str:
+    db_user = session.get(User, current_user)
+    if not db_user or not db_user.is_admin:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    return db_user.username
