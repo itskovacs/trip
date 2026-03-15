@@ -6,7 +6,7 @@ from sqlalchemy import update
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
-from ..config import settings
+from ..config import get_settings
 from ..deps import SessionDep, get_current_username
 from ..models.models import (Image, Place, Trip, TripAttachment,
                              TripAttachmentRead, TripChecklistItem,
@@ -23,7 +23,7 @@ from ..models.models import (Image, Place, Trip, TripAttachment,
                              TripShareRead, TripUpdate, User)
 from ..utils.date import dt_utc
 from ..utils.utils import (attachments_trip_folder_path, b64img_decode,
-                           generate_urlsafe, save_attachment,
+                           generate_urlsafe, remove_image, save_attachment,
                            save_image_to_file)
 
 router = APIRouter(prefix="/api/trips", tags=["trips"])
@@ -144,21 +144,26 @@ def create_trip(
 ) -> TripReadBase:
     new_trip = Trip(name=trip.name, currency=trip.currency, user=current_user)
 
+    filename = None
     if trip.image:
         image_bytes = b64img_decode(trip.image)
-        filename = save_image_to_file(image_bytes, settings.TRIP_IMAGE_SIZE)
+        filename, file_size = save_image_to_file(image_bytes, get_settings().TRIP_IMAGE_SIZE)
         if not filename:
             raise HTTPException(status_code=400, detail="Bad request")
 
-        image = Image(filename=filename, user=current_user)
+        image = Image(filename=filename, file_size=file_size, user=current_user)
         session.add(image)
         session.flush()
-        session.refresh(image)
         new_trip.image_id = image.id
 
-    session.add(new_trip)
-    session.commit()
-    session.refresh(new_trip)
+    try:
+        session.add(new_trip)
+        session.commit()
+    except Exception:
+        session.rollback()
+        if filename:
+            remove_image(filename)
+        raise HTTPException(status_code=500, detail="Failed to create")
     return TripReadBase.serialize(new_trip)
 
 
@@ -170,37 +175,26 @@ def update_trip(
     current_user: Annotated[str, Depends(get_current_username)],
 ) -> TripRead:
     db_trip = _get_verified_trip(session, trip_id, current_user)
-
     if db_trip.archived and (trip.archived is not False):
         raise HTTPException(status_code=400, detail="Bad request")
 
     trip_data = trip.model_dump(exclude_unset=True)
-
-    image_b64 = trip_data.pop("image", None)
-    if image_b64:
-        try:
-            image_bytes = b64img_decode(image_b64)
-        except Exception:
-            raise HTTPException(status_code=400, detail="Bad request")
-
-        filename = save_image_to_file(image_bytes, settings.TRIP_IMAGE_SIZE)
+    trip_image = trip_data.pop("image", None)
+    filename = None
+    if trip_image:
+        image_bytes = b64img_decode(trip_image)
+        filename, file_size = save_image_to_file(image_bytes, get_settings().TRIP_IMAGE_SIZE)
         if not filename:
             raise HTTPException(status_code=400, detail="Bad request")
 
-        image = Image(filename=filename, user=current_user)
+        if db_trip.image:
+            session.delete(db_trip.image)
+            session.flush()
+
+        image = Image(filename=filename, file_size=file_size, user=current_user)
         session.add(image)
         session.flush()
-        session.refresh(image)
-
-        if db_trip.image_id:
-            old_image = session.get(Image, db_trip.image_id)
-            try:
-                session.delete(old_image)
-                db_trip.image_id = None
-                session.refresh(db_trip)
-            except Exception:
-                raise HTTPException(status_code=400, detail="Bad request")
-
+        session.refresh(db_trip)
         db_trip.image_id = image.id
 
     place_ids = trip_data.pop("place_ids", None)
@@ -226,9 +220,14 @@ def update_trip(
     for key, value in trip_data.items():
         setattr(db_trip, key, value)
 
-    session.add(db_trip)
-    session.commit()
-    session.refresh(db_trip)
+    try:
+        session.add(db_trip)
+        session.commit()
+    except Exception:
+        session.rollback()
+        if filename:
+            remove_image(filename)
+        raise HTTPException(status_code=500, detail="Failed to update")
     return TripRead.serialize(db_trip)
 
 
@@ -237,9 +236,13 @@ def delete_trip(
     session: SessionDep, trip_id: int, current_user: Annotated[str, Depends(get_current_username)]
 ):
     db_trip = _get_verified_trip(session, trip_id, current_user)
-
     if db_trip.archived:
         raise HTTPException(status_code=400, detail="Bad request")
+
+    for day in db_trip.days:
+        for item in day.items:
+            if item.image:
+                session.delete(item.image)
 
     if db_trip.image:
         try:
@@ -379,16 +382,16 @@ def create_tripitem(
         status=item.status,
     )
 
+    filename = None
     if item.image:
         image_bytes = b64img_decode(item.image)
-        filename = save_image_to_file(image_bytes, 0)
+        filename, file_size = save_image_to_file(image_bytes, 0)
         if not filename:
             raise HTTPException(status_code=400, detail="Bad request")
 
-        image = Image(filename=filename, user=current_user)
+        image = Image(filename=filename, file_size=file_size, user=current_user)
         session.add(image)
         session.flush()
-        session.refresh(image)
         new_item.image_id = image.id
 
     if item.place is not None:
@@ -417,9 +420,14 @@ def create_tripitem(
 
         new_item.attachments = list(attachments)
 
-    session.add(new_item)
-    session.commit()
-    session.refresh(new_item)
+    try:
+        session.add(new_item)
+        session.commit()
+    except Exception:
+        session.rollback()
+        if filename:
+            remove_image(filename)
+        raise HTTPException(status_code=500, detail="Failed to create")
     return TripItemRead.serialize(new_item)
 
 
@@ -447,29 +455,28 @@ def update_tripitem(
 
     item_data = item.model_dump(exclude_unset=True)
     # TODO: Optimize logic; image=data: parse / image=none: remove / no image key: pass
+    filename = None
     if "image" in item_data:  # no image key: pass
         image_b64 = item_data.pop("image", None)  # image=data: parse
         if image_b64:
-            try:
-                image_bytes = b64img_decode(image_b64)
-            except Exception:
-                raise HTTPException(status_code=400, detail="Bad request")
-
-            filename = save_image_to_file(image_bytes, 0)
+            image_bytes = b64img_decode(image_b64)
+            filename, file_size = save_image_to_file(image_bytes, 0)
             if not filename:
                 raise HTTPException(status_code=400, detail="Bad request")
 
-            image = Image(filename=filename, user=current_user)
+            if db_item.image:
+                session.delete(db_item.image)
+                session.flush()
+
+            image = Image(filename=filename, file_size=file_size, user=current_user)
             session.add(image)
             session.flush()
-            session.refresh(image)
-
-            if db_item.image_id:
-                old_image = session.get(Image, db_item.image_id)
-                try:
-                    session.delete(old_image)
-                    db_item.image_id = None
                     session.refresh(db_item)
+                    session.refresh(db_item)
+                except Exception:
+                    raise HTTPException(status_code=400, detail="Bad request")
+
+            session.refresh(db_item)
                 except Exception:
                     raise HTTPException(status_code=400, detail="Bad request")
 
@@ -483,6 +490,7 @@ def update_tripitem(
                     db_item.image_id = None
                     session.refresh(db_item)
                 except Exception:
+                    session.rollback()
                     raise HTTPException(status_code=400, detail="Bad request")
 
     place_id = item_data.pop("place", None)
@@ -522,9 +530,14 @@ def update_tripitem(
     for key, value in item_data.items():
         setattr(db_item, key, value)
 
-    session.add(db_item)
-    session.commit()
-    session.refresh(db_item)
+    try:
+        session.add(db_item)
+        session.commit()
+    except Exception:
+        session.rollback()
+        if filename:
+            remove_image(filename)
+        raise HTTPException(status_code=500, detail="Failed to update")
     return TripItemRead.serialize(db_item)
 
 
@@ -537,7 +550,6 @@ def delete_tripitem(
     current_user: Annotated[str, Depends(get_current_username)],
 ):
     db_trip = _get_verified_trip(session, trip_id, current_user)
-
     if db_trip.archived:
         raise HTTPException(status_code=400, detail="Bad request")
 
@@ -548,6 +560,15 @@ def delete_tripitem(
     db_item = session.get(TripItem, item_id)
     if not db_item or (db_item.day_id != day_id):
         raise HTTPException(status_code=400, detail="Bad request")
+
+    if db_item.image:
+        try:
+            session.delete(db_item.image)
+        except Exception:
+            raise HTTPException(
+                status_code=500,
+                detail="Roses are red, violets are blue, if you're reading this, I'm sorry for you",
+            )
 
     session.delete(db_item)
     session.commit()
@@ -881,7 +902,6 @@ def delete_trip_member(
     current_user: Annotated[str, Depends(get_current_username)],
 ):
     db_trip = _get_verified_trip(session, trip_id, current_user)
-
     if db_trip.archived:
         raise HTTPException(status_code=400, detail="Bad request")
 
@@ -901,12 +921,16 @@ def delete_trip_member(
         raise HTTPException(status_code=404, detail="Not found")
 
     # Set NULL to TripItem.paid_by for this username
-    trip_items = session.exec(
-        select(TripItem.id).join(TripDay).where(TripDay.trip_id == trip_id, TripItem.paid_by == username)
-    ).all()
+    trip_item_ids = (
+        session.exec(
+            select(TripItem.id).join(TripDay).where(TripDay.trip_id == trip_id, TripItem.paid_by == username)
+        )
+        .scalars()
+        .all()
+    )
 
-    if trip_items:
-        session.exec(update(TripItem).where(TripItem.id.in_([id for id in trip_items])).values(paid_by=None))
+    if trip_item_ids:
+        session.exec(update(TripItem).where(TripItem.id.in_(trip_item_ids)).values(paid_by=None))
 
     session.delete(member)
     session.commit()
@@ -951,7 +975,7 @@ def decline_invite(
 
 
 @router.post("/{trip_id}/attachments", response_model=TripAttachmentRead)
-async def create_trip_attachment(
+def create_trip_attachment(
     trip_id: int,
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
@@ -968,7 +992,7 @@ async def create_trip_attachment(
         uploaded_by=current_user,
         trip_id=trip_id,
     )
-    stored_filename = await save_attachment(trip_id, file)
+    stored_filename = save_attachment(trip_id, file)
     if not stored_filename:
         raise HTTPException(status_code=400, detail="Bad request")
 
