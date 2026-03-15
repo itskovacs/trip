@@ -12,6 +12,7 @@ import { ClipboardModule } from '@angular/cdk/clipboard';
 })
 export class SettingsViewTokenComponent {
   token: string = '';
+  msg: string = "This is your TRIP API Key, save it now as you won't be able to see it again";
 
   constructor(
     private ref: DynamicDialogRef,
@@ -19,6 +20,7 @@ export class SettingsViewTokenComponent {
   ) {
     if (this.config.data) {
       this.token = this.config.data.token;
+      if (this.config.data.msg) this.msg = this.config.data.msg;
     }
   }
 
