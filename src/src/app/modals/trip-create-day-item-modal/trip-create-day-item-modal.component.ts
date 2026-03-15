@@ -117,7 +117,7 @@ export class TripCreateDayItemModalComponent {
           attachments: data.item.attachments.map((a: TripAttachment) => a.id),
         });
 
-      if (data.selectedDay) this.itemForm.get('day_id')?.setValue([data.selectedDay]);
+      if (data.selectedDayId) this.itemForm.get('day_id')?.setValue([data.selectedDayId]);
       if (data.selectedPlaceId) {
         this.itemForm.get('place')?.setValue(data.selectedPlaceId);
         this.placeUpdatedTrigger(data.selectedPlaceId);
