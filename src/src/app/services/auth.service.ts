@@ -133,8 +133,9 @@ export class AuthService {
       );
   }
 
-  register(authForm: { username: string; password: string }): Observable<Token> {
-    return this.httpClient.post<Token>(this.apiBaseUrl + '/auth/register', authForm).pipe(
+  register(authForm: { username: string; password: string }, magicToken?: string): Observable<Token> {
+    const body = magicToken ? { ...authForm, magicToken } : authForm;
+    return this.httpClient.post<Token>(this.apiBaseUrl + '/auth/register', body).pipe(
       tap((tokens: Token) => {
         this.loggedUser = authForm.username;
         this.storeTokens(tokens);

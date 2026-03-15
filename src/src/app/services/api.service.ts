@@ -17,6 +17,7 @@ import {
   TripItem,
   TripMember,
 } from '../types/trip';
+import { AdminUser, AppConfig, MagicLink } from '../types/admin';
 
 const NO_AUTH_HEADER = {
   no_auth: '1',
@@ -367,5 +368,48 @@ export class ApiService {
 
   completionGoogleShortlink(id: string): Observable<ProviderPlaceResult> {
     return this.httpClient.get<ProviderPlaceResult>(`${this.apiBaseUrl}/completions/google/resolve-shortlink/${id}`);
+  }
+
+  // Admin endpoints
+  adminGetUsers(): Observable<AdminUser[]> {
+    return this.httpClient.get<AdminUser[]>(this.apiBaseUrl + '/admin/users');
+  }
+
+  adminDeleteUser(username: string): Observable<null> {
+    return this.httpClient.delete<null>(this.apiBaseUrl + `/admin/users/${username}`);
+  }
+
+  adminResetUserPassword(username: string): Observable<string> {
+    return this.httpClient
+      .post<{ temporary: string }>(this.apiBaseUrl + `/admin/users/${username}/reset-password`, {})
+      .pipe(map((resp) => resp.temporary));
+  }
+
+  adminGetMagic(): Observable<MagicLink[]> {
+    return this.httpClient
+      .get<MagicLink[]>(this.apiBaseUrl + '/admin/magic-link')
+      .pipe(
+        map((links) =>
+          links.map((link) => ({ ...link, url: window.location.origin + `/auth?magicToken=${link.token}` })),
+        ),
+      );
+  }
+
+  adminPostMagic(): Observable<MagicLink> {
+    return this.httpClient
+      .post<MagicLink>(this.apiBaseUrl + '/admin/magic-link', {})
+      .pipe(map((link) => ({ ...link, url: window.location.origin + `/auth?magicToken=${link.token}` })));
+  }
+
+  adminDeleteMagic(token: string): Observable<null> {
+    return this.httpClient.delete<null>(this.apiBaseUrl + `/admin/magic-link/${token}`);
+  }
+
+  adminGetConfig(): Observable<AppConfig> {
+    return this.httpClient.get<AppConfig>(this.apiBaseUrl + '/admin/config');
+  }
+
+  adminPutConfig(config: Partial<AppConfig>): Observable<AppConfig> {
+    return this.httpClient.put<AppConfig>(this.apiBaseUrl + '/admin/config', { ...config });
   }
 }
