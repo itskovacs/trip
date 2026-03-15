@@ -547,7 +547,9 @@ class TripDay(TripDayBase, table=True):
     trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE", index=True)
     trip: Trip | None = Relationship(back_populates="days")
 
-    items: list["TripItem"] = Relationship(back_populates="day", cascade_delete=True)
+    items: list["TripItem"] = Relationship(
+        back_populates="day", sa_relationship_kwargs={"order_by": "TripItem.time"}, cascade_delete=True
+    )
 
 
 class TripDayRead(TripDayBase):
