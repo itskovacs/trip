@@ -113,6 +113,18 @@ html {
   stroke-dasharray: 3 20;
 }
 
+.leaflet-tripday-pane-highlighting
+  .leaflet-marker-pane
+  .leaflet-marker-icon:not(.active-trip-place):not(.active-trip-marker) {
+  opacity: 0.55 !important;
+}
+
+.leaflet-tripday-pane-highlighting .leaflet-marker-pane .active-trip-place,
+.leaflet-tripday-pane-highlighting .leaflet-marker-pane .active-trip-marker {
+  opacity: 1 !important;
+  z-index: 1001 !important;
+}
+
 @keyframes dash {
   to {
     stroke-dashoffset: -1000;

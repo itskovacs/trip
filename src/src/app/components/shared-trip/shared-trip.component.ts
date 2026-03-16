@@ -29,6 +29,9 @@ import {
   ChecklistItem,
   TripAttachment,
   PrintOptions,
+  ViewTripItem,
+  DayViewModel,
+  HighlightData,
 } from '../../types/trip';
 import { Category, Place } from '../../types/poi';
 import {
@@ -63,28 +66,6 @@ import { TabsModule } from 'primeng/tabs';
 import { PlaceBoxContentComponent } from '../../shared/place-box-content/place-box-content.component';
 import { PlaceListItemComponent } from '../../shared/place-list-item/place-list-item.component';
 import { TripPrettyPrintModalComponent } from '../../modals/trip-pretty-print-modal/trip-pretty-print-modal.component';
-
-interface ViewTripItem extends TripItem {
-  status?: TripStatus;
-  distance?: number;
-}
-
-interface DayViewModel {
-  day: TripDay;
-  items: ViewTripItem[];
-  stats: {
-    count: number;
-    cost: number;
-    hasPlaces: boolean;
-  };
-}
-
-interface HighlightData {
-  paths: { coords: [number, number][]; options: any }[];
-  markers: any[];
-  gpxData: string[];
-  bounds: [number, number][];
-}
 
 const HIGHLIGHT_COLORS = [
   '#e6194b',
@@ -357,11 +338,13 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
     const markers: any[] = [];
     const gpxData: string[] = [];
     const bounds: [number, number][] = [];
+    const activePlaceIds = new Set<number>();
 
     const processItems = (items: TripItem[], color: string, isSingleDay: boolean) => {
       const coords: [number, number][] = [];
 
       for (const item of items) {
+        if (item.place?.id) activePlaceIds.add(item.place.id);
         const lat = item.lat || item.place?.lat;
         const lng = item.lng || item.place?.lng;
 
@@ -395,7 +378,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
       if (day) processItems(day.items, '#0000FF', true);
     }
 
-    return bounds.length >= 2 || paths.length > 0 ? { paths, markers, gpxData, bounds } : null;
+    return bounds.length >= 2 || paths.length > 0 ? { paths, markers, gpxData, bounds, activePlaceIds } : null;
   });
   selectedItemPropsSet = computed(() => new Set(this.selectedItemProps()));
 
@@ -465,12 +448,29 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
       const data = this.highlightLayerData();
 
       untracked(() => {
+        const activePlaceIds = data?.activePlaceIds || new Set<number>();
+        this.markers.forEach((marker: any, placeId) => {
+          const isHighlighted = activePlaceIds.has(placeId);
+          marker.isHighlightedPlace = isHighlighted;
+          const el = marker.getElement();
+          if (!el) return;
+
+          if (isHighlighted) el.classList.add('active-trip-place');
+          else el.classList.remove('active-trip-place');
+        });
+
         if (this.tripMapAntLayer) {
           this.map?.removeLayer(this.tripMapAntLayer);
           this.tripMapAntLayer = undefined;
         }
 
-        if (!data || !this.map) return;
+        const mapContainer = this.map?.getContainer();
+        if (!data || !this.map) {
+          if (mapContainer) mapContainer.classList.remove('leaflet-tripday-pane-highlighting');
+          return;
+        }
+
+        if (mapContainer) mapContainer.classList.add('leaflet-tripday-pane-highlighting');
 
         const layerGroup = L.featureGroup();
         data.paths.forEach((p) => {
@@ -484,6 +484,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
         });
         data.markers.forEach((item) => {
           const marker = tripDayMarker(item);
+          marker.on('add', (e: any) => e.target.getElement()?.classList.add('active-trip-marker'));
           marker.on('click', () => {
             if (this.selectedItem()?.id === item.id) {
               this.selectedItem.set(null);
@@ -500,7 +501,6 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
         data.gpxData.forEach((gpx) => layerGroup.addLayer(gpxToPolyline(gpx)));
 
         this.tripMapAntLayer = layerGroup;
-
         requestAnimationFrame(() => {
           if (this.tripMapAntLayer && this.map) {
             this.tripMapAntLayer.addTo(this.map);
@@ -665,8 +665,12 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
     allPlaces.forEach((place) => {
       const isUsed = usedIds.has(place.id);
       const marker = placeToMarker(place, false, !isUsed);
-      const itemsUsingPlace = itemsByPlaceId.get(place.id) || [];
+      marker.on('add', (e: any) => {
+        const el = e.target.getElement();
+        if (el && e.target.isHighlightedPlace) el.classList.add('active-trip-place');
+      });
 
+      const itemsUsingPlace = itemsByPlaceId.get(place.id) || [];
       marker.on('click', () => {
         this.selectedPlace.set(place);
         this.selectedItem.set(null);
