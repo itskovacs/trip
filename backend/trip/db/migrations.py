@@ -4,10 +4,28 @@ from pathlib import Path
 from sqlmodel import Session, select
 
 from ..config import get_settings
-from ..models.models import Image
+from ..models.models import Image, User
 from ..utils.utils import backup_file
 
 logger = logging.getLogger(__name__)
+
+
+def _003_set_admin_for_single_user(session: Session):
+    users = session.exec(select(User)).all()
+    if len(users) != 1:
+        return
+
+    user = users[0]
+    if user.is_admin:
+        return
+
+    dst = backup_file(Path(get_settings().SQLITE_FILE))
+    logger.warn(f"[Migration 003_set_admin_for_single_user] Database backed up to {dst} before changes")
+
+    user.is_admin = True
+    session.add(user)
+    session.commit()
+    logger.warn(f"[Migration 003_set_admin_for_single_user] Made {user.username} admin")
 
 
 def _002_remove_orphan_image(session: Session):
@@ -55,3 +73,4 @@ def _001_image_file_size(session: Session):
 def run_migrations(session: Session):
     _001_image_file_size(session)
     _002_remove_orphan_image(session)
+    _003_set_admin_for_single_user(session)

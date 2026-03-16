@@ -175,9 +175,14 @@ def register(req: LoginRegisterModel, session: SessionDep) -> Token:
     if db_user:
         raise HTTPException(status_code=409, detail="The resource already exists")
 
-    new_user = User(username=req.username, password=hash_password(req.password))
+    existing_user = session.exec(select(User)).first()
+    is_first_user = existing_user is None
+
+    new_user = User(username=req.username, password=hash_password(req.password), is_admin=is_first_user)
     session.add(new_user)
     session.commit()
+    if is_first_user:
+        logger.critical(f"[Register]: First user registered, {req.username} is admin")
 
     init_user_data(session, new_user.username)
 
