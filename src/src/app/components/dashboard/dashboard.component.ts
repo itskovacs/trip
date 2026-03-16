@@ -1947,8 +1947,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   saveConfig() {
     if (!this.adminConfigForm.valid) return;
+    const updatedConfig = { ...this.adminConfigForm.value };
+    if (updatedConfig.ATTACHMENT_MAX_SIZE != null)
+      updatedConfig.ATTACHMENT_MAX_SIZE = updatedConfig.ATTACHMENT_MAX_SIZE * 1024 * 1024;
+
     this.apiService
-      .adminPutConfig(this.adminConfigForm.value)
+      .adminPutConfig(updatedConfig)
       .pipe(take(1))
       .subscribe({
         next: (config) => {

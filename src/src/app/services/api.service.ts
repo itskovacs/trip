@@ -406,10 +406,14 @@ export class ApiService {
   }
 
   adminGetConfig(): Observable<AppConfig> {
-    return this.httpClient.get<AppConfig>(this.apiBaseUrl + '/admin/config');
+    return this.httpClient
+      .get<AppConfig>(this.apiBaseUrl + '/admin/config')
+      .pipe(map((config) => ({ ...config, ATTACHMENT_MAX_SIZE: config.ATTACHMENT_MAX_SIZE / (1024 * 1024) })));
   }
 
   adminPutConfig(config: Partial<AppConfig>): Observable<AppConfig> {
-    return this.httpClient.put<AppConfig>(this.apiBaseUrl + '/admin/config', { ...config });
+    return this.httpClient
+      .put<AppConfig>(this.apiBaseUrl + '/admin/config', { ...config })
+      .pipe(map((config) => ({ ...config, ATTACHMENT_MAX_SIZE: config.ATTACHMENT_MAX_SIZE / (1024 * 1024) })));
   }
 }
