@@ -10,6 +10,7 @@ import {
   ViewChild,
   untracked,
   ElementRef,
+  ChangeDetectorRef
 } from '@angular/core';
 import { ApiService } from '../../services/api.service';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -168,6 +169,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   utilsService: UtilsService;
   clipboard: Clipboard;
   routeManager: RouteManagerService;
+  changeDetectionRef: ChangeDetectorRef;
 
   trip = signal<Trip | null>(null);
   tripMembers = signal<TripMember[]>([]);
@@ -472,6 +474,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     this.utilsService = inject(UtilsService);
     this.clipboard = inject(Clipboard);
     this.routeManager = inject(RouteManagerService);
+    this.changeDetectionRef = inject(ChangeDetectorRef);
 
     this.statuses = this.utilsService.statuses;
     this.username = this.utilsService.loggedUser;
@@ -1035,11 +1038,9 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     modal.onClose.pipe(take(1)).subscribe((data: PrintOptions | null) => {
       if (!data) return;
       this.printOptions.set(data);
-
-      setTimeout(() => {
-        window.print();
-        this.printOptions.set(null);
-      }, 400); //increased after primeng21 migration
+      this.changeDetectionRef.detectChanges();
+      window.print();
+      this.printOptions.set(null);
     });
   }
 

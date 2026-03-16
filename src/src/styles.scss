@@ -26,6 +26,12 @@
   .dark {
     color-scheme: light !important;
   }
+
+  .p-dialog,
+  .p-dialog-mask,
+  .p-component-overlay {
+    display: none !important;
+  }
 }
 
 html {
