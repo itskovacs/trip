@@ -5,7 +5,7 @@
     <img [src]="place.image || place.category.image" loading="lazy" [class.grayscale]="grayscale"
       class="w-14 h-14 rounded object-cover shrink-0" />
 
-    <div class="pointer-events-none flex-1 min-w-0">
+    <div class="flex-1 min-w-0">
       <h3 class="text-sm font-semibold text-primary-900 dark:text-white truncate">{{ place.name }}</h3>
       <p class="text-xs text-primary-500 dark:text-primary-400 truncate mb-1.5">{{ place.place }}</p>
 
@@ -37,7 +37,7 @@
         }
 
         <span [style.--color-bg-opacity]="place.category.color"
-          class="pointer-events-none color-bg-opacity flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded truncate">
+          class="color-bg-opacity flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded truncate">
           <span class="truncate">{{ place.category.name }}</span>
         </span>
       </div>

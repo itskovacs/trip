@@ -1,5 +1,5 @@
 <div class="min-h-screen bg-primary-50 dark:bg-primary-950 text-primary-900 dark:text-primary-50">
-  <div class="select-none mx-auto max-w-7xl px-4 pt-8 md:px-6 flex items-center justify-between pointer-events-auto">
+  <div class="select-none mx-auto max-w-7xl px-4 pt-8 md:px-6 flex items-center justify-between">
     <div class="w-fit h-12 p-2 bg-white/70 dark:bg-primary-900/70 rounded-lg shadow-lg shadow-black/5">
       <div (click)="gotoMap()"
         class="cursor-pointer flex items-center gap-2.5 h-8 px-4 hover:bg-primary-100 dark:hover:bg-primary-800 rounded-lg">
@@ -44,12 +44,11 @@
       <div
         class="group relative flex cursor-pointer flex-col overflow-hidden rounded-lg border border-primary-100/80 dark:border-primary-800/80 bg-primary-50 dark:bg-primary-900 shadow-sm transition-all duration-300 hover:border-primary-100 dark:hover:border-primary-900"
         [class]="trip.archived ? 'grayscale opacity-70' : undefined" (click)="viewTrip(trip.id)">
-        <div class="relative aspect-[4/3] overflow-hidden">
+        <div class="relative aspect-4/3 overflow-hidden">
           <img [src]="trip.image || 'cover.webp'" loading="lazy"
             class="select-none h-full w-full object-cover transition-transform duration-500 ease-out group-hover:scale-105" />
 
-          <div
-            class="pointer-events-none absolute inset-0 bg-linear-to-t from-primary-950/75 via-primary-900/0 to-primary-900/0">
+          <div class="absolute inset-0 bg-linear-to-t from-primary-950/75 via-primary-900/0 to-primary-900/0">
           </div>
 
           <div class="absolute left-3 top-3 flex gap-1.5">

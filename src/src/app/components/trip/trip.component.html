@@ -15,10 +15,15 @@
         <div class="w-px h-5 bg-primary-200 dark:bg-primary-800"></div>
 
         <div (click)="toggleDaysPanel()"
-          class="cursor-pointer flex items-center justify-center gap-2 h-9 px-2.5 rounded-lg transition-all"
-          [class]="isDaysPanelVisible() ? 'bg-primary-100 dark:bg-primary-800' : 'hover:bg-primary-100 dark:hover:bg-primary-800'">
+          class="cursor-pointer flex items-center justify-center gap-2 h-9 px-2.5 rounded-lg transition-all" [class]="
+            isDaysPanelVisible()
+              ? 'bg-primary-100 dark:bg-primary-800'
+              : 'hover:bg-primary-100 dark:hover:bg-primary-800'
+          ">
           <div class="w-7 h-7 flex items-center justify-center">
-            <i class="pi text-sm transition-transform duration-200" [class]="isDaysPanelVisible()                   ? 'pi-times text-primary-600 dark:text-primary-400 rotate-90'
+            <i class="pi text-sm transition-transform duration-200" [class]="
+                isDaysPanelVisible()
+                  ? 'pi-times text-primary-600 dark:text-primary-400 rotate-90'
                   : 'pi-calendar text-primary-700 dark:text-primary-300'
               "></i>
           </div>
@@ -250,7 +255,7 @@
             <div
               class="z-20 sticky top-0 flex items-center justify-between gap-2 p-4 min-w-0 bg-primary-50 dark:bg-primary-800 hover:bg-primary-100 border-b border-b-primary-200 dark:border-b-primary-400 dark:hover:bg-primary-900 transition-colors border-l-primary-500 dark:border-l-primary-400 cursor-pointer"
               [class]="selectedDay()?.id == group.day.id ? 'border-l-4' : 'border-l-0'" (click)="onDayClick(group.day)">
-              <div class="pointer-events-none flex items-center gap-3 min-w-0 flex-1">
+              <div class="flex items-center gap-3 min-w-0 flex-1">
                 <div
                   class="shrink-0 flex items-center justify-center w-10 h-10 rounded-lg bg-primary-100 dark:bg-primary-900/30"
                   [class]="highlightedDayId() === group.day.id ? 'ring-2 ring-primary-500 bg-primary-200' : ''">
@@ -289,7 +294,10 @@
                 <div class="flex items-center gap-3 p-3 min-w-0 border-primary-500 rounded-s" [class]="
                           (selectedItem()?.id === item.id ||
                             selectedPlaceItems()[selectedPlaceActiveTabIndex()]?.id === item.id) &&
-                          !isMultiSelectMode() ? 'border-l-4' : 'border-l-0'">
+                          !isMultiSelectMode()
+                            ? 'border-l-4'
+                            : 'border-l-0'
+                        ">
                   <div class="relative shrink-0 flex items-center">
                     @if (item.status) {
                     <span class="absolute -top-1 -right-1 w-3 h-3 rounded-full"
@@ -342,8 +350,7 @@
                     </div>
 
                     @if (item.comment && visibleProps.has('comment')) {
-                    <p
-                      class="pointer-events-none mt-1 text-xs text-primary-500 dark:text-primary-400 line-clamp-1 whitespace-pre-wrap">
+                    <p class="mt-1 text-xs text-primary-500 dark:text-primary-400 line-clamp-1 whitespace-pre-wrap">
                       {{ item.comment }}
                     </p>
                     }
@@ -377,7 +384,7 @@
 
                     @if (item.status && visibleProps.has('status')) {
                     <div
-                      class="pointer-events-none color-bg-opacity flex items-center px-2 py-1 text-xs font-medium rounded-md max-w-[80px] min-w-0"
+                      class="color-bg-opacity flex items-center px-2 py-1 text-xs font-medium rounded-md max-w-[80px] min-w-0"
                       [style.--color-bg-opacity]="item.status.color" [title]="item.status.label">
                       <span class="truncate">{{ item.status.label }}</span>
                     </div>
@@ -385,7 +392,7 @@
                   </div>
 
                   <i
-                    class="pi pi-chevron-right absolute top-1/2 -translate-y-1/2 right-1 bg-primary-100 dark:bg-primary-800 p-1 rounded text-xs opacity-0 group-hover:opacity-100 group-hover:-translate-x-2 transition-all pointer-events-none"></i>
+                    class="pi pi-chevron-right absolute top-1/2 -translate-y-1/2 right-1 bg-primary-100 dark:bg-primary-800 p-1 rounded text-xs opacity-0 group-hover:opacity-100 group-hover:-translate-x-2 transition-all"></i>
                 </div>
               </div>
               } @empty {
@@ -459,7 +466,7 @@
                 </span>
               </div>
               <div class="min-w-0">
-                <h3 class="pointer-events-none font-medium truncate text-primary-900 dark:text-white">
+                <h3 class="font-medium truncate text-primary-900 dark:text-white">
                   {{ group.day.label }}
                 </h3>
                 <p class="text-xs text-primary-500 dark:text-primary-400">
@@ -606,7 +613,7 @@
           }
 
           <div class="flex flex-1 flex-col min-w-0">
-            <div class="pointer-events-none text-lg font-bold text-primary-900 dark:text-white truncate">
+            <div class="text-lg font-bold text-primary-900 dark:text-white truncate">
               {{ item.text }}
             </div>
 
@@ -669,7 +676,7 @@
                 <div class="flex flex-col min-w-0">
                   <span
                     class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">Text</span>
-                  <div class="pointer-events-none line-clamp-2 text-primary-900 dark:text-primary-100 wrap-break-word">
+                  <div class="line-clamp-2 text-primary-900 dark:text-primary-100 wrap-break-word">
                     {{ item.text }}
                   </div>
                 </div>
@@ -812,7 +819,7 @@
             }
 
             <div class="flex flex-1 flex-col min-w-0">
-              <div class="pointer-events-none text-lg font-bold text-primary-900 dark:text-white truncate">
+              <div class="text-lg font-bold text-primary-900 dark:text-white truncate">
                 {{ item.text }}
               </div>
 
@@ -848,7 +855,7 @@
           <div class="flex flex-1 flex-col min-w-0">
             <span
               class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">Text</span>
-            <div class="pointer-events-none line-clamp-2 text-primary-900 dark:text-primary-100 wrap-break-word">
+            <div class="line-clamp-2 text-primary-900 dark:text-primary-100 wrap-break-word">
               {{ item.text }}
             </div>
           </div>
@@ -1195,8 +1202,13 @@
       @for (m of tripMembers(); track m.user) {
       <div class="flex items-center justify-between gap-6 py-5">
         <div class="flex items-center min-w-0 gap-4">
-          <div class="size-12 flex flex-none rounded-full items-center justify-center"
-            [class]="!m.invited_at ? 'bg-red-100 dark:bg-red-200' : m.invited_at && !m.joined_at ? 'bg-primary-50  dark:bg-primary-200' : 'bg-blue-100  dark:bg-blue-200'">
+          <div class="size-12 flex flex-none rounded-full items-center justify-center" [class]="
+                !m.invited_at
+                  ? 'bg-red-100 dark:bg-red-200'
+                  : m.invited_at && !m.joined_at
+                    ? 'bg-primary-50  dark:bg-primary-200'
+                    : 'bg-blue-100  dark:bg-blue-200'
+              ">
             <i class="pi pi-user text-primary-400 dark:text-primary-600"></i>
           </div>
 
@@ -1223,10 +1235,14 @@
         </div>
 
         <div class="flex items-center gap-2">
-          <span
-            [class]="m.balance ? m.balance > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' : 'bg-primary-100 text-primary-800'"
-            class="text-center text-xs px-2.5 py-0.5 rounded-md group-hover:hidden">{{
-            m.balance || '-' }} {{ trip()?.currency }}</span>
+          <span [class]="
+                m.balance
+                  ? m.balance > 0
+                    ? 'bg-green-100 text-green-800'
+                    : 'bg-red-100 text-red-800'
+                  : 'bg-primary-100 text-primary-800'
+              " class="text-center text-xs px-2.5 py-0.5 rounded-md group-hover:hidden">{{ m.balance || '-' }} {{
+            trip()?.currency }}</span>
 
           @if (m.invited_at) {
           <p-button text (click)="deleteMember(m.user)" [disabled]="trip()?.archived" icon="pi pi-trash"
@@ -1349,9 +1365,13 @@
   <ng-container>
     @if (t?.shared) {
     <div class="flex items-center flex-col gap-2">
-      <div>{{ t?.name }} is <span class="font-medium" [class.text-red-500]="shared_full_access">{{ shared_full_access ?
-          'fully' : 'partially' }}</span> shared
-        on this link:</div>
+      <div>
+        {{ t?.name }} is
+        <span class="font-medium" [class.text-red-500]="shared_full_access">{{
+          shared_full_access ? 'fully' : 'partially'
+          }}</span>
+        shared on this link:
+      </div>
       <div
         class="flex justify-between items-center w-full rounded-xl border border-primary-300 bg-white dark:bg-black p-2 pl-3 pr-2 shadow-sm">
         <p-button text icon="pi pi-trash" severity="danger" (click)="unshareTrip()" />
@@ -1371,8 +1391,8 @@
           <i class="pi pi-share-alt text-primary-600 dark:text-primary-400 shrink-0"></i>
           <div class="min-w-0 flex-1">
             <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">Base share</span>
-            <p class="text-xs text-primary-500 dark:text-primary-400 block">Include basic details: days, places, time,
-              text...
+            <p class="text-xs text-primary-500 dark:text-primary-400 block">
+              Include basic details: days, places, time, text...
             </p>
           </div>
         </div>
@@ -1385,13 +1405,13 @@
           <i class="pi pi-share-alt text-red-600 dark:text-red-400 shrink-0"></i>
           <div class="min-w-0 flex-1">
             <span class="font-medium text-sm text-red-900 dark:text-red-100 block">Complete share</span>
-            <p class="text-xs text-red-500 dark:text-red-400 block">Include everything (documents, descriptions, etc.)
+            <p class="text-xs text-red-500 dark:text-red-400 block">
+              Include everything (documents, descriptions, etc.)
             </p>
           </div>
         </div>
         <p-button (click)="shareTrip()" [outlined]="true" severity="danger" label="Full Share" />
       </div>
-
     </div>
     }
   </ng-container>
@@ -1404,7 +1424,9 @@
     <div class="flex flex-col items-center max-w-[55vw] md:max-w-full">
       <div class="flex flex-col items-center">
         <img src="favicon.png" class="size-20" />
-        <div class="flex gap-2 items-center text-xs text-primary-500"><i class="pi pi-github"></i>itskovacs/trip</div>
+        <div class="flex gap-2 items-center text-xs text-primary-500">
+          <i class="pi pi-github"></i>itskovacs/trip
+        </div>
       </div>
 
       <h1 class="mt-4 tracking-tight text-3xl font-semibold truncate p-2">{{ trip()?.name }}</h1>
@@ -1428,9 +1450,8 @@
     <div class="text-2xl font-semibold">Notes</div>
 
     <div class="mt-4 border-l-3 border-primary-900 pl-6 py-2">
-      <p class="text-sm leading-relaxed text-primary-800 whitespace-pre-wrap">
-        {{ trip()?.notes || 'Nothing there.' }}
-      </p>
+      <span class="text-sm leading-relaxed text-primary-800 whitespace-pre-wrap">{{
+        trip()?.notes || 'Nothing there.' }}</span>
     </div>
   </div>
   }
@@ -1439,7 +1460,6 @@
     <div class="text-2xl font-semibold">Itinerary</div>
 
     <div class="mt-4">
-      @let visibleProps = selectedItemPropsSet();
       @for (group of tripViewModel(); track group.day.id) {
       @if (options?.days?.has(group.day.id)) {
       <div class="mb-12">
@@ -1457,16 +1477,17 @@
 
         @if (options?.notes && group.day.notes) {
         <div class="border-l-3 border-primary-900 pl-6 py-2 mb-4">
-          <p class="text-sm leading-relaxed text-primary-800 whitespace-pre-wrap">
-            {{ group.day.notes }}
-          </p>
+          <span class="text-sm leading-relaxed text-primary-800 whitespace-pre-wrap">{{
+            group.day.notes }}
+          </span>
         </div>
         }
 
         @for (item of group.items; track item.id) {
         <div class="flex gap-4 items-center rounded-lg p-3 -mx-3">
           <span class="px-2.5 py-1 text-xs font-mono font-medium bg-primary-100 text-primary-700 rounded">{{
-            item.time }}</span>
+            item.time
+            }}</span>
 
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2">
@@ -1474,7 +1495,7 @@
               <h4 class="font-semibold text-primary-900">{{ item.text }}</h4>
               }
               @if (options?.props?.has('place') && item.place) {
-              <div class="w-fit color-bg-opacity flex items-center gap-2 px-2.5 py-1 rounded-full"
+              <div class="w-fit color-bg-opacity flex items-center gap-2 px-2.5 py-1 rounded-lg"
                 [style.--color-bg-opacity]="item.place.category.color">
                 <img [src]="item.place.image || item.place.category.image" class="w-5 h-5 rounded-full object-cover" />
                 <span class="text-sm font-medium text-primary-900 truncate">
@@ -1524,7 +1545,7 @@
     <div class="mt-4">
       @for (place of printOptionsPlaces(); track place.id) {
       <div [style.--color-bg-opacity]="place.category.color"
-        class="inline-flex color-bg-opacity items-center gap-2 font-medium p-1 pr-3 m-1 rounded-full">
+        class="inline-flex color-bg-opacity items-center gap-2 font-medium p-1 pr-3 m-1 rounded-lg">
         <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden shrink-0">
           <img [src]="place.image" class="size-full object-cover" />
         </div>
@@ -1537,15 +1558,11 @@
       }
     </div>
 
-    <div class="mt-4 text-right">
+    <div class="mt-4 flex gap-1 justify-end">
       @for (category of getCategoriesFromPlaces(printOptionsPlaces()); track category.id) {
       <div [style.--color-bg-opacity]="category.color"
-        class="inline-flex color-bg-opacity items-center gap-2 font-medium p-1 pr-3 m-1 rounded">
-        <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden shrink-0">
-          <img [src]="category.image" class="size-full object-cover" />
-        </div>
-        <span class="text-sm text-primary-900">{{ category.name }}</span>
-      </div>
+        class="w-fit color-bg-opacity items-center gap-2 font-medium p-1 px-3 rounded text-sm text-primary-900">{{
+        category.name }}</div>
       }
     </div>
   </div>

@@ -78,9 +78,9 @@
       <div class="w-px h-5 bg-primary-200 dark:bg-primary-800"></div>
 
       <div (click)="toggleSettings()"
-        class="cursor-pointer flex items-center justify-center w-9 h-9 hover:bg-primary-100 dark:hover:bg-primary-900 rounded-lg transition-all">
-        <i class="pi pi-cog text-primary-700 dark:text-primary-300 text-sm transition-transform duration-300"
-          [class.rotate-90]="viewSettings()"></i>
+        class="cursor-pointer group flex items-center justify-center w-9 h-9 hover:bg-primary-100 dark:hover:bg-primary-900 rounded-lg transition-all">
+        <i
+          class="pi pi-cog text-primary-700 dark:text-primary-300 group-hover:rotate-90 text-sm transition-transform duration-300"></i>
       </div>
     </div>
   </div>
@@ -843,8 +843,10 @@
                       <div class="min-w-0">
                         <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">Duplicate
                           distance threshold</span>
-                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Control how closely
-                          strings must match. Higher values accept more differences; 0 to disable</p>
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">
+                          Control how closely strings must match. Higher values accept more differences; 0 to
+                          disable
+                        </p>
                       </div>
                     </div>
                     <div class="w-full md:w-68">
@@ -1005,7 +1007,6 @@
                     }
                   </div>
                   <div class="flex flex-col min-w-0">
-
                     @switch (backup.status) {
                     @case ('processing') {
                     <div class="flex items-center gap-2">
@@ -1035,15 +1036,14 @@
                     <div class="mt-1 flex items-center gap-2 text-xs text-primary-400 dark:text-primary-500">
                       <span class="font-mono tabular-nums">{{ backup.file_size || 0 | fileSize }}</span>
                       @if (backup.created_at) {
-                      <span class="opacity-40">·</span>
+                      <span class="opacity-40">&middot;</span>
                       <span>{{ backup.created_at | date: 'd MMM y' }}</span>
                       }
                       @if (backup.status === 'failed' && backup.error_message) {
-                      <span class="opacity-40">·</span>
+                      <span class="opacity-40">&middot;</span>
                       <span class="text-red-500 dark:text-red-400 truncate">{{ backup.error_message }}</span>
                       }
                     </div>
-
                   </div>
 
                   <div class="flex items-center gap-1 ml-auto shrink-0">
@@ -1057,8 +1057,8 @@
                   </div>
                 </div>
                 } @empty {
-                <div class="flex flex-col items-center justify-center py-14 text-center rounded-xl border border-dashed
-            border-primary-200 dark:border-primary-700/60">
+                <div
+                  class="flex flex-col items-center justify-center py-14 text-center rounded-xl border border-dashed border-primary-200 dark:border-primary-700/60">
                   <div
                     class="size-10 rounded-full bg-primary-100 dark:bg-primary-800 flex items-center justify-center mb-4">
                     <i class="pi pi-database text-primary-400 dark:text-primary-500"></i>
@@ -1067,13 +1067,12 @@
                   <p class="text-xs text-primary-400 dark:text-primary-500 mb-5 max-w-[18rem]">
                     Create a backup to safeguard your data
                   </p>
-                  <button (click)="createBackup()" class="cursor-pointer inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary-900 dark:bg-white
-           text-white dark:text-primary-900 text-xs font-semibold hover:opacity-80 transition-opacity">
+                  <button (click)="createBackup()"
+                    class="cursor-pointer inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary-900 dark:bg-white text-white dark:text-primary-900 text-xs font-semibold hover:opacity-80 transition-opacity">
                     <i class="pi pi-plus text-[10px]"></i>
                     Create backup
                   </button>
                 </div>
-
                 }
               </div>
             </div>
@@ -1089,7 +1088,6 @@
 <section class="absolute inset-0 flex items-center justify-center z-40 bg-primary-900/30 backdrop-blur-xl">
   <div
     class="w-10/12 max-w-screen md:max-w-3xl h-fit max-h-[90vh] bg-white rounded-xl shadow-2xl z-50 dark:bg-primary-900 flex flex-col overflow-clip">
-
     <div
       class="flex-none flex items-center justify-between gap-4 p-4 md:p-6 border-b border-primary-200 dark:border-primary-800 bg-linear-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/10">
       <div class="flex items-center gap-3">
@@ -1148,13 +1146,16 @@
                   <div class="flex items-center gap-2 min-w-0">
                     <div
                       class="flex-1 min-w-0 flex items-center h-8 px-3 rounded-lg bg-primary-50 dark:bg-black/30 border border-primary-200 dark:border-primary-700">
-                      <span class="text-xs text-primary-500 dark:text-primary-400 truncate font-mono">{{ link.url
+                      <span class="text-xs text-primary-500 dark:text-primary-400 truncate font-mono">{{
+                        link.url
                         }}</span>
                     </div>
                     <div
                       class="hidden sm:flex items-center gap-1.5 text-xs text-primary-400 dark:text-primary-500 shrink-0">
                       <span class="size-1.5 rounded-full bg-emerald-500"></span>
-                      <span class="tabular-nums whitespace-nowrap">{{ link.expires | date: 'd MMM y, HH:mm' }}</span>
+                      <span class="tabular-nums whitespace-nowrap">{{
+                        link.expires | date: 'd MMM y, HH:mm'
+                        }}</span>
                     </div>
                     <div class="flex items-center gap-0.5 shrink-0">
                       <p-button icon="pi pi-copy" size="small" text [cdkCopyToClipboard]="link.url" />
@@ -1193,7 +1194,8 @@
 
                     <div class="min-w-0">
                       <div class="flex items-center gap-2">
-                        <span class="text-sm font-semibold text-primary-900 dark:text-white truncate">{{ user.username
+                        <span class="text-sm font-semibold text-primary-900 dark:text-white truncate">{{
+                          user.username
                           }}</span>
                         @if (user.is_admin) {
                         <span
@@ -1220,22 +1222,27 @@
                     <i class="pi pi-map-marker text-[11px] text-primary-300 dark:text-primary-600 shrink-0"></i>
                     <span class="text-xs text-primary-500 dark:text-primary-400 shrink-0">Places</span>
                     <span class="text-xs font-semibold text-primary-900 dark:text-white ml-auto tabular-nums">{{
-                      user.quota_places }}</span>
+                      user.quota_places
+                      }}</span>
                   </div>
 
                   <div class="flex items-center gap-2">
                     <i class="pi pi-database text-[11px] text-primary-300 dark:text-primary-600 shrink-0"></i>
                     <span class="text-xs text-primary-500 dark:text-primary-400 shrink-0">Storage</span>
                     <span class="text-xs font-semibold text-primary-900 dark:text-white ml-auto tabular-nums">{{
-                      user.quota_bytes | fileSize }}</span>
+                      user.quota_bytes | fileSize
+                      }}</span>
                   </div>
 
                   <div class="flex items-center gap-2">
                     <i class="pi pi-google text-[11px] text-primary-300 dark:text-primary-600 shrink-0"></i>
                     <span class="text-xs text-primary-500 dark:text-primary-400 shrink-0">Google API</span>
                     <span class="ml-auto">
-                      <i class="text-[11px]"
-                        [class]="user.google_apikey ? 'pi pi-check text-emerald-500' : 'pi pi-minus text-primary-300 dark:text-primary-700'"></i>
+                      <i class="text-[11px]" [class]="
+                                user.google_apikey
+                                  ? 'pi pi-check text-emerald-500'
+                                  : 'pi pi-minus text-primary-300 dark:text-primary-700'
+                              "></i>
                     </span>
                   </div>
 
@@ -1243,8 +1250,11 @@
                     <i class="pi pi-key text-[11px] text-primary-300 dark:text-primary-600 shrink-0"></i>
                     <span class="text-xs text-primary-500 dark:text-primary-400 shrink-0">API token</span>
                     <span class="ml-auto">
-                      <i class="text-[11px]"
-                        [class]="user.api_token ? 'pi pi-check text-emerald-500' : 'pi pi-minus text-primary-300 dark:text-primary-700'"></i>
+                      <i class="text-[11px]" [class]="
+                                user.api_token
+                                  ? 'pi pi-check text-emerald-500'
+                                  : 'pi pi-minus text-primary-300 dark:text-primary-700'
+                              "></i>
                     </span>
                   </div>
                 </div>
@@ -1258,10 +1268,10 @@
         <p-tabpanel value="1">
           <div class="max-h-[60vh] overflow-y-auto overscroll-contain">
             <form [formGroup]="adminConfigForm" class="py-4 space-y-6">
-
               <div>
                 <h3 class="mb-3 text-xs font-bold uppercase tracking-widest text-primary-400 dark:text-primary-500">
-                  Version</h3>
+                  Version
+                </h3>
                 <div
                   class="flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/30 border border-primary-100 dark:border-primary-700">
                   @if (info()?.update) {
@@ -1280,7 +1290,9 @@
                     <div class="min-w-0">
                       <span class="text-sm font-medium text-primary-900 dark:text-primary-100 block">TRIP {{
                         info()?.version }}</span>
-                      <p class="text-xs text-primary-400 dark:text-primary-500">Ensure you're running latest version</p>
+                      <p class="text-xs text-primary-400 dark:text-primary-500">
+                        Ensure you're running latest version
+                      </p>
                     </div>
                   </div>
                   <p-button label="Check update" size="small" (click)="checkUpdate()" text severity="success" />
@@ -1290,7 +1302,8 @@
 
               <div>
                 <h3 class="mb-3 text-xs font-bold uppercase tracking-widest text-primary-400 dark:text-primary-500">
-                  Registration</h3>
+                  Registration
+                </h3>
                 <div
                   class="flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/30 border border-primary-100 dark:border-primary-700">
                   <div class="flex items-center gap-3 min-w-0 flex-1">
@@ -1308,7 +1321,8 @@
 
               <div>
                 <h3 class="mb-3 text-xs font-bold uppercase tracking-widest text-primary-400 dark:text-primary-500">
-                  Defaults</h3>
+                  Defaults
+                </h3>
                 <div class="space-y-2">
                   <div
                     class="flex flex-col gap-2 md:flex-row md:items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/30 border border-primary-100 dark:border-primary-700">
@@ -1316,7 +1330,8 @@
                       <i class="pi pi-map text-amber-600 dark:text-amber-400 shrink-0"></i>
                       <div class="min-w-0">
                         <span class="text-sm font-medium text-primary-900 dark:text-primary-100 block">Tile URL</span>
-                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Default map tile layer
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">
+                          Default map tile layer
                         </p>
                       </div>
                     </div>
@@ -1331,8 +1346,9 @@
                       <i class="pi pi-map text-blue-600 dark:text-blue-400 shrink-0"></i>
                       <div class="min-w-0">
                         <span class="text-sm font-medium text-primary-900 dark:text-primary-100 block">Map center</span>
-                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Default latitude &
-                          longitude</p>
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">
+                          Default latitude & longitude
+                        </p>
                       </div>
                     </div>
                     <div class="w-full md:w-68 grid grid-cols-2 gap-2">
@@ -1347,8 +1363,9 @@
                       <i class="pi pi-wallet text-primary-600 dark:text-primary-400 shrink-0"></i>
                       <div class="min-w-0">
                         <span class="text-sm font-medium text-primary-900 dark:text-primary-100 block">Currency</span>
-                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Default currency
-                          symbol</p>
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">
+                          Default currency symbol
+                        </p>
                       </div>
                     </div>
                     <div class="w-full md:w-68">
@@ -1360,9 +1377,9 @@
 
               <div>
                 <h3 class="mb-3 text-xs font-bold uppercase tracking-widest text-primary-400 dark:text-primary-500">
-                  Limits</h3>
+                  Limits
+                </h3>
                 <div class="space-y-2">
-
                   <div
                     class="flex flex-col gap-2 md:flex-row md:items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/30 border border-primary-100 dark:border-primary-700">
                     <div class="flex items-center gap-3 min-w-0 flex-1">
@@ -1385,7 +1402,8 @@
                       <div class="min-w-0">
                         <span class="text-sm font-medium text-primary-900 dark:text-primary-100 block">Image sizes
                           (px)</span>
-                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Place · Trip</p>
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Place &middot; Trip
+                        </p>
                       </div>
                     </div>
                     <div class="w-full md:w-68 grid grid-cols-2 gap-2">
@@ -1395,15 +1413,14 @@
                         pSize="small" fluid [showButtons]="false" />
                     </div>
                   </div>
-
                 </div>
               </div>
 
               <div>
                 <h3 class="mb-3 text-xs font-bold uppercase tracking-widest text-primary-400 dark:text-primary-500">
-                  Authentication</h3>
+                  Authentication
+                </h3>
                 <div class="space-y-2">
-
                   <div
                     class="flex flex-col gap-2 md:flex-row md:items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/30 border border-primary-100 dark:border-primary-700">
                     <div class="flex items-center gap-3 min-w-0 flex-1">
@@ -1411,7 +1428,8 @@
                       <div class="min-w-0">
                         <span class="text-sm font-medium text-primary-900 dark:text-primary-100 block">Token expiry
                           (min)</span>
-                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Access · Refresh</p>
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">Access &middot;
+                          Refresh</p>
                       </div>
                     </div>
                     <div class="w-full md:w-68 grid grid-cols-2 gap-2">
@@ -1428,8 +1446,9 @@
                       <i class="pi pi-link text-indigo-600 dark:text-indigo-400 shrink-0"></i>
                       <div class="min-w-0">
                         <span class="text-sm font-medium text-primary-900 dark:text-primary-100 block">OIDC</span>
-                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">OpenID Connect
-                          configuration</p>
+                        <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">
+                          OpenID Connect configuration
+                        </p>
                       </div>
                     </div>
                     <div class="w-full md:w-68 space-y-2">
@@ -1442,7 +1461,6 @@
                         fluid />
                     </div>
                   </div>
-
                 </div>
               </div>
 

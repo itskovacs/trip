@@ -1681,6 +1681,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   toggleOutOfBoundsPlaces() {
     this.hideOutOfBoundsPlaces.update((v) => !v);
   }
+
   geocodeFilter() {
     const value = this.geocodeFilterInput.value;
     if (!value) return;
@@ -1847,7 +1848,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         next: (config) => {
           this.adminConfig.set(config);
           this.adminConfigForm.patchValue(config);
-          console.log(this.adminConfigForm.value);
         },
         error: () => this.utilsService.toast('error', 'Error', 'Failed to load configuration'),
       });

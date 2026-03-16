@@ -1,6 +1,6 @@
 <section>
   <div class="rounded-lg bg-primary-50 dark:bg-primary-950 px-4 py-3 mb-4 flex items-center gap-4 justify-between">
-    <div class="pointer-events-none flex items-center gap-4">
+    <div class="flex items-center gap-4">
       <span [class]="
           validPlaces() === places().length
             ? 'text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900'
@@ -25,10 +25,10 @@
   <div
     class="rounded-lg bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-900 px-4 py-3 mb-4 space-y-4">
     <i class="pi pi-exclamation-triangle text-orange-600 dark:text-orange-400 shrink-0"></i>
-    <span class="pointer-events-none ml-2 text-sm font-medium text-orange-900 dark:text-orange-100">Looks like there are
-      a few duplicates:</span>
+    <span class="ml-2 text-sm font-medium text-orange-900 dark:text-orange-100">Looks like there are a few
+      duplicates:</span>
 
-    <div class="pointer-events-none flex items-center justify-center flex-wrap gap-2">
+    <div class="flex items-center justify-center flex-wrap gap-2">
       @for (duplicate of duplicatePlaceNames(); track $index) {
       <span
         class="max-w-[calc(50%-1rem)] mr-1 flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded truncate bg-primary-100 dark:bg-primary-800">
@@ -51,16 +51,16 @@
       <p-button class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 transition-opacity" text
         severity="danger" size="small" icon="pi pi-times" (click)="deletePlace(p); $event.stopPropagation()" />
 
-      <div class="pointer-events-none w-14 h-14 rounded overflow-hidden bg-primary-100 dark:bg-primary-800">
+      <div class="w-14 h-14 rounded overflow-hidden bg-primary-100 dark:bg-primary-800">
         <img [src]="p.image || 'favicon.png'" class="w-full h-full object-cover" alt="Place image" />
       </div>
 
       <div class="flex-1 min-w-0">
-        <h3 class="pointer-events-none text-sm font-semibold truncate" [class.invalid-content]="!isPlaceValid(p)"
+        <h3 class="text-sm font-semibold truncate" [class.invalid-content]="!isPlaceValid(p)"
           [class]="isPlaceValid(p) ? 'text-primary-900 dark:text-white' : 'text-red-500'">
           {{ p.name }}
         </h3>
-        <p class="pointer-events-none text-xs text-primary-600 dark:text-primary-400 truncate mt-0.5">
+        <p class="text-xs text-primary-600 dark:text-primary-400 truncate mt-0.5">
           {{ p.place }}
         </p>
 
@@ -90,8 +90,7 @@
           </span>
 
           @if (p.category_id && categoryIDToCategory(p.category_id); as category) {
-          <span
-            class="pointer-events-none color-bg-opacity flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded truncate"
+          <span class="color-bg-opacity flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded truncate"
             [style.--color-bg-opacity]="category.color">
             <span class="truncate">{{ category.name }}</span>
           </span>

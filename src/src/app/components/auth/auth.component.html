@@ -30,7 +30,6 @@
       </p>
       }
 
-
       @if (error()) {
       <div class="mt-4">
         <p-message severity="error" variant="outlined" [life]="3000">{{ error() }}</p-message>
@@ -94,12 +93,10 @@
       <p class="mt-4 select-none">
         First time?
         <a (click)="isRegistering.set(true)"
-          class="text-blue-500 hover:text-blue-700 font-semibold cursor-pointer">Create
-          an account</a>
+          class="text-blue-500 hover:text-blue-700 font-semibold cursor-pointer">Create an account</a>
       </p>
       }
       }
-
       }
       } @placeholder (minimum 0.4s) {
       <div class="mt-4">
