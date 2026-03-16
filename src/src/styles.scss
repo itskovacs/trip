@@ -1,27 +1,6 @@
 @use './tailwind.css';
 @use 'primeicons/primeicons.css';
 
-* {
-  scrollbar-width: thin;
-  scroll-behavior: smooth;
-  overscroll-behavior: none;
-
-  ::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: #999;
-    border-radius: 20px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: #fff;
-    border-radius: 20px;
-  }
-}
-
 @media print {
   .dark {
     color-scheme: light !important;
@@ -49,22 +28,8 @@ html {
     'Segoe UI Emoji',
     'Segoe UI Symbol';
   line-height: normal;
+  scroll-behavior: smooth;
 }
-
-// span,
-// h1,
-// h2,
-// h3,
-// h4,
-// i {
-//   pointer-events: none;
-// }
-
-// [class^='p-'],
-// [class*=' p-'] {
-//   pointer-events: auto;
-//   pointer-events: all;
-// }
 
 // Leaflet override et custom classes
 .class-tooltip {
