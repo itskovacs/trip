@@ -370,18 +370,18 @@
     class="w-10/12 max-w-screen md:max-w-3xl h-fit max-h-[90vh] bg-white rounded-xl shadow-2xl z-50 dark:bg-primary-900 flex flex-col overflow-clip">
     <div
       class="flex-none flex items-center justify-between gap-4 p-4 md:p-6 border-b border-primary-200 dark:border-primary-800 bg-primary-50 dark:bg-primary-800">
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 min-w-0">
         <div
-          class="flex items-center justify-center size-9 rounded-lg bg-primary-100 dark:bg-primary-900/40 border border-primary-200 dark:border-primary-800">
+          class="flex shrink-0 items-center justify-center size-9 rounded-lg bg-primary-100 dark:bg-primary-900/40 border border-primary-200 dark:border-primary-800">
           <i class="pi pi-cog text-primary-600 dark:text-primary-400 text-sm"></i>
         </div>
-        <div>
+        <div class="min-w-0">
           <h2 class="text-lg font-bold text-primary-900 dark:text-white leading-none">Settings</h2>
-          <p class="text-xs text-primary-500 dark:text-primary-400 mt-0.5">Customize your experience</p>
+          <p class="text-xs text-primary-500 dark:text-primary-400 mt-0.5 truncate">Customize your experience</p>
         </div>
       </div>
 
-      <div class="flex items-center gap-1">
+      <div class="flex items-center gap-1 shrink-0">
         <p-button (click)="toggleDarkMode()" pTooltip="Dark mode" text
           [icon]="settings()?.mode_dark ? 'pi pi-sun' : 'pi pi-moon'" />
         <p-button (click)="toGithub()" pTooltip="Github TRIP" text severity="primary" icon="pi pi-github" />
@@ -410,70 +410,72 @@
       </p-tablist>
       <p-tabpanels>
         <p-tabpanel [value]="0">
-          <div class="mt-4 grid md:grid-cols-2 gap-4">
-            <a href="https://itskovacs.github.io/trip/docs/intro" target="_blank"
-              class="group relative p-6 bg-linear-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-clip">
-              <div class="flex gap-4 items-center relative z-10">
-                <div class="text-4xl">📘</div>
-                <div>
-                  <h3 class="text-lg font-semibold text-primary-900 dark:text-white mb-1">Documentation</h3>
-                  <p class="text-sm text-primary-600 dark:text-primary-400">Learn how to use TRIP</p>
+          <div class="max-h-[60vh] overflow-y-auto">
+            <div class="mt-4 grid md:grid-cols-2 gap-4">
+              <a href="https://itskovacs.github.io/trip/docs/intro" target="_blank"
+                class="group relative p-6 bg-linear-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-clip">
+                <div class="flex gap-4 items-center relative z-10">
+                  <div class="text-4xl">📘</div>
+                  <div>
+                    <h3 class="text-lg font-semibold text-primary-900 dark:text-white mb-1">Documentation</h3>
+                    <p class="text-sm text-primary-600 dark:text-primary-400">Learn how to use TRIP</p>
+                  </div>
                 </div>
-              </div>
-              <div
-                class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500">
-              </div>
-            </a>
+                <div
+                  class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500">
+                </div>
+              </a>
 
-            <a href="https://ko-fi.com/itskovacs" target="_blank"
-              class="group relative p-6 bg-linear-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-clip">
-              <div class="flex gap-4 items-center relative z-10">
-                <div class="text-4xl">☕</div>
-                <div>
-                  <h3 class="text-lg font-semibold text-primary-900 dark:text-white mb-1">Support TRIP</h3>
-                  <p class="text-sm text-primary-600 dark:text-primary-400">Buy me a coffee</p>
+              <a href="https://ko-fi.com/itskovacs" target="_blank"
+                class="group relative p-6 bg-linear-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-clip">
+                <div class="flex gap-4 items-center relative z-10">
+                  <div class="text-4xl">☕</div>
+                  <div>
+                    <h3 class="text-lg font-semibold text-primary-900 dark:text-white mb-1">Support TRIP</h3>
+                    <p class="text-sm text-primary-600 dark:text-primary-400">Buy me a coffee</p>
+                  </div>
                 </div>
-              </div>
-              <div
-                class="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500">
-              </div>
-            </a>
+                <div
+                  class="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500">
+                </div>
+              </a>
 
-            <div (click)="tabsIndex = 4"
-              class="cursor-pointer group relative p-6 bg-primary-100 dark:bg-primary-800 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-clip">
-              <div class="flex gap-4 items-center relative z-10">
-                <div class="text-4xl">🗃️</div>
-                <div>
-                  <h3 class="text-lg font-semibold text-primary-900 dark:text-white mb-1">Data</h3>
-                  <p class="text-sm text-primary-600 dark:text-primary-400">Manage your data</p>
+              <div (click)="tabsIndex = 4"
+                class="cursor-pointer group relative p-6 bg-primary-100 dark:bg-primary-800 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-clip">
+                <div class="flex gap-4 items-center relative z-10">
+                  <div class="text-4xl">🗃️</div>
+                  <div>
+                    <h3 class="text-lg font-semibold text-primary-900 dark:text-white mb-1">Data</h3>
+                    <p class="text-sm text-primary-600 dark:text-primary-400">Manage your data</p>
+                  </div>
+                </div>
+                <div
+                  class="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500">
                 </div>
               </div>
-              <div
-                class="absolute top-0 right-0 w-32 h-32 bg-primary-500/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500">
+
+              @if (settings()?.is_admin) {
+              <div (click)="toggleAdminMode()"
+                class="cursor-pointer group relative p-6 bg-linear-to-br from-red-50 to-red-200 dark:from-red-900/20 dark:to-red-900/40 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-clip">
+                <div class="flex gap-4 items-center relative z-10">
+                  <div class="text-4xl">🛡️</div>
+                  <div>
+                    <h3 class="text-lg font-semibold text-primary-900 dark:text-white mb-1">Administration</h3>
+                    <p class="text-sm text-primary-600 dark:text-primary-400">Administrate TRIP</p>
+                  </div>
+                </div>
+                <div
+                  class="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500">
+                </div>
               </div>
+              }
             </div>
 
-            @if (settings()?.is_admin) {
-            <div (click)="toggleAdminMode()"
-              class="cursor-pointer group relative p-6 bg-linear-to-br from-red-50 to-red-200 dark:from-red-900/20 dark:to-red-900/40 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-clip">
-              <div class="flex gap-4 items-center relative z-10">
-                <div class="text-4xl">🛡️</div>
-                <div>
-                  <h3 class="text-lg font-semibold text-primary-900 dark:text-white mb-1">Administration</h3>
-                  <p class="text-sm text-primary-600 dark:text-primary-400">Administrate TRIP</p>
-                </div>
-              </div>
-              <div
-                class="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500">
-              </div>
-            </div>
-            }
+            <div class="mt-6 text-center text-sm text-primary-500 dark:text-primary-400">Made with ❤️ in BZH</div>
           </div>
-
-          <div class="mt-6 text-center text-sm text-primary-500 dark:text-primary-400">Made with ❤️ in BZH</div>
         </p-tabpanel>
         <p-tabpanel [value]="1">
-          <div class="max-h-[60vh] overflow-y-auto overscroll-contain">
+          <div class="max-h-[60vh] overflow-y-auto">
             <div class="select-none mx-auto py-4 space-y-4">
               <section
                 class="rounded-xl bg-white dark:bg-primary-800 shadow-sm border border-primary-200 dark:border-primary-700 overflow-clip transition-all duration-200">
@@ -657,7 +659,7 @@
           </div>
         </p-tabpanel>
         <p-tabpanel [value]="2">
-          <div class="max-h-[60vh] overflow-y-auto overscroll-contain">
+          <div class="max-h-[60vh] overflow-y-auto">
             <div class="select-none mx-auto py-4 space-y-4">
               <section [formGroup]="settingsForm"
                 class="rounded-xl bg-white dark:bg-primary-800 shadow-sm border border-primary-200 dark:border-primary-700">
@@ -902,7 +904,7 @@
           </div>
         </p-tabpanel>
         <p-tabpanel [value]="3">
-          <div class="max-h-[60vh] overflow-y-auto overscroll-contain">
+          <div class="max-h-[60vh] overflow-y-auto">
             <div class="flex flex-col gap-4 py-4 mx-auto">
               <div class="grid grid-cols-1 lg:grid-cols-2 gap-3">
                 <div (click)="addCategory()"
@@ -955,10 +957,10 @@
           </div>
         </p-tabpanel>
         <p-tabpanel [value]="4">
-          <div class="max-h-[60vh] overflow-y-auto overscroll-contain">
+          <div class="max-h-[60vh] overflow-y-auto">
             <div class="flex flex-col gap-4 py-4 mx-auto">
               <div
-                class="flex flex-col md:flex-row gap-4 p-5 rounded-xl bg-linear-to-r from-blue-50 to-indigo-50 dark:from-primary-800 dark:to-primary-800 border border-blue-100 dark:border-primary-700">
+                class="flex flex-col sm:flex-row gap-4 p-5 rounded-xl bg-blue-50 dark:bg-blue-900 border border-blue-100 dark:border-blue-700">
                 <div class="flex items-center gap-3 sm:gap-4 min-w-0">
                   <div class="shrink-0 flex items-center justify-center size-10 rounded-lg shadow-sm">
                     <i class="pi pi-database text-blue-600 dark:text-blue-400"></i>
@@ -970,11 +972,11 @@
                   </div>
                 </div>
 
-                <div class="flex grow flex-wrap items-center justify-center md:justify-end gap-2">
+                <div class="grow flex items-center gap-2 justify-center sm:justify-end">
                   <p-button (click)="fileUpload.click()" text icon="pi pi-upload" size="small" />
                   <input type="file" class="hidden" (change)="importData($event)" #fileUpload />
                   <p-button icon="pi pi-sync" (click)="getBackups()" text size="small" />
-                  <p-button (click)="createBackup()" text label="Create" icon="pi pi-plus" size="small" />
+                  <p-button (click)="createBackup()" icon="pi pi-plus" size="small" />
                 </div>
               </div>
 
@@ -1006,18 +1008,18 @@
                     </div>
                     }
                   </div>
-                  <div class="flex flex-col min-w-0">
+                  <div class="flex flex-col min-w-0 shrink-0">
                     @switch (backup.status) {
                     @case ('processing') {
                     <div class="flex items-center gap-2">
                       <span class="size-1.5 rounded-full bg-blue-400 animate-pulse"></span>
-                      <span class="text-xs font-medium text-blue-600 dark:text-blue-400">Processing…</span>
+                      <span class="text-xs font-medium text-blue-600 dark:text-blue-400">Processing...</span>
                     </div>
                     }
                     @case ('pending') {
                     <div class="flex items-center gap-2">
                       <span class="size-1.5 rounded-full bg-primary-300 dark:bg-primary-600 animate-pulse"></span>
-                      <span class="text-xs font-medium text-primary-500 dark:text-primary-400">Starting…</span>
+                      <span class="text-xs font-medium text-primary-500 dark:text-primary-400">Starting...</span>
                     </div>
                     }
                     @case ('failed') {
@@ -1033,18 +1035,19 @@
                     }
                     }
 
-                    <div class="mt-1 flex items-center gap-2 text-xs text-primary-400 dark:text-primary-500">
+                    <div class="mt-1 shrink-0 flex items-center gap-2 text-xs text-primary-400 dark:text-primary-500">
                       <span class="font-mono tabular-nums">{{ backup.file_size || 0 | fileSize }}</span>
                       @if (backup.created_at) {
                       <span class="opacity-40">&middot;</span>
                       <span>{{ backup.created_at | date: 'd MMM y' }}</span>
                       }
-                      @if (backup.status === 'failed' && backup.error_message) {
-                      <span class="opacity-40">&middot;</span>
-                      <span class="text-red-500 dark:text-red-400 truncate">{{ backup.error_message }}</span>
-                      }
                     </div>
                   </div>
+
+                  @if (backup.status === 'failed' && backup.error_message) {
+                  <span class="text-xs text-red-500 dark:text-red-400 break-all wrap-anywhere">{{
+                    backup.error_message }}{{ backup.error_message }}{{ backup.error_message }}</span>
+                  }
 
                   <div class="flex items-center gap-1 ml-auto shrink-0">
                     @if (backup.status === 'completed') {
@@ -1064,14 +1067,7 @@
                     <i class="pi pi-database text-primary-400 dark:text-primary-500"></i>
                   </div>
                   <p class="text-sm font-medium text-primary-900 dark:text-white mb-1">No backups yet</p>
-                  <p class="text-xs text-primary-400 dark:text-primary-500 mb-5 max-w-[18rem]">
-                    Create a backup to safeguard your data
-                  </p>
-                  <button (click)="createBackup()"
-                    class="cursor-pointer inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-primary-900 dark:bg-white text-white dark:text-primary-900 text-xs font-semibold hover:opacity-80 transition-opacity">
-                    <i class="pi pi-plus text-[10px]"></i>
-                    Create backup
-                  </button>
+                  <p class="text-xs text-primary-400 dark:text-primary-500">Create a backup to safeguard your data</p>
                 </div>
                 }
               </div>
