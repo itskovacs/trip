@@ -416,4 +416,22 @@ export class ApiService {
       .put<AppConfig>(this.apiBaseUrl + '/admin/config', { ...config })
       .pipe(map((config) => ({ ...config, ATTACHMENT_MAX_SIZE: config.ATTACHMENT_MAX_SIZE / (1024 * 1024) })));
   }
+
+  adminGetBackups(): Observable<Backup[]> {
+    return this.httpClient.get<Backup[]>(`${this.apiBaseUrl}/admin/backups`);
+  }
+
+  adminCreateBackup(): Observable<Backup> {
+    return this.httpClient.post<Backup>(`${this.apiBaseUrl}/admin/backups`, {});
+  }
+
+  adminDeleteBackup(backupId: number): Observable<null> {
+    return this.httpClient.delete<null>(`${this.apiBaseUrl}/admin/backups/${backupId}`);
+  }
+
+  adminDownloadBackup(backupId: number): Observable<Blob> {
+    return this.httpClient.get(`${this.apiBaseUrl}/admin/backups/${backupId}/download`, {
+      responseType: 'blob',
+    });
+  }
 }

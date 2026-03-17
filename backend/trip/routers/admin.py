@@ -1,16 +1,20 @@
+from pathlib import Path
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi.responses import FileResponse
 from sqlmodel import func, select
 
 from ..config import get_settings, update_config
 from ..deps import SessionDep, require_admin
-from ..models.models import (AdminUserRead, ConfigRead, ConfigUpdate, Image,
-                             MagicLink, MagicLinkRead, Place, TempPasswordRead,
+from ..models.models import (AdminUserRead, Backup, BackupRead, BackupStatus,
+                             ConfigRead, ConfigUpdate, Image, MagicLink,
+                             MagicLinkRead, Place, TempPasswordRead,
                              TripAttachment, User)
 from ..security import hash_password
 from ..utils.date import dt_utc, dt_utc_offset
 from ..utils.utils import generate_urlsafe
+from ..utils.zip import process_backup_export
 
 router = APIRouter(prefix="/api/admin", tags=["admin"], dependencies=[Depends(require_admin)])
 
@@ -150,3 +154,61 @@ def get_config(session: SessionDep) -> ConfigRead:
 def update_server_config(config_update: ConfigUpdate, session: SessionDep) -> ConfigRead:
     new_settings = update_config(config_update.model_dump(exclude_none=True))
     return ConfigRead(**new_settings.model_dump())
+
+
+@router.post("/backups", response_model=BackupRead)
+def create_admin_backup(
+    background_tasks: BackgroundTasks,
+    session: SessionDep,
+    current_user: Annotated[str, Depends(require_admin)],
+) -> BackupRead:
+    db_backup = Backup(user=current_user, full=True)
+    session.add(db_backup)
+    session.commit()
+    session.refresh(db_backup)
+    background_tasks.add_task(process_backup_export, db_backup.id, True)
+    return BackupRead.serialize(db_backup)
+
+
+@router.get("/backups", response_model=list[BackupRead])
+def read_admin_backups(
+    session: SessionDep, current_user: Annotated[str, Depends(require_admin)]
+) -> list[BackupRead]:
+    db_backups = session.exec(select(Backup).where(Backup.user == current_user, Backup.full.is_(True))).all()
+    return [BackupRead.serialize(backup) for backup in db_backups]
+
+
+@router.get("/backups/{backup_id}/download")
+def download_backup(
+    backup_id: int, session: SessionDep, current_user: Annotated[str, Depends(require_admin)]
+):
+    db_backup = session.exec(
+        select(Backup).where(
+            Backup.id == backup_id, Backup.user == current_user, Backup.status == BackupStatus.COMPLETED
+        )
+    ).first()
+    if not db_backup or not db_backup.filename:
+        raise HTTPException(status_code=404, detail="Not found")
+
+    fp = Path(get_settings().BACKUPS_FOLDER) / Path(db_backup.filename).name
+    if not fp.exists():
+        raise HTTPException(status_code=404, detail="Not found")
+
+    iso_date = db_backup.created_at.strftime("%Y-%m-%d")
+    filename = f"TRIP_{iso_date}_full_backup.zip"
+    return FileResponse(path=fp, filename=filename, media_type="application/zip")
+
+
+@router.delete("/backups/{backup_id}")
+async def delete_admin_backup(
+    backup_id: int, session: SessionDep, current_user: Annotated[str, Depends(require_admin)]
+):
+    db_backup = session.get(Backup, backup_id)
+    if not db_backup:
+        raise HTTPException(status_code=404, detail="Not found")
+    if not db_backup.user == current_user:
+        raise HTTPException(status_code=403, detail="Forbidden")
+
+    session.delete(db_backup)
+    session.commit()
+    return {}

@@ -129,7 +129,9 @@ def create_backup_export(
 def read_backups(
     session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]
 ) -> list[BackupRead]:
-    db_backups = session.exec(select(Backup).where(Backup.user == current_user)).all()
+    db_backups = session.exec(
+        select(Backup).where(Backup.user == current_user, Backup.full.isnot(True))
+    ).all()
     return [BackupRead.serialize(backup) for backup in db_backups]
 
 
@@ -145,13 +147,13 @@ def download_backup(
     if not db_backup or not db_backup.filename:
         raise HTTPException(status_code=404, detail="Not found")
 
-    file_path = Path(get_settings().BACKUPS_FOLDER) / Path(db_backup.filename).name
-    if not file_path.exists():
+    fp = Path(get_settings().BACKUPS_FOLDER) / Path(db_backup.filename).name
+    if not fp.exists():
         raise HTTPException(status_code=404, detail="Not found")
 
     iso_date = db_backup.created_at.strftime("%Y-%m-%d")
     filename = f"TRIP_{iso_date}_{current_user}_backup.zip"
-    return FileResponse(path=file_path, filename=filename, media_type="application/zip")
+    return FileResponse(path=fp, filename=filename, media_type="application/zip")
 
 
 @router.delete("/backups/{backup_id}")

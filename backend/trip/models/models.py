@@ -234,6 +234,7 @@ class BackupBase(SQLModel):
     filename: str | None = None
     error_message: str | None = None
     file_size: int | None = None
+    full: bool | None = None
 
 
 class Backup(BackupBase, table=True):

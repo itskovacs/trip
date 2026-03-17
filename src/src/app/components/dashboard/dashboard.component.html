@@ -1086,12 +1086,12 @@
     class="w-10/12 max-w-screen md:max-w-3xl h-fit max-h-[90vh] bg-white rounded-xl shadow-2xl z-50 dark:bg-primary-900 flex flex-col overflow-clip">
     <div
       class="flex-none flex items-center justify-between gap-4 p-4 md:p-6 border-b border-primary-200 dark:border-primary-800 bg-linear-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/10">
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-3 min-w-0">
         <div
-          class="flex items-center justify-center size-9 rounded-lg bg-red-100 dark:bg-red-900/40 border border-red-200 dark:border-red-800">
+          class="flex shrink-0 items-center justify-center size-9 rounded-lg bg-red-100 dark:bg-red-900/40 border border-red-200 dark:border-red-800">
           <i class="pi pi-shield text-red-600 dark:text-red-400 text-sm"></i>
         </div>
-        <div>
+        <div class="min-w-0">
           <h2 class="text-lg font-bold text-primary-900 dark:text-white leading-none">Administration</h2>
           <p class="text-xs text-primary-500 dark:text-primary-400 mt-0.5">Handle with care</p>
         </div>
@@ -1102,19 +1102,22 @@
       </div>
     </div>
 
-    <p-tabs value="0" scrollable>
+    <p-tabs value="2" scrollable>
       <p-tablist>
         <p-tab value="0" class="flex items-center gap-2">
           <i class="pi pi-users"></i><span class="font-bold whitespace-nowrap">Users</span>
         </p-tab>
         <p-tab value="1" class="flex items-center gap-2">
-          <i class="pi pi-cog"></i><span class="font-bold whitespace-nowrap">Configuration</span>
+          <i class="pi pi-cog"></i><span class="font-bold whitespace-nowrap">Config</span>
+        </p-tab>
+        <p-tab value="2" class="flex items-center gap-2">
+          <i class="pi pi-database"></i><span class="font-bold whitespace-nowrap">Data</span>
         </p-tab>
       </p-tablist>
 
       <p-tabpanels>
         <p-tabpanel value="0">
-          <div class="max-h-[60vh] overflow-y-auto overscroll-contain">
+          <div class="max-h-[60vh] overflow-y-auto">
             <div class="py-4 space-y-4">
               @if (!adminConfig()?.REGISTER_ENABLE) {
               <section
@@ -1262,7 +1265,7 @@
         </p-tabpanel>
 
         <p-tabpanel value="1">
-          <div class="max-h-[60vh] overflow-y-auto overscroll-contain">
+          <div class="max-h-[60vh] overflow-y-auto">
             <form [formGroup]="adminConfigForm" class="py-4 space-y-6">
               <div>
                 <h3 class="mb-3 text-xs font-bold uppercase tracking-widest text-primary-400 dark:text-primary-500">
@@ -1482,6 +1485,125 @@
                 </div>
               </div>
             </form>
+          </div>
+        </p-tabpanel>
+
+        <p-tabpanel value="2">
+          <div class="max-h-[60vh] overflow-y-auto">
+            <div class="flex flex-col gap-4 py-4 mx-auto">
+              <div
+                class="flex flex-col sm:flex-row gap-4 p-5 rounded-xl bg-red-50 dark:bg-red-900 border border-red-100 dark:border-red-700">
+                <div class="flex items-center gap-3 sm:gap-4 min-w-0">
+                  <div class="shrink-0 flex items-center justify-center size-10 rounded-lg shadow-sm">
+                    <i class="pi pi-database text-red-600 dark:text-red-400"></i>
+                  </div>
+
+                  <div class="min-w-0 flex-1">
+                    <h1 class="text-base font-semibold text-primary-900 dark:text-white">Full Backups</h1>
+                    <p class="text-xs text-primary-600 dark:text-primary-400">Includes the sqlite database and all TRIP
+                      assets</p>
+                  </div>
+                </div>
+
+                <div class="grow flex items-center gap-2 justify-center sm:justify-end">
+                  <p-button icon="pi pi-sync" (click)="adminGetBackups()" text size="small" />
+                  <p-button (click)="adminCreateBackup()" icon="pi pi-plus" size="small" />
+                </div>
+              </div>
+
+              <div class="flex flex-col gap-2.5">
+                @for (backup of backups(); track backup.id) {
+                <div
+                  class="group flex items-center gap-4 py-4 md:p-4 rounded-lg bg-primary-50 dark:bg-primary-800 hover:shadow-sm transition-all duration-200">
+                  <div class="shrink-0">
+                    @if (backup.status === 'completed') {
+                    <div
+                      class="flex items-center justify-center size-10 rounded-lg bg-emerald-50 dark:bg-emerald-900/20">
+                      <i class="pi pi-check-circle text-emerald-600 dark:text-emerald-400"></i>
+                    </div>
+                    } @else if (backup.status === 'pending') {
+                    <div class="flex items-center justify-center size-10 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+                      <i class="pi pi-ellipsis-h text-primary-600 dark:text-primary-400"></i>
+                    </div>
+                    } @else if (backup.status === 'processing') {
+                    <div class="flex items-center justify-center size-10 rounded-lg bg-blue-50 dark:bg-blue-900/20">
+                      <i class="pi pi-spin pi-spinner text-blue-600 dark:text-blue-400"></i>
+                    </div>
+                    } @else if (backup.status === 'failed') {
+                    <div class="flex items-center justify-center size-10 rounded-lg bg-red-50 dark:bg-red-900/20">
+                      <i class="pi pi-times-circle text-red-600 dark:text-red-400"></i>
+                    </div>
+                    } @else {
+                    <div class="flex items-center justify-center size-10 rounded-lg bg-primary-50 dark:bg-black/20">
+                      <i class="pi pi-clock text-primary-600 dark:text-primary-400"></i>
+                    </div>
+                    }
+                  </div>
+                  <div class="flex flex-col min-w-0 shrink-0">
+                    @switch (backup.status) {
+                    @case ('processing') {
+                    <div class="flex items-center gap-2">
+                      <span class="size-1.5 rounded-full bg-blue-400 animate-pulse"></span>
+                      <span class="text-xs font-medium text-blue-600 dark:text-blue-400">Processing...</span>
+                    </div>
+                    }
+                    @case ('pending') {
+                    <div class="flex items-center gap-2">
+                      <span class="size-1.5 rounded-full bg-primary-300 dark:bg-primary-600 animate-pulse"></span>
+                      <span class="text-xs font-medium text-primary-500 dark:text-primary-400">Starting...</span>
+                    </div>
+                    }
+                    @case ('failed') {
+                    <div class="flex items-center gap-2">
+                      <span class="size-1.5 rounded-full bg-red-400"></span>
+                      <span class="text-xs font-medium text-red-600 dark:text-red-400">Failed</span>
+                    </div>
+                    }
+                    @default {
+                    <span class="text-sm font-medium text-primary-900 dark:text-white truncate">
+                      {{ backup.filename }}
+                    </span>
+                    }
+                    }
+
+                    <div class="mt-1 shrink-0 flex items-center gap-2 text-xs text-primary-400 dark:text-primary-500">
+                      <span class="font-mono tabular-nums">{{ backup.file_size || 0 | fileSize }}</span>
+                      @if (backup.created_at) {
+                      <span class="opacity-40">&middot;</span>
+                      <span>{{ backup.created_at | date: 'd MMM y' }}</span>
+                      }
+                    </div>
+                  </div>
+
+                  @if (backup.status === 'failed' && backup.error_message) {
+                  <span class="text-xs text-red-500 dark:text-red-400 break-all wrap-anywhere">{{
+                    backup.error_message }}</span>
+                  }
+
+                  <div class="flex items-center gap-1 ml-auto shrink-0">
+                    @if (backup.status === 'completed') {
+                    <p-button (click)="adminDownloadBackup(backup)" severity="primary" text icon="pi pi-download"
+                      size="small" />
+                    }
+                    @if (backup.status === 'completed' || backup.status === 'failed') {
+                    <p-button (click)="adminDeleteBackup(backup)" severity="danger" text icon="pi pi-trash"
+                      size="small" />
+                    }
+                  </div>
+                </div>
+                } @empty {
+                <div
+                  class="flex flex-col items-center justify-center py-14 text-center rounded-xl border border-dashed border-primary-200 dark:border-primary-700/60">
+                  <div
+                    class="size-10 rounded-full bg-primary-100 dark:bg-primary-800 flex items-center justify-center mb-4">
+                    <i class="pi pi-database text-primary-400 dark:text-primary-500"></i>
+                  </div>
+                  <p class="text-sm font-medium text-primary-900 dark:text-white mb-1">No backups yet</p>
+                  <p class="text-xs text-primary-400 dark:text-primary-500">Create a backup to safeguard TRIP's data</p>
+                </div>
+                }
+              </div>
+            </div>
           </div>
         </p-tabpanel>
       </p-tabpanels>
