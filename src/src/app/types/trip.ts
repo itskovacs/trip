@@ -134,3 +134,26 @@ export interface PrintOptions {
   notes: boolean;
   metadata: boolean;
 }
+
+export interface ViewTripItem extends TripItem {
+  status?: TripStatus;
+  distance?: number;
+}
+
+export interface DayViewModel {
+  day: TripDay;
+  items: ViewTripItem[];
+  stats: {
+    count: number;
+    cost: number;
+    hasPlaces: boolean;
+  };
+}
+
+export interface HighlightData {
+  paths: { coords: [number, number][]; options: any }[];
+  markers: any[];
+  gpxData: string[];
+  bounds: [number, number][];
+  activePlaceIds?: Set<number>;
+}
