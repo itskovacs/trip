@@ -567,15 +567,23 @@ def delete_tripitem(
     return {}
 
 
-@router.get("/shared/{token}", response_model=TripRead | TripShareRead)
-def read_shared_trip(
+@router.get("/{trip_id}/attachments/{attachment_id}/download")
+async def download_trip_attachment(
     session: SessionDep,
-    token: str,
-) -> TripRead | TripShareRead:
-    share = _trip_from_token_or_404(session, token)
-    db_trip = session.get(Trip, share.trip_id)
+    trip_id: int,
+    attachment_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+):
+    _get_verified_trip(session, trip_id, current_user)
+    attachment = session.get(TripAttachment, attachment_id)
+    if not attachment or attachment.trip_id != trip_id:
+        raise HTTPException(status_code=404, detail="Attachment not found")
 
-    return TripRead.serialize(db_trip) if share.is_full_access else TripShareRead.serialize(db_trip)
+    file_path = attachments_trip_folder_path(trip_id) / attachment.stored_filename
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Attachment not found")
+
+    return FileResponse(path=file_path, filename=attachment.filename, media_type="application/pdf")
 
 
 @router.get("/{trip_id}/share", response_model=TripShareDetails)
@@ -641,19 +649,6 @@ def read_packing_list(
     _get_verified_trip(session, trip_id, current_user)
     p_items = session.exec(select(TripPackingListItem).where(TripPackingListItem.trip_id == trip_id))
 
-    return [TripPackingListItemRead.serialize(i) for i in p_items]
-
-
-@router.get("/shared/{token}/packing", response_model=list[TripPackingListItemRead])
-def read_shared_trip_packing_list(
-    session: SessionDep,
-    token: str,
-) -> list[TripPackingListItemRead]:
-    p_items = session.exec(
-        select(TripPackingListItem).where(
-            TripPackingListItem.trip_id == _trip_from_token_or_404(session, token).trip_id
-        )
-    )
     return [TripPackingListItemRead.serialize(i) for i in p_items]
 
 
@@ -742,19 +737,6 @@ def read_checklist(
 ) -> list[TripChecklistItemRead]:
     _get_verified_trip(session, trip_id, current_user)
     items = session.exec(select(TripChecklistItem).where(TripChecklistItem.trip_id == trip_id))
-    return [TripChecklistItemRead.serialize(i) for i in items]
-
-
-@router.get("/shared/{token}/checklist", response_model=list[TripChecklistItemRead])
-def read_shared_trip_checklist(
-    session: SessionDep,
-    token: str,
-) -> list[TripChecklistItemRead]:
-    items = session.exec(
-        select(TripChecklistItem).where(
-            TripChecklistItem.trip_id == _trip_from_token_or_404(session, token).trip_id
-        )
-    )
     return [TripChecklistItemRead.serialize(i) for i in items]
 
 
@@ -995,23 +977,61 @@ def create_trip_attachment(
     return TripAttachmentRead.serialize(db_attachment)
 
 
-@router.get("/{trip_id}/attachments/{attachment_id}/download")
-async def download_trip_attachment(
+@router.delete("/{trip_id}/attachments/{attachment_id}")
+async def delete_trip_attachment(
     session: SessionDep,
     trip_id: int,
     attachment_id: int,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _get_verified_trip(session, trip_id, current_user)
+    db_trip = _get_verified_trip(session, trip_id, current_user)
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
+
     attachment = session.get(TripAttachment, attachment_id)
     if not attachment or attachment.trip_id != trip_id:
         raise HTTPException(status_code=404, detail="Attachment not found")
 
-    file_path = attachments_trip_folder_path(trip_id) / attachment.stored_filename
-    if not file_path.exists():
-        raise HTTPException(status_code=404, detail="Attachment not found")
+    session.delete(attachment)
+    session.commit()
+    return {}
 
-    return FileResponse(path=file_path, filename=attachment.filename, media_type="application/pdf")
+
+@router.get("/shared/{token}", response_model=TripRead | TripShareRead)
+def read_shared_trip(
+    session: SessionDep,
+    token: str,
+) -> TripRead | TripShareRead:
+    share = _trip_from_token_or_404(session, token)
+    db_trip = session.get(Trip, share.trip_id)
+
+    return TripRead.serialize(db_trip) if share.is_full_access else TripShareRead.serialize(db_trip)
+
+
+@router.get("/shared/{token}/packing", response_model=list[TripPackingListItemRead])
+def read_shared_trip_packing_list(
+    session: SessionDep,
+    token: str,
+) -> list[TripPackingListItemRead]:
+    p_items = session.exec(
+        select(TripPackingListItem).where(
+            TripPackingListItem.trip_id == _trip_from_token_or_404(session, token).trip_id
+        )
+    )
+    return [TripPackingListItemRead.serialize(i) for i in p_items]
+
+
+@router.get("/shared/{token}/checklist", response_model=list[TripChecklistItemRead])
+def read_shared_trip_checklist(
+    session: SessionDep,
+    token: str,
+) -> list[TripChecklistItemRead]:
+    items = session.exec(
+        select(TripChecklistItem).where(
+            TripChecklistItem.trip_id == _trip_from_token_or_404(session, token).trip_id
+        )
+    )
+    return [TripChecklistItemRead.serialize(i) for i in items]
 
 
 @router.get("/shared/{token}/attachments/{attachment_id}/download")
@@ -1035,23 +1055,3 @@ async def download_shared_trip_attachment(
         raise HTTPException(status_code=404, detail="Attachment not found")
 
     return FileResponse(path=file_path, filename=attachment.filename, media_type="application/pdf")
-
-
-@router.delete("/{trip_id}/attachments/{attachment_id}")
-async def delete_trip_attachment(
-    session: SessionDep,
-    trip_id: int,
-    attachment_id: int,
-    current_user: Annotated[str, Depends(get_current_username)],
-):
-    db_trip = _get_verified_trip(session, trip_id, current_user)
-    if db_trip.archived:
-        raise HTTPException(status_code=400, detail="Bad request")
-
-    attachment = session.get(TripAttachment, attachment_id)
-    if not attachment or attachment.trip_id != trip_id:
-        raise HTTPException(status_code=404, detail="Attachment not found")
-
-    session.delete(attachment)
-    session.commit()
-    return {}

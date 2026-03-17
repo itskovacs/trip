@@ -89,7 +89,7 @@ async def oidc_login(
             issuer=issuer,
         )
     except Exception as exc:
-        logger.error(f"[OIDC LOGIN]: {exc}")
+        logger.error(f"[OIDC LOGIN] {exc}")
         raise HTTPException(status_code=401, detail="Invalid ID token")
 
     if not decoded:
@@ -182,7 +182,7 @@ def register(req: LoginRegisterModel, session: SessionDep) -> Token:
     session.add(new_user)
     session.commit()
     if is_first_user:
-        logger.critical(f"[Register]: First user registered, {req.username} is admin")
+        logger.critical(f"[Register] First user registered, {req.username} is admin")
 
     init_user_data(session, new_user.username)
 

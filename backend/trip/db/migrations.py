@@ -67,7 +67,7 @@ def _001_image_file_size(session: Session):
         image.file_size = path.stat().st_size if path.exists() else 0
         session.add(image)
     session.commit()
-    logger.warn(f"[Migration 001_image_file_size]: Computed {len(images)} file_size property")
+    logger.warn(f"[Migration 001_image_file_size] Computed {len(images)} file_size property")
 
 
 def run_migrations(session: Session):

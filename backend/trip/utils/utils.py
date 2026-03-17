@@ -124,7 +124,7 @@ async def download_file(link: str) -> tuple[str, int]:
             path.write_bytes(response.content)
             return str(path), file_size
     except Exception as exc:
-        logger.error(f"[IMAGE FETCH]: {exc}")
+        logger.error(f"[IMAGE FETCH] Error: {exc}")
         return "", 0
 
 
