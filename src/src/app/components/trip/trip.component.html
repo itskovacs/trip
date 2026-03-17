@@ -106,11 +106,8 @@
       <div
         class="mt-3 max-h-64 overflow-y-auto rounded-xl border border-orange-100/40 bg-orange-50/95 px-3 py-2.5 text-xs leading-relaxed text-orange-900 shadow-sm dark:border-orange-100/15 dark:bg-orange-950/60 dark:text-orange-50">
         <p class="mb-1 text-[11px] font-semibold uppercase tracking-wide text-orange-700/90 dark:text-orange-200/90">
-          Archival notes
-        </p>
-        <p class="whitespace-pre-wrap">
-          {{ trip()!.archival_review }}
-        </p>
+          Archival notes</p>
+        <p class="whitespace-pre-wrap">{{ trip()!.archival_review }}</p>
       </div>
       }
     </div>
@@ -226,11 +223,14 @@
             @if (isFilteringMode()) {
             <div class="z-30 mt-3 grid sm:grid-cols-3 gap-2" animate.enter="slide-y" animate.leave="a-slide-y">
               <p-multiselect display="chip" fluid [options]="availableItemProps" [(ngModel)]="selectedItemProps"
-                placeholder="Cols" class="sm:col-span-2" appendTo="body" size="small" />
+                placeholder="Cols" [class]="canToggleTextAndPlace() ? 'sm:col-span-2' : 'sm:col-span-3'" appendTo="body"
+                size="small" />
 
+              @if (canToggleTextAndPlace()) {
               <p-togglebutton onLabel="Show Text + Place" offLabel="Show Place" size="small"
                 [ngModel]="isTextAndPlaceToggled()" (ngModelChange)="isTextAndPlaceToggled.set($event)"
-                [disabled]="!canToggleTextAndPlace()" [pt]="{ content: 'min-w-0', label: 'truncate' }" />
+                [pt]="{ content: 'min-w-0', label: 'truncate' }" />
+              }
 
               <div class="relative col-span-full">
                 <input pInputText [formControl]="plansSearchInput" placeholder="Search..." class="h-full" pSize="small"
@@ -265,8 +265,8 @@
                 </div>
                 <div class="min-w-0 flex-1">
                   <h3 class="font-medium text-primary-900 dark:text-white truncate">{{ group.day.label }}</h3>
-                  <p class="text-xs text-primary-500 dark:text-primary-400 truncate">
-                    {{ group.day.dt | date: 'd MMM, y' }}
+                  <p class="text-xs text-primary-500 dark:text-primary-400 truncate">{{
+                    group.day.dt | date: 'd MMM, y' }}
                   </p>
                 </div>
               </div>
@@ -350,8 +350,8 @@
                     </div>
 
                     @if (item.comment && visibleProps.has('comment')) {
-                    <p class="mt-1 text-xs text-primary-500 dark:text-primary-400 line-clamp-1 whitespace-pre-wrap">
-                      {{ item.comment }}
+                    <p class="mt-1 text-xs text-primary-500 dark:text-primary-400 line-clamp-1 whitespace-pre-wrap">{{
+                      item.comment }}
                     </p>
                     }
                   </div>
@@ -469,8 +469,8 @@
                 <h3 class="font-medium truncate text-primary-900 dark:text-white">
                   {{ group.day.label }}
                 </h3>
-                <p class="text-xs text-primary-500 dark:text-primary-400">
-                  {{ group.day.dt | date: 'd MMM, y' }}
+                <p class="text-xs text-primary-500 dark:text-primary-400">{{
+                  group.day.dt | date: 'd MMM, y' }}
                 </p>
               </div>
             </div>
@@ -758,8 +758,8 @@
                       <i class="pi pi-file text-red-600 dark:text-red-400 text-sm"></i>
                     </div>
                     <div class="flex-1 min-w-0 text-left">
-                      <p class="text-sm font-medium text-primary-700 dark:text-primary-300 truncate">
-                        {{ attachment.filename }}
+                      <p class="text-sm font-medium text-primary-700 dark:text-primary-300 truncate">{{
+                        attachment.filename }}
                       </p>
                     </div>
                     <i class="pi pi-download text-primary-400 text-xs shrink-0"></i>
@@ -1391,9 +1391,8 @@
           <i class="pi pi-share-alt text-primary-600 dark:text-primary-400 shrink-0"></i>
           <div class="min-w-0 flex-1">
             <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">Base share</span>
-            <p class="text-xs text-primary-500 dark:text-primary-400 block">
-              Include basic details: days, places, time, text...
-            </p>
+            <p class="text-xs text-primary-500 dark:text-primary-400 block">Include basic details: days, places, time,
+              text...</p>
           </div>
         </div>
         <p-button (click)="shareTrip(false)" [outlined]="true" label="Base Share" />
@@ -1405,8 +1404,7 @@
           <i class="pi pi-share-alt text-red-600 dark:text-red-400 shrink-0"></i>
           <div class="min-w-0 flex-1">
             <span class="font-medium text-sm text-red-900 dark:text-red-100 block">Complete share</span>
-            <p class="text-xs text-red-500 dark:text-red-400 block">
-              Include everything (documents, descriptions, etc.)
+            <p class="text-xs text-red-500 dark:text-red-400 block">Include everything (documents, descriptions, etc.)
             </p>
           </div>
         </div>
@@ -1506,9 +1504,7 @@
             </div>
 
             @if (options?.props?.has('comment') && item.comment) {
-            <p class="text-sm text-primary-500 whitespace-pre-wrap italic">
-              {{ item.comment }}
-            </p>
+            <p class="text-sm text-primary-500 whitespace-pre-wrap italic">{{ item.comment }}</p>
             }
           </div>
 
