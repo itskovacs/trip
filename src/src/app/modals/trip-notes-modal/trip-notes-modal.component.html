@@ -1,10 +1,7 @@
 <section>
   <div>
     @if (isEditing) {
-    <p-floatlabel variant="in">
-      <textarea pTextarea id="notes" [formControl]="notes" rows="4" autoResize fluid></textarea>
-      <label for="notes">Notes</label>
-    </p-floatlabel>
+    <textarea pTextarea id="notes" placeholder="Notes" [formControl]="notes" rows="4" autoResize fluid></textarea>
     } @else {
     @if (notes.value) {
     <div class="mt-4 border-l-3 border-primary-900 pl-6 py-2">

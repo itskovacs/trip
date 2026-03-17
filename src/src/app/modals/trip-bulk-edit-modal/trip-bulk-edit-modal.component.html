@@ -121,10 +121,8 @@
       <p-inputgroup-addon>
         <p-checkbox [binary]="true" formControlName="enable_comment" />
       </p-inputgroup-addon>
-      <p-floatlabel variant="in">
-        <textarea pTextarea id="comment" formControlName="comment" rows="2" autoResize fluid></textarea>
-        <label for="comment">Comment</label>
-      </p-floatlabel>
+      <textarea pTextarea id="comment" formControlName="comment" placeholder="Comment" rows="2" autoResize
+        fluid></textarea>
     </p-inputgroup>
 
     <p-inputgroup>
