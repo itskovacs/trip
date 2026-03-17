@@ -9,9 +9,7 @@
       <div class="block lg:hidden w-full">
         <div class="mt-4 text-center">
           <div class="text-4xl font-bold leading-none">Welcome to TRIP</div>
-          <div class="mt-3 text-lg tracking-tight leading-6 text-primary-400">
-            Tourism and Recreational Interest Points.
-          </div>
+          <div class="text-sm tracking-tight leading-6 text-primary-400">Tourism and Recreational Interest Points</div>
         </div>
       </div>
 
@@ -22,10 +20,10 @@
         <span class="text-xs text-green-700 dark:text-green-300">You have been invited to register</span>
       </div>
       } @else {
-      <h1 class="text-2xl font-bold text-primary-900 dark:text-white tracking-tight">
+      <h1 class="mt-6 text-2xl font-bold text-primary-900 dark:text-white tracking-tight">
         {{ isRegistering() ? 'Create account' : 'Sign in' }}
       </h1>
-      <p class="mt-1 mb-7 text-sm text-primary-400 dark:text-primary-500">
+      <p class="mt-1 mb-4 text-sm text-primary-400 dark:text-primary-500">
         {{ isRegistering() ? 'Choose a username and password' : 'Enter your credentials to continue' }}
       </p>
       }
