@@ -104,7 +104,7 @@ async def token_google_search(
     except Exception:
         raise HTTPException(status_code=404, detail="Not found")
 
-    category_name = result.category or data.category
+    category_name = data.category or result.category
     if not category_name:
         raise HTTPException(status_code=400, detail="Category not set")
 
