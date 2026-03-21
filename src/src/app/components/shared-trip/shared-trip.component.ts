@@ -62,10 +62,11 @@ import { generateTripCSVFile } from '../../shared/trip-base/csv';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FileSizePipe } from '../../shared/pipes/filesize.pipe';
 import { computeDistLatLng } from '../../shared/utils';
-import { TabsModule } from 'primeng/tabs';
+import { TabList, TabsModule } from 'primeng/tabs';
 import { PlaceBoxContentComponent } from '../../shared/place-box-content/place-box-content.component';
 import { PlaceListItemComponent } from '../../shared/place-list-item/place-list-item.component';
 import { TripPrettyPrintModalComponent } from '../../modals/trip-pretty-print-modal/trip-pretty-print-modal.component';
+import { ToggleButtonModule } from 'primeng/togglebutton';
 
 const HIGHLIGHT_COLORS = [
   '#e6194b',
@@ -109,6 +110,7 @@ const MAX_MAP_INIT_RETRIES = 5;
     TabsModule,
     PlaceBoxContentComponent,
     PlaceListItemComponent,
+    ToggleButtonModule,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './shared-trip.component.html',
@@ -122,6 +124,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   @ViewChild('menuTripDayActions') menuTripDayActions!: Menu;
   @ViewChild('menuSelectedDayActions') menuSelectedDayActions!: Menu;
   @ViewChild('selectedPanel', { read: ElementRef }) selectedPanelRef?: ElementRef;
+  @ViewChild('selectedTabListRef') selectedTabListRef: TabList | undefined;
 
   mapInitRetries = 0;
   selectedPanelHeight = signal<number>(0);
@@ -153,6 +156,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   isArchiveWarningVisible = signal<boolean>(true);
   tooltipCopied = signal(false);
   selectedDay = signal<TripDay | null>(null);
+  isTextAndPlaceToggled = signal<boolean>(false);
   isFullAccess = signal(false);
 
   panelWidth = signal<number | null>(null);
@@ -381,6 +385,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
     return bounds.length >= 2 || paths.length > 0 ? { paths, markers, gpxData, bounds, activePlaceIds } : null;
   });
   selectedItemPropsSet = computed(() => new Set(this.selectedItemProps()));
+  canToggleTextAndPlace = computed(() => this.selectedItemPropsSet().has('place'));
 
   menuTripExportItems: MenuItem[] = [
     {
@@ -507,6 +512,19 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
             this.map.fitBounds(data.bounds, { padding: [30, 30], maxZoom: 16 });
           }
         });
+      });
+    });
+
+    effect(() => {
+      // fix p-tabs scroll state issues
+      const selection = this.dispSelectedPlace();
+      const activeIndex = this.selectedPlaceActiveTabIndex();
+
+      if (!selection || !this.selectedTabListRef) return;
+      requestAnimationFrame(() => {
+        (this.selectedTabListRef as any).updateButtonState();
+        const element = document.querySelector('[data-pc-name="tab"][data-p-active="true"]');
+        element?.scrollIntoView?.({ block: 'nearest' });
       });
     });
 
@@ -943,7 +961,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
     handle.setPointerCapture(event.pointerId);
 
     const onMove = (e: PointerEvent) => {
-      const newWidth = Math.max(320, Math.min(800, this.panelDeltaWidth + (e.clientX - this.panelDeltaX)));
+      const newWidth = Math.max(320, Math.min(1280, this.panelDeltaWidth + (e.clientX - this.panelDeltaX)));
       this.panelWidth.set(newWidth);
     };
 

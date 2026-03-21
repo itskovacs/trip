@@ -266,8 +266,7 @@
                 <div class="min-w-0 flex-1">
                   <h3 class="font-medium text-primary-900 dark:text-white truncate">{{ group.day.label }}</h3>
                   <p class="text-xs text-primary-500 dark:text-primary-400 truncate">{{
-                    group.day.dt | date: 'd MMM, y' }}
-                  </p>
+                    group.day.dt | date: 'd MMM, y' }}</p>
                 </div>
               </div>
 
@@ -619,7 +618,7 @@
 
             <div class="flex items-center gap-2 mt-1">
               <span class="text-sm font-medium truncate max-w-[50%]">{{ getItemDayLabel(item) }}</span>
-              <span class="text-primary-300 dark:text-primary-700">•</span>
+              <span class="text-primary-300 dark:text-primary-700">&middot;</span>
               <span class="text-xs font-mono font-medium px-1.5 py-0.5 bg-primary-100 dark:bg-primary-800 rounded">{{
                 item.time }}</span>
             </div>
@@ -825,7 +824,7 @@
 
               <div class="flex items-center gap-2 mt-1">
                 <span class="text-sm font-medium truncate max-w-[50%]">{{ item.day }}</span>
-                <span class="text-primary-300 dark:text-primary-700">•</span>
+                <span class="text-primary-300 dark:text-primary-700">&middot;</span>
                 <span class="text-xs font-mono font-medium px-1.5 py-0.5 bg-primary-100 dark:bg-primary-800 rounded">{{
                   item.time }}</span>
               </div>
@@ -1468,8 +1467,7 @@
           <div class="flex-1 h-px bg-primary-300"></div>
           @if (group.day.dt) {
           <span class="text-sm font-medium text-primary-400 whitespace-nowrap">{{
-            group.day.dt | date: 'd MMM, y'
-            }}</span>
+            group.day.dt | date: 'd MMM, y' }}</span>
           }
         </div>
 
@@ -1484,8 +1482,7 @@
         @for (item of group.items; track item.id) {
         <div class="flex gap-4 items-center rounded-lg p-3 -mx-3">
           <span class="px-2.5 py-1 text-xs font-mono font-medium bg-primary-100 text-primary-700 rounded">{{
-            item.time
-            }}</span>
+            item.time }}</span>
 
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2">

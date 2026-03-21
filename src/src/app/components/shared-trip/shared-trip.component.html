@@ -18,26 +18,26 @@
 
         <div (click)="toggleDaysPanel()"
           class="cursor-pointer flex items-center justify-center gap-2 h-9 px-2.5 rounded-lg transition-all" [class]="
-                isDaysPanelVisible()
-                  ? 'bg-primary-100 dark:bg-primary-800'
-                  : 'hover:bg-primary-100 dark:hover:bg-primary-800'
-              ">
+            isDaysPanelVisible()
+              ? 'bg-primary-100 dark:bg-primary-800'
+              : 'hover:bg-primary-100 dark:hover:bg-primary-800'
+          ">
           <div class="w-7 h-7 flex items-center justify-center">
             <i class="pi text-sm transition-transform duration-200" [class]="
-                    isDaysPanelVisible()
-                      ? 'pi-times text-primary-600 dark:text-primary-400 rotate-90'
-                      : 'pi-calendar text-primary-700 dark:text-primary-300'
-                  "></i>
+                isDaysPanelVisible()
+                  ? 'pi-times text-primary-600 dark:text-primary-400 rotate-90'
+                  : 'pi-calendar text-primary-700 dark:text-primary-300'
+              "></i>
           </div>
           <div class="hidden md:flex items-center gap-2 text-sm font-medium" [class]="
-                  isDaysPanelVisible() ? 'text-primary-600 dark:text-primary-400' : 'text-primary-900 dark:text-white'
-                ">
+              isDaysPanelVisible() ? 'text-primary-600 dark:text-primary-400' : 'text-primary-900 dark:text-white'
+            ">
             Days
             <span [class]="
-                    isDaysPanelVisible()
-                      ? 'text-primary-600 bg-primary-200 dark:bg-primary-800/30 dark:text-primary-500'
-                      : 'text-primary-700 bg-primary-100 dark:bg-primary-900/30 dark:text-primary-400'
-                  " class="flex items-center gap-1.5 rounded px-2.5 py-1 w-fit text-xs font-bold transition-colors">{{
+                isDaysPanelVisible()
+                  ? 'text-primary-600 bg-primary-200 dark:bg-primary-800/30 dark:text-primary-500'
+                  : 'text-primary-700 bg-primary-100 dark:bg-primary-900/30 dark:text-primary-400'
+              " class="flex items-center gap-1.5 rounded px-2.5 py-1 w-fit text-xs font-bold transition-colors">{{
               this.trip()?.days?.length || '0' }}</span>
           </div>
         </div>
@@ -46,26 +46,26 @@
 
         <div (click)="togglePlacesPanel()"
           class="cursor-pointer flex items-center justify-center gap-2 h-9 px-2.5 rounded-lg transition-all" [class]="
-                isPlacesPanelVisible()
-                  ? 'bg-primary-100 dark:bg-primary-800'
-                  : 'hover:bg-primary-100 dark:hover:bg-primary-800'
-              ">
+            isPlacesPanelVisible()
+              ? 'bg-primary-100 dark:bg-primary-800'
+              : 'hover:bg-primary-100 dark:hover:bg-primary-800'
+          ">
           <div class="w-7 h-7 flex items-center justify-center">
             <i class="pi text-sm transition-transform duration-200" [class]="
-                    isPlacesPanelVisible()
-                      ? 'pi-times text-primary-600 dark:text-primary-400 rotate-90'
-                      : 'pi-map-marker text-primary-700 dark:text-primary-300'
-                  "></i>
+                isPlacesPanelVisible()
+                  ? 'pi-times text-primary-600 dark:text-primary-400 rotate-90'
+                  : 'pi-map-marker text-primary-700 dark:text-primary-300'
+              "></i>
           </div>
           <div class="hidden md:flex items-center gap-2 text-sm font-medium" [class]="
-                  isPlacesPanelVisible() ? 'text-primary-600 dark:text-primary-400' : 'text-primary-900 dark:text-white'
-                ">
+              isPlacesPanelVisible() ? 'text-primary-600 dark:text-primary-400' : 'text-primary-900 dark:text-white'
+            ">
             Places
             <span [class]="
-                    isPlacesPanelVisible()
-                      ? 'text-primary-600 bg-primary-200 dark:bg-primary-800/30 dark:text-primary-500'
-                      : 'text-primary-700 bg-primary-100 dark:bg-primary-900/30 dark:text-primary-400'
-                  " class="flex items-center gap-1.5 rounded px-2.5 py-1 w-fit text-xs font-bold transition-colors">{{
+                isPlacesPanelVisible()
+                  ? 'text-primary-600 bg-primary-200 dark:bg-primary-800/30 dark:text-primary-500'
+                  : 'text-primary-700 bg-primary-100 dark:bg-primary-900/30 dark:text-primary-400'
+              " class="flex items-center gap-1.5 rounded px-2.5 py-1 w-fit text-xs font-bold transition-colors">{{
               this.trip()?.places?.length || '0' }}</span>
           </div>
         </div>
@@ -106,8 +106,7 @@
       <div
         class="mt-3 max-h-64 overflow-y-auto rounded-xl border border-orange-100/40 bg-orange-50/95 px-3 py-2.5 text-xs leading-relaxed text-orange-900 shadow-sm dark:border-orange-100/15 dark:bg-orange-950/60 dark:text-orange-50">
         <p class="mb-1 text-[11px] font-semibold uppercase tracking-wide text-orange-700/90 dark:text-orange-200/90">
-          Archival notes
-        </p>
+          Archival notes</p>
         <p class="whitespace-pre-wrap">{{ trip()!.archival_review }}</p>
       </div>
       }
@@ -165,7 +164,7 @@
               </div>
 
               <div class="flex items-center gap-1">
-                <p-button icon="pi pi-directions" (click)="toggleTripDaysHighlight()" text size="small"
+                <p-button icon="pi pi-wave-pulse" (click)="toggleTripDaysHighlight()" text size="small"
                   pTooltip="Highlight Trip" />
                 <p-button icon="pi pi-filter" (click)="toggleFiltering()" text size="small" pTooltip="Filter" />
                 <p-button icon="pi pi-download" (click)="menuTripExport.toggle($event)" text size="small"
@@ -175,11 +174,18 @@
             </div>
 
             @if (isFilteringMode()) {
-            <div class="z-30 mt-3 grid sm:grid-cols-2 gap-2" animate.enter="slide-y" animate.leave="a-slide-y">
+            <div class="z-30 mt-3 grid sm:grid-cols-3 gap-2" animate.enter="slide-y" animate.leave="a-slide-y">
               <p-multiselect display="chip" fluid [options]="availableItemProps" [(ngModel)]="selectedItemProps"
-                placeholder="Cols" class="text-sm" appendTo="body" />
+                placeholder="Cols" [class]="canToggleTextAndPlace() ? 'sm:col-span-2' : 'sm:col-span-3'" appendTo="body"
+                size="small" />
 
-              <div class="relative">
+              @if (canToggleTextAndPlace()) {
+              <p-togglebutton onLabel="Show Text + Place" offLabel="Show Place" size="small"
+                [ngModel]="isTextAndPlaceToggled()" (ngModelChange)="isTextAndPlaceToggled.set($event)"
+                [pt]="{ content: 'min-w-0', label: 'truncate' }" />
+              }
+
+              <div class="relative col-span-full">
                 <input pInputText [formControl]="plansSearchInput" placeholder="Search..." class="h-full" pSize="small"
                   fluid />
                 @if (plansSearchInput.value) {
@@ -212,8 +218,8 @@
                 </div>
                 <div class="min-w-0 flex-1">
                   <h3 class="font-medium text-primary-900 dark:text-white truncate">{{ group.day.label }}</h3>
-                  <p class="text-xs text-primary-500 dark:text-primary-400 truncate">{{ group.day.dt | date: 'd MMM, y'
-                    }}</p>
+                  <p class="text-xs text-primary-500 dark:text-primary-400 truncate">{{
+                    group.day.dt | date: 'd MMM, y' }}</p>
                 </div>
               </div>
 
@@ -255,7 +261,24 @@
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2 min-w-0">
                       @if (item.place && visibleProps.has('place')) {
-                      <div class="flex color-bg-opacity items-center gap-2 px-2.5 py-1 rounded-lg min-w-0 max-w-full"
+                      @if (isTextAndPlaceToggled()) {
+                      <div class="flex flex-row items-center justify-between gap-2 min-w-0 w-full">
+                        @if (item.text !== item.place.name) {
+                        <span class="text-sm font-medium text-primary-900 dark:text-white truncate min-w-0">
+                          {{ item.text }}
+                        </span>
+                        }
+                        <div class="flex color-bg-opacity items-center gap-2 px-2.5 py-1 min-w-0 rounded-lg"
+                          [style.--color-bg-opacity]="item.place.category.color">
+                          <img [src]="item.place.image || item.place.category.image"
+                            class="shrink-0 w-5 h-5 rounded-full object-cover" />
+                          <span class="text-sm font-medium truncate">
+                            {{ item.place.name }}
+                          </span>
+                        </div>
+                      </div>
+                      } @else {
+                      <div class="flex color-bg-opacity items-center gap-2 px-2.5 py-1 min-w-0 rounded-lg"
                         [style.--color-bg-opacity]="item.place.category.color">
                         <img [src]="item.place.image || item.place.category.image"
                           class="shrink-0 w-5 h-5 rounded-full object-cover" />
@@ -263,6 +286,7 @@
                           {{ item.place.name }}
                         </span>
                       </div>
+                      }
                       } @else {
                       <span class="text-sm font-medium text-primary-900 dark:text-white truncate">
                         {{ item.text }}
@@ -275,7 +299,9 @@
                     </div>
 
                     @if (item.comment && visibleProps.has('comment')) {
-                    <p class="mt-1 text-xs text-primary-500 dark:text-primary-400 line-clamp-1">{{ item.comment }}</p>
+                    <p class="mt-1 text-xs text-primary-500 dark:text-primary-400 line-clamp-1 whitespace-pre-wrap">{{
+                      item.comment }}
+                    </p>
                     }
                   </div>
 
@@ -361,7 +387,7 @@
         @defer {
         @for (group of tripViewModel(); track group.day.id) {
         <div (click)="onDayClick(group.day)"
-          class="cursor-pointer relative rounded-lg hover:bg-primary-100 dark:hover:bg-primary-750">
+          class="group cursor-pointer relative rounded-lg hover:bg-primary-100 dark:hover:bg-black">
           <div class="flex items-center justify-between p-3 gap-3 border-primary-500 rounded-s select-none"
             [class]="selectedDay()?.id == group.day.id ? 'border-l-4' : 'border-l-0'">
             <div class="flex items-center gap-3 min-w-0">
@@ -492,7 +518,7 @@
 
             <div class="flex items-center gap-2 mt-1">
               <span class="text-sm font-medium truncate max-w-[50%]">{{ getItemDayLabel(item) }}</span>
-              <span class="text-primary-300 dark:text-primary-700">•</span>
+              <span class="text-primary-300 dark:text-primary-700">&middot;</span>
               <span class="text-xs font-mono font-medium px-1.5 py-0.5 bg-primary-100 dark:bg-primary-800 rounded">{{
                 item.time }}</span>
             </div>
@@ -515,7 +541,7 @@
       </div>
 
       <p-tabs [(value)]="selectedPlaceActiveTabIndex" scrollable>
-        <p-tablist>
+        <p-tablist #selectedTabListRef>
           @for (item of selection.items; track item.id) {
           <p-tab [value]="$index">
             <div class="flex items-center gap-2 px-1">
@@ -689,7 +715,7 @@
 
               <div class="flex items-center gap-2 mt-1">
                 <span class="text-sm font-medium truncate max-w-[50%]">{{ item.day }}</span>
-                <span class="text-primary-300 dark:text-primary-700">•</span>
+                <span class="text-primary-300 dark:text-primary-700">&middot;</span>
                 <span class="text-xs font-mono font-medium px-1.5 py-0.5 bg-primary-100 dark:bg-primary-800 rounded">{{
                   item.time }}</span>
               </div>
@@ -698,7 +724,7 @@
 
           <div class="hidden md:flex gap-1">
             @if (item.lat && item.lng) {
-            <p-button icon="pi pi-car" text pTooltip="Navigate" (click)="itemToNavigation()" />
+            <p-button icon="pi pi-directions" text pTooltip="Navigate" (click)="itemToNavigation()" />
             <p-button icon="pi pi-expand" text pTooltip="Fly to" (click)="flyTo()" />
             }
             <p-button (click)="selectedItem.set(null)" text icon="pi pi-times" />
@@ -854,8 +880,8 @@
           </div>
 
           <div class="hidden md:flex gap-1">
-            <p-button icon="pi pi-car" text pTooltip="Open Navigation" (click)="tripDayToNavigation(day.id)" />
-            <p-button icon="pi pi-directions" text pTooltip="Highlight" (click)="toggleTripDayHighlight(day.id)" />
+            <p-button icon="pi pi-directions" text pTooltip="Open Navigation" (click)="tripDayToNavigation(day.id)" />
+            <p-button icon="pi pi-wave-pulse" text pTooltip="Highlight" (click)="toggleTripDayHighlight(day.id)" />
             <p-button (click)="onDayClick(day)" text icon="pi pi-times" />
           </div>
 
@@ -1170,8 +1196,7 @@
           <div class="flex-1 h-px bg-primary-300"></div>
           @if (group.day.dt) {
           <span class="text-sm font-medium text-primary-400 whitespace-nowrap">{{
-            group.day.dt | date: 'd MMM, y'
-            }}</span>
+            group.day.dt | date: 'd MMM, y' }}</span>
           }
         </div>
 
@@ -1186,8 +1211,7 @@
         @for (item of group.items; track item.id) {
         <div class="flex gap-4 items-center rounded-lg p-3 -mx-3">
           <span class="px-2.5 py-1 text-xs font-mono font-medium bg-primary-100 text-primary-700 rounded">{{
-            item.time
-            }}</span>
+            item.time }}</span>
 
           <div class="flex-1 min-w-0">
             <div class="flex items-center gap-2">

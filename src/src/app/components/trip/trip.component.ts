@@ -1178,7 +1178,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     handle.setPointerCapture(event.pointerId);
 
     const onMove = (e: PointerEvent) => {
-      const newWidth = Math.max(320, Math.min(800, this.panelDeltaWidth + (e.clientX - this.panelDeltaX)));
+      const newWidth = Math.max(320, Math.min(1280, this.panelDeltaWidth + (e.clientX - this.panelDeltaX)));
       this.panelWidth.set(newWidth);
     };
 
