@@ -91,26 +91,35 @@ async def token_google_search(
     db_user = api_token_to_user(session, X_Api_Token)
     current_user = db_user.username
 
+    query = data.q
     try:
-        query = data.q
         if "maps.app.goo.gl" in query:
-            result = await google_resolve_shortlink(query.split("/")[-1], session, current_user)
+            result = await google_resolve_shortlink(query.rstrip("/").split("/")[-1], session, current_user)
         elif "google.com/maps/place/" in query:
             results = await bulk_to_places([query], session, current_user)
             result = results[0]
         else:
-            results = await text_search(data.q, session, current_user)
-            result = results[0]
-    except Exception:
+            results = await text_search(query, session, current_user)
+            result = results[0] if results else None
+
+        if not result:
+            raise HTTPException(status_code=404, detail="Place not found")
+
+    except Exception as exc:
+        logger.error(f"[BY_TOKEN] Error resolving Google Search query '{query}': {exc}")
         raise HTTPException(status_code=404, detail="Not found")
 
-    category_name = result.category or data.category
-    if not category_name:
-        raise HTTPException(status_code=400, detail="Category not set")
+    category = None
+    if result.category:
+        category = session.exec(
+            select(Category).where(Category.user == current_user, Category.name == result.category)
+        ).first()
 
-    category = session.exec(
-        select(Category).where(Category.user == current_user, Category.name == category_name)
-    ).first()
+    if not category and data.category:
+        category = session.exec(
+            select(Category).where(Category.user == current_user, Category.name == data.category)
+        ).first()
+
     if not category:
         raise HTTPException(status_code=400, detail="Bad Request, unknown Category")
 
