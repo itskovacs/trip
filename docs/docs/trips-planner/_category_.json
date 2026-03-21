@@ -1,0 +1,8 @@
+{
+  "label": "Trip Planner",
+  "position": 4,
+  "link": {
+    "type": "generated-index",
+    "description": "Documentation focused on the Trip part"
+  }
+}

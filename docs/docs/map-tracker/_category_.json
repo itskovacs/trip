@@ -1,0 +1,8 @@
+{
+  "label": "Map Tracker",
+  "position": 3,
+  "link": {
+    "type": "generated-index",
+    "description": "Documentation focused on the Points Of Interest"
+  }
+}
