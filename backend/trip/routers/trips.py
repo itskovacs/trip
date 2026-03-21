@@ -38,7 +38,9 @@ def _trip_from_token_or_404(session, token: str) -> TripShare:
 
 def _trip_usernames(session, trip_id: int) -> set[str]:
     owner = session.exec(select(Trip.user).where(Trip.id == trip_id)).first()
-    members = session.exec(select(TripMember.user).where(TripMember.trip_id == trip_id)).all()
+    members = session.exec(
+        select(TripMember.user).where(TripMember.trip_id == trip_id, TripMember.joined_at.is_not(None))
+    ).all()
     return {owner} | set(members)
 
 
@@ -265,10 +267,9 @@ def get_trip_balance(
     current_user: Annotated[str, Depends(get_current_username)],
 ):
     _get_verified_trip(session, trip_id, current_user)
-
     members = _trip_usernames(session, trip_id)
     if len(members) < 2:
-        raise HTTPException(status_code=400, detail="Bad request")
+        raise HTTPException(status_code=404, detail="Not found")
 
     trip_items = session.exec(
         select(TripItem.price, TripItem.paid_by)

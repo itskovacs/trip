@@ -116,7 +116,9 @@ export class ApiService {
   }
 
   getTripBalance(id: number): Observable<{ [user: string]: number }> {
-    return this.httpClient.get<{ [user: string]: number }>(`${this.apiBaseUrl}/trips/${id}/balance`);
+    return this.httpClient.get<{ [user: string]: number }>(`${this.apiBaseUrl}/trips/${id}/balance`, {
+      headers: { ignore_not_found: 'true' },
+    });
   }
 
   postTrip(trip: TripBase): Observable<TripBase> {
