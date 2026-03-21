@@ -16,6 +16,4 @@ Place panel your POI. You can restrict to in-bounds visibles places. Clicking op
 The place panel can display either every places or only the places within your current map boundaries (zoom level and position).
 :::
 
-Clicking a place in the panel opens the [place details](places#place-details).
-
 Hovering over a place highlights it on the map with a red circle and reveals an edit button for direct editing.

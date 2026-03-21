@@ -32,7 +32,7 @@ When toggling dark mode, if the map tile provider wasn't changed manually, it wi
 The **Account** section handle two topics: **Security** and **Integrations**.
 
 - Update your password, enable Two-Factor Authentication (TOTP) for enhanced security.
-- Select your default provider, set your Google API Key to access Google API features within the app, and generate your [TRIP API Key](/docs/category/trip-api) to script some tasks.
+- Select your default provider, set your Google API Key to access Google API features within the app, and generate your [TRIP API Key](/docs/trip-api/generating-api-key) to script some tasks.
 
 <br />
 

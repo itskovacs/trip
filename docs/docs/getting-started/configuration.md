@@ -99,14 +99,14 @@ OIDC_REDIRECT_URI="https://trip.yourdomain.lan/auth"
 ```
 
 :::warning
-If you have an error, please check the [Troubleshooting](#tbshoot) section
+If you have an error, please check the [Troubleshooting](#troubleshooting) section
 :::
 
 ### Disable registration
 
 The key `REGISTER_ENABLE` can be configured to `false` to disable registration.
 
-## Troubleshooting<a name = "tbshoot"></a>
+## Troubleshooting
 
 ### SSL Error / Certificate
 
