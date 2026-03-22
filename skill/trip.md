@@ -218,6 +218,153 @@ One-to-one extension storing booking/priority metadata for a trip item.
 
 Priority values: `"must-see"`, `"should-see"`, `"nice-to-have"`.
 
+### Restaurants
+
+Extension for places that are restaurants — stores cuisine, price range, and dishes.
+
+| Method | Endpoint                                          | Description              |
+|--------|---------------------------------------------------|--------------------------|
+| POST   | `/api/places/{place_id}/restaurant`               | Create restaurant details |
+| GET    | `/api/places/{place_id}/restaurant`               | Get restaurant details    |
+| PUT    | `/api/places/{place_id}/restaurant`               | Update restaurant details |
+| DELETE | `/api/places/{place_id}/restaurant`               | Delete restaurant details |
+| POST   | `/api/places/{place_id}/restaurant/dishes`        | Add a dish                |
+| GET    | `/api/places/{place_id}/restaurant/dishes`        | List dishes               |
+| DELETE | `/api/places/{place_id}/restaurant/dishes/{dish_id}` | Delete a dish          |
+
+**Create restaurant body:**
+```json
+{
+  "cuisine": "Japanese",
+  "price_range": "$$",
+  "reservation_required": true,
+  "must_try": "Omakase sushi set"
+}
+```
+
+**Create dish body:**
+```json
+{"name": "Tonkotsu Ramen", "description": "Rich pork bone broth ramen", "price": 14.50}
+```
+
+### Transport Routes
+
+Item-to-item transport routes with mode options (walk, drive, transit, etc.).
+
+| Method | Endpoint                                                       | Description              |
+|--------|----------------------------------------------------------------|--------------------------|
+| POST   | `/api/trips/{trip_id}/routes`                                  | Create a route           |
+| GET    | `/api/trips/{trip_id}/routes`                                  | List routes              |
+| GET    | `/api/trips/{trip_id}/routes/{route_id}`                       | Get a single route       |
+| DELETE | `/api/trips/{trip_id}/routes/{route_id}`                       | Delete a route           |
+| POST   | `/api/trips/{trip_id}/routes/{route_id}/options`               | Add a route option       |
+| GET    | `/api/trips/{trip_id}/routes/{route_id}/options`               | List route options       |
+| DELETE | `/api/trips/{trip_id}/routes/{route_id}/options/{option_id}`   | Delete a route option    |
+
+**Create route body:**
+```json
+{"from_item_id": 1, "to_item_id": 2}
+```
+
+**Create route option body:**
+```json
+{"mode": "transit", "duration": 25, "distance": 8.5, "cost": 2.80}
+```
+
+### Reservations — Flights
+
+| Method | Endpoint                                    | Description          |
+|--------|---------------------------------------------|----------------------|
+| POST   | `/api/trips/{trip_id}/flights`              | Create a flight      |
+| GET    | `/api/trips/{trip_id}/flights`              | List flights         |
+| GET    | `/api/trips/{trip_id}/flights/{flight_id}`  | Get a flight         |
+| PUT    | `/api/trips/{trip_id}/flights/{flight_id}`  | Update a flight      |
+| DELETE | `/api/trips/{trip_id}/flights/{flight_id}`  | Delete a flight      |
+
+### Reservations — Accommodation
+
+| Method | Endpoint                                         | Description              |
+|--------|--------------------------------------------------|--------------------------|
+| POST   | `/api/trips/{trip_id}/accommodation`             | Create accommodation     |
+| GET    | `/api/trips/{trip_id}/accommodation`             | List accommodation       |
+| DELETE | `/api/trips/{trip_id}/accommodation/{id}`        | Delete accommodation     |
+
+### Reservations — Rental Cars
+
+| Method | Endpoint                                       | Description            |
+|--------|-------------------------------------------------|------------------------|
+| POST   | `/api/trips/{trip_id}/rental-cars`             | Create a rental car    |
+| GET    | `/api/trips/{trip_id}/rental-cars`             | List rental cars       |
+| DELETE | `/api/trips/{trip_id}/rental-cars/{id}`        | Delete a rental car    |
+
+### Budget
+
+Track planned and actual expenses by category.
+
+| Method | Endpoint                                    | Description                |
+|--------|---------------------------------------------|----------------------------|
+| POST   | `/api/trips/{trip_id}/budget`               | Create a budget entry      |
+| GET    | `/api/trips/{trip_id}/budget`               | List budget entries        |
+| PUT    | `/api/trips/{trip_id}/budget/{id}`          | Update a budget entry      |
+| DELETE | `/api/trips/{trip_id}/budget/{id}`          | Delete a budget entry      |
+| GET    | `/api/trips/{trip_id}/budget/summary`       | Aggregated budget summary  |
+
+**Create budget entry body:**
+```json
+{"category": "food", "planned": 500.00, "actual": 0.00, "currency": "JPY", "note": "Daily meals"}
+```
+
+**Budget summary response includes:** `planned_total`, `actual_total`, `breakdown` (by category), `per_day` averages.
+
+### Exchange Rates
+
+| Method | Endpoint              | Description                  |
+|--------|-----------------------|------------------------------|
+| POST   | `/api/exchange-rates` | Create/update exchange rate  |
+| GET    | `/api/exchange-rates` | List exchange rates          |
+
+### Weather
+
+Per-day weather forecast data.
+
+| Method | Endpoint                                          | Description              |
+|--------|---------------------------------------------------|--------------------------|
+| POST   | `/api/trips/{trip_id}/days/{day_id}/weather`      | Create weather forecast  |
+| GET    | `/api/trips/{trip_id}/days/{day_id}/weather`       | Get weather forecast     |
+| PUT    | `/api/trips/{trip_id}/days/{day_id}/weather`       | Update weather forecast  |
+| DELETE | `/api/trips/{trip_id}/days/{day_id}/weather`       | Delete weather forecast  |
+
+### Travel Info
+
+Visa requirements, emergency contacts, insurance details, and other travel information.
+
+| Method | Endpoint                                    | Description              |
+|--------|---------------------------------------------|--------------------------|
+| POST   | `/api/trips/{trip_id}/travel-info`          | Create travel info       |
+| GET    | `/api/trips/{trip_id}/travel-info`          | Get travel info          |
+| PUT    | `/api/trips/{trip_id}/travel-info`          | Update travel info       |
+| DELETE | `/api/trips/{trip_id}/travel-info`          | Delete travel info       |
+
+### Version Management
+
+Create and manage trip snapshots for version history.
+
+| Method | Endpoint                                            | Description              |
+|--------|-----------------------------------------------------|--------------------------|
+| POST   | `/api/trips/{trip_id}/versions`                     | Create a version snapshot |
+| GET    | `/api/trips/{trip_id}/versions`                     | List versions            |
+| GET    | `/api/trips/{trip_id}/versions/{version_id}`        | Get a version            |
+| DELETE | `/api/trips/{trip_id}/versions/{version_id}`        | Delete a version         |
+
+### Google Maps Directions
+
+Generate Google Maps direction URLs for navigating between a day's stops.
+
+| Method | Endpoint                                            | Description                          |
+|--------|-----------------------------------------------------|--------------------------------------|
+| GET    | `/api/trips/{trip_id}/days/{day_id}/directions`     | Google Maps URL for a day's stops    |
+| GET    | `/api/trips/{trip_id}/directions`                   | Google Maps URLs for all days        |
+
 ---
 
 ## Data Enrichment Flow
@@ -269,7 +416,19 @@ If the user specifies a day and time:
 POST /api/trips/{trip_id}/days/{day_id}/items
 ```
 
-With `"place": <place_id>` to link it.
+**IMPORTANT:** The field is called `place` (not `place_id`) in the request body. Example: `{"place": 1, "time": "10:00", "text": "Visit Eiffel Tower"}`.
+
+The place **must** already be linked to the trip via `place_ids` in `PUT /api/trips/{trip_id}` (Step 4) before it can be referenced in an item. The API will reject items referencing unlinked places.
+
+### Step 6: (Optional) Generate Google Maps Directions
+
+After creating all items for a day, generate a Google Maps directions URL so the user can navigate between stops:
+
+```
+GET /api/trips/{trip_id}/days/{day_id}/directions
+```
+
+This returns a clickable Google Maps URL with waypoints ordered by the day's itinerary.
 
 ---
 
