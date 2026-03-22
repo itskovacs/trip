@@ -67,7 +67,8 @@ def _build_stops(items: list[TripItem]) -> list[DirectionStop]:
 def _build_url(stops: list[DirectionStop]) -> str:
     if not stops:
         return ""
-    parts = "/".join(f"{s.lat},{s.lng}" for s in stops)
+    from urllib.parse import quote
+    parts = "/".join(quote(s.name, safe="") for s in stops)
     return f"https://www.google.com/maps/dir/{parts}"
 
 

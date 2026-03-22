@@ -40,7 +40,8 @@ class TestDayDirections:
         assert resp.status_code == 200
         data = resp.json()
         assert data["stop_count"] == 2
-        assert data["google_maps_url"] == "https://www.google.com/maps/dir/41.0086,28.9802/41.0082,28.9747"
+        assert "/maps/dir/" in data["google_maps_url"]
+        assert "Hagia" in data["google_maps_url"]
         assert data["stops"][0]["name"] == "Hagia Sophia"
         assert data["stops"][0]["time"] == "09:00"
         assert data["stops"][1]["name"] == "Koftecisi"
@@ -193,8 +194,8 @@ class TestTripDirections:
         assert d1["label"] == "Day A"
         assert d1["date"] == "2026-05-01"
         assert d1["stop_count"] == 2
-        assert "10.0,20.0" in d1["google_maps_url"]
-        assert "11.0,21.0" in d1["google_maps_url"]
+        assert "/maps/dir/" in d1["google_maps_url"]
+        assert "S1" in d1["google_maps_url"]
 
         d2 = data["days"][1]
         assert d2["label"] == "Day B"
