@@ -271,11 +271,20 @@
               </div>
 
               <div class="shrink-0 flex items-center gap-2">
+                @if (dayWeatherMap()[group.day.id]; as weather) {
+                <span class="flex items-center gap-1 bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-1 text-xs font-medium rounded-md" [pTooltip]="weather.condition + ' — Rain: ' + weather.rain_chance + '%'">
+                  {{ getWeatherIcon(weather.condition) }} {{ weather.high_temp }}°/{{ weather.low_temp }}°
+                </span>
+                }
                 @if (visibleProps.has('price')) {
                 <span
                   class="flex items-center bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-1 text-xs font-medium rounded-md">{{
                   group.stats.cost | number: '1.0-0' }} {{ trip()?.currency }}
                 </span>
+                }
+                @if (dayDirectionsMap()[group.day.id]) {
+                <p-button icon="pi pi-directions" text size="small" pTooltip="Open directions in Google Maps"
+                  (click)="openDayDirections(group.day.id, $event)" />
                 }
                 <p-button icon="pi pi-ellipsis-h"
                   (click)="openMenuPlanDayActionsItems($event, group.day); $event.stopPropagation()" text
@@ -475,10 +484,19 @@
             </div>
 
             <div class="flex shrink-0 items-center gap-2">
+              @if (dayWeatherMap()[group.day.id]; as weather) {
+              <span class="flex items-center gap-1 bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-1 text-xs font-medium rounded-md" [pTooltip]="weather.condition + ' — Rain: ' + weather.rain_chance + '%'">
+                {{ getWeatherIcon(weather.condition) }} {{ weather.high_temp }}°/{{ weather.low_temp }}°
+              </span>
+              }
               <span
                 class="flex items-center bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-1 text-xs font-medium rounded-md">{{
                 group.stats.cost | number: '1.0-0' }} {{ trip()?.currency }}
               </span>
+              @if (dayDirectionsMap()[group.day.id]) {
+              <p-button icon="pi pi-directions" text size="small" pTooltip="Open directions in Google Maps"
+                (click)="openDayDirections(group.day.id, $event)" />
+              }
               <div class="flex md:hidden">
                 <p-button (click)="openMenuTripDayActions($event, group.day); $event.stopPropagation()"
                   severity="secondary" text icon="pi pi-ellipsis-h" />

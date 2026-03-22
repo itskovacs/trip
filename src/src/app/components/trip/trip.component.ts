@@ -176,6 +176,9 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   selectedDay = signal<TripDay | null>(null);
   isTextAndPlaceToggled = signal<boolean>(false);
 
+  dayDirectionsMap = signal<Record<number, string>>({});
+  dayWeatherMap = signal<Record<number, { high_temp: number; low_temp: number; condition: string; rain_chance: number }>>({});
+
   panelWidth = signal<number | null>(null);
   panelDeltaX = 0;
   panelDeltaWidth = 0;
@@ -648,12 +651,63 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           this.trip.set(trip);
           this.tripMembers.set(members);
           if (!this.map) this.initMap(settings);
+          this.loadDayDirectionsAndWeather(trip);
         },
         error: () => {
           this.utilsService.toast('error', 'Error', 'Could not load trip');
           this.router.navigate(['/trips']);
         },
       });
+  }
+
+  loadDayDirectionsAndWeather(trip: Trip) {
+    if (!trip.days?.length) return;
+
+    const directionsRequests: Record<string, Observable<{ google_maps_url: string }>> = {};
+    const weatherRequests: Record<string, Observable<{ high_temp: number; low_temp: number; condition: string; rain_chance: number }>> = {};
+
+    for (const day of trip.days) {
+      directionsRequests[day.id] = this.apiService.getDayDirections(trip.id, day.id);
+      weatherRequests[day.id] = this.apiService.getDayWeather(trip.id, day.id);
+    }
+
+    forkJoin(directionsRequests).pipe(take(1)).subscribe({
+      next: (results) => {
+        const map: Record<number, string> = {};
+        for (const [dayId, data] of Object.entries(results)) {
+          if (data?.google_maps_url) map[+dayId] = data.google_maps_url;
+        }
+        this.dayDirectionsMap.set(map);
+      },
+      error: () => {},
+    });
+
+    forkJoin(weatherRequests).pipe(take(1)).subscribe({
+      next: (results) => {
+        const map: Record<number, { high_temp: number; low_temp: number; condition: string; rain_chance: number }> = {};
+        for (const [dayId, data] of Object.entries(results)) {
+          if (data) map[+dayId] = data;
+        }
+        this.dayWeatherMap.set(map);
+      },
+      error: () => {},
+    });
+  }
+
+  getWeatherIcon(condition: string): string {
+    const c = condition?.toLowerCase() || '';
+    if (c.includes('snow') || c.includes('blizzard')) return '❄️';
+    if (c.includes('thunder') || c.includes('storm')) return '⛈️';
+    if (c.includes('rain') || c.includes('drizzle') || c.includes('shower')) return '🌧️';
+    if (c.includes('cloud') || c.includes('overcast')) return '☁️';
+    if (c.includes('partly') || c.includes('partial')) return '⛅';
+    return '☀️';
+  }
+
+  openDayDirections(dayId: number, event: Event) {
+    event.stopPropagation();
+    const url = this.dayDirectionsMap()[dayId];
+    if (url) window.open(url, '_blank', 'noopener');
   }
 
   initMap(settings: Settings) {
