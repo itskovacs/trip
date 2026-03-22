@@ -8,22 +8,9 @@ from sqlmodel import select
 
 from ..deps import SessionDep, get_current_username
 from ..models.extensions import TripAccommodation, TripFlight, TripRentalCar
-from ..models.models import Trip
+from ._helpers import verify_trip_ownership
 
 router = APIRouter(prefix="/api/trips", tags=["reservations"])
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-
-def _verify_trip(session, trip_id: int, current_user: str) -> Trip:
-    """Verify trip exists and is owned by the current user."""
-    trip = session.get(Trip, trip_id)
-    if not trip or trip.user != current_user:
-        raise HTTPException(status_code=404, detail="Trip not found")
-    return trip
 
 
 # ---------------------------------------------------------------------------
@@ -159,7 +146,7 @@ def create_flight(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
     flight = TripFlight(trip_id=trip_id, **body.model_dump())
     session.add(flight)
     session.commit()
@@ -173,7 +160,7 @@ def list_flights(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
     flights = session.exec(
         select(TripFlight).where(TripFlight.trip_id == trip_id)
     ).all()
@@ -187,7 +174,7 @@ def get_flight(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
     flight = session.get(TripFlight, flight_id)
     if not flight or flight.trip_id != trip_id:
         raise HTTPException(status_code=404, detail="Flight not found")
@@ -202,7 +189,7 @@ def update_flight(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
     flight = session.get(TripFlight, flight_id)
     if not flight or flight.trip_id != trip_id:
         raise HTTPException(status_code=404, detail="Flight not found")
@@ -224,7 +211,7 @@ def delete_flight(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
     flight = session.get(TripFlight, flight_id)
     if not flight or flight.trip_id != trip_id:
         raise HTTPException(status_code=404, detail="Flight not found")
@@ -246,7 +233,7 @@ def create_accommodation(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
     accommodation = TripAccommodation(trip_id=trip_id, **body.model_dump())
     session.add(accommodation)
     session.commit()
@@ -260,7 +247,7 @@ def list_accommodation(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
     items = session.exec(
         select(TripAccommodation).where(TripAccommodation.trip_id == trip_id)
     ).all()
@@ -274,7 +261,7 @@ def delete_accommodation(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
     accommodation = session.get(TripAccommodation, accommodation_id)
     if not accommodation or accommodation.trip_id != trip_id:
         raise HTTPException(status_code=404, detail="Accommodation not found")
@@ -294,7 +281,7 @@ def create_rental_car(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
     car = TripRentalCar(trip_id=trip_id, **body.model_dump())
     session.add(car)
     session.commit()
@@ -308,7 +295,7 @@ def list_rental_cars(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
     cars = session.exec(
         select(TripRentalCar).where(TripRentalCar.trip_id == trip_id)
     ).all()
@@ -322,7 +309,7 @@ def delete_rental_car(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
     car = session.get(TripRentalCar, car_id)
     if not car or car.trip_id != trip_id:
         raise HTTPException(status_code=404, detail="Rental car not found")

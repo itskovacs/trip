@@ -8,22 +8,9 @@ from sqlmodel import select
 
 from ..deps import SessionDep, get_current_username
 from ..models.extensions import TripTravelInfo
-from ..models.models import Trip
+from ._helpers import verify_trip_ownership
 
 router = APIRouter(prefix="/api/trips", tags=["travel-info"])
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-
-def _verify_trip(session, trip_id: int, current_user: str) -> Trip:
-    """Verify trip exists and is owned by the current user."""
-    trip = session.get(Trip, trip_id)
-    if not trip or trip.user != current_user:
-        raise HTTPException(status_code=404, detail="Trip not found")
-    return trip
 
 
 # ---------------------------------------------------------------------------
@@ -100,7 +87,7 @@ def create_travel_info(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
 
     existing = session.exec(
         select(TripTravelInfo).where(TripTravelInfo.trip_id == trip_id)
@@ -126,7 +113,7 @@ def get_travel_info(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
 
     info = session.exec(
         select(TripTravelInfo).where(TripTravelInfo.trip_id == trip_id)
@@ -146,7 +133,7 @@ def update_travel_info(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
 
     info = session.exec(
         select(TripTravelInfo).where(TripTravelInfo.trip_id == trip_id)
@@ -173,7 +160,7 @@ def delete_travel_info(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
 
     info = session.exec(
         select(TripTravelInfo).where(TripTravelInfo.trip_id == trip_id)

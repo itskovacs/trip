@@ -8,7 +8,8 @@ from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
 from ..deps import SessionDep, get_current_username
-from ..models.models import Place, Trip, TripDay, TripItem, TripMember
+from ..models.models import Place, Trip, TripDay, TripItem
+from ._helpers import verify_trip_ownership
 
 router = APIRouter(prefix="/api/trips", tags=["directions"])
 
@@ -48,21 +49,6 @@ class TripDirectionsResponse(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-def _get_verified_trip(session, trip_id: int, username: str) -> Trip:
-    trip = session.exec(
-        select(Trip)
-        .outerjoin(TripMember)
-        .where(
-            Trip.id == trip_id,
-            (Trip.user == username)
-            | ((TripMember.user == username) & (TripMember.joined_at.is_not(None))),
-        )
-    ).first()
-    if not trip:
-        raise HTTPException(status_code=404, detail="Not found")
-    return trip
-
-
 def _build_stops(items: list[TripItem]) -> list[DirectionStop]:
     """Return sorted stops for items that have coordinates."""
     stops: list[DirectionStop] = []
@@ -97,7 +83,7 @@ def get_day_directions(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ) -> DayDirectionsResponse:
-    _get_verified_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
 
     day = session.exec(
         select(TripDay)
@@ -121,7 +107,7 @@ def get_trip_directions(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ) -> TripDirectionsResponse:
-    trip = _get_verified_trip(session, trip_id, current_user)
+    trip = verify_trip_ownership(session, trip_id, current_user)
 
     # Eagerly load days -> items -> place
     trip = session.exec(

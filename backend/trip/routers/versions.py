@@ -11,21 +11,11 @@ from sqlmodel import select
 from ..deps import SessionDep, get_current_username
 from ..models.extensions import TripVersion
 from ..models.models import Trip, TripDay, TripItem
+from ._helpers import verify_trip_ownership
 
 router = APIRouter(prefix="/api/trips", tags=["versions"])
 
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-
-def _verify_trip(session, trip_id: int, current_user: str) -> Trip:
-    """Verify trip exists and is owned by the current user."""
-    trip = session.get(Trip, trip_id)
-    if not trip or trip.user != current_user:
-        raise HTTPException(status_code=404, detail="Trip not found")
-    return trip
+MAX_VERSIONS = 10
 
 
 def _build_snapshot(session, trip: Trip) -> str:
@@ -118,7 +108,7 @@ def create_version(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    trip = _verify_trip(session, trip_id, current_user)
+    trip = verify_trip_ownership(session, trip_id, current_user)
 
     snapshot = _build_snapshot(session, trip)
     version = TripVersion(
@@ -131,6 +121,17 @@ def create_version(
     session.add(version)
     session.commit()
     session.refresh(version)
+
+    # Enforce max versions limit
+    versions = session.exec(
+        select(TripVersion).where(TripVersion.trip_id == trip_id)
+        .order_by(TripVersion.id.desc())
+    ).all()
+    if len(versions) > MAX_VERSIONS:
+        for old in versions[MAX_VERSIONS:]:
+            session.delete(old)
+        session.commit()
+
     return version
 
 
@@ -143,7 +144,7 @@ def list_versions(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
     versions = session.exec(
         select(TripVersion).where(TripVersion.trip_id == trip_id)
     ).all()
@@ -160,7 +161,7 @@ def get_version(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
     version = session.get(TripVersion, version_id)
     if not version or version.trip_id != trip_id:
         raise HTTPException(status_code=404, detail="Version not found")
@@ -177,7 +178,7 @@ def delete_version(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
     version = session.get(TripVersion, version_id)
     if not version or version.trip_id != trip_id:
         raise HTTPException(status_code=404, detail="Version not found")

@@ -1,6 +1,6 @@
 """CRUD router for trip budget entries, budget summary, and exchange rates."""
 
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -8,37 +8,27 @@ from sqlmodel import select
 
 from ..deps import SessionDep, get_current_username
 from ..models.extensions import ExchangeRate, TripBudget
-from ..models.models import Trip, TripDay, TripItem
+from ..models.models import TripDay, TripItem
+from ._helpers import verify_trip_ownership
 
 router = APIRouter(tags=["budget"])
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-
-def _verify_trip(session, trip_id: int, current_user: str) -> Trip:
-    """Verify trip exists and is owned by the current user."""
-    trip = session.get(Trip, trip_id)
-    if not trip or trip.user != current_user:
-        raise HTTPException(status_code=404, detail="Trip not found")
-    return trip
 
 
 # ---------------------------------------------------------------------------
 # Pydantic schemas – Budget
 # ---------------------------------------------------------------------------
 
+BUDGET_CATEGORIES = Literal["flights", "accommodation", "food", "attractions", "transport", "shopping", "misc"]
+
 
 class BudgetCreate(BaseModel):
-    category: str
+    category: BUDGET_CATEGORIES
     planned_amount: float
     currency: str | None = None
 
 
 class BudgetUpdate(BaseModel):
-    category: str | None = None
+    category: BUDGET_CATEGORIES | None = None
     planned_amount: float | None = None
     currency: str | None = None
 
@@ -97,7 +87,7 @@ def create_budget(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
     budget = TripBudget(trip_id=trip_id, **body.model_dump())
     session.add(budget)
     session.commit()
@@ -111,7 +101,7 @@ def list_budget(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
     entries = session.exec(
         select(TripBudget).where(TripBudget.trip_id == trip_id)
     ).all()
@@ -126,7 +116,7 @@ def update_budget(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
     budget = session.get(TripBudget, budget_id)
     if not budget or budget.trip_id != trip_id:
         raise HTTPException(status_code=404, detail="Budget entry not found")
@@ -148,7 +138,7 @@ def delete_budget(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
     budget = session.get(TripBudget, budget_id)
     if not budget or budget.trip_id != trip_id:
         raise HTTPException(status_code=404, detail="Budget entry not found")
@@ -167,7 +157,7 @@ def budget_summary(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
 
     # Planned totals by category
     budget_entries = session.exec(

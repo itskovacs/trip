@@ -9,7 +9,8 @@ from sqlmodel import select
 
 from ..deps import SessionDep, get_current_username
 from ..models.extensions import TripItemDetails
-from ..models.models import Trip, TripDay, TripItem
+from ..models.models import TripItem
+from ._helpers import verify_trip_ownership, verify_item_in_trip
 
 router = APIRouter(prefix="/api/trips", tags=["trip-item-details"])
 
@@ -48,34 +49,6 @@ class TripItemDetailsRead(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-
-def _verify_trip_and_item(
-    session, trip_id: int, item_id: int, current_user: str
-) -> TripItem:
-    """Verify trip ownership AND that the item belongs to the trip.
-
-    The ownership chain is: Trip -> TripDay -> TripItem.
-    """
-    trip = session.get(Trip, trip_id)
-    if not trip or trip.user != current_user:
-        raise HTTPException(status_code=404, detail="Trip not found")
-
-    item = session.get(TripItem, item_id)
-    if not item:
-        raise HTTPException(status_code=404, detail="Item not found")
-
-    # Verify item belongs to this trip via its day
-    day = session.get(TripDay, item.day_id)
-    if not day or day.trip_id != trip_id:
-        raise HTTPException(status_code=404, detail="Item not found in this trip")
-
-    return item
-
-
-# ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
 
@@ -92,7 +65,8 @@ def create_item_details(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    item = _verify_trip_and_item(session, trip_id, item_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
+    item = verify_item_in_trip(session, item_id, trip_id)
 
     existing = session.exec(
         select(TripItemDetails).where(TripItemDetails.item_id == item.id)
@@ -119,7 +93,8 @@ def get_item_details(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    item = _verify_trip_and_item(session, trip_id, item_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
+    item = verify_item_in_trip(session, item_id, trip_id)
 
     details = session.exec(
         select(TripItemDetails).where(TripItemDetails.item_id == item.id)
@@ -140,7 +115,8 @@ def update_item_details(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    item = _verify_trip_and_item(session, trip_id, item_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
+    item = verify_item_in_trip(session, item_id, trip_id)
 
     details = session.exec(
         select(TripItemDetails).where(TripItemDetails.item_id == item.id)
@@ -168,7 +144,8 @@ def delete_item_details(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    item = _verify_trip_and_item(session, trip_id, item_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
+    item = verify_item_in_trip(session, item_id, trip_id)
 
     details = session.exec(
         select(TripItemDetails).where(TripItemDetails.item_id == item.id)

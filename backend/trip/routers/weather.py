@@ -1,6 +1,6 @@
 """CRUD router for day weather forecasts (one-to-one extension of TripDay)."""
 
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -8,47 +8,29 @@ from sqlmodel import select
 
 from ..deps import SessionDep, get_current_username
 from ..models.extensions import DayWeather
-from ..models.models import Trip, TripDay
+from ._helpers import verify_trip_ownership, verify_day_in_trip
 
 router = APIRouter(prefix="/api/trips", tags=["weather"])
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-
-def _verify_trip_and_day(
-    session, trip_id: int, day_id: int, current_user: str
-) -> TripDay:
-    """Verify trip ownership AND that the day belongs to the trip."""
-    trip = session.get(Trip, trip_id)
-    if not trip or trip.user != current_user:
-        raise HTTPException(status_code=404, detail="Trip not found")
-
-    day = session.get(TripDay, day_id)
-    if not day or day.trip_id != trip_id:
-        raise HTTPException(status_code=404, detail="Day not found in this trip")
-
-    return day
 
 
 # ---------------------------------------------------------------------------
 # Pydantic schemas
 # ---------------------------------------------------------------------------
 
+WEATHER_CONDITIONS = Literal["sunny", "partly-cloudy", "cloudy", "rain", "snow", "storm"]
+
 
 class WeatherCreate(BaseModel):
     high_temp: float | None = None
     low_temp: float | None = None
-    condition: str | None = None
+    condition: WEATHER_CONDITIONS | None = None
     rain_chance: int | None = None
 
 
 class WeatherUpdate(BaseModel):
     high_temp: float | None = None
     low_temp: float | None = None
-    condition: str | None = None
+    condition: WEATHER_CONDITIONS | None = None
     rain_chance: int | None = None
 
 
@@ -78,7 +60,8 @@ def create_weather(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    day = _verify_trip_and_day(session, trip_id, day_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
+    day = verify_day_in_trip(session, day_id, trip_id)
 
     existing = session.exec(
         select(DayWeather).where(DayWeather.day_id == day.id)
@@ -105,7 +88,8 @@ def get_weather(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    day = _verify_trip_and_day(session, trip_id, day_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
+    day = verify_day_in_trip(session, day_id, trip_id)
 
     weather = session.exec(
         select(DayWeather).where(DayWeather.day_id == day.id)
@@ -126,7 +110,8 @@ def update_weather(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    day = _verify_trip_and_day(session, trip_id, day_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
+    day = verify_day_in_trip(session, day_id, trip_id)
 
     weather = session.exec(
         select(DayWeather).where(DayWeather.day_id == day.id)
@@ -154,7 +139,8 @@ def delete_weather(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    day = _verify_trip_and_day(session, trip_id, day_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
+    day = verify_day_in_trip(session, day_id, trip_id)
 
     weather = session.exec(
         select(DayWeather).where(DayWeather.day_id == day.id)

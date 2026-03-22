@@ -1,6 +1,6 @@
 """CRUD router for transport routes (ItemRoute) and route options (RouteOption)."""
 
-from typing import Annotated
+from typing import Annotated, Literal
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -8,41 +8,10 @@ from sqlmodel import select
 
 from ..deps import SessionDep, get_current_username
 from ..models.extensions import ItemRoute, RouteOption
-from ..models.models import Trip, TripDay, TripItem
+from ..models.models import TripDay, TripItem
+from ._helpers import verify_trip_ownership, verify_item_in_trip, verify_day_in_trip
 
 router = APIRouter(prefix="/api/trips", tags=["routes"])
-
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-
-def _verify_trip(session, trip_id: int, current_user: str) -> Trip:
-    """Verify trip exists and is owned by the current user."""
-    trip = session.get(Trip, trip_id)
-    if not trip or trip.user != current_user:
-        raise HTTPException(status_code=404, detail="Trip not found")
-    return trip
-
-
-def _verify_item_belongs_to_trip(session, item_id: int, trip_id: int) -> TripItem:
-    """Verify a TripItem belongs to the given trip (via its TripDay)."""
-    item = session.get(TripItem, item_id)
-    if not item:
-        raise HTTPException(status_code=404, detail="Item not found")
-    day = session.get(TripDay, item.day_id)
-    if not day or day.trip_id != trip_id:
-        raise HTTPException(status_code=404, detail="Item does not belong to this trip")
-    return item
-
-
-def _verify_day_belongs_to_trip(session, day_id: int, trip_id: int) -> TripDay:
-    """Verify a TripDay belongs to the given trip."""
-    day = session.get(TripDay, day_id)
-    if not day or day.trip_id != trip_id:
-        raise HTTPException(status_code=404, detail="Day does not belong to this trip")
-    return day
 
 
 def _get_route_for_trip(session, route_id: int, trip_id: int) -> ItemRoute:
@@ -87,8 +56,11 @@ class RouteReadWithOptions(RouteRead):
 # ---------------------------------------------------------------------------
 
 
+ROUTE_MODES = Literal["walk", "tram", "bus", "taxi", "metro", "car", "ferry", "bike"]
+
+
 class RouteOptionCreate(BaseModel):
-    mode: str
+    mode: ROUTE_MODES
     duration_minutes: int | None = None
     distance_km: float | None = None
     cost: float | None = None
@@ -121,10 +93,10 @@ def create_route(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
-    _verify_item_belongs_to_trip(session, body.from_item_id, trip_id)
-    _verify_item_belongs_to_trip(session, body.to_item_id, trip_id)
-    _verify_day_belongs_to_trip(session, body.day_id, trip_id)
+    verify_trip_ownership(session, trip_id, current_user)
+    verify_item_in_trip(session, body.from_item_id, trip_id)
+    verify_item_in_trip(session, body.to_item_id, trip_id)
+    verify_day_in_trip(session, body.day_id, trip_id)
 
     route = ItemRoute(**body.model_dump())
     session.add(route)
@@ -139,7 +111,7 @@ def list_routes(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
     # Get all day IDs for this trip, then find routes on those days
     day_ids = session.exec(
         select(TripDay.id).where(TripDay.trip_id == trip_id)
@@ -159,7 +131,7 @@ def get_route(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
     route = _get_route_for_trip(session, route_id, trip_id)
     options = session.exec(
         select(RouteOption).where(RouteOption.route_id == route.id)
@@ -182,7 +154,7 @@ def delete_route(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
     route = _get_route_for_trip(session, route_id, trip_id)
     session.delete(route)
     session.commit()
@@ -205,7 +177,7 @@ def create_route_option(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
     _get_route_for_trip(session, route_id, trip_id)
 
     option = RouteOption(route_id=route_id, **body.model_dump())
@@ -225,7 +197,7 @@ def list_route_options(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
     _get_route_for_trip(session, route_id, trip_id)
 
     options = session.exec(
@@ -245,7 +217,7 @@ def delete_route_option(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _verify_trip(session, trip_id, current_user)
+    verify_trip_ownership(session, trip_id, current_user)
     _get_route_for_trip(session, route_id, trip_id)
 
     option = session.get(RouteOption, option_id)

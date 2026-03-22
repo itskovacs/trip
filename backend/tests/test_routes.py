@@ -271,12 +271,12 @@ class TestCreateRouteOption:
 
         resp = client.post(
             f"/api/trips/{trip.id}/routes/{route_id}/options",
-            json={"mode": "walking"},
+            json={"mode": "walk"},
             headers=test_user["headers"],
         )
         assert resp.status_code == 201
         data = resp.json()
-        assert data["mode"] == "walking"
+        assert data["mode"] == "walk"
         assert data["duration_minutes"] is None
         assert data["recommended"] is False
 

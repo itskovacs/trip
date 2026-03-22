@@ -8,7 +8,7 @@ from sqlmodel import select
 
 from ..deps import SessionDep, get_current_username
 from ..models.extensions import Dish, RestaurantDetails
-from ..models.models import Place
+from ._helpers import verify_place_ownership
 
 router = APIRouter(prefix="/api/places", tags=["restaurants"])
 
@@ -56,21 +56,6 @@ class DishRead(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-
-def _get_owned_place(session, place_id: int, current_user: str) -> Place:
-    """Return the Place if it exists and belongs to current_user, else 404/403."""
-    place = session.get(Place, place_id)
-    if not place:
-        raise HTTPException(status_code=404, detail="Place not found")
-    if place.user != current_user:
-        raise HTTPException(status_code=403, detail="Forbidden")
-    return place
-
-
-# ---------------------------------------------------------------------------
 # RestaurantDetails endpoints
 # ---------------------------------------------------------------------------
 
@@ -82,7 +67,7 @@ def create_restaurant(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _get_owned_place(session, place_id, current_user)
+    verify_place_ownership(session, place_id, current_user)
 
     existing = session.exec(
         select(RestaurantDetails).where(RestaurantDetails.place_id == place_id)
@@ -103,7 +88,7 @@ def get_restaurant(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _get_owned_place(session, place_id, current_user)
+    verify_place_ownership(session, place_id, current_user)
 
     details = session.exec(
         select(RestaurantDetails).where(RestaurantDetails.place_id == place_id)
@@ -120,7 +105,7 @@ def update_restaurant(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _get_owned_place(session, place_id, current_user)
+    verify_place_ownership(session, place_id, current_user)
 
     details = session.exec(
         select(RestaurantDetails).where(RestaurantDetails.place_id == place_id)
@@ -144,7 +129,7 @@ def delete_restaurant(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _get_owned_place(session, place_id, current_user)
+    verify_place_ownership(session, place_id, current_user)
 
     details = session.exec(
         select(RestaurantDetails).where(RestaurantDetails.place_id == place_id)
@@ -168,7 +153,7 @@ def create_dish(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _get_owned_place(session, place_id, current_user)
+    verify_place_ownership(session, place_id, current_user)
 
     dish = Dish(place_id=place_id, **body.model_dump())
     session.add(dish)
@@ -183,7 +168,7 @@ def list_dishes(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _get_owned_place(session, place_id, current_user)
+    verify_place_ownership(session, place_id, current_user)
 
     dishes = session.exec(
         select(Dish).where(Dish.place_id == place_id)
@@ -198,7 +183,7 @@ def delete_dish(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _get_owned_place(session, place_id, current_user)
+    verify_place_ownership(session, place_id, current_user)
 
     dish = session.get(Dish, dish_id)
     if not dish or dish.place_id != place_id:

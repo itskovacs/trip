@@ -8,7 +8,7 @@ from sqlmodel import select
 
 from ..deps import SessionDep, get_current_username
 from ..models.extensions import PlaceDetails
-from ..models.models import Place
+from ._helpers import verify_place_ownership
 
 router = APIRouter(prefix="/api/places", tags=["place-details"])
 
@@ -60,21 +60,6 @@ class PlaceDetailsRead(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
-
-
-def _get_owned_place(session, place_id: int, current_user: str) -> Place:
-    """Return the Place if it exists and belongs to current_user, else 404/403."""
-    place = session.get(Place, place_id)
-    if not place:
-        raise HTTPException(status_code=404, detail="Place not found")
-    if place.user != current_user:
-        raise HTTPException(status_code=403, detail="Forbidden")
-    return place
-
-
-# ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
 
@@ -86,7 +71,7 @@ def create_place_details(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _get_owned_place(session, place_id, current_user)
+    verify_place_ownership(session, place_id, current_user)
 
     existing = session.exec(
         select(PlaceDetails).where(PlaceDetails.place_id == place_id)
@@ -107,7 +92,7 @@ def get_place_details(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _get_owned_place(session, place_id, current_user)
+    verify_place_ownership(session, place_id, current_user)
 
     details = session.exec(
         select(PlaceDetails).where(PlaceDetails.place_id == place_id)
@@ -124,7 +109,7 @@ def update_place_details(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _get_owned_place(session, place_id, current_user)
+    verify_place_ownership(session, place_id, current_user)
 
     details = session.exec(
         select(PlaceDetails).where(PlaceDetails.place_id == place_id)
@@ -148,7 +133,7 @@ def delete_place_details(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ):
-    _get_owned_place(session, place_id, current_user)
+    verify_place_ownership(session, place_id, current_user)
 
     details = session.exec(
         select(PlaceDetails).where(PlaceDetails.place_id == place_id)
