@@ -30,15 +30,32 @@ Read these FIRST. Violating any of these will cause API errors.
 | **Archived trips** | Cannot be modified. Unarchive first (`"archived": false`). |
 | **DELETE responses** | Return `{}` or HTTP 204 |
 
-### Credentials
+### Credentials & User Management
 
 Load from `.env` at the project root. If missing, ask the user for username and password.
 
 ```env
 TRIP_USERNAME=your_username
 TRIP_PASSWORD=your_password
-TRIP_API_URL=http://localhost:8000
+TRIP_API_URL=http://localhost:8080
 ```
+
+**First-time setup:**
+1. If no user exists, register: `POST /api/auth/register` with `{"username":"...","password":"..."}`
+2. Save credentials to `.env`
+3. The first registered user automatically becomes admin
+
+**Auth flow for each session:**
+1. Read `.env` for credentials
+2. `POST /api/auth/login` with JSON `{"username":"...","password":"..."}` → get `access_token`
+3. Use `Authorization: Bearer <token>` on all subsequent requests
+4. Tokens expire after ~30 minutes — if you get "Invalid Token", re-login
+
+**Sharing trips with friends/family:**
+- Trip owner creates a share link: `POST /api/trips/{id}/share` with `{"is_full_access": false}`
+- Returns a `token` — share URL is `http://localhost:8080/shared/{token}`
+- Friends open the URL in their browser — no account needed for view-only access
+- For full access (editing), set `is_full_access: true` and they need an account
 
 ---
 
@@ -101,18 +118,37 @@ POST /api/places
 
 Fetch categories first with `GET /api/categories`. If no matching category exists, create one with `POST /api/categories`.
 
+**Getting real photos via Wikipedia API:**
+For each place, fetch a real photo URL from Wikipedia before creating the place:
+
+```bash
+curl -s "https://en.wikipedia.org/api/rest_v1/page/summary/ARTICLE_NAME" \
+  -H "User-Agent: TravelThing/1.0"
+```
+
+This returns JSON with `originalimage.source` containing a direct image URL. Use that URL in the `"image"` field when creating the place — the upstream server will download and crop it automatically.
+
+**Important for non-ASCII characters** (Portuguese, Turkish, etc.): URL-encode the article name. For example:
+- `Jerónimos_Monastery` → `Jer%C3%B3nimos_Monastery`
+- `São_Jorge_Castle` → `S%C3%A3o_Jorge_Castle`
+- `Praça_do_Comércio` → `Pra%C3%A7a_do_Com%C3%A9rcio`
+
+If the Wikipedia article doesn't exist or has no image, try a related article (e.g., "Trams_in_Lisbon" instead of "Tram_28").
+
 Save all returned `place_id` values.
 
 ### Step 5 — Link places to the trip
 
-**This must happen BEFORE creating items in Step 6.**
+**⚠️ CRITICAL: This must happen BEFORE creating items in Step 6. The API will reject items referencing unlinked places with a 400 error.**
+
+**⚠️ NOTE: `place_ids` in trip CREATE (`POST /api/trips`) does NOT work reliably. Always use PUT to link places:**
 
 ```
 PUT /api/trips/{trip_id}
 {"place_ids": [1, 2, 3, 4, 5, 6, 7, 8, 9]}
 ```
 
-Include ALL place IDs created in Step 4.
+Include ALL place IDs created in Step 4. This replaces the entire place list, so always include all IDs.
 
 ### Step 6 — Create itinerary items
 
@@ -188,24 +224,23 @@ POST /api/places/{place_id}/restaurant/dishes
 
 ### Step 9 — Add routes between stops
 
-For each pair of consecutive items within a day:
+For each pair of consecutive items within a day, create a route. **Automate this**: loop through each day's items in time order and create routes for each pair (item[0]→item[1], item[1]→item[2], etc.):
 
 ```
 POST /api/trips/{trip_id}/routes
-{"from_item_id": 1, "to_item_id": 2}
+{"from_item_id": 1, "to_item_id": 2, "day_id": <day_id>, "recommended_mode": "walk", "notes": "10 min walk through old town"}
 ```
 
-Then add transport options:
-
-```
-POST /api/trips/{trip_id}/routes/{route_id}/options
-{"mode": "walk", "duration": 15, "distance": 1.2, "cost": 0}
-```
+Then add transport options. **Estimate walking time** at ~5 km/h and use web search to check if there's a tram/metro option:
 
 ```
 POST /api/trips/{trip_id}/routes/{route_id}/options
-{"mode": "transit", "duration": 10, "distance": 2.5, "cost": 7.50}
+{"mode": "walk", "duration_minutes": 15, "distance_km": 1.2, "cost": 0, "recommended": true}
 ```
+
+Valid modes: `walk`, `tram`, `bus`, `taxi`, `metro`, `car`, `ferry`, `bike`.
+
+**Tip**: If items are very close (< 0.5 km), just add a walking option. If far apart (> 2 km), also add a transit option.
 
 ### Step 10 — Set budget
 
