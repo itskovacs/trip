@@ -571,7 +571,11 @@ export class TripComponent implements AfterViewInit, OnDestroy {
         if (!this.map) return;
         if (place) {
           const existingMarker = this.markers.get(place.id);
-          if (existingMarker) this.highlightExistingMarker(existingMarker);
+          if (existingMarker) {
+            this.highlightExistingMarker(existingMarker);
+            const latlng = existingMarker.getLatLng();
+            this.map.flyTo(latlng, 16, { duration: 1 });
+          }
           return;
         } else if (item) {
           const lat = item.lat;
@@ -579,6 +583,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           if (lat && lng) {
             this.selectedItemMarker = tripDayMarker(item);
             this.selectedItemMarker.addTo(this.map);
+            this.map.flyTo([lat, lng], 16, { duration: 1 });
           }
         }
       });
