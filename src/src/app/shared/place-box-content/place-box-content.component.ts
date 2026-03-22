@@ -42,6 +42,11 @@ export class PlaceBoxContentComponent {
     this.buildMenu();
   }
 
+  getGoogleMapsQuery(place: any): string {
+    const query = (place.name + ' ' + (place.place || '')).trim();
+    return encodeURIComponent(query);
+  }
+
   buildMenu() {
     const items = [
       {
