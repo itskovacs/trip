@@ -384,7 +384,7 @@
       <div class="flex items-center gap-1 shrink-0">
         <p-button (click)="toggleDarkMode()" pTooltip="Dark mode" text
           [icon]="settings()?.mode_dark ? 'pi pi-sun' : 'pi pi-moon'" />
-        <p-button (click)="toGithub()" pTooltip="Github TRIP" text severity="primary" icon="pi pi-github" />
+        <p-button (click)="toGithub()" pTooltip="Github TravelThing" text severity="primary" icon="pi pi-github" />
         <p-button (click)="logout()" pTooltip="Logout" text severity="primary" icon="pi pi-sign-out" />
         <p-button (click)="toggleSettings()" text severity="danger" icon="pi pi-times" />
       </div>
@@ -412,33 +412,19 @@
         <p-tabpanel [value]="0">
           <div class="max-h-[60vh] overflow-y-auto">
             <div class="mt-4 grid md:grid-cols-2 gap-4">
-              <a href="https://itskovacs.github.io/trip/docs/intro" target="_blank"
+              <div
                 class="group relative p-6 bg-linear-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-clip">
                 <div class="flex gap-4 items-center relative z-10">
                   <div class="text-4xl">📘</div>
                   <div>
                     <h3 class="text-lg font-semibold text-primary-900 dark:text-white mb-1">Documentation</h3>
-                    <p class="text-sm text-primary-600 dark:text-primary-400">Learn how to use TRIP</p>
+                    <p class="text-sm text-primary-600 dark:text-primary-400">Learn how to use TravelThing</p>
                   </div>
                 </div>
                 <div
                   class="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500">
                 </div>
-              </a>
-
-              <a href="https://ko-fi.com/itskovacs" target="_blank"
-                class="group relative p-6 bg-linear-to-br from-orange-50 to-amber-50 dark:from-orange-900/20 dark:to-amber-900/20 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-clip">
-                <div class="flex gap-4 items-center relative z-10">
-                  <div class="text-4xl">☕</div>
-                  <div>
-                    <h3 class="text-lg font-semibold text-primary-900 dark:text-white mb-1">Support TRIP</h3>
-                    <p class="text-sm text-primary-600 dark:text-primary-400">Buy me a coffee</p>
-                  </div>
-                </div>
-                <div
-                  class="absolute top-0 right-0 w-32 h-32 bg-orange-500/10 rounded-full -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-500">
-                </div>
-              </a>
+              </div>
 
               <div (click)="tabsIndex = 4"
                 class="cursor-pointer group relative p-6 bg-primary-100 dark:bg-primary-800 rounded-2xl hover:shadow-lg transition-all duration-200 overflow-clip">
@@ -461,7 +447,7 @@
                   <div class="text-4xl">🛡️</div>
                   <div>
                     <h3 class="text-lg font-semibold text-primary-900 dark:text-white mb-1">Administration</h3>
-                    <p class="text-sm text-primary-600 dark:text-primary-400">Administrate TRIP</p>
+                    <p class="text-sm text-primary-600 dark:text-primary-400">Administrate TravelThing</p>
                   </div>
                 </div>
                 <div
@@ -471,7 +457,7 @@
               }
             </div>
 
-            <div class="mt-6 text-center text-sm text-primary-500 dark:text-primary-400">Made with ❤️ in BZH</div>
+            <div class="mt-6 text-center text-sm text-primary-500 dark:text-primary-400">TravelThing</div>
           </div>
         </p-tabpanel>
         <p-tabpanel [value]="1">
@@ -620,7 +606,7 @@
                                 : 'text-red-600 dark:text-red-400'
                             "></i>
                       <div class="min-w-0">
-                        <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">TRIP API
+                        <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">TravelThing API
                           Key</span>
                         <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">
                           Use it to authenticate in scripts
@@ -1277,7 +1263,7 @@
                   <div class="flex items-center gap-3 min-w-0 flex-1">
                     <i class="pi pi-sync shrink-0 text-red-500"></i>
                     <div class="min-w-0">
-                      <span class="text-sm font-medium text-primary-900 dark:text-primary-100 block">TRIP {{
+                      <span class="text-sm font-medium text-primary-900 dark:text-primary-100 block">TravelThing {{
                         info()?.update }}</span>
                       <p class="text-xs text-primary-400 dark:text-primary-500">New version available !</p>
                     </div>
@@ -1287,7 +1273,7 @@
                   <div class="flex items-center gap-3 min-w-0 flex-1">
                     <i class="pi pi-sync shrink-0 text-emerald-500"></i>
                     <div class="min-w-0">
-                      <span class="text-sm font-medium text-primary-900 dark:text-primary-100 block">TRIP {{
+                      <span class="text-sm font-medium text-primary-900 dark:text-primary-100 block">TravelThing {{
                         info()?.version }}</span>
                       <p class="text-xs text-primary-400 dark:text-primary-500">
                         Ensure you're running latest version
@@ -1500,7 +1486,7 @@
 
                   <div class="min-w-0 flex-1">
                     <h1 class="text-base font-semibold text-primary-900 dark:text-white">Full Backups</h1>
-                    <p class="text-xs text-primary-600 dark:text-primary-400">Includes the sqlite database and all TRIP
+                    <p class="text-xs text-primary-600 dark:text-primary-400">Includes the sqlite database and all TravelThing
                       assets</p>
                   </div>
                 </div>
@@ -1599,7 +1585,7 @@
                     <i class="pi pi-database text-primary-400 dark:text-primary-500"></i>
                   </div>
                   <p class="text-sm font-medium text-primary-900 dark:text-white mb-1">No backups yet</p>
-                  <p class="text-xs text-primary-400 dark:text-primary-500">Create a backup to safeguard TRIP's data</p>
+                  <p class="text-xs text-primary-400 dark:text-primary-500">Create a backup to safeguard TravelThing's data</p>
                 </div>
                 }
               </div>

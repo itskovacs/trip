@@ -351,6 +351,20 @@ export class ApiService {
     return this.httpClient.delete<{}>(this.apiBaseUrl + '/settings/api_token');
   }
 
+  getDayDirections(tripId: number, dayId: number): Observable<{ google_maps_url: string }> {
+    return this.httpClient.get<{ google_maps_url: string }>(
+      `${this.apiBaseUrl}/trips/${tripId}/days/${dayId}/directions`,
+      { headers: { ignore_not_found: 'true' } },
+    );
+  }
+
+  getDayWeather(tripId: number, dayId: number): Observable<{ high_temp: number; low_temp: number; condition: string; rain_chance: number }> {
+    return this.httpClient.get<{ high_temp: number; low_temp: number; condition: string; rain_chance: number }>(
+      `${this.apiBaseUrl}/trips/${tripId}/days/${dayId}/weather`,
+      { headers: { ignore_not_found: 'true' } },
+    );
+  }
+
   // Completions using provider
   completionSearchText(q: string): Observable<ProviderPlaceResult[]> {
     return this.httpClient.get<ProviderPlaceResult[]>(`${this.apiBaseUrl}/completions/search`, { params: { q } });
@@ -447,5 +461,45 @@ export class ApiService {
     return this.httpClient.get(`${this.apiBaseUrl}/admin/backups/${backupId}/download`, {
       responseType: 'blob',
     });
+  }
+
+  getBudgetSummary(tripId: number): Observable<any> {
+    return this.httpClient.get<any>(`${this.apiBaseUrl}/trips/${tripId}/budget/summary`,
+      { headers: { ignore_not_found: 'true' } });
+  }
+
+  getPlaceDetails(placeId: number): Observable<any> {
+    return this.httpClient.get<any>(`${this.apiBaseUrl}/places/${placeId}/details`,
+      { headers: { ignore_not_found: 'true' } });
+  }
+
+  getRestaurantDetails(placeId: number): Observable<any> {
+    return this.httpClient.get<any>(`${this.apiBaseUrl}/places/${placeId}/restaurant`,
+      { headers: { ignore_not_found: 'true' } });
+  }
+
+  getRestaurantDishes(placeId: number): Observable<any[]> {
+    return this.httpClient.get<any[]>(`${this.apiBaseUrl}/places/${placeId}/restaurant/dishes`,
+      { headers: { ignore_not_found: 'true' } });
+  }
+
+  getFlights(tripId: number): Observable<any[]> {
+    return this.httpClient.get<any[]>(`${this.apiBaseUrl}/trips/${tripId}/flights`,
+      { headers: { ignore_not_found: 'true' } });
+  }
+
+  getAccommodation(tripId: number): Observable<any[]> {
+    return this.httpClient.get<any[]>(`${this.apiBaseUrl}/trips/${tripId}/accommodation`,
+      { headers: { ignore_not_found: 'true' } });
+  }
+
+  getRentalCars(tripId: number): Observable<any[]> {
+    return this.httpClient.get<any[]>(`${this.apiBaseUrl}/trips/${tripId}/rental-cars`,
+      { headers: { ignore_not_found: 'true' } });
+  }
+
+  getTravelInfo(tripId: number): Observable<any> {
+    return this.httpClient.get<any>(`${this.apiBaseUrl}/trips/${tripId}/travel-info`,
+      { headers: { ignore_not_found: 'true' } });
   }
 }

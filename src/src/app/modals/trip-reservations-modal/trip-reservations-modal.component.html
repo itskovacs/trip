@@ -1,0 +1,119 @@
+<section class="space-y-6">
+  <!-- Flights -->
+  <div>
+    <h3 class="text-sm font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-3">
+      Flights
+    </h3>
+    @for (flight of flights(); track $index) {
+    <div
+      class="mb-3 rounded-lg border border-primary-200 dark:border-primary-700 bg-primary-50 dark:bg-primary-900 p-4">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="text-lg">&#9992;</span>
+        <span class="font-semibold text-primary-900 dark:text-white">{{ flight.airline }} {{ flight.flight_number
+          }}</span>
+      </div>
+      <div class="grid grid-cols-2 gap-2 text-sm text-primary-700 dark:text-primary-300">
+        @if (flight.departure) {
+        <div><span class="font-medium">From:</span> {{ flight.departure }}</div>
+        }
+        @if (flight.arrival) {
+        <div><span class="font-medium">To:</span> {{ flight.arrival }}</div>
+        }
+        @if (flight.departure_time) {
+        <div><span class="font-medium">Departs:</span> {{ flight.departure_time }}</div>
+        }
+        @if (flight.arrival_time) {
+        <div><span class="font-medium">Arrives:</span> {{ flight.arrival_time }}</div>
+        }
+        @if (flight.confirmation_code) {
+        <div class="col-span-2"><span class="font-medium">Confirmation:</span>
+          <span class="font-mono bg-primary-100 dark:bg-primary-800 px-1.5 py-0.5 rounded">{{
+            flight.confirmation_code }}</span>
+        </div>
+        }
+        @if (flight.cost) {
+        <div><span class="font-medium">Cost:</span> {{ flight.cost }}</div>
+        }
+      </div>
+    </div>
+    } @empty {
+    <p class="text-sm text-primary-400 dark:text-primary-500">No flights added.</p>
+    }
+  </div>
+
+  <!-- Hotels -->
+  <div>
+    <h3 class="text-sm font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-3">
+      Hotels
+    </h3>
+    @for (hotel of accommodation(); track $index) {
+    <div
+      class="mb-3 rounded-lg border border-primary-200 dark:border-primary-700 bg-primary-50 dark:bg-primary-900 p-4">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="text-lg">&#127976;</span>
+        <span class="font-semibold text-primary-900 dark:text-white">{{ hotel.name }}</span>
+      </div>
+      <div class="grid grid-cols-2 gap-2 text-sm text-primary-700 dark:text-primary-300">
+        @if (hotel.check_in) {
+        <div><span class="font-medium">Check-in:</span> {{ hotel.check_in }}</div>
+        }
+        @if (hotel.check_out) {
+        <div><span class="font-medium">Check-out:</span> {{ hotel.check_out }}</div>
+        }
+        @if (hotel.address) {
+        <div class="col-span-2"><span class="font-medium">Address:</span> {{ hotel.address }}</div>
+        }
+        @if (hotel.confirmation_code) {
+        <div class="col-span-2"><span class="font-medium">Confirmation:</span>
+          <span class="font-mono bg-primary-100 dark:bg-primary-800 px-1.5 py-0.5 rounded">{{
+            hotel.confirmation_code }}</span>
+        </div>
+        }
+        @if (hotel.cost) {
+        <div><span class="font-medium">Cost:</span> {{ hotel.cost }}</div>
+        }
+      </div>
+    </div>
+    } @empty {
+    <p class="text-sm text-primary-400 dark:text-primary-500">No accommodation added.</p>
+    }
+  </div>
+
+  <!-- Rental Cars -->
+  <div>
+    <h3 class="text-sm font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-3">
+      Rental Cars
+    </h3>
+    @for (car of rentalCars(); track $index) {
+    <div
+      class="mb-3 rounded-lg border border-primary-200 dark:border-primary-700 bg-primary-50 dark:bg-primary-900 p-4">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="text-lg">&#128663;</span>
+        <span class="font-semibold text-primary-900 dark:text-white">{{ car.company }} {{ car.vehicle_type }}</span>
+      </div>
+      <div class="grid grid-cols-2 gap-2 text-sm text-primary-700 dark:text-primary-300">
+        @if (car.pickup_date) {
+        <div><span class="font-medium">Pick-up:</span> {{ car.pickup_date }}</div>
+        }
+        @if (car.return_date) {
+        <div><span class="font-medium">Return:</span> {{ car.return_date }}</div>
+        }
+        @if (car.pickup_location) {
+        <div class="col-span-2"><span class="font-medium">Location:</span> {{ car.pickup_location }}</div>
+        }
+        @if (car.confirmation_code) {
+        <div class="col-span-2"><span class="font-medium">Confirmation:</span>
+          <span class="font-mono bg-primary-100 dark:bg-primary-800 px-1.5 py-0.5 rounded">{{
+            car.confirmation_code }}</span>
+        </div>
+        }
+        @if (car.cost) {
+        <div><span class="font-medium">Cost:</span> {{ car.cost }}</div>
+        }
+      </div>
+    </div>
+    } @empty {
+    <p class="text-sm text-primary-400 dark:text-primary-500">No rental cars added.</p>
+    }
+  </div>
+</section>

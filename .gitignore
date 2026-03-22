@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+*.egg
+backend/venv/
+
+# Environment
+.env
+.env.local
+
+# Database / Storage (user data, not tracked)
+storage/
+backend/storage/
+*.sqlite
+
+# Test artifacts
+test.db
+.pytest_cache/
+.coverage
+htmlcov/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

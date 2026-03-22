@@ -83,6 +83,8 @@ import { TripBulkEditModalComponent } from '../../modals/trip-bulk-edit-modal/tr
 import { PlaceListItemComponent } from '../../shared/place-list-item/place-list-item.component';
 import { RouteManagerService } from '../../services/route-manager.service';
 import { TripPrettyPrintModalComponent } from '../../modals/trip-pretty-print-modal/trip-pretty-print-modal.component';
+import { TripReservationsModalComponent } from '../../modals/trip-reservations-modal/trip-reservations-modal.component';
+import { TripTravelInfoModalComponent } from '../../modals/trip-travel-info-modal/trip-travel-info-modal.component';
 
 const HIGHLIGHT_COLORS = [
   '#e6194b',
@@ -175,6 +177,12 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   selectedItemIds = signal<Set<number>>(new Set());
   selectedDay = signal<TripDay | null>(null);
   isTextAndPlaceToggled = signal<boolean>(false);
+
+  budgetSummary = signal<any>(null);
+  isBudgetPanelVisible = signal(false);
+
+  dayDirectionsMap = signal<Record<number, string>>({});
+  dayWeatherMap = signal<Record<number, { high_temp: number; low_temp: number; condition: string; rain_chance: number }>>({});
 
   panelWidth = signal<number | null>(null);
   panelDeltaX = 0;
@@ -571,7 +579,11 @@ export class TripComponent implements AfterViewInit, OnDestroy {
         if (!this.map) return;
         if (place) {
           const existingMarker = this.markers.get(place.id);
-          if (existingMarker) this.highlightExistingMarker(existingMarker);
+          if (existingMarker) {
+            this.highlightExistingMarker(existingMarker);
+            const latlng = existingMarker.getLatLng();
+            this.map.flyTo(latlng, 16, { duration: 1 });
+          }
           return;
         } else if (item) {
           const lat = item.lat;
@@ -579,6 +591,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           if (lat && lng) {
             this.selectedItemMarker = tripDayMarker(item);
             this.selectedItemMarker.addTo(this.map);
+            this.map.flyTo([lat, lng], 16, { duration: 1 });
           }
         }
       });
@@ -643,12 +656,68 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           this.trip.set(trip);
           this.tripMembers.set(members);
           if (!this.map) this.initMap(settings);
+          this.loadDayDirectionsAndWeather(trip);
         },
         error: () => {
           this.utilsService.toast('error', 'Error', 'Could not load trip');
           this.router.navigate(['/trips']);
         },
       });
+  }
+
+  loadDayDirectionsAndWeather(trip: Trip) {
+    if (!trip.days?.length) return;
+
+    const directionsRequests: Record<string, Observable<{ google_maps_url: string }>> = {};
+    const weatherRequests: Record<string, Observable<{ high_temp: number; low_temp: number; condition: string; rain_chance: number }>> = {};
+
+    for (const day of trip.days) {
+      directionsRequests[day.id] = this.apiService.getDayDirections(trip.id, day.id);
+      weatherRequests[day.id] = this.apiService.getDayWeather(trip.id, day.id);
+    }
+
+    forkJoin(directionsRequests).pipe(take(1)).subscribe({
+      next: (results) => {
+        const map: Record<number, string> = {};
+        for (const [dayId, data] of Object.entries(results)) {
+          if (data?.google_maps_url) map[+dayId] = data.google_maps_url;
+        }
+        this.dayDirectionsMap.set(map);
+      },
+      error: () => {},
+    });
+
+    forkJoin(weatherRequests).pipe(take(1)).subscribe({
+      next: (results) => {
+        const map: Record<number, { high_temp: number; low_temp: number; condition: string; rain_chance: number }> = {};
+        for (const [dayId, data] of Object.entries(results)) {
+          if (data) map[+dayId] = data;
+        }
+        this.dayWeatherMap.set(map);
+      },
+      error: () => {},
+    });
+
+    this.apiService.getBudgetSummary(trip.id).pipe(take(1)).subscribe({
+      next: (summary) => this.budgetSummary.set(summary),
+      error: () => {},
+    });
+  }
+
+  getWeatherIcon(condition: string): string {
+    const c = condition?.toLowerCase() || '';
+    if (c.includes('snow') || c.includes('blizzard')) return '❄️';
+    if (c.includes('thunder') || c.includes('storm')) return '⛈️';
+    if (c.includes('rain') || c.includes('drizzle') || c.includes('shower')) return '🌧️';
+    if (c.includes('cloud') || c.includes('overcast')) return '☁️';
+    if (c.includes('partly') || c.includes('partial')) return '⛅';
+    return '☀️';
+  }
+
+  openDayDirections(dayId: number, event: Event) {
+    event.stopPropagation();
+    const url = this.dayDirectionsMap()[dayId];
+    if (url) window.open(url, '_blank', 'noopener');
   }
 
   initMap(settings: Settings) {
@@ -903,6 +972,13 @@ export class TripComponent implements AfterViewInit, OnDestroy {
             this.openPackingList();
           },
         },
+        {
+          label: 'Reservations',
+          icon: 'pi pi-ticket',
+          command: () => {
+            this.openReservationsModal();
+          },
+        },
       ],
     };
     const collaboration = {
@@ -939,6 +1015,13 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           icon: 'pi pi-info-circle',
           command: () => {
             this.openTripNotesModal();
+          },
+        },
+        {
+          label: 'Travel Info',
+          icon: 'pi pi-globe',
+          command: () => {
+            this.openTravelInfoModal();
           },
         },
         {
@@ -2335,6 +2418,49 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           .subscribe({
             next: (trip) => this.trip.set(trip),
           });
+      },
+    });
+  }
+
+  toggleBudgetPanel(event: Event) {
+    event.stopPropagation();
+    this.isBudgetPanelVisible.update((v) => !v);
+  }
+
+  openReservationsModal() {
+    this.dialogService.open(TripReservationsModalComponent, {
+      header: 'Reservations',
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      draggable: false,
+      resizable: false,
+      width: '40vw',
+      breakpoints: {
+        '960px': '70vw',
+        '640px': '90vw',
+      },
+      data: {
+        tripId: this.trip()!.id,
+      },
+    });
+  }
+
+  openTravelInfoModal() {
+    this.dialogService.open(TripTravelInfoModalComponent, {
+      header: 'Travel Info',
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      draggable: false,
+      resizable: false,
+      width: '35vw',
+      breakpoints: {
+        '960px': '70vw',
+        '640px': '90vw',
+      },
+      data: {
+        tripId: this.trip()!.id,
       },
     });
   }

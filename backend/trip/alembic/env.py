@@ -4,6 +4,7 @@ from alembic import context
 
 from trip.db.core import get_engine  # noqa
 from trip.models.models import *  # noqa
+from trip.models.extensions import *  # noqa
 
 target_metadata = SQLModel.metadata  # noqa
 

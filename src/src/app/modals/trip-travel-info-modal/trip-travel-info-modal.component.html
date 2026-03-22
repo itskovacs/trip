@@ -1,0 +1,72 @@
+@if (travelInfo(); as info) {
+<section class="space-y-4">
+  <!-- Visa -->
+  @if (info.visa_status || info.visa_notes) {
+  <div class="rounded-lg border border-primary-200 dark:border-primary-700 bg-primary-50 dark:bg-primary-900 p-4">
+    <div class="flex items-center gap-2 mb-3">
+      <span class="text-lg">&#128706;</span>
+      <h3 class="font-semibold text-primary-900 dark:text-white">Visa</h3>
+    </div>
+    @if (info.visa_status) {
+    <span class="inline-block px-3 py-1 rounded-full text-sm font-medium" [class]="getVisaStatusColor(info.visa_status)">
+      {{ info.visa_status }}
+    </span>
+    }
+    @if (info.visa_notes) {
+    <p class="mt-2 text-sm text-primary-700 dark:text-primary-300 whitespace-pre-wrap">{{ info.visa_notes }}</p>
+    }
+  </div>
+  }
+
+  <!-- Emergency -->
+  @if (info.emergency_number || info.emergency_notes) {
+  <div class="rounded-lg border border-primary-200 dark:border-primary-700 bg-primary-50 dark:bg-primary-900 p-4">
+    <div class="flex items-center gap-2 mb-3">
+      <span class="text-lg">&#128680;</span>
+      <h3 class="font-semibold text-primary-900 dark:text-white">Emergency</h3>
+    </div>
+    @if (info.emergency_number) {
+    <div class="text-2xl font-mono font-bold text-primary-900 dark:text-white tracking-wider">
+      {{ info.emergency_number }}
+    </div>
+    }
+    @if (info.emergency_notes) {
+    <p class="mt-2 text-sm text-primary-700 dark:text-primary-300 whitespace-pre-wrap">{{ info.emergency_notes }}</p>
+    }
+  </div>
+  }
+
+  <!-- Timezone -->
+  @if (info.timezone || info.utc_offset) {
+  <div class="rounded-lg border border-primary-200 dark:border-primary-700 bg-primary-50 dark:bg-primary-900 p-4">
+    <div class="flex items-center gap-2 mb-3">
+      <span class="text-lg">&#128336;</span>
+      <h3 class="font-semibold text-primary-900 dark:text-white">Timezone</h3>
+    </div>
+    <div class="text-sm text-primary-700 dark:text-primary-300">
+      @if (info.timezone) {
+      <div><span class="font-medium">Timezone:</span> {{ info.timezone }}</div>
+      }
+      @if (info.utc_offset) {
+      <div><span class="font-medium">UTC Offset:</span> {{ info.utc_offset }}</div>
+      }
+    </div>
+  </div>
+  }
+
+  <!-- Notes -->
+  @if (info.notes) {
+  <div class="rounded-lg border border-primary-200 dark:border-primary-700 bg-primary-50 dark:bg-primary-900 p-4">
+    <div class="flex items-center gap-2 mb-3">
+      <span class="text-lg">&#128221;</span>
+      <h3 class="font-semibold text-primary-900 dark:text-white">Notes</h3>
+    </div>
+    <p class="text-sm text-primary-700 dark:text-primary-300 whitespace-pre-wrap">{{ info.notes }}</p>
+  </div>
+  }
+</section>
+} @else {
+<div class="text-center py-8">
+  <p class="text-primary-400 dark:text-primary-500">No travel information available.</p>
+</div>
+}

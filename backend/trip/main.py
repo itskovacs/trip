@@ -10,8 +10,10 @@ from starlette.middleware.gzip import GZipMiddleware
 from . import __version__
 from .config import get_settings
 from .db.core import init_and_migrate_db
-from .routers import (admin, auth, categories, places, providers, settings,
-                      token, trips)
+from .routers import (admin, auth, budget, categories, directions, exports,
+                      item_details, item_routes, place_details, places,
+                      providers, reservations, restaurants, settings, token,
+                      travel_info, trips, versions, weather)
 from .utils.utils import silence_http_logging
 
 if not Path(get_settings().FRONTEND_FOLDER).is_dir():
@@ -48,6 +50,17 @@ app.include_router(trips.router)
 app.include_router(token.router)
 app.include_router(providers.router)
 app.include_router(admin.router)
+app.include_router(place_details.router)
+app.include_router(item_details.router)
+app.include_router(restaurants.router)
+app.include_router(reservations.router)
+app.include_router(item_routes.router)
+app.include_router(budget.router)
+app.include_router(weather.router)
+app.include_router(travel_info.router)
+app.include_router(versions.router)
+app.include_router(directions.router)
+app.include_router(exports.router)
 
 
 @app.get("/api/info")
