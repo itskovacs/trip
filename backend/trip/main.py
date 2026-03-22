@@ -11,7 +11,8 @@ from . import __version__
 from .config import get_settings
 from .db.core import init_and_migrate_db
 from .routers import (admin, auth, categories, item_details, place_details,
-                      places, providers, settings, token, trips)
+                      places, providers, reservations, restaurants, settings,
+                      token, trips)
 from .utils.utils import silence_http_logging
 
 if not Path(get_settings().FRONTEND_FOLDER).is_dir():
@@ -50,6 +51,8 @@ app.include_router(providers.router)
 app.include_router(admin.router)
 app.include_router(place_details.router)
 app.include_router(item_details.router)
+app.include_router(restaurants.router)
+app.include_router(reservations.router)
 
 
 @app.get("/api/info")
