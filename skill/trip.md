@@ -473,6 +473,36 @@ This returns a clickable Google Maps URL with waypoints ordered by the day's iti
 
 ---
 
+## Upstream Sync
+
+TravelThing is a fork of [itskovacs/trip](https://github.com/itskovacs/trip). The upstream remote is configured as `upstream`.
+
+### Check for upstream updates
+```bash
+git fetch upstream
+git log HEAD..upstream/main --oneline
+```
+If there are new commits, review them before merging.
+
+### Merge upstream changes
+```bash
+git fetch upstream
+git merge upstream/main
+```
+If conflicts occur, they will typically be in `backend/trip/main.py` (router registrations). Our extension files (routers, models, tests) rarely conflict since they are new files.
+
+### After merging
+1. Run tests: `cd backend && source venv/bin/activate && python -m pytest tests/ -v`
+2. Rebuild Docker: `docker-compose build && docker-compose up -d`
+3. Verify the app works
+
+### Version tagging
+Our releases are tagged separately from upstream:
+- `v0.1.0-phase1` — Fork + first extensions
+- `v0.2.0-phase2` — Restaurants, routes, reservations, budget
+- `v0.3.0-phase3-4` — Weather, travel info, versions, directions
+- `v1.0.0` — First stable release
+
 ## Important Notes
 
 - The API uses **SQLite** as the database, so it handles one writer at a time. Avoid concurrent writes.
