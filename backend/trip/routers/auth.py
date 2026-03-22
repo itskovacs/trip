@@ -74,7 +74,7 @@ async def oidc_login(
     jwks_client = jwt.PyJWKClient(
         jwks_uri,
         headers={
-            "User-Agent": "Mozilla/5.0 (compatible; TRIP/1 PyJWKClient; +https://github.com/itskovacs/trip)",
+            "User-Agent": "TravelThing/1.0",
             "Accept": "application/json",
         },
     )

@@ -1,7 +1,7 @@
 {
-  "name": "TRIP",
-  "short_name": "TRIP",
-  "description": "Tourism and Recreational Interest Points",
+  "name": "TravelThing",
+  "short_name": "TravelThing",
+  "description": "Your AI-Powered Trip Planner",
   "theme_color": "#1E293B",
   "background_color": "#ffffff",
   "display": "standalone",

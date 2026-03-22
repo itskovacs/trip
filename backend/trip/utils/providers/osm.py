@@ -94,7 +94,7 @@ class OpenStreetMapProvider(BaseMapProvider):
             "meadow",
         ],
     }
-    USER_AGENT = "Mozilla/5.0 (compatible; TRIP/1 PyJWKClient; +https://github.com/itskovacs/trip)"
+    USER_AGENT = "TravelThing/1.0"
     OSRM_ENDPOINTS = {
         "car": "https://routing.openstreetmap.de/routed-car/route/v1/driving",
         "foot": "https://routing.openstreetmap.de/routed-foot/route/v1/driving",

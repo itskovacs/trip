@@ -1166,7 +1166,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         next: (remote_version) => {
           const currentInfo = this.info();
           if (!remote_version)
-            this.utilsService.toast('success', 'Latest version', "You're running the latest version of TRIP");
+            this.utilsService.toast('success', 'Latest version', "You're running the latest version of TravelThing");
           else if (currentInfo && remote_version !== currentInfo.version)
             this.info.set({ ...currentInfo, update: remote_version });
         },
@@ -1383,7 +1383,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
         this.settings.update((settings) => (settings ? { ...settings, api_token: !!token } : settings));
         this.dialogService.open(SettingsViewTokenComponent, {
-          header: 'TRIP API Key',
+          header: 'TravelThing API Key',
           modal: true,
           closable: true,
           dismissableMask: true,
@@ -1400,7 +1400,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   disableTripApiToken() {
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'TRIP API Key',
+      header: 'TravelThing API Key',
       modal: true,
       closable: true,
       dismissableMask: true,
