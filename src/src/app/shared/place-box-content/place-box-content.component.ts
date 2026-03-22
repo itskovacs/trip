@@ -72,6 +72,11 @@ export class PlaceBoxContentComponent implements OnChanges {
     }
   }
 
+  getGoogleMapsQuery(place: any): string {
+    const query = (place.name + ' ' + (place.place || '')).trim();
+    return encodeURIComponent(query);
+  }
+
   formatOpeningHours(hours: any): string {
     if (!hours) return '';
     if (typeof hours === 'string') return hours;
