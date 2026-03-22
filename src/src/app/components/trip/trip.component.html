@@ -71,6 +71,47 @@
     </div>
   </div>
 
+  @if (isBudgetPanelVisible() && budgetSummary(); as budget) {
+  <div class="fixed top-18 right-4 z-20 w-80 pointer-events-auto print:hidden">
+    <div class="bg-white/90 dark:bg-black/90 backdrop-blur-xl rounded-lg shadow-lg ring-1 ring-black/5 dark:ring-white/10 p-4">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="text-sm font-semibold text-primary-900 dark:text-white">Budget Summary</h3>
+        <button (click)="isBudgetPanelVisible.set(false)"
+          class="flex items-center justify-center w-6 h-6 rounded hover:bg-primary-100 dark:hover:bg-primary-800 transition-colors cursor-pointer">
+          <i class="pi pi-times text-xs text-primary-500"></i>
+        </button>
+      </div>
+
+      @if (budget.planned != null && budget.actual != null) {
+      <div class="mb-3">
+        <div class="flex justify-between text-xs text-primary-600 dark:text-primary-400 mb-1">
+          <span>Spent: {{ budget.actual | number:'1.0-2' }}</span>
+          <span>Budget: {{ budget.planned | number:'1.0-2' }}</span>
+        </div>
+        <div class="w-full bg-primary-200 dark:bg-primary-700 rounded-full h-2.5">
+          <div class="h-2.5 rounded-full transition-all"
+            [style.width.%]="budget.planned > 0 ? ((budget.actual / budget.planned) * 100 | number:'1.0-0') : 0"
+            [class]="budget.actual > budget.planned ? 'bg-red-500' : 'bg-green-500'">
+          </div>
+        </div>
+      </div>
+      }
+
+      @if (budget.categories) {
+      <div class="space-y-2">
+        <h4 class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400">By Category</h4>
+        @for (cat of budget.categories; track cat.name) {
+        <div class="flex items-center justify-between text-sm">
+          <span class="text-primary-700 dark:text-primary-300 truncate">{{ cat.name }}</span>
+          <span class="font-medium text-primary-900 dark:text-white shrink-0 ml-2">{{ cat.amount | number:'1.0-2' }}</span>
+        </div>
+        }
+      </div>
+      }
+    </div>
+  </div>
+  }
+
   @if (trip()?.archived && isArchiveWarningVisible()) {
   <div
     class="fixed left-4 right-4 bottom-4 sm:bottom-auto sm:top-4 pointer-events-none z-50 flex justify-center print:hidden">
@@ -181,6 +222,7 @@
                 <p-button icon="pi pi-wave-pulse" (click)="toggleTripDaysHighlight()" text size="small"
                   pTooltip="Highlight Trip" />
                 <p-button icon="pi pi-filter" (click)="toggleFiltering()" text size="small" pTooltip="Filter" />
+                <p-button icon="pi pi-chart-bar" (click)="toggleBudgetPanel($event)" text size="small" pTooltip="Budget" />
                 <p-button icon="pi pi-download" (click)="menuTripExport.toggle($event)" text size="small"
                   pTooltip="Export" />
                 <p-menu #menuTripExport [model]="menuTripExportItems" appendTo="body" [popup]="true" />

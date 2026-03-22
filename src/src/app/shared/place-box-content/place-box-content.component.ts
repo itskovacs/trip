@@ -1,10 +1,12 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, signal, effect, inject, SimpleChanges, OnChanges } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { MenuModule } from 'primeng/menu';
 import { Place } from '../../types/poi';
 import { MenuItem } from 'primeng/api';
 import { UtilsService } from '../../services/utils.service';
-import { Observable } from 'rxjs';
+import { ApiService } from '../../services/api.service';
+import { Observable, forkJoin } from 'rxjs';
+import { take } from 'rxjs/operators';
 import { AsyncPipe } from '@angular/common';
 import { LinkifyPipe } from '../pipes/linkify.pipe';
 import { TooltipModule } from 'primeng/tooltip';
@@ -19,11 +21,15 @@ import { NaturalDurationPipe } from '../pipes/naturalduration.pipe';
   styleUrls: ['./place-box-content.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PlaceBoxContentComponent {
+export class PlaceBoxContentComponent implements OnChanges {
   @Input() selectedPlace: Place | null = null;
   @Input() showButtons: boolean = true;
   @Input() showMeta: boolean = true;
   tooltipCopied = signal(false);
+
+  placeDetails = signal<any>(null);
+  restaurantDetails = signal<any>(null);
+  dishes = signal<any[]>([]);
 
   @Output() editEmitter = new EventEmitter<void>();
   @Output() deleteEmitter = new EventEmitter<void>();
@@ -36,10 +42,46 @@ export class PlaceBoxContentComponent {
 
   menuItems: MenuItem[] = [];
   readonly currency$: Observable<string>;
+  private apiService = inject(ApiService);
 
   constructor(private utilsService: UtilsService) {
     this.currency$ = this.utilsService.currency$;
     this.buildMenu();
+  }
+
+  ngOnChanges(changes: SimpleChanges) {
+    if (changes['selectedPlace'] && this.selectedPlace?.id) {
+      this.placeDetails.set(null);
+      this.restaurantDetails.set(null);
+      this.dishes.set([]);
+      this.buildMenu();
+
+      const placeId = this.selectedPlace.id;
+      this.apiService.getPlaceDetails(placeId).pipe(take(1)).subscribe({
+        next: (details) => this.placeDetails.set(details),
+        error: () => {},
+      });
+      this.apiService.getRestaurantDetails(placeId).pipe(take(1)).subscribe({
+        next: (details) => this.restaurantDetails.set(details),
+        error: () => {},
+      });
+      this.apiService.getRestaurantDishes(placeId).pipe(take(1)).subscribe({
+        next: (dishes) => this.dishes.set(dishes || []),
+        error: () => {},
+      });
+    }
+  }
+
+  formatOpeningHours(hours: any): string {
+    if (!hours) return '';
+    if (typeof hours === 'string') return hours;
+    if (Array.isArray(hours)) return hours.join(', ');
+    if (typeof hours === 'object') {
+      return Object.entries(hours)
+        .map(([day, time]) => `${day}: ${time}`)
+        .join('\n');
+    }
+    return String(hours);
   }
 
   buildMenu() {

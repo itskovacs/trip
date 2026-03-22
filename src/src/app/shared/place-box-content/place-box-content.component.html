@@ -147,6 +147,73 @@
   </span>
 </div>
 
+@if (placeDetails(); as details) {
+  @if (details.opening_hours) {
+  <div class="flex flex-col mt-4 min-w-0">
+    <span class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">Opening Hours</span>
+    <span class="text-sm text-primary-900 dark:text-primary-100 whitespace-pre-wrap">{{ formatOpeningHours(details.opening_hours) }}</span>
+  </div>
+  }
+
+  @if (details.rating != null) {
+  <div class="flex flex-col mt-3 min-w-0">
+    <span class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">Rating</span>
+    <div class="flex items-center gap-1.5 text-sm text-primary-900 dark:text-primary-100">
+      <i class="pi pi-star-fill text-yellow-500 text-xs"></i>
+      <span>{{ details.rating }}</span>
+      @if (details.total_ratings) {
+      <span class="text-primary-400 dark:text-primary-500">({{ details.total_ratings }})</span>
+      }
+    </div>
+  </div>
+  }
+
+  @if (details.tips) {
+  <div class="flex flex-col mt-3 min-w-0">
+    <span class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">Tips</span>
+    <span class="text-sm text-primary-900 dark:text-primary-100 whitespace-pre-wrap">{{ details.tips }}</span>
+  </div>
+  }
+}
+
+@if (restaurantDetails(); as restaurant) {
+<div class="mt-4 rounded-lg border border-primary-200 dark:border-primary-700 bg-primary-50 dark:bg-primary-900 p-3">
+  <span class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-2 block">Restaurant</span>
+  <div class="flex flex-wrap gap-1.5 items-center">
+    @if (restaurant.cuisine) {
+    <span class="bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 text-xs font-medium px-2.5 py-1 rounded-lg">{{ restaurant.cuisine }}</span>
+    }
+    @if (restaurant.price_range) {
+    <span class="bg-primary-100 dark:bg-primary-800 text-primary-700 dark:text-primary-300 text-xs font-medium px-2.5 py-1 rounded-lg">{{ restaurant.price_range }}</span>
+    }
+    @if (restaurant.must_try) {
+    <span class="bg-orange-100 dark:bg-orange-900/50 text-orange-800 dark:text-orange-300 text-xs font-medium px-2.5 py-1 rounded-lg">Must Try</span>
+    }
+  </div>
+</div>
+}
+
+@if (dishes().length) {
+<div class="mt-3">
+  <span class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-2 block">Dishes</span>
+  <div class="space-y-2 max-h-32 overflow-y-auto">
+    @for (dish of dishes(); track $index) {
+    <div class="flex items-start justify-between gap-2 text-sm">
+      <div class="min-w-0">
+        <span class="font-medium text-primary-900 dark:text-primary-100">{{ dish.name }}</span>
+        @if (dish.description) {
+        <p class="text-xs text-primary-500 dark:text-primary-400 truncate">{{ dish.description }}</p>
+        }
+      </div>
+      @if (dish.price != null) {
+      <span class="shrink-0 text-primary-700 dark:text-primary-300 font-medium">{{ dish.price }}</span>
+      }
+    </div>
+    }
+  </div>
+</div>
+}
+
 @if (showMeta) {
 <div class="flex md:hidden w-full mt-6 gap-1.5 justify-center flex-wrap">
   <span [style.--color-bg-opacity]="selectedPlace.category.color"

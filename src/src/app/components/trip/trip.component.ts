@@ -83,6 +83,8 @@ import { TripBulkEditModalComponent } from '../../modals/trip-bulk-edit-modal/tr
 import { PlaceListItemComponent } from '../../shared/place-list-item/place-list-item.component';
 import { RouteManagerService } from '../../services/route-manager.service';
 import { TripPrettyPrintModalComponent } from '../../modals/trip-pretty-print-modal/trip-pretty-print-modal.component';
+import { TripReservationsModalComponent } from '../../modals/trip-reservations-modal/trip-reservations-modal.component';
+import { TripTravelInfoModalComponent } from '../../modals/trip-travel-info-modal/trip-travel-info-modal.component';
 
 const HIGHLIGHT_COLORS = [
   '#e6194b',
@@ -175,6 +177,9 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   selectedItemIds = signal<Set<number>>(new Set());
   selectedDay = signal<TripDay | null>(null);
   isTextAndPlaceToggled = signal<boolean>(false);
+
+  budgetSummary = signal<any>(null);
+  isBudgetPanelVisible = signal(false);
 
   dayDirectionsMap = signal<Record<number, string>>({});
   dayWeatherMap = signal<Record<number, { high_temp: number; low_temp: number; condition: string; rain_chance: number }>>({});
@@ -692,6 +697,11 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       },
       error: () => {},
     });
+
+    this.apiService.getBudgetSummary(trip.id).pipe(take(1)).subscribe({
+      next: (summary) => this.budgetSummary.set(summary),
+      error: () => {},
+    });
   }
 
   getWeatherIcon(condition: string): string {
@@ -962,6 +972,13 @@ export class TripComponent implements AfterViewInit, OnDestroy {
             this.openPackingList();
           },
         },
+        {
+          label: 'Reservations',
+          icon: 'pi pi-ticket',
+          command: () => {
+            this.openReservationsModal();
+          },
+        },
       ],
     };
     const collaboration = {
@@ -998,6 +1015,13 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           icon: 'pi pi-info-circle',
           command: () => {
             this.openTripNotesModal();
+          },
+        },
+        {
+          label: 'Travel Info',
+          icon: 'pi pi-globe',
+          command: () => {
+            this.openTravelInfoModal();
           },
         },
         {
@@ -2394,6 +2418,49 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           .subscribe({
             next: (trip) => this.trip.set(trip),
           });
+      },
+    });
+  }
+
+  toggleBudgetPanel(event: Event) {
+    event.stopPropagation();
+    this.isBudgetPanelVisible.update((v) => !v);
+  }
+
+  openReservationsModal() {
+    this.dialogService.open(TripReservationsModalComponent, {
+      header: 'Reservations',
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      draggable: false,
+      resizable: false,
+      width: '40vw',
+      breakpoints: {
+        '960px': '70vw',
+        '640px': '90vw',
+      },
+      data: {
+        tripId: this.trip()!.id,
+      },
+    });
+  }
+
+  openTravelInfoModal() {
+    this.dialogService.open(TripTravelInfoModalComponent, {
+      header: 'Travel Info',
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      draggable: false,
+      resizable: false,
+      width: '35vw',
+      breakpoints: {
+        '960px': '70vw',
+        '640px': '90vw',
+      },
+      data: {
+        tripId: this.trip()!.id,
       },
     });
   }
