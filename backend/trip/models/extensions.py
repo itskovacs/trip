@@ -1,4 +1,4 @@
-from sqlalchemy import Column, JSON
+from sqlalchemy import Column, JSON, Text
 from sqlmodel import Field, Relationship, SQLModel
 
 from .models import Place, Trip, TripDay, TripItem  # noqa: F401 – needed for FK resolution
@@ -248,3 +248,69 @@ class ExchangeRate(SQLModel, table=True):
     to_currency: str
     rate: float
     fetched_at: str | None = None
+
+
+class DayWeather(SQLModel, table=True):
+    __tablename__ = "day_weather"
+
+    id: int | None = Field(default=None, primary_key=True)
+    day_id: int = Field(
+        foreign_key="tripday.id",
+        unique=True,
+        index=True,
+        ondelete="CASCADE",
+    )
+
+    high_temp: float | None = None
+    low_temp: float | None = None
+    condition: str | None = None
+    rain_chance: int | None = None
+
+    day: TripDay | None = Relationship()
+
+
+class TripTravelInfo(SQLModel, table=True):
+    __tablename__ = "trip_travel_info"
+
+    id: int | None = Field(default=None, primary_key=True)
+    trip_id: int = Field(
+        foreign_key="trip.id",
+        unique=True,
+        index=True,
+        ondelete="CASCADE",
+    )
+
+    visa_required: bool | None = None
+    visa_notes: str | None = None
+    vaccinations: list | None = Field(default=None, sa_column=Column(JSON))
+    insurance_required: bool | None = None
+    insurance_notes: str | None = None
+    embassy_name: str | None = None
+    embassy_phone: str | None = None
+    embassy_address: str | None = None
+    local_emergency_number: str | None = None
+    insurance_provider: str | None = None
+    insurance_policy_number: str | None = None
+    insurance_phone: str | None = None
+    timezone: str | None = None
+    general_notes: str | None = None
+
+    trip: Trip | None = Relationship()
+
+
+class TripVersion(SQLModel, table=True):
+    __tablename__ = "trip_version"
+
+    id: int | None = Field(default=None, primary_key=True)
+    trip_id: int = Field(
+        foreign_key="trip.id",
+        index=True,
+        ondelete="CASCADE",
+    )
+
+    label: str | None = None
+    snapshot_json: str | None = Field(default=None, sa_column=Column(Text))
+    created_at: str | None = None
+    created_by: str | None = None
+
+    trip: Trip | None = Relationship()
