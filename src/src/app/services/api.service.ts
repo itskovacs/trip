@@ -18,6 +18,7 @@ import {
   TripMember,
 } from '../types/trip';
 import { AdminUser, AppConfig, MagicLink } from '../types/admin';
+import { TranslocoService } from '@jsverse/transloco';
 
 const NO_AUTH_HEADER = {
   no_auth: '1',
@@ -34,7 +35,18 @@ export class ApiService {
 
   private settingsSubject = new BehaviorSubject<Settings | null>(null);
   public settings$: Observable<Settings | null> = this.settingsSubject.asObservable();
+
   private httpClient = inject(HttpClient);
+  private translocoService = inject(TranslocoService);
+
+  constructor() {
+    this.settings$.subscribe((settings) => {
+      const lang = settings?.language;
+      if (!lang) return;
+      if (this.translocoService.getActiveLang() == lang) return;
+      this.translocoService.setActiveLang(lang);
+    });
+  }
 
   getInfo(): Observable<Info> {
     return this.httpClient.get<Info>(this.apiBaseUrl + '/info');

@@ -8,6 +8,8 @@ import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { Interceptor } from './services/interceptor.service';
 import { DialogService } from 'primeng/dynamicdialog';
 import { provideServiceWorker } from '@angular/service-worker';
+import { TranslocoHttpLoader } from './transloco-loader';
+import { provideTransloco } from '@jsverse/transloco';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -28,6 +30,15 @@ export const appConfig: ApplicationConfig = {
     provideServiceWorker('ngsw-worker.js', {
       enabled: !isDevMode(),
       registrationStrategy: 'registerWhenStable:30000',
+    }),
+    provideTransloco({
+      config: {
+        availableLangs: ['en', 'fr'],
+        defaultLang: 'en',
+        reRenderOnLangChange: true,
+        prodMode: !isDevMode(),
+      },
+      loader: TranslocoHttpLoader,
     }),
   ],
 };
