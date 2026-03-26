@@ -206,6 +206,8 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   selectedPlace = computed(() => {
     const id = this.selectedPlaceId();
+    this.updateUrlWithMapPosition();
+    if (!id) return null;
     return this.places().find((p) => p.id === id) || null;
   });
   filteredPlaces = computed(() => {
@@ -485,6 +487,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const lat = isMapPosMode && queryParams['lat'] ? parseFloat(queryParams['lat']) : settings.map_lat;
     const lng = isMapPosMode && queryParams['lng'] ? parseFloat(queryParams['lng']) : settings.map_lng;
     const zoom = isMapPosMode && queryParams['z'] ? parseInt(queryParams['z'], 10) : this.map?.getZoom() || 13;
+
+    const placeId = queryParams['pid'];
+    if (placeId) requestAnimationFrame(() => this.selectedPlaceId.set(+placeId));
     return { lat, lng, zoom };
   }
 
@@ -494,7 +499,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const lat = center.lat.toFixed(4);
     const lng = center.lng.toFixed(4);
     const zoom = this.map.getZoom();
-    const queryString = `lat=${lat}&lng=${lng}&z=${zoom}`;
+    let queryString = `lat=${lat}&lng=${lng}&z=${zoom}`;
+    const pid = this.selectedPlaceId();
+    if (pid) queryString += `&pid=${pid}`;
     const path = this.location.path().split('?')[0];
     this.location.replaceState(path, queryString);
   }
