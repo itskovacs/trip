@@ -1,104 +1,47 @@
-<p align="center"><img width="120" src="./src/public/favicon.png"></p>
-<h2 align="center">TRIP</h2>
+# TravelThing
 
-<div align="center">
+AI-powered trip planner built on [itskovacs/trip](https://github.com/itskovacs/trip).
 
-[![Sponsor](https://img.shields.io/badge/sponsor-30363D?style=for-the-badge&logo=GitHub-Sponsors)](https://ko-fi.com/itskovacs)
-![Status](https://img.shields.io/badge/status-active-success?style=for-the-badge)
-[![GitHub Issues](https://img.shields.io/github/issues/itskovacs/trip?style=for-the-badge&color=ededed)](https://github.com/itskovacs/trip/issues)
-![Pulls](https://img.shields.io/badge/pulls-125k+-2596be?style=for-the-badge)
+## Features
 
-</div>
+- Day-by-day itinerary with interactive map
+- Restaurant info with signature dishes
+- Weather forecasts per day
+- Budget tracking with category breakdown
+- Flight, hotel, and rental car reservations
+- Google Maps directions for each day
+- Packing lists and pre-trip checklists
+- Travel info (visa, emergency contacts)
+- Calendar export (.ics)
+- Route optimization
+- Cost settlement for group trips
+- Claude Code skill for one-shot trip planning
 
-<div align="center">
-
-![TRIP Planning](./.github/screenshot.jpg)
-
-</div>
-
-## 📝 Table of Contents
-
-- 📦 [About](#about)
-- 🌱 [Getting Started](#getting_started)
-- 📸 [Demo](#demo)
-- 📜 [License](#license)
-
-## 📦 About <a name = "about"></a>
-
-TRIP (*Tourism and Recreational Interest Points*) is a self-hostable **minimalist Map tracker** and **Trip planner** to visualize your points of interest (POI) and organize your next adventure details.
-
-**Core Features:**
-- Map and manage POIs on interactive maps
-- Plan multi-day trips with detailed itineraries
-- Collaborate and share with travel companions
-
-No telemetry. No tracking. No ads. Free, forever.
-
-See the [📸 demo](#demo) to explore TRIP in action.
-
-<br>
-
-## 🌱 Getting Started <a name = "getting_started"></a>
-
-If you need help, feel free to open a [discussion](https://github.com/itskovacs/trip/discussions).
-
-Deployment is designed to be simple using Docker.
-
-### Option 1: Docker Compose (Recommended)
-
-Use the `docker-compose.yml` file provided in this repository. No changes are required, though you may customize it to suit your needs.
-
-Run the container:
+## Quick Start
 
 ```bash
+git clone https://github.com/candogruyol/trip.git travelthing
+cd travelthing
 docker-compose up -d
 ```
 
-### Option 2: Docker Run
+Open http://localhost:8080 and register your first account.
+
+## Production Deployment
 
 ```bash
-# Ensure you have the latest image
-docker pull ghcr.io/itskovacs/trip:1
+# Generate a secret key
+openssl rand -hex 32
 
-# Run the container
-docker run -d -p 8080:8000 -v ./storage:/app/storage ghcr.io/itskovacs/trip:1
+# Create .env
+echo "SECRET_KEY=your-generated-key" > .env
+
+# Deploy
+docker-compose -f docker-compose.prod.yml up -d
 ```
 
-### Configuration
+For HTTPS, put a reverse proxy (Caddy or nginx) in front on port 443.
 
-Refer to the [configuration documentation](https://itskovacs.github.io/trip/docs/getting-started/configuration) to set up OIDC authentication and other settings.
+## Credits
 
-> [!TIP]
-> See [Documentation](https://itskovacs.github.io/trip/docs/intro) to learn more.
-
-<br>
-
-## 📸 Demo <a name = "demo"></a>
-
-A demo is available at [itskovacs-trip.netlify.app](https://itskovacs-trip.netlify.app/).
-
-<div align="center">
-
-|         |         |
-|:-------:|:-------:|
-| ![](./.github/sc_map.jpg) | ![](./.github/sc_map_filters_list.jpg) |
-| ![](./.github/sc_trip.jpg) | ![](./.github/sc_trips.jpg) |
-
-</div>
-
-<br>
-
-## 📜 License <a name = "license"></a>
-
-~~TRIP is licensed under the **CC-BY-NC-4.0**. You may use, modify, and share freely with attribution, but **commercial use is strictly prohibited**.~~
-
-In the spirit of free and open-source software, TRIP is now licensed under the MIT License to make it easier to use, modify, and share.
-
-<br>
-
-<div align="center">
-
-Made with ❤️ in BZH  
-
-<a href='https://ko-fi.com/itskovacs' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi1.png' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>  
-</div>
+Built on the excellent [TRIP](https://github.com/itskovacs/trip) project by itskovacs.

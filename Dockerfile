@@ -8,8 +8,8 @@ RUN npm run build
 
 # Server
 FROM python:3.12-slim
-LABEL maintainer="github.com/itskovacs"
-LABEL description="Minimalist POI Map Tracker and Trip Planner"
+LABEL maintainer="TravelThing"
+LABEL description="TravelThing - AI-Powered Trip Planner"
 WORKDIR /app
 COPY backend .
 RUN pip install --no-cache-dir -r trip/requirements.txt

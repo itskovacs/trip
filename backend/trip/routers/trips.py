@@ -122,7 +122,9 @@ def read_trip(
     db_trip = session.exec(
         select(Trip)
         .options(
-            selectinload(Trip.days).selectinload(TripDay.items),
+            selectinload(Trip.days).selectinload(TripDay.items).selectinload(TripItem.place).selectinload(Place.image),
+            selectinload(Trip.days).selectinload(TripDay.items).selectinload(TripItem.place).selectinload(Place.category),
+            selectinload(Trip.days).selectinload(TripDay.items).selectinload(TripItem.image),
             selectinload(Trip.places),
             selectinload(Trip.image),
             selectinload(Trip.memberships),

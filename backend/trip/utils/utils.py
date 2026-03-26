@@ -81,7 +81,7 @@ def remove_image(filename: str):
 
 async def httpx_get(link: str) -> str:
     headers = {
-        "User-Agent": "Mozilla/5.0 (compatible; TRIP/1 PyJWKClient; +https://github.com/itskovacs/trip)",
+        "User-Agent": "TravelThing/1.0",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.5",
         "Referer": link,
@@ -101,7 +101,7 @@ async def download_file(link: str) -> tuple[str, int]:
         raise HTTPException(status_code=400, detail="Bad Request")
 
     headers = {
-        "User-Agent": "Mozilla/5.0 (compatible; TRIP/1 PyJWKClient; +https://github.com/itskovacs/trip)",
+        "User-Agent": "TravelThing/1.0",
         "Accept": "image/*",
         "Accept-Language": "en-US,en;q=0.5",
         "Referer": link,
@@ -129,7 +129,7 @@ async def download_file(link: str) -> tuple[str, int]:
 
 
 async def check_update():
-    url = "https://api.github.com/repos/itskovacs/trip/releases/latest"
+    url = "https://api.github.com/repos/candogruyol/trip/releases/latest"
     try:
         async with httpx.AsyncClient(follow_redirects=True, timeout=5) as client:
             response = await client.get(url)

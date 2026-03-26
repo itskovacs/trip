@@ -1,0 +1,11 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8080:8000"
+    volumes:
+      - ./storage:/app/storage
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-changeme}
+    command: ["fastapi", "run", "/app/trip/main.py", "--host", "0.0.0.0"]
