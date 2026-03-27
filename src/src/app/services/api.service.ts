@@ -448,4 +448,11 @@ export class ApiService {
       responseType: 'blob',
     });
   }
+
+  getDayWeather(tripId: number, dayId: number): Observable<{ high_temp: number; low_temp: number; condition: string; rain_chance: number }> {
+    return this.httpClient.get<{ high_temp: number; low_temp: number; condition: string; rain_chance: number }>(
+      \`\${this.apiBaseUrl}/trips/\${tripId}/days/\${dayId}/weather\`,
+      { headers: { ignore_not_found: 'true' } },
+    );
+  }
 }
