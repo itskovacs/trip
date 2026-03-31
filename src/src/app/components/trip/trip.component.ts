@@ -337,7 +337,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   dispPackingList = computed(() => {
     const list = this.packingList();
     const sorted = [...list].sort((a, b) =>
-      a.packed !== b.packed ? (a.packed ? 1 : -1) : a.text.localeCompare(b.text),
+      a.packed !== b.packed ? (a.packed ? 1 : -1) : (a.text || '').localeCompare(b.text || ''),
     );
 
     return sorted.reduce<Record<string, PackingItem[]>>((acc, item) => {

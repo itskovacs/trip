@@ -893,10 +893,17 @@ class TripPackingListItem(TripPackingListItemBase, table=True):
 
 
 class TripPackingListItemCreate(TripPackingListItemBase):
+    text: str = Field(min_length=1)
+    category: PackingListCategoryEnum
     packed: bool = False
 
+    class Config:
+        extra = "forbid"
 
-class TripPackingListItemUpdate(TripPackingListItemBase): ...
+
+class TripPackingListItemUpdate(TripPackingListItemBase):
+    class Config:
+        extra = "forbid"
 
 
 class TripPackingListItemRead(TripPackingListItemBase):
