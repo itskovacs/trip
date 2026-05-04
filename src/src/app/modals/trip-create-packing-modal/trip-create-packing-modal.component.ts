@@ -7,6 +7,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { FocusTrapModule } from 'primeng/focustrap';
 import { SelectModule } from 'primeng/select';
 import { InputNumberModule } from 'primeng/inputnumber';
+import { TranslocoDirective } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-trip-create-packing-modal',
@@ -18,6 +19,7 @@ import { InputNumberModule } from 'primeng/inputnumber';
     FocusTrapModule,
     SelectModule,
     InputNumberModule,
+    TranslocoDirective,
   ],
   standalone: true,
   templateUrl: './trip-create-packing-modal.component.html',

@@ -7,6 +7,7 @@ import { InputTextModule } from 'primeng/inputtext';
 import { FocusTrapModule } from 'primeng/focustrap';
 import { ColorPickerModule } from 'primeng/colorpicker';
 import { Category } from '../../types/poi';
+import { TranslocoDirective } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-category-create-modal',
@@ -18,6 +19,7 @@ import { Category } from '../../types/poi';
     ColorPickerModule,
     ReactiveFormsModule,
     FocusTrapModule,
+    TranslocoDirective,
   ],
   standalone: true,
   templateUrl: './category-create-modal.component.html',

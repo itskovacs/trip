@@ -18,6 +18,7 @@ export interface Settings {
   map_provider?: string;
   duplicate_dist?: number;
   is_admin?: boolean;
+  language?: string;
 }
 
 export interface ImportResponse {

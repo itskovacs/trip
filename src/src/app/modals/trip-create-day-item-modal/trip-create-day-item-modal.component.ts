@@ -19,6 +19,7 @@ import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { Popover, PopoverModule } from 'primeng/popover';
 import { ApiService } from '../../services/api.service';
 import { take } from 'rxjs';
+import { TranslocoDirective } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-trip-create-day-item-modal',
@@ -39,6 +40,7 @@ import { take } from 'rxjs';
     InputGroupModule,
     InputGroupAddonModule,
     PopoverModule,
+    TranslocoDirective,
   ],
   standalone: true,
   templateUrl: './trip-create-day-item-modal.component.html',

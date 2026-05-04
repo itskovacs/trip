@@ -42,7 +42,9 @@ export class LinkifyPipe implements PipeTransform {
       const href = url.startsWith('http') ? url : `https://${url}`;
 
       if (this.isSafeUrl(href))
-        parts.push(`<a href="${this.escape(href)}" target="_blank" rel="noopener noreferrer">${this.escape(url)}</a>`);
+        parts.push(
+          `<a class="text-sm font-semibold" href="${this.escape(href)}" target="_blank" rel="noopener noreferrer">${this.escape(url)}</a>`,
+        );
       else parts.push(this.escape(url));
       lastIndex = index + url.length;
     }

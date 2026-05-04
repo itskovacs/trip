@@ -1,85 +1,69 @@
-<section class="w-2xl max-w-full">
-  @if (dayForm.get('id')?.value === -1) {
-  <p-tabs [(value)]="tabValue" scrollable>
-    <p-tablist>
-      <p-tab [value]="0">Create a Day</p-tab>
-      <p-tab [value]="1">Create Days</p-tab>
-    </p-tablist>
+<ng-container *transloco="let t">
+  <section class="w-2xl max-w-full"> @if (dayForm.get('id')?.value === -1) { <p-tabs [(value)]="tabValue" scrollable>
+      <p-tablist> <p-tab [value]="0">{{ t('modals.day.create_a_day') }}</p-tab> <p-tab [value]="1">{{
+          t('modals.day.create_days')
+          }}</p-tab>
+      </p-tablist>
 
-    <p-tabpanels>
-      <p-tabpanel [value]="0">
-        <div [formGroup]="dayForm" class="grid md:grid-cols-3 gap-4">
-          <p-floatlabel variant="in" class="md:col-span-2">
-            <input id="label" formControlName="label" autofocus pInputText fluid />
-            <label for="label">Label</label>
-          </p-floatlabel>
+      <p-tabpanels> <p-tabpanel [value]="0">
+          <div [formGroup]="dayForm" class="grid md:grid-cols-3 gap-4"> <p-floatlabel variant="in"
+              class="md:col-span-2"> <input id="label" formControlName="label" autofocus pInputText fluid />
+              <label for="label">{{ t('common.fields.label') }}</label> </p-floatlabel>
 
-          <p-floatlabel variant="in">
-            <p-datepicker id="date" formControlName="dt" [iconDisplay]="'input'" [showIcon]="true" appendTo="body"
-              fluid />
-            <label for="date">Date</label>
-          </p-floatlabel>
+            <p-floatlabel variant="in"> <p-datepicker id="date" formControlName="dt" [iconDisplay]="'input'"
+                [showIcon]="true" appendTo="body" fluid /> <label for="date">{{
+                t('common.fields.date') }}</label>
+            </p-floatlabel>
 
-          <div class="relative col-span-full">
-            <textarea pTextarea id="notes" placeholder="Day notes" formControlName="notes" rows="4" fluid
-              class="pr-12!"></textarea>
-            @if (dayForm.get('notes')?.value) {
-            <p-button text icon="pi pi-times" severity="danger" class="absolute right-2 top-2"
-              (click)="dayForm.get('notes')?.setValue(''); dayForm.markAsDirty()" pTooltip="Clear" />
-            }
+            <div class="relative col-span-full"> <textarea pTextarea id="notes"
+                [placeholder]="t('modals.day.day_notes')" formControlName="notes" rows="4" fluid
+                class="pr-12!"></textarea> @if
+              (dayForm.get('notes')?.value) {
+              <p-button text icon="pi pi-times" severity="danger" class="absolute right-2 top-2"
+                (click)="dayForm.get('notes')?.setValue(''); dayForm.markAsDirty()"
+                [pTooltip]="t('common.actions.clear')" /> }
+            </div>
           </div>
-        </div>
-        <div class="mt-4 text-right">
-          <p-button (click)="closeDialog()" label="Create" [disabled]="!dayForm.dirty || !dayForm.valid" />
-        </div>
-      </p-tabpanel>
+          <div class="mt-4 text-right"> <p-button (click)="closeDialog()" [label]="t('modals.day.create')"
+              [disabled]="!dayForm.dirty || !dayForm.valid" /> </div>
+        </p-tabpanel>
 
-      <p-tabpanel [value]="1">
-        <div [formGroup]="daysForm" class="grid gap-4">
-          <p-floatlabel variant="in">
-            <p-datepicker id="daterange" formControlName="daterange" [iconDisplay]="'input'" [showIcon]="true"
-              selectionMode="range" appendTo="body" fluid />
-            <label for="daterange">Date Range</label>
-          </p-floatlabel>
+        <p-tabpanel [value]="1">
+          <div [formGroup]="daysForm" class="grid gap-4"> <p-floatlabel variant="in">
+              <p-datepicker id="daterange" formControlName="daterange" [iconDisplay]="'input'" [showIcon]="true"
+                selectionMode="range" appendTo="body" fluid /> <label for="daterange">{{
+                t('common.fields.date_range') }}</label> </p-floatlabel>
 
-          <div class="relative col-span-full">
-            <textarea pTextarea id="notes" placeholder="Day notes" formControlName="notes" rows="4" fluid
-              class="pr-12!"></textarea>
-            @if (daysForm.get('notes')?.value) {
-            <p-button text icon="pi pi-times" severity="danger" class="absolute right-2 top-2"
-              (click)="daysForm.get('notes')?.setValue('')" pTooltip="Clear" />
-            }
+            <div class="relative col-span-full"> <textarea pTextarea id="notes"
+                [placeholder]="t('modals.day.day_notes')" formControlName="notes" rows="4" fluid
+                class="pr-12!"></textarea> @if
+              (daysForm.get('notes')?.value) {
+              <p-button text icon="pi pi-times" severity="danger" class="absolute right-2 top-2"
+                (click)="daysForm.get('notes')?.setValue('')" [pTooltip]="t('common.actions.clear')" /> }
+            </div>
+            <div class="text-right"> <p-button (click)="closeDialog()" [label]="t('common.actions.create')"
+                [disabled]="!daysForm.dirty || !daysForm.valid" />
+            </div>
           </div>
-          <div class="text-right">
-            <p-button (click)="closeDialog()" label="Create" [disabled]="!daysForm.dirty || !daysForm.valid" />
-          </div>
-        </div>
-      </p-tabpanel>
-    </p-tabpanels>
-  </p-tabs>
-  } @else {
-  <div [formGroup]="dayForm" class="grid md:grid-cols-3 gap-4">
-    <p-floatlabel variant="in" class="md:col-span-2">
-      <input id="label" formControlName="label" autofocus pInputText fluid />
-      <label for="label">Label</label>
-    </p-floatlabel>
+        </p-tabpanel> </p-tabpanels> </p-tabs> } @else { <div [formGroup]="dayForm" class="grid md:grid-cols-3 gap-4">
+      <p-floatlabel variant="in" class="md:col-span-2"> <input id="label" formControlName="label" autofocus pInputText
+          fluid /> <label for="label">{{ t('common.fields.label') }}</label>
+      </p-floatlabel>
 
-    <p-floatlabel variant="in">
-      <p-datepicker id="date" formControlName="dt" [iconDisplay]="'input'" [showIcon]="true" appendTo="body" fluid />
-      <label for="date">Date</label>
-    </p-floatlabel>
+      <p-floatlabel variant="in"> <p-datepicker id="date" formControlName="dt" [iconDisplay]="'input'" [showIcon]="true"
+          appendTo="body" fluid /> <label for="date">{{
+          t('common.fields.date') }}</label>
+      </p-floatlabel>
 
-    <div class="relative col-span-full">
-      <textarea pTextarea id="notes" placeholder="Day notes" formControlName="notes" rows="4" fluid
-        class="pr-12!"></textarea>
-      @if (dayForm.get('notes')?.value) {
-      <p-button text icon="pi pi-times" severity="danger" class="absolute right-2 top-2"
-        (click)="dayForm.get('notes')?.setValue(''); dayForm.markAsDirty()" pTooltip="Clear" />
-      }
+      <div class="relative col-span-full"> <textarea pTextarea id="notes" [placeholder]="t('modals.day.day_notes')"
+          formControlName="notes" rows="4" fluid class="pr-12!"></textarea> @if (dayForm.get('notes')?.value)
+        {
+        <p-button text icon="pi pi-times" severity="danger" class="absolute right-2 top-2"
+          (click)="dayForm.get('notes')?.setValue(''); dayForm.markAsDirty()" [pTooltip]="t('common.actions.clear')" />
+        }
+      </div>
     </div>
-  </div>
-  <div class="mt-4 text-right">
-    <p-button (click)="closeDialog()" label="Update" [disabled]="!dayForm.dirty || !dayForm.valid" />
-  </div>
-  }
-</section>
+    <div class="mt-4 text-right"> <p-button (click)="closeDialog()" [label]="t('common.actions.update')"
+        [disabled]="!dayForm.dirty || !dayForm.valid" /> </div> }
+  </section>
+</ng-container>

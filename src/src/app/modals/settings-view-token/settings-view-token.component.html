@@ -1,12 +1,15 @@
-<div class="p-4 text-center">
-  <p class="whitespace-pre">{{ msg }}</p>
-  <pre><p class="py-2 text-lg font-bold">{{ token }}</p></pre>
+<ng-container *transloco="let t">
+  <div class="p-4 text-center">
+    <p class="whitespace-pre">{{ msg }}</p>
+    <pre><p class="py-2 text-lg font-bold">{{ token }}</p></pre>
 
-  <div class="mt-4">
-    <p-button label="Copy" severity="secondary" icon="pi pi-copy" [cdkCopyToClipboard]="token" />
+    <div class="mt-4">
+      <p-button [label]="t('common.actions.copy')" severity="secondary" icon="pi pi-copy"
+        [cdkCopyToClipboard]="token" />
+    </div>
   </div>
-</div>
 
-<div class="mt-4 text-end">
-  <p-button label="Close" icon="pi pi-times" severity="danger" (click)="close()" />
-</div>
+  <div class="mt-4 text-end">
+    <p-button [label]="t('common.actions.close')" icon="pi pi-times" severity="danger" (click)="close()" />
+  </div>
+</ng-container>

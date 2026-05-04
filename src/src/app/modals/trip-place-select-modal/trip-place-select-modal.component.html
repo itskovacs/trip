@@ -1,10 +1,10 @@
-<section>
+<ng-container *transloco="let t">
   <p-tabs value="0">
     <p-tablist>
       <p-tab value="0">
         <div class="flex items-center gap-2">
           <i class="pi pi-list"></i>
-          <span>Available</span>
+          <span>{{ t('modals.places.tabs.available') }}</span>
           <span
             class="bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-1 text-xs font-medium rounded-md">{{
             displayedPlaces.length }}</span>
@@ -13,7 +13,7 @@
       <p-tab value="1">
         <div class="flex items-center gap-2">
           <i class="pi pi-check"></i>
-          <span>Selected</span>
+          <span>{{ t('modals.places.tabs.selected') }}</span>
           <span
             class="bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-1 text-xs font-medium rounded-md">{{
             selectedPlaces.length }}</span>
@@ -27,34 +27,38 @@
           <div class="p-4">
             <div class="grid gap-3 md:grid-cols-3">
               <div class="relative md:col-span-2">
-                <input pInputText [formControl]="searchInput" placeholder="Search..." class="h-full" pSize="small"
-                  fluid />
+                <input pInputText [formControl]="searchInput" [placeholder]="t('modals.places.search.placeholder')"
+                  class="h-full" pSize="small" fluid />
                 @if (searchInput.value) {
                 <p-button icon="pi pi-times" text severity="danger" size="small"
-                  class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Clear search"
+                  class="absolute right-2 top-1/2 -translate-y-1/2" [pTooltip]="t('modals.places.search.clear')"
                   (click)="searchInput.setValue('')" />
                 }
               </div>
 
+
               <div class="relative">
-                <input id="geocodeInput" pSize="small" (keydown.enter)="geocodeFilter()" placeholder="Country, City..."
-                  class="h-full" [formControl]="googleGeocodeInput" pInputText fluid />
+                <input id="geocodeInput" pSize="small" (keydown.enter)="geocodeFilter()"
+                  [placeholder]="t('modals.places.search.geocode_placeholder')" class="h-full"
+                  [formControl]="googleGeocodeInput" pInputText fluid />
                 @if (boundariesFiltering) {
                 <p-button icon="pi pi-times" text severity="danger" size="small"
-                  class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Clear location filter"
-                  (click)="resetGeocodeFilters()" />
+                  class="absolute right-2 top-1/2 -translate-y-1/2"
+                  [pTooltip]="t('modals.places.search.clear_location')" (click)="resetGeocodeFilters()" />
                 } @else {
-                <p-button icon="pi pi-sparkles" label="Query" text [disabled]="!googleGeocodeInput.value" size="small"
-                  class="absolute right-2 top-1/2 -translate-y-1/2" pTooltip="Apply location filter"
-                  (click)="geocodeFilter()" />
+                <p-button icon="pi pi-sparkles" [label]="t('common.actions.query')" text
+                  [disabled]="!googleGeocodeInput.value" size="small" class="absolute right-2 top-1/2 -translate-y-1/2"
+                  [pTooltip]="t('modals.places.search.apply_location')" (click)="geocodeFilter()" />
                 }
               </div>
             </div>
           </div>
 
+
           @if (boundariesFiltering || searchInput.value) {
           <div class="px-4 pb-3 flex flex-wrap items-center gap-2">
-            <span class="text-xs font-medium text-primary-500 dark:text-primary-400">Active filters:</span>
+            <span class="text-xs font-medium text-primary-500 dark:text-primary-400">{{
+              t('modals.places.search.active_filters') }}</span>
 
             @if (searchInput.value) {
             <div
@@ -64,6 +68,7 @@
             </div>
             }
 
+
             @if (boundariesFiltering) {
             <div
               class="flex items-center gap-2 bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-0.5 text-xs font-medium rounded-md">
@@ -72,18 +77,20 @@
             </div>
             }
 
+
             <div class="ml-auto">
-              <p-button icon="pi pi-check-circle" severity="success" text label="Select All Filtered" size="small"
-                (click)="selectAll()" />
+              <p-button icon="pi pi-check-circle" severity="success" text
+                [label]="t('modals.places.search.select_all_filtered')" size="small" (click)="selectAll()" />
             </div>
           </div>
           } @else {
           <div class="px-4 pb-3 flex justify-end">
-            <p-button icon="pi pi-check-circle" severity="success" text label="Select All" size="small"
-              (click)="selectAll()" />
+            <p-button icon="pi pi-check-circle" severity="success" text [label]="t('modals.places.search.select_all')"
+              size="small" (click)="selectAll()" />
           </div>
           }
         </div>
+
 
         @defer {
         <div class="p-4">
@@ -107,6 +114,7 @@
                   </div>
                 </div>
 
+
                 <div class="min-w-0 flex-1">
                   <h3 class="mb-1 truncate text-sm font-semibold text-primary-900 dark:text-white">
                     {{ p.name }}
@@ -125,8 +133,10 @@
             } @empty {
             <div class="col-span-full py-12 text-center">
               <i class="pi pi-inbox text-4xl text-primary-300 dark:text-primary-600 mb-3"></i>
-              <p class="text-sm font-medium text-primary-500 dark:text-primary-400">No places found</p>
-              <p class="text-xs text-primary-400 dark:text-primary-500 mt-1">Try adjusting your filters</p>
+              <p class="text-sm font-medium text-primary-500 dark:text-primary-400">{{ t('modals.places.empty.no_found')
+                }}</p>
+              <p class="text-xs text-primary-400 dark:text-primary-500 mt-1">{{ t('modals.places.empty.adjust_filters')
+                }}</p>
             </div>
             }
           </div>
@@ -145,10 +155,12 @@
           class="sticky top-0 z-10 bg-white dark:bg-primary-800 border-b border-primary-200 dark:border-primary-700 px-4 py-3 flex items-center justify-between">
           <div class="flex items-center gap-2">
             <span class="text-sm font-medium text-primary-700 dark:text-primary-300">
-              {{ selectedPlaces.length }} place{{ selectedPlaces.length === 1 ? '' : 's' }} selected
+              {{ t(selectedPlaces.length === 1 ? 'places.selection.singular' : 'places.selection.plural', { count:
+              selectedPlaces.length }) }}
             </span>
           </div>
-          <p-button icon="pi pi-trash" severity="danger" text label="Remove All" size="small" (click)="deselectAll()" />
+          <p-button icon="pi pi-trash" severity="danger" text [label]="t('common.actions.remove_all')" size="small"
+            (click)="deselectAll()" />
         </div>
 
         <div class="p-4">
@@ -190,9 +202,10 @@
           <div class="rounded-full bg-primary-100 dark:bg-primary-800 p-6 mb-4">
             <i class="pi pi-map text-5xl text-primary-400 dark:text-primary-600"></i>
           </div>
-          <h3 class="text-base font-semibold text-primary-700 dark:text-primary-300 mb-2">No places selected yet</h3>
+          <h3 class="text-base font-semibold text-primary-700 dark:text-primary-300 mb-2">{{
+            t('modals.places.empty.no_selected') }}</h3>
           <p class="text-sm text-primary-500 dark:text-primary-400 text-center max-w-sm">
-            Switch to the Available tab to browse and select places for your trip
+            {{ t('modals.places.empty.switch_tab') }}
           </p>
         </div>
         }
@@ -209,13 +222,14 @@
         </div>
         <div class="flex flex-col">
           <span class="text-sm font-semibold text-primary-700">
-            {{ selectedPlaces.length }} place{{ selectedPlaces.length === 1 ? '' : 's' }} selected
+            {{ t(selectedPlaces.length === 1 ? 'places.selection.singular' : 'places.selection.plural', { count:
+            selectedPlaces.length }) }}
           </span>
-          <span class="text-xs text-primary-400"> Confirm your selection </span>
+          <span class="text-xs text-primary-400"> {{ t('modals.places.selection.confirm_subtitle') }} </span>
         </div>
       </div>
 
-      <p-button (click)="closeDialog()" label="Confirm" size="small" />
+      <p-button (click)="closeDialog()" [label]="t('common.actions.confirm')" size="small" />
     </div>
   </div>
-</section>
+</ng-container>

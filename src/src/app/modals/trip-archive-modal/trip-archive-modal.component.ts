@@ -5,10 +5,11 @@ import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { TextareaModule } from 'primeng/textarea';
 import { Trip } from '../../types/trip';
+import { TranslocoDirective } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-trip-archive-modal',
-  imports: [FloatLabelModule, TextareaModule, ButtonModule, ReactiveFormsModule],
+  imports: [FloatLabelModule, TextareaModule, ButtonModule, ReactiveFormsModule, TranslocoDirective],
   standalone: true,
   templateUrl: './trip-archive-modal.component.html',
   styleUrl: './trip-archive-modal.component.scss',

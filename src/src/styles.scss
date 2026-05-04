@@ -193,11 +193,21 @@ html {
 
 // Markers / Places custom classes
 .list-hover {
+  z-index: 9001 !important;
+
   .custom-cluster {
     background-color: red;
   }
+
   .marker-anchor {
-    border: 3px dashed red !important;
+    z-index: 9005 !important;
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    border: 3px solid #222 !important;
+    box-shadow:
+      0 0 0 3px rgba(15, 15, 35, 0.25),
+      0 4px 12px rgba(22, 22, 22, 0.25);
   }
 }
 

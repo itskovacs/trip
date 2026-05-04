@@ -10,6 +10,8 @@ import { UtilsService } from '../../services/utils.service';
 import { TextareaModule } from 'primeng/textarea';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TabsModule } from 'primeng/tabs';
+import { TranslocoDirective } from '@jsverse/transloco';
+import { TooltipModule } from 'primeng/tooltip';
 
 @Component({
   selector: 'app-trip-create-day-modal',
@@ -21,6 +23,8 @@ import { TabsModule } from 'primeng/tabs';
     ReactiveFormsModule,
     TextareaModule,
     TabsModule,
+    TooltipModule,
+    TranslocoDirective,
   ],
   standalone: true,
   templateUrl: './trip-create-day-modal.component.html',

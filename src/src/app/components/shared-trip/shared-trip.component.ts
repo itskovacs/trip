@@ -67,6 +67,7 @@ import { PlaceBoxContentComponent } from '../../shared/place-box-content/place-b
 import { PlaceListItemComponent } from '../../shared/place-list-item/place-list-item.component';
 import { TripPrettyPrintModalComponent } from '../../modals/trip-pretty-print-modal/trip-pretty-print-modal.component';
 import { ToggleButtonModule } from 'primeng/togglebutton';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 
 const HIGHLIGHT_COLORS = [
   '#e6194b',
@@ -111,13 +112,14 @@ const MAX_MAP_INIT_RETRIES = 5;
     PlaceBoxContentComponent,
     PlaceListItemComponent,
     ToggleButtonModule,
+    TranslocoDirective,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './shared-trip.component.html',
   styleUrls: ['./shared-trip.component.scss'],
 })
 export class SharedTripComponent implements AfterViewInit, OnDestroy {
-  @ViewChild('resizeHandle') resizeHandle?: ElementRef<HTMLDivElement>;
+  @ViewChild('resizeHandle') resizeHandle?: ElementRef;
   @ViewChild('menuTripActions') menuTripActions!: Menu;
   @ViewChild('menuPlanDayActions') menuPlanDayActions!: Menu;
   @ViewChild('menuSelectedItemActions') menuSelectedItemActions!: Menu;
@@ -127,8 +129,8 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   @ViewChild('selectedTabListRef') selectedTabListRef: TabList | undefined;
 
   mapInitRetries = 0;
-  selectedPanelHeight = signal<number>(0);
-  plansSearchInput = new FormControl<string>('');
+  selectedPanelHeight = signal(0);
+  plansSearchInput = new FormControl('');
   apiService: ApiService;
   route: ActivatedRoute;
   router: Router;
@@ -136,27 +138,28 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   utilsService: UtilsService;
   clipboard: Clipboard;
   changeDetectionRef: ChangeDetectorRef;
+  translocoService: TranslocoService;
 
   trip = signal<Trip | null>(null);
   packingList = signal<PackingItem[]>([]);
   checklistItems = signal<ChecklistItem[]>([]);
 
-  searchQuery = signal<string>('');
-  isPlansPanelCollapsed = signal<boolean>(false);
-  isFilteringMode = signal<boolean>(false);
+  searchQuery = signal('');
+  isPlansPanelCollapsed = signal(false);
+  isFilteringMode = signal(false);
   selectedPlace = signal<Place | null>(null);
   selectedItem = signal<ViewTripItem | null>(null);
-  selectedPlaceActiveTabIndex = signal<number>(0);
+  selectedPlaceActiveTabIndex = signal(0);
   highlightedDayId = signal<number | null>(null);
-  isPlacesPanelVisible = signal<boolean>(false);
-  isDaysPanelVisible = signal<boolean>(false);
-  showOnlyUnplannedPlaces = signal<boolean>(false);
+  isPlacesPanelVisible = signal(false);
+  isDaysPanelVisible = signal(false);
+  showOnlyUnplannedPlaces = signal(false);
   printOptions = signal<PrintOptions | null>(null);
-  isArchivalReviewDisplayed = signal<boolean>(false);
-  isArchiveWarningVisible = signal<boolean>(true);
+  isArchivalReviewDisplayed = signal(false);
+  isArchiveWarningVisible = signal(true);
   tooltipCopied = signal(false);
   selectedDay = signal<TripDay | null>(null);
-  isTextAndPlaceToggled = signal<boolean>(false);
+  isTextAndPlaceToggled = signal(false);
   isFullAccess = signal(false);
 
   panelWidth = signal<number | null>(null);
@@ -168,7 +171,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   isPackingDialogVisible = false;
   isAttachmentsDialogVisible = false;
   isChecklistDialogVisible = false;
-  selectedItemProps = signal<string[]>(['place', 'comment', 'price']);
+  selectedItemProps = signal(['place', 'comment', 'price']);
 
   tripSharedURL$?: Observable<string>;
   username: string;
@@ -197,7 +200,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
     }
     return ids;
   });
-  selectedPlaceItems = computed<ViewTripItem[]>(() => {
+  selectedPlaceItems = computed(() => {
     const place = this.selectedPlace();
     if (!place) return [];
 
@@ -244,13 +247,11 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
             (item) =>
               item.text?.toLowerCase().includes(query) ||
               item.place?.name.toLowerCase().includes(query) ||
-              item.comment?.toLowerCase().includes(query),
+              item.comment?.toLowerCase().includes(query)
           );
         }
 
-        if (filteredItems.length === 0 && hasQuery) {
-          return null;
-        }
+        if (filteredItems.length === 0 && hasQuery) return null;
         filteredItems.sort((a, b) => (a.time || '').localeCompare(b.time || ''));
 
         let prevLat: number | null = null;
@@ -295,7 +296,6 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   totalPrice = computed(() => {
     const trip = this.trip();
     if (!trip?.days) return 0;
-
     return trip.days.reduce((total, day) => {
       return (
         total +
@@ -387,28 +387,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   selectedItemPropsSet = computed(() => new Set(this.selectedItemProps()));
   canToggleTextAndPlace = computed(() => this.selectedItemPropsSet().has('place'));
 
-  menuTripExportItems: MenuItem[] = [
-    {
-      label: 'Export',
-      items: [
-        {
-          label: 'Calendar (.ics)',
-          icon: 'pi pi-calendar',
-          command: () => generateTripICSFile(this.trip()!, this.utilsService),
-        },
-        {
-          label: 'CSV',
-          icon: 'pi pi-file',
-          command: () => generateTripCSVFile(this.trip()!),
-        },
-        {
-          label: 'Pretty Print',
-          icon: 'pi pi-print',
-          command: () => this.togglePrint(),
-        },
-      ],
-    },
-  ];
+  menuTripExportItems: MenuItem[] = [];
   menuTripActionsItems: MenuItem[] = [];
   menuTripPackingItems: MenuItem[] = [];
   menuTripDayActionsItems: MenuItem[] = [];
@@ -434,9 +413,33 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
     this.utilsService = inject(UtilsService);
     this.clipboard = inject(Clipboard);
     this.changeDetectionRef = inject(ChangeDetectorRef);
+    this.translocoService = inject(TranslocoService);
 
     this.statuses = this.utilsService.statuses;
     this.username = this.utilsService.loggedUser;
+
+    this.menuTripExportItems = [
+      {
+        label: this.translocoService.translate('common.actions.export'),
+        items: [
+          {
+            label: 'Calendar (.ics)',
+            icon: 'pi pi-calendar',
+            command: () => generateTripICSFile(this.trip()!, this.utilsService),
+          },
+          {
+            label: 'CSV',
+            icon: 'pi pi-file',
+            command: () => generateTripCSVFile(this.trip()!),
+          },
+          {
+            label: 'PDF',
+            icon: 'pi pi-print',
+            command: () => this.togglePrint(),
+          },
+        ],
+      },
+    ];
 
     this.plansSearchInput.valueChanges
       .pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed())
@@ -497,6 +500,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
               this.selectedDay.set(null);
               return;
             }
+
             this.selectedItem.set(this.normalizeItem(item));
             this.selectedPlace.set(null);
             this.selectedDay.set(null);
@@ -516,7 +520,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
     });
 
     effect(() => {
-      // fix p-tabs scroll state issues
+      //Fix p-tabs scroll state issues
       const selection = this.dispSelectedPlace();
       const activeIndex = this.selectedPlaceActiveTabIndex();
 
@@ -591,15 +595,12 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
       this.map?.removeLayer(this.tripMapAntLayer);
       this.tripMapAntLayer = undefined;
     }
-
     this.markers.forEach((marker) => marker.remove());
     this.markers.clear();
-
     if (this.markerClusterGroup) {
       this.markerClusterGroup.clearLayers();
       this.markerClusterGroup = undefined;
     }
-
     if (this.map) {
       this.map.remove();
       this.map = undefined;
@@ -630,16 +631,22 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
         setTimeout(() => this.initMap(), 100 + this.mapInitRetries * 100);
       } else {
         console.error('Failed to initialize map: container not found');
-        this.utilsService.toast('error', 'Error', 'Error during map rendering');
+        this.utilsService.toast(
+          'error',
+          this.translocoService.translate('common.status.error'),
+          this.translocoService.translate('share.error_map_render'),
+        );
+        return;
       }
       return;
     }
+
     this.mapInitRetries = 0;
 
     this.cleanupMap();
     const contextMenuItems = [
       {
-        text: 'Copy coordinates',
+        text: this.translocoService.translate('clipboard.copy_coords'),
         callback: (e: any) => {
           const { lat, lng } = e.latlng;
           navigator.clipboard.writeText(`${parseFloat(lat).toFixed(5)}, ${parseFloat(lng).toFixed(5)}`);
@@ -668,7 +675,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
     const allPlaces = this.places();
     const markersToAdd: L.Marker[] = [];
 
-    const itemsByPlaceId = new Map<number, ViewTripItem[]>();
+    const itemsByPlaceId = new Map<number, TripItem[]>();
     viewModels.forEach((vm) => {
       vm.items.forEach((item) => {
         if (item.place?.id) {
@@ -749,7 +756,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
         label: 'Actions',
         items: [
           {
-            label: 'Open Navigation',
+            label: this.translocoService.translate('view.open_navigation'),
             icon: 'pi pi-car',
             command: () => this.itemToNavigation(),
           },
@@ -765,17 +772,17 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
         label: 'Actions',
         items: [
           {
-            label: 'Summary',
+            label: this.translocoService.translate('common.fields.summary'),
             icon: 'pi pi-minus',
             command: () => this.onDayClick(d),
           },
           {
-            label: 'Highlight',
+            label: this.translocoService.translate('common.actions.highlight'),
             icon: 'pi pi-directions',
             command: () => this.toggleTripDayHighlight(d.id),
           },
           {
-            label: 'Open Navigation',
+            label: this.translocoService.translate('view.open_navigation'),
             icon: 'pi pi-car',
             command: () => this.tripDayToNavigation(d.id),
           },
@@ -790,20 +797,20 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
       label: 'Lists',
       items: [
         {
-          label: 'Attachments',
+          label: this.translocoService.translate('common.fields.attachments'),
           icon: 'pi pi-paperclip',
           command: () => this.openAttachmentsModal(),
           disabled: !this.isFullAccess(),
         },
         {
-          label: 'Checklist',
+          label: this.translocoService.translate('common.fields.checklist'),
           icon: 'pi pi-list-check',
           command: () => {
             this.openChecklist();
           },
         },
         {
-          label: 'Packing list',
+          label: this.translocoService.translate('common.fields.packing_list'),
           icon: 'pi pi-briefcase',
           command: () => {
             this.openPackingList();
@@ -812,10 +819,10 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
       ],
     };
     const actions = {
-      label: 'Trip',
+      label: this.translocoService.translate('common.fields.trip'),
       items: [
         {
-          label: 'Pretty Print',
+          label: 'PDF',
           icon: 'pi pi-print',
           command: () => {
             this.togglePrint();
@@ -834,12 +841,12 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
         label: 'Actions',
         items: [
           {
-            label: 'Open Navigation',
+            label: this.translocoService.translate('view.open_navigation'),
             icon: 'pi pi-car',
             command: () => this.tripDayToNavigation(d.id),
           },
           {
-            label: 'Highlight',
+            label: this.translocoService.translate('common.actions.highlight'),
             icon: 'pi pi-directions',
             command: () => this.toggleTripDayHighlight(d.id),
           },
@@ -866,7 +873,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
     if (!trip || !trip.days.length) return;
 
     const modal = this.dialogService.open(TripPrettyPrintModalComponent, {
-      header: 'Print options',
+      header: this.translocoService.translate('view.print_options'),
       modal: true,
       appendTo: 'body',
       closable: true,
@@ -1032,7 +1039,6 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
           this.selectedPlaceActiveTabIndex.set(0);
           return;
         }
-
         this.selectedPlaceActiveTabIndex.set(targetTabIndex);
         this.selectedItem.set(null);
         return;
@@ -1077,7 +1083,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   async centerOnMe() {
     const position = await getGeolocationLatLng();
     if (position.err) {
-      this.utilsService.toast('error', 'Error', position.err);
+      this.utilsService.toast('error', this.translocoService.translate('common.status.error'), position.err);
       return;
     }
 
@@ -1113,7 +1119,6 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
       this.map?.removeLayer(this.selectedItemMarker);
       this.selectedItemMarker = undefined;
     }
-
     if (this.highlightedMarkerElement) {
       this.highlightedMarkerElement.classList.remove('list-hover');
       this.highlightedMarkerElement = undefined;
@@ -1135,7 +1140,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
         label: 'Actions',
         items: [
           {
-            label: 'Copy to clipboard (text)',
+            label: this.translocoService.translate('clipboard.copy_to_clipboard'),
             icon: 'pi pi-clipboard',
             command: () => this.copyPackingListToClipboard(),
           },
@@ -1158,8 +1163,18 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
       .map((item) => `[${item.category}] ${item.qt ? item.qt + ' ' : ''}${item.text}`)
       .join('\n');
     const success = this.clipboard.copy(content);
-    if (success) this.utilsService.toast('success', 'Success', `Content copied to clipboard`);
-    else this.utilsService.toast('error', 'Error', 'Content could not be copied to clipboard');
+    if (success)
+      this.utilsService.toast(
+        'success',
+        this.translocoService.translate('common.status.success'),
+        this.translocoService.translate('clipboard.content_copied'),
+      );
+    else
+      this.utilsService.toast(
+        'error',
+        this.translocoService.translate('common.status.error'),
+        this.translocoService.translate('clipboard.content_copied_error'),
+      );
   }
 
   openChecklist() {

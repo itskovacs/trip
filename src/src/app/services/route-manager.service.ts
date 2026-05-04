@@ -157,7 +157,7 @@ export class RouteManagerService {
       className: 'routing-badge',
       html: `
         <div class="routing-badge-content" style="background: ${style.color}">
-          <span>${style.icon} ${durationText} • ${distanceText}</span>
+          <span>${style.icon} ${durationText} &middot; ${distanceText}</span>
           <button class="routing-delete-btn" type="button"><i class="pi pi-times"></i></button>
         </div>
       `,

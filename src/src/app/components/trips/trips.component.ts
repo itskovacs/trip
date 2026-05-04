@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from '../../services/api.service';
 import { ButtonModule } from 'primeng/button';
 import { SkeletonModule } from 'primeng/skeleton';
-import { TripBase, TripInvitation, TripDay, TripBaseWithDates } from '../../types/trip';
+import { TripBase, TripInvitation, TripBaseWithDates } from '../../types/trip';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { TripCreateModalComponent } from '../../modals/trip-create-modal/trip-create-modal.component';
 import { Router } from '@angular/router';
@@ -10,11 +10,12 @@ import { forkJoin, take } from 'rxjs';
 import { DatePipe } from '@angular/common';
 import { DialogModule } from 'primeng/dialog';
 import { daterangeToTripDays } from '../../shared/utils';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-trips',
   standalone: true,
-  imports: [SkeletonModule, ButtonModule, DialogModule, DatePipe],
+  imports: [SkeletonModule, ButtonModule, DialogModule, DatePipe, TranslocoDirective],
   templateUrl: './trips.component.html',
   styleUrls: ['./trips.component.scss'],
 })
@@ -28,6 +29,7 @@ export class TripsComponent implements OnInit {
     private apiService: ApiService,
     private dialogService: DialogService,
     private router: Router,
+    private translocoService: TranslocoService,
   ) {}
 
   ngOnInit() {
@@ -58,7 +60,7 @@ export class TripsComponent implements OnInit {
 
   addTrip() {
     const modal: DynamicDialogRef = this.dialogService.open(TripCreateModalComponent, {
-      header: 'Create Trip',
+      header: this.translocoService.translate('entities.trip.create'),
       modal: true,
       appendTo: 'body',
       closable: true,

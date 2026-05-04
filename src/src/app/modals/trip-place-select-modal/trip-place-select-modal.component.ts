@@ -12,6 +12,7 @@ import { take } from 'rxjs';
 import { isPointInBounds } from '../../shared/map';
 import { TooltipModule } from 'primeng/tooltip';
 import { TabsModule } from 'primeng/tabs';
+import { TranslocoDirective } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-trip-place-select-modal',
@@ -23,6 +24,7 @@ import { TabsModule } from 'primeng/tabs';
     SkeletonModule,
     TooltipModule,
     TabsModule,
+    TranslocoDirective,
   ],
   standalone: true,
   templateUrl: './trip-place-select-modal.component.html',

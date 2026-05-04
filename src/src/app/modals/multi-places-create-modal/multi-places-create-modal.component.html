@@ -1,23 +1,23 @@
-<section>
+<ng-container *transloco="let t">
   <div class="rounded-lg bg-primary-50 dark:bg-primary-950 px-4 py-3 mb-4 flex items-center gap-4 justify-between">
     <div class="flex items-center gap-4">
       <span [class]="
-          validPlaces() === places().length
-            ? 'text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900'
-            : 'text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-900'
-        " class="mr-1 flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded truncate shrink-0">
-        <span class="truncate">{{ validPlaces() }}/{{ places().length }} valid</span>
+     validPlaces() === places().length
+      ? 'text-green-700 dark:text-green-300 bg-green-100 dark:bg-green-900'
+      : 'text-orange-700 dark:text-orange-300 bg-orange-100 dark:bg-orange-900'
+    " class="mr-1 flex items-center gap-1 px-2 py-0.5 text-xs font-medium rounded truncate shrink-0">
+        <span class="truncate">{{ validPlaces() }}/{{ places().length }} {{ t('modals.multiplaces.valid') }}</span>
       </span>
       @if (hasInvalidPlace()) {
       <span class="hidden sm:flex text-xs text-neutral-500 dark:text-neutral-400">
-        Some places have no category
+        {{ t('modals.multiplaces.some_places_no_category') }}
       </span>
       }
     </div>
 
     @if (hasInvalidPlace()) {
-    <p-button label="Bulk Update" icon="pi pi-clone" size="small" text (click)="popoverCategory.toggle($event)"
-      class="flex justify-center md:ml-auto" />
+    <p-button [label]="t('modals.multiplaces.bulk_update')" icon="pi pi-clone" size="small" text
+      (click)="popoverCategory.toggle($event)" class="flex justify-center md:ml-auto" />
     }
   </div>
 
@@ -25,8 +25,8 @@
   <div
     class="rounded-lg bg-orange-50 dark:bg-orange-950/40 border border-orange-200 dark:border-orange-900 px-4 py-3 mb-4 space-y-4">
     <i class="pi pi-exclamation-triangle text-orange-600 dark:text-orange-400 shrink-0"></i>
-    <span class="ml-2 text-sm font-medium text-orange-900 dark:text-orange-100">Looks like there are a few
-      duplicates:</span>
+    <span class="ml-2 text-sm font-medium text-orange-900 dark:text-orange-100">{{
+      t('modals.multiplaces.looks_like_duplicates') }}</span>
 
     <div class="flex items-center justify-center flex-wrap gap-2">
       @for (duplicate of duplicatePlaceNames(); track $index) {
@@ -38,8 +38,8 @@
     </div>
 
     <div class="flex items-center justify-center">
-      <p-button label="Remove them" icon="pi pi-trash" size="small" severity="danger" [outlined]="true"
-        (click)="removeDuplicates()" />
+      <p-button [label]="t('modals.multiplaces.remove_them')" icon="pi pi-trash" size="small" severity="danger"
+        [outlined]="true" (click)="removeDuplicates()" />
     </div>
   </div>
   }
@@ -52,7 +52,8 @@
         severity="danger" size="small" icon="pi pi-times" (click)="deletePlace(p); $event.stopPropagation()" />
 
       <div class="w-14 h-14 rounded overflow-hidden bg-primary-100 dark:bg-primary-800">
-        <img [src]="p.image || 'favicon.png'" class="w-full h-full object-cover" alt="Place image" />
+        <img [src]="p.image || 'favicon.png'" class="w-full h-full object-cover"
+          [alt]="t('modals.multiplaces.place_image')" />
       </div>
 
       <div class="flex-1 min-w-0">
@@ -66,26 +67,26 @@
 
         <div class="flex items-center gap-2">
           <span class="pi flex items-center px-1.5 py-0.5 rounded text-xs" style="font-size: 12px" [class]="
-                p.allowdog
-                  ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400'
-                  : 'bg-primary-100 text-primary-600 dark:bg-primary-800 dark:text-primary-500'
-              ">
+        p.allowdog
+         ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400'
+         : 'bg-primary-100 text-primary-600 dark:bg-primary-800 dark:text-primary-500'
+       ">
             🐶
           </span>
 
           <span class="pi flex items-center px-1.5 py-0.5 rounded text-xs" style="font-size: 12px" [class]="
-                p.restroom
-                  ? 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-400'
-                  : 'bg-primary-100 text-primary-600 dark:bg-primary-800 dark:text-primary-500'
-              ">
+        p.restroom
+         ? 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-400'
+         : 'bg-primary-100 text-primary-600 dark:bg-primary-800 dark:text-primary-500'
+       ">
             🚽
           </span>
 
           <span class="flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium" [class]="
-                p.visited
-                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400'
-                  : 'bg-primary-100 text-primary-600 dark:bg-primary-800 dark:text-primary-500'
-              ">
+        p.visited
+         ? 'bg-blue-100 text-blue-700 dark:bg-blue-950 dark:text-blue-400'
+         : 'bg-primary-100 text-primary-600 dark:bg-primary-800 dark:text-primary-500'
+       ">
             <i class="pi" style="font-size: 12px" [class]="p.visited ? 'pi-eye' : 'pi-eye-slash'"></i>
           </span>
 
@@ -106,49 +107,50 @@
       class="pointer-events-auto flex items-center justify-between gap-3 rounded-lg border border-primary-200/70 bg-primary-50/90 px-4 py-2.5 shadow-sm backdrop-blur-mddark:border-primary-700/70 dark:bg-primary-900/90">
       <div class="shrink-0 flex items-center justify-end gap-2">
         @if (linkToTripId()) {
-        <p-button icon="pi pi-times" size="small" severity="danger" label="Link to Trip" text
+        <p-button icon="pi pi-times" size="small" severity="danger" [label]="t('modals.multiplaces.link_to_trip')" text
           (click)="cancelLinkToTrip()" />
         } @else {
-        <p-button icon="pi pi-link" size="small" severity="secondary" label="Link to Trip" text
-          (click)="openTripsModal()" />
+        <p-button icon="pi pi-link" size="small" severity="secondary" [label]="t('modals.multiplaces.link_to_trip')"
+          text (click)="openTripsModal()" />
         }
-        <p-button (click)="closeDialog()" [disabled]="hasInvalidPlace()" label="Confirm" size="small"
-          severity="success" />
+        <p-button (click)="closeDialog()" [disabled]="hasInvalidPlace()" [label]="t('common.actions.confirm')"
+          size="small" severity="success" />
       </div>
     </div>
   </div>
-</section>
 
-<p-dialog header="Select a Trip" [draggable]="false" [dismissableMask]="true" [modal]="true" appendTo="body"
-  [visible]="isTripsDialogVisible()" (visibleChange)="isTripsDialogVisible.set($event)"
-  styleClass="w-[95%] md:w-[40%] lg:w-[30%]">
-  <div class="grid grid-cols-1 gap-2 px-4 py-2 md:grid-cols-2 lg:grid-cols-3">
-    @for (trip of trips(); track trip.id) {
-    <div (click)="linkToTrip(trip)"
-      class="group relative cursor-pointer rounded-xl border border-transparent p-3 transition-colors hover:border-primary-200 hover:bg-primary-50 dark:hover:border-primary-700 dark:hover:bg-primary-900">
-      <div class="flex items-center gap-3">
-        <img [src]="trip.image || 'cover.webp'" loading="lazy" class="h-14 w-14 rounded object-cover"
-          alt="Trip image" />
-        <div class="min-w-0 flex-1">
-          <h3 class="mb-0.5 truncate text-sm font-semibold text-primary-900 dark:text-white">
-            {{ trip.name }}
-          </h3>
+  <p-dialog [header]="t('modals.multiplaces.select_a_trip')" [draggable]="false" [dismissableMask]="true" [modal]="true"
+    appendTo="body" [visible]="isTripsDialogVisible()" (visibleChange)="isTripsDialogVisible.set($event)"
+    styleClass="w-[95%] md:w-[40%] lg:w-[30%]">
+    <div class="grid grid-cols-1 gap-2 px-4 py-2 md:grid-cols-2 lg:grid-cols-3">
+      @for (trip of trips(); track trip.id) {
+      <div (click)="linkToTrip(trip)"
+        class="group relative cursor-pointer rounded-xl border border-transparent p-3 transition-colors hover:border-primary-200 hover:bg-primary-50 dark:hover:border-primary-700 dark:hover:bg-primary-900">
+        <div class="flex items-center gap-3">
+          <img [src]="trip.image || 'cover.webp'" loading="lazy" class="h-14 w-14 rounded object-cover"
+            [alt]="t('modals.multiplaces.trip_image')" />
+          <div class="min-w-0 flex-1">
+            <h3 class="mb-0.5 truncate text-sm font-semibold text-primary-900 dark:text-white">
+              {{ trip.name }}
+            </h3>
+          </div>
         </div>
       </div>
+      }
     </div>
-    }
-  </div>
-</p-dialog>
+  </p-dialog>
 
-<p-popover #popoverCategory>
-  <div class="flex flex-col gap-1 max-w-48 overflow-y-auto">
-    <span class="text-center text-xs text-primary-500 mb-4">Select a category to apply to places with no category</span>
-    @for (category of categories(); track category.id) {
-    <div
-      class="p-2 cursor-pointer text-sm font-medium rounded-lg hover:bg-primary-100 dark:hover:bg-primary-800 truncate"
-      (click)="bulkApplyCategory(category.name); popoverCategory.hide()">
-      {{ category.name }}
+  <p-popover #popoverCategory>
+    <div class="flex flex-col gap-1 max-w-48 overflow-y-auto">
+      <span class="text-center text-xs text-primary-500 mb-4">{{ t('modals.multiplaces.select_category_to_apply')
+        }}</span>
+      @for (category of categories(); track category.id) {
+      <div
+        class="p-2 cursor-pointer text-sm font-medium rounded-lg hover:bg-primary-100 dark:hover:bg-primary-800 truncate"
+        (click)="bulkApplyCategory(category.name); popoverCategory.hide()">
+        {{ category.name }}
+      </div>
+      }
     </div>
-    }
-  </div>
-</p-popover>
+  </p-popover>
+</ng-container>

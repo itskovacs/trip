@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, inject, Input, Output, signal } from '@angular/core';
 import { ButtonModule } from 'primeng/button';
 import { MenuModule } from 'primeng/menu';
 import { Place } from '../../types/poi';
@@ -10,16 +10,27 @@ import { LinkifyPipe } from '../pipes/linkify.pipe';
 import { TooltipModule } from 'primeng/tooltip';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { NaturalDurationPipe } from '../pipes/naturalduration.pipe';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-place-box-content',
   standalone: true,
-  imports: [ButtonModule, MenuModule, AsyncPipe, LinkifyPipe, ClipboardModule, TooltipModule, NaturalDurationPipe],
+  imports: [
+    ButtonModule,
+    MenuModule,
+    AsyncPipe,
+    LinkifyPipe,
+    ClipboardModule,
+    TooltipModule,
+    NaturalDurationPipe,
+    TranslocoDirective,
+  ],
   templateUrl: './place-box-content.component.html',
   styleUrls: ['./place-box-content.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PlaceBoxContentComponent {
+  translocoService = inject(TranslocoService);
   @Input() selectedPlace: Place | null = null;
   @Input() showButtons: boolean = true;
   @Input() showMeta: boolean = true;
@@ -45,35 +56,39 @@ export class PlaceBoxContentComponent {
   buildMenu() {
     const items = [
       {
-        label: 'Edit',
+        label: this.translocoService.translate('common.actions.edit'),
         icon: 'pi pi-pencil',
         iconClass: 'text-blue-500!',
         command: () => this.editPlace(),
       },
       {
-        label: this.selectedPlace?.favorite ? 'Unfavorite' : 'Favorite',
+        label: this.selectedPlace?.favorite
+          ? this.translocoService.translate('placebox.mark_not_favorite')
+          : this.translocoService.translate('placebox.mark_favorite'),
         icon: this.selectedPlace?.favorite ? 'pi pi-heart-fill' : 'pi pi-heart',
         iconClass: 'text-rose-500!',
         command: () => this.favoritePlace(),
       },
       {
-        label: this.selectedPlace?.visited ? 'Mark not visited' : 'Mark visited',
+        label: this.selectedPlace?.visited
+          ? this.translocoService.translate('placebox.mark_not_visited')
+          : this.translocoService.translate('placebox.mark_visited'),
         icon: 'pi pi-check',
         iconClass: 'text-green-500!',
         command: () => this.visitPlace(),
       },
       {
-        label: 'Fly To',
+        label: this.translocoService.translate('placebox.fly_to_place'),
         icon: 'pi pi-expand',
         command: () => this.flyToPlace(),
       },
       {
-        label: 'Navigation',
+        label: this.translocoService.translate('common.actions.navigate'),
         icon: 'pi pi-car',
         command: () => this.openNavigationToPlace(),
       },
       {
-        label: 'Delete',
+        label: this.translocoService.translate('common.actions.delete'),
         icon: 'pi pi-trash',
         iconClass: 'text-red-500!',
         command: () => this.deletePlace(),
@@ -82,7 +97,7 @@ export class PlaceBoxContentComponent {
 
     if (this.selectedPlace?.gpx) {
       items.unshift({
-        label: 'Display GPX',
+        label: this.translocoService.translate('placebox.display_gpx'),
         icon: 'pi pi-compass',
         iconClass: 'text-primary-500!',
         command: () => {
@@ -93,7 +108,7 @@ export class PlaceBoxContentComponent {
 
     this.menuItems = [
       {
-        label: 'Place',
+        label: this.translocoService.translate('common.fields.place'),
         items: items,
       },
     ];

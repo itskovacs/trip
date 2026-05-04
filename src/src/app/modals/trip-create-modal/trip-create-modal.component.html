@@ -1,62 +1,64 @@
-<section class="mx-auto space-y-6" [formGroup]="tripForm">
-  <div class="grid md:grid-cols-[auto_1fr] gap-4 items-center">
-    <div
-      class="flex flex-col items-center justify-center p-4 bg-primary-50 dark:bg-primary-800 rounded-lg border border-primary-200 dark:border-primary-700">
-      <div class="relative group">
-        @if (tripForm.get('image_id')?.value || tripForm.get('image')?.value) {
-        <img [src]="tripForm.get('image')?.value || '/favicon.png'"
-          class="h-24 w-44 object-cover rounded-lg shadow ring-2 ring-primary-200 dark:ring-primary-700 cursor-pointer transition-all group-hover:ring-primary-400"
-          (click)="fileInput.click()" />
-        <div
-          class="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-          (click)="fileInput.click()">
-          <i class="pi pi-camera text-white text-2xl"></i>
+<ng-container *transloco="let t">
+  <section class="mx-auto space-y-6" [formGroup]="tripForm">
+    <div class="grid md:grid-cols-[auto_1fr] gap-4 items-center">
+      <div
+        class="flex flex-col items-center justify-center p-4 bg-primary-50 dark:bg-primary-800 rounded-lg border border-primary-200 dark:border-primary-700">
+        <div class="relative group">
+          @if (tripForm.get('image_id')?.value || tripForm.get('image')?.value) {
+          <img [src]="tripForm.get('image')?.value || '/favicon.png'"
+            class="h-24 w-44 object-cover rounded-lg shadow ring-2 ring-primary-200 dark:ring-primary-700 cursor-pointer transition-all group-hover:ring-primary-400"
+            (click)="fileInput.click()" />
+          <div
+            class="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+            (click)="fileInput.click()">
+            <i class="pi pi-camera text-white text-2xl"></i>
+          </div>
+          @if (!tripForm.get('image_id')?.value) {
+          <button type="button"
+            class="cursor-pointer absolute -top-2 -right-2 size-7 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-full shadow transition"
+            (click)="clearImage(); $event.stopPropagation()">
+            <i class="pi pi-times text-xs"></i>
+          </button>
+          }
+          } @else {
+          <div
+            class="h-24 w-44 flex items-center justify-center bg-primary-100 dark:bg-primary-900 rounded-lg border-2 border-dashed border-primary-300 dark:border-primary-600 cursor-pointer transition hover:border-primary-400"
+            (click)="fileInput.click()">
+            <i class="pi pi-image text-3xl text-primary-400"></i>
+          </div>
+          }
+          <input type="file" accept="image/*" #fileInput class="hidden" (change)="onFileSelected($event)" />
         </div>
-        @if (!tripForm.get('image_id')?.value) {
-        <button type="button"
-          class="cursor-pointer absolute -top-2 -right-2 size-7 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-full shadow transition"
-          (click)="clearImage(); $event.stopPropagation()">
-          <i class="pi pi-times text-xs"></i>
-        </button>
-        }
-        } @else {
-        <div
-          class="h-24 w-44 flex items-center justify-center bg-primary-100 dark:bg-primary-900 rounded-lg border-2 border-dashed border-primary-300 dark:border-primary-600 cursor-pointer transition hover:border-primary-400"
-          (click)="fileInput.click()">
-          <i class="pi pi-image text-3xl text-primary-400"></i>
-        </div>
-        }
-        <input type="file" accept="image/*" #fileInput class="hidden" (change)="onFileSelected($event)" />
       </div>
-    </div>
 
-    <div class="space-y-4">
-      <p-floatlabel variant="in">
-        <input id="name" formControlName="name" pInputText autofocus fluid (keydown.control.enter)="closeDialog()" />
-        <label for="name">Name</label>
-      </p-floatlabel>
-
-      <div class="grid grid-cols-3 gap-4">
-        <p-floatlabel variant="in" [class.col-span-full]="tripForm.get('id')?.value !== -1">
-          <input id="currency" formControlName="currency" pInputText fluid />
-          <label for="currency">Currency</label>
+      <div class="space-y-4">
+        <p-floatlabel variant="in">
+          <input id="name" formControlName="name" pInputText autofocus fluid (keydown.control.enter)="closeDialog()" />
+          <label for="name">{{ t('common.fields.name') }}</label>
         </p-floatlabel>
 
-        @if (tripForm.get('id')?.value === -1) {
-        <div class="col-span-2">
-          <p-floatlabel variant="in">
-            <p-datepicker id="daterange" formControlName="daterange" [iconDisplay]="'input'" [showIcon]="true"
-              selectionMode="range" appendTo="body" fluid />
-            <label for="daterange">Date Range</label>
+        <div class="grid grid-cols-3 gap-4">
+          <p-floatlabel variant="in" [class.col-span-full]="tripForm.get('id')?.value !== -1">
+            <input id="currency" formControlName="currency" pInputText fluid />
+            <label for="currency">{{ t('common.fields.currency') }}</label>
           </p-floatlabel>
+
+          @if (tripForm.get('id')?.value === -1) {
+          <div class="col-span-2">
+            <p-floatlabel variant="in">
+              <p-datepicker id="daterange" formControlName="daterange" [iconDisplay]="'input'" [showIcon]="true"
+                selectionMode="range" appendTo="body" fluid />
+              <label for="daterange">{{ t('common.fields.date_range') }}</label>
+            </p-floatlabel>
+          </div>
+          }
         </div>
-        }
       </div>
     </div>
-  </div>
 
-  <div class="flex justify-end gap-3 pt-4 border-t border-primary-200 dark:border-primary-700">
-    <p-button [label]="tripForm.get('id')?.value !== -1 ? 'Update' : 'Create'" icon="pi pi-check"
-      [disabled]="!tripForm.dirty || !tripForm.valid" (click)="closeDialog()" />
-  </div>
-</section>
+    <div class="flex justify-end gap-3 pt-4 border-t border-primary-200 dark:border-primary-700">
+      <p-button [label]="tripForm.get('id')?.value !== -1 ? t('common.actions.update') : t('common.actions.create')"
+        icon="pi pi-check" [disabled]="!tripForm.dirty || !tripForm.valid" (click)="closeDialog()" />
+    </div>
+  </section>
+</ng-container>

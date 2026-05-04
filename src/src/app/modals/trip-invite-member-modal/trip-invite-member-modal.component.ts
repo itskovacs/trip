@@ -5,10 +5,11 @@ import { DynamicDialogRef } from 'primeng/dynamicdialog';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { InputTextModule } from 'primeng/inputtext';
 import { FocusTrapModule } from 'primeng/focustrap';
+import { TranslocoDirective } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-trip-invite-member-modal',
-  imports: [FloatLabelModule, InputTextModule, ButtonModule, ReactiveFormsModule, FocusTrapModule],
+  imports: [FloatLabelModule, InputTextModule, ButtonModule, ReactiveFormsModule, FocusTrapModule, TranslocoDirective],
   standalone: true,
   templateUrl: './trip-invite-member-modal.component.html',
   styleUrl: './trip-invite-member-modal.component.scss',

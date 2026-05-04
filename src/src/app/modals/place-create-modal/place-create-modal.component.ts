@@ -22,6 +22,7 @@ import { checkAndParseLatLng, formatLatLng } from '../../shared/latlng-parser';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { PlaceCreateProviderModalComponent } from '../place-create-provider-modal/place-create-provider-modal.component';
 import { DialogModule } from 'primeng/dialog';
+import { TranslocoDirective } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-place-create-modal',
@@ -42,6 +43,7 @@ import { DialogModule } from 'primeng/dialog';
     DialogModule,
     CommonModule,
     FormsModule,
+    TranslocoDirective,
   ],
   standalone: true,
   templateUrl: './place-create-modal.component.html',

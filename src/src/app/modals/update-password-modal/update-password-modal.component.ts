@@ -5,10 +5,19 @@ import { InputOtpModule } from 'primeng/inputotp';
 import { FormControl, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { InputTextModule } from 'primeng/inputtext';
+import { TranslocoDirective } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-update-password-modal',
-  imports: [ButtonModule, InputTextModule, InputOtpModule, FormsModule, ReactiveFormsModule, FloatLabelModule],
+  imports: [
+    ButtonModule,
+    InputTextModule,
+    InputOtpModule,
+    FormsModule,
+    ReactiveFormsModule,
+    FloatLabelModule,
+    TranslocoDirective,
+  ],
   standalone: true,
   templateUrl: './update-password-modal.component.html',
   styleUrl: './update-password-modal.component.scss',

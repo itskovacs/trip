@@ -1,10 +1,14 @@
-import { Pipe, PipeTransform } from '@angular/core';
+import { Pipe, PipeTransform, inject } from '@angular/core';
+import { TranslocoService } from '@jsverse/transloco';
 
 @Pipe({
   name: 'naturalDuration',
   standalone: true,
+  pure: false,
 })
 export class NaturalDurationPipe implements PipeTransform {
+  private translocoService = inject(TranslocoService);
+
   transform(minutes: number | null | undefined): string {
     if (!minutes || minutes === 0) {
       return '-';
@@ -16,9 +20,21 @@ export class NaturalDurationPipe implements PipeTransform {
 
     const parts: string[] = [];
 
-    if (days > 0) parts.push(`${days} ${days === 1 ? 'day' : 'days'}`);
-    if (hours > 0) parts.push(`${hours} ${hours === 1 ? 'hour' : 'hours'}`);
-    if (mins > 0) parts.push(`${mins} ${mins === 1 ? 'min' : 'mins'}`);
+    if (days > 0) {
+      const key = days === 1 ? 'duration.day' : 'duration.days';
+      parts.push(this.translocoService.translate(key, { count: days }));
+    }
+
+    if (hours > 0) {
+      const key = hours === 1 ? 'duration.hour' : 'duration.hours';
+      parts.push(this.translocoService.translate(key, { count: hours }));
+    }
+
+    if (mins > 0) {
+      const key = mins === 1 ? 'duration.min' : 'duration.mins';
+      parts.push(this.translocoService.translate(key, { count: mins }));
+    }
+
     return parts.join(', ');
   }
 }

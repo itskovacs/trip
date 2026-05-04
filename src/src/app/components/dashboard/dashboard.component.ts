@@ -83,6 +83,7 @@ import { RouteManagerService } from '../../services/route-manager.service';
 import { AdminUser, AppConfig, MagicLink } from '../../types/admin';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { ClipboardModule } from '@angular/cdk/clipboard';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 
 export interface ContextMenuItem {
   text: string;
@@ -123,6 +124,7 @@ export interface MarkerOptions extends L.MarkerOptions {
     PopoverModule,
     InputNumberModule,
     ClipboardModule,
+    TranslocoDirective,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './dashboard.component.html',
@@ -141,6 +143,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   location: Location;
   activatedRoute: ActivatedRoute;
   routeManager: RouteManagerService;
+  translocoService: TranslocoService;
 
   info = signal<Info | null>(null);
   places = signal<Place[]>([]);
@@ -265,7 +268,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           icon: 'pi pi-google',
           command: () => {
             if (!this.settings()?.google_apikey) {
-              this.utilsService.toast('error', 'Missing Key', 'Google Maps API key not configured');
+              this.utilsService.toast(
+                'error',
+                this.translocoService.translate('messages.missing_key'),
+                this.translocoService.translate('messages.gapi_not_configured'),
+              );
               return;
             }
             this.fileUploadKmz()?.nativeElement.click();
@@ -276,7 +283,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           icon: 'pi pi-google',
           command: () => {
             if (!this.settings()?.google_apikey) {
-              this.utilsService.toast('error', 'Missing Key', 'Google Maps API key not configured');
+              this.utilsService.toast(
+                'error',
+                this.translocoService.translate('messages.missing_key'),
+                this.translocoService.translate('messages.gapi_not_configured'),
+              );
               return;
             }
             this.fileUploadTakeout()?.nativeElement.click();
@@ -286,6 +297,25 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           label: 'Bulk',
           icon: 'pi pi-list',
           command: () => this.openProviderMultilineModal(),
+        },
+      ],
+    },
+  ];
+  menuSettingsLanguageItems: MenuItem[] = [
+    {
+      label: 'Language',
+      items: [
+        {
+          label: 'English',
+          command: () => {
+            this.updateLanguage('en');
+          },
+        },
+        {
+          label: 'Français',
+          command: () => {
+            this.updateLanguage('fr');
+          },
         },
       ],
     },
@@ -301,6 +331,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.location = inject(Location);
     this.activatedRoute = inject(ActivatedRoute);
     this.routeManager = inject(RouteManagerService);
+    this.translocoService = inject(TranslocoService);
 
     this.username = this.utilsService.loggedUser;
     this.settingsForm = this.fb.group({
@@ -403,13 +434,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const isTouch = 'ontouchstart' in window;
     const contentMenuItems = [
       {
-        text: 'Add Point of Interest',
+        text: this.translocoService.translate('entities.item.add_poi'),
         callback: (e: any) => {
           this.addPlaceModal(e);
         },
       },
       {
-        text: 'Find nearby places (Google API)',
+        text: this.translocoService.translate('dashboard.find_nearby'),
         callback: (e: any) => {
           this.googleNearbyPlaces(e);
         },
@@ -552,7 +583,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     marker
       .on('click', (e) => {
         this.selectedPlaceId.set(place.id);
-
         let toView = { ...e.latlng };
         if ('ontouchstart' in window) {
           const pixelPoint = this.map!.latLngToContainerPoint(e.latlng);
@@ -571,7 +601,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   addPlaceModal(e?: any): void {
     const opts = e ? { data: { place: e.latlng } } : {};
     const modal: DynamicDialogRef = this.dialogService.open(PlaceCreateModalComponent, {
-      header: 'Create Place',
+      header: this.translocoService.translate('entities.place.create'),
       modal: true,
       appendTo: 'body',
       closable: true,
@@ -593,7 +623,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         const duplicate = this.checkDuplicatePlace(place);
         if (duplicate) {
           const confirmModal = this.dialogService.open(YesNoModalComponent, {
-            header: 'Possible duplicate',
+            header: this.translocoService.translate('messages.possible_duplicate'),
             modal: true,
             closable: true,
             dismissableMask: true,
@@ -604,7 +634,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
               '960px': '75vw',
               '640px': '90vw',
             },
-            data: `A possible duplicate place (${duplicate.name}) exists. Create anyway?`,
+            data: this.translocoService.translate('messages.possible_duplicate_desc', { name: duplicate.name }),
           })!;
 
           confirmModal.onClose.pipe(take(1)).subscribe({
@@ -703,7 +733,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     if (!selected) return;
 
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Confirm deletion',
+      header: this.translocoService.translate('messages.confirm_deletion'),
       modal: true,
       closable: true,
       dismissableMask: true,
@@ -713,7 +743,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         '960px': '75vw',
         '640px': '90vw',
       },
-      data: `Delete ${selected.name} ?`,
+      data: this.translocoService.translate('messages.confirm_deletion_desc', { name: selected.name }),
     })!;
 
     modal.onClose.subscribe({
@@ -739,7 +769,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const _placeToEdit: Place = { ...target };
 
     const modal: DynamicDialogRef = this.dialogService.open(PlaceCreateModalComponent, {
-      header: 'Edit Place',
+      header: this.translocoService.translate('entities.place.edit'),
       modal: true,
       appendTo: 'body',
       closable: true,
@@ -798,7 +828,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       this.gpxLayerGroup?.addLayer(gpxPolyline);
       this.map.fitBounds(gpxPolyline.getBounds(), { padding: [20, 20] });
     } catch {
-      this.utilsService.toast('error', 'Error', "Couldn't parse GPX data");
+      this.utilsService.toast(
+        'error',
+        this.translocoService.translate('common.status.error'),
+        this.translocoService.translate('messages.could_not_parse_gpx'),
+      );
     }
     this.closePlaceBox();
   }
@@ -813,7 +847,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .subscribe({
         next: (p) => {
           if (!p.gpx) {
-            this.utilsService.toast('error', 'Error', "Couldn't retrieve GPX data");
+            this.utilsService.toast(
+              'error',
+              this.translocoService.translate('common.status.error'),
+              this.translocoService.translate('messages.could_not_retrieve_gpx'),
+            );
             return;
           }
           this.displayGPXOnMap(p.gpx);
@@ -883,7 +921,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const formdata = new FormData();
     formdata.append('file', input.files[0]);
 
-    this.utilsService.setLoading('Ingesting your backup...');
+    this.utilsService.setLoading(this.translocoService.translate('messages.ingesting_backup'));
     this.apiService
       .settingsUserImport(formdata)
       .pipe(take(1))
@@ -974,12 +1012,18 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       });
   }
 
-  updateSettings() {
-    const data = { ...this.settingsForm.value };
-    delete data['_google_apikey'];
-    if (!this.settingsForm.get('duplicate_dist')?.value) data['duplicate_dist'] = 0;
-    if (!this.settings()?.google_apikey && this.settingsForm.get('_google_apikey')?.value) {
-      data['google_apikey'] = this.settingsForm.get('_google_apikey')?.value;
+  updateLanguage(lang: string) {
+    this.updateSettings({ language: lang });
+  }
+
+  updateSettings(put?: Partial<Settings>) {
+    const data = put || { ...this.settingsForm.value };
+    if (!put) {
+      delete data['_google_apikey'];
+      if (!this.settingsForm.get('duplicate_dist')?.value) data['duplicate_dist'] = 0;
+      if (!this.settings()?.google_apikey && this.settingsForm.get('_google_apikey')?.value) {
+        data['google_apikey'] = this.settingsForm.get('_google_apikey')?.value;
+      }
     }
 
     this.apiService
@@ -995,7 +1039,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             this.initMap();
           }
           this.resetFilters();
-          this.utilsService.toast('success', 'Success', 'Preferences saved');
+          this.utilsService.toast(
+            'success',
+            this.translocoService.translate('common.status.success'),
+            this.translocoService.translate('messages.preferences_saved'),
+          );
           this.settingsForm.reset(settings);
           this.settingsForm.markAsPristine();
         },
@@ -1004,7 +1052,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   editCategory(c: Category) {
     const modal: DynamicDialogRef = this.dialogService.open(CategoryCreateModalComponent, {
-      header: 'Update Category',
+      header: this.translocoService.translate('dashboard.update_category'),
       modal: true,
       appendTo: 'body',
       closable: true,
@@ -1046,7 +1094,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   addCategory() {
     const modal: DynamicDialogRef = this.dialogService.open(CategoryCreateModalComponent, {
-      header: 'Create Category',
+      header: this.translocoService.translate('dashboard.create_category'),
       modal: true,
       appendTo: 'body',
       closable: true,
@@ -1083,7 +1131,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   deleteCategory(c_id: number) {
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Confirm deletion',
+      header: this.translocoService.translate('messages.confirm_deletion'),
       modal: true,
       closable: true,
       dismissableMask: true,
@@ -1092,7 +1140,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       breakpoints: {
         '640px': '90vw',
       },
-      data: 'Delete this category ?',
+      data: this.translocoService.translate('dashboard.delete_category'),
     })!;
 
     modal.onClose.pipe(take(1)).subscribe({
@@ -1173,7 +1221,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         next: (remote_version) => {
           const currentInfo = this.info();
           if (!remote_version)
-            this.utilsService.toast('success', 'Latest version', "You're running the latest version of TRIP");
+            this.utilsService.toast(
+              'success',
+              this.translocoService.translate('settings.latest_version'),
+              this.translocoService.translate('settings.running_latest'),
+            );
           else if (currentInfo && remote_version !== currentInfo.version)
             this.info.set({ ...currentInfo, update: remote_version });
         },
@@ -1185,7 +1237,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .putSettings({ mode_low_network: this.isLowNetMode() })
       .pipe(take(1))
       .subscribe({
-        next: () => this.utilsService.toast('success', 'Success', 'Preference saved'),
+        next: () =>
+          this.utilsService.toast(
+            'success',
+            this.translocoService.translate('common.status.success'),
+            this.translocoService.translate('messages.preferences_saved'),
+          ),
       });
   }
 
@@ -1229,7 +1286,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .putSettings({ mode_gpx_in_place: this.isGPXInPlaceMode() })
       .pipe(take(1))
       .subscribe({
-        next: () => this.utilsService.toast('success', 'Success', 'Preference saved'),
+        next: () =>
+          this.utilsService.toast(
+            'success',
+            this.translocoService.translate('common.status.success'),
+            this.translocoService.translate('messages.preferences_saved'),
+          ),
       });
   }
 
@@ -1238,7 +1300,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .putSettings({ mode_display_visited: this.isVisitedMode() })
       .pipe(take(1))
       .subscribe({
-        next: () => this.utilsService.toast('success', 'Success', 'Preference saved'),
+        next: () =>
+          this.utilsService.toast(
+            'success',
+            this.translocoService.translate('common.status.success'),
+            this.translocoService.translate('messages.preferences_saved'),
+          ),
       });
   }
 
@@ -1256,7 +1323,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .putSettings({ mode_map_position: this.isMapPositionMode() })
       .pipe(take(1))
       .subscribe({
-        next: () => this.utilsService.toast('success', 'Success', 'Preference saved'),
+        next: () =>
+          this.utilsService.toast(
+            'success',
+            this.translocoService.translate('common.status.success'),
+            this.translocoService.translate('messages.preferences_saved'),
+          ),
       });
   }
 
@@ -1272,15 +1344,14 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .subscribe({
         next: (secret) => {
           let modal = this.dialogService.open(TotpVerifyModalComponent, {
-            header: 'Verify TOTP',
+            header: this.translocoService.translate('settings.verify_totp'),
             modal: true,
             closable: true,
             breakpoints: {
               '640px': '90vw',
             },
             data: {
-              message:
-                "Add this secret to your authentication app.\nEnter the generated code below to verify it's correct",
+              message: this.translocoService.translate('settings.totp_message'),
               token: secret.secret,
             },
           })!;
@@ -1294,7 +1365,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
                 });
               }
             },
-            error: () => this.utilsService.toast('error', 'Error', 'Error enabling TOTP'),
+            error: () =>
+              this.utilsService.toast(
+                'error',
+                this.translocoService.translate('common.status.error'),
+                this.translocoService.translate('messages.error_totp'),
+              ),
           });
         },
       });
@@ -1302,7 +1378,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   disableTOTP() {
     const modal = this.dialogService.open(TotpVerifyModalComponent, {
-      header: 'Verify TOTP',
+      header: this.translocoService.translate('settings.verify_totp'),
       modal: true,
       closable: true,
       breakpoints: {
@@ -1315,7 +1391,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         if (!code) return;
 
         const confirmModal = this.dialogService.open(YesNoModalComponent, {
-          header: 'Confirm',
+          header: this.translocoService.translate('common.actions.confirm'),
           modal: true,
           closable: true,
           dismissableMask: true,
@@ -1324,7 +1400,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           breakpoints: {
             '640px': '90vw',
           },
-          data: 'Are you sure you want to disable TOTP?',
+          data: this.translocoService.translate('settings.disable_totp'),
         })!;
 
         confirmModal.onClose.subscribe({
@@ -1334,7 +1410,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             this.apiService.disableTOTP(code).subscribe({
               next: () =>
                 this.settings.update((settings) => (settings ? { ...settings, totp_enabled: false } : settings)),
-              error: () => this.utilsService.toast('error', 'Error', 'Error disabling TOTP'),
+              error: () =>
+                this.utilsService.toast(
+                  'error',
+                  this.translocoService.translate('common.status.error'),
+                  this.translocoService.translate('messages.error_disabling'),
+                ),
             });
           },
         });
@@ -1344,7 +1425,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   updatePassword() {
     const modal = this.dialogService.open(UpdatePasswordModalComponent, {
-      header: 'Update Password',
+      header: this.translocoService.translate('settings.update_password'),
       modal: true,
       closable: true,
       width: '30vw',
@@ -1362,13 +1443,14 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           .updatePassword(data)
           .pipe(take(1))
           .subscribe({
-            next: () => this.utilsService.toast('success', 'Success', 'Password updated'),
-            error: () =>
+            next: () =>
               this.utilsService.toast(
-                'error',
-                'Error',
-                'Could not update the password. Ensure the current password is correct.',
+                'success',
+                this.translocoService.translate('common.status.success'),
+                this.translocoService.translate('messages.password_updated'),
               ),
+            error: () =>
+              this.utilsService.toast('error', 'Error', this.translocoService.translate('messages.password_error')),
           });
       },
     });
@@ -1390,7 +1472,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
         this.settings.update((settings) => (settings ? { ...settings, api_token: !!token } : settings));
         this.dialogService.open(SettingsViewTokenComponent, {
-          header: 'TRIP API Key',
+          header: this.translocoService.translate('settings.trip_api_key'),
           modal: true,
           closable: true,
           dismissableMask: true,
@@ -1407,7 +1489,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   disableTripApiToken() {
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'TRIP API Key',
+      header: this.translocoService.translate('settings.trip_api_key'),
       modal: true,
       closable: true,
       dismissableMask: true,
@@ -1416,7 +1498,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       breakpoints: {
         '640px': '90vw',
       },
-      data: 'Remove your API Token ?',
+      data: this.translocoService.translate('settings.remove_token'),
     })!;
 
     modal.onClose.subscribe({
@@ -1432,7 +1514,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   deleteGoogleApiKey() {
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Confirm',
+      header: this.translocoService.translate('common.actions.confirm'),
       modal: true,
       closable: true,
       dismissableMask: true,
@@ -1441,7 +1523,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       breakpoints: {
         '640px': '90vw',
       },
-      data: 'Are you sure you want to delete GMaps API Key ?',
+      data: this.translocoService.translate('settings.delete_gapi_key'),
     })!;
 
     modal.onClose.subscribe({
@@ -1450,7 +1532,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
         this.apiService.putSettings({ google_apikey: null }).subscribe({
           next: () => this.settings.update((settings) => (settings ? { ...settings, google_apikey: false } : settings)),
-          error: () => this.utilsService.toast('error', 'Error', 'Error deleting GMaps API key'),
+          error: () =>
+            this.utilsService.toast(
+              'error',
+              this.translocoService.translate('common.status.error'),
+              this.translocoService.translate('messages.error_deleting_gapi'),
+            ),
         });
       },
     });
@@ -1462,7 +1549,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
     const file = input.files[0];
     if (!file.name.toLowerCase().endsWith('.csv')) {
-      this.utilsService.toast('error', 'Unsupported file', 'Expected .csv file');
+      this.utilsService.toast(
+        'error',
+        this.translocoService.translate('messages.unsupported_file'),
+        this.translocoService.translate('messages.expected_csv'),
+      );
       return;
     }
 
@@ -1473,7 +1564,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       const lines = text.split('\n').filter((line) => line.includes('!1s'));
       let processed = 0;
 
-      this.utilsService.setLoading(`Querying Google Maps API... [0/${lines.length}]`);
+      this.utilsService.setLoading(`${this.translocoService.translate('messages.querying_gmaps')} [0/${lines.length}]`);
       const batches: string[][] = [];
       for (let i = 0; i < lines.length; i += 10) {
         batches.push(lines.slice(i, i + 10));
@@ -1490,15 +1581,20 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             formdata.append('file', fp);
 
             processed += batch.length;
-            this.utilsService.setLoading(`Querying Google Maps API... [${processed}/${lines.length}]`);
+            this.utilsService.setLoading(
+              `${this.translocoService.translate('messages.querying_gmaps')} [${processed}/${lines.length}]`,
+            );
 
             return this.apiService.completionGoogleTakeoutFile(formdata).pipe(
               delay(batchIndex === batches.length - 1 ? 0 : 2500),
               catchError((err) => {
                 this.utilsService.toast(
                   'error',
-                  'Error',
-                  `Google API returned an error for lines ${processed} to ${processed + 10}`,
+                  this.translocoService.translate('common.status.error'),
+                  this.translocoService.translate('messages.querying_gmaps_error', {
+                    p: processed,
+                    pn: processed + 10,
+                  }),
                 );
                 console.error(`Batch ${batchIndex + 1} failed:`, err);
                 return of([]);
@@ -1513,15 +1609,22 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             this.utilsService.setLoading('');
 
             if (!places.length) {
-              this.utilsService.toast('warn', 'No result', 'Google API did not return any place');
+              this.utilsService.toast(
+                'warn',
+                this.translocoService.translate('messages.no_result'),
+                this.translocoService.translate('messages.no_return'),
+              );
               return;
             }
 
             if (lines.length !== places.length) {
               this.utilsService.toast(
                 'warn',
-                'Missing a few results',
-                `[${places.length}]/[${lines.length}] Google did not return a result for every object`,
+                this.translocoService.translate('messages.missing_results'),
+                this.translocoService.translate('messages.missing_results_desc', {
+                  len: places.length,
+                  len2: lines.length,
+                }),
               );
             }
 
@@ -1534,7 +1637,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     };
 
     reader.onerror = () => {
-      alert('Error reading file.');
       this.utilsService.setLoading('');
     };
 
@@ -1547,12 +1649,16 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
     const file = input.files[0];
     if (!file.name.toLowerCase().endsWith('.kmz')) {
-      this.utilsService.toast('error', 'Unsupported file', 'Expected .kmz file');
+      this.utilsService.toast(
+        'error',
+        this.translocoService.translate('messages.unsupported_file'),
+        this.translocoService.translate('messages.expected_kmz'),
+      );
       return;
     }
 
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Confirm',
+      header: this.translocoService.translate('common.actions.confirm'),
       modal: true,
       closable: true,
       dismissableMask: true,
@@ -1561,14 +1667,14 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       breakpoints: {
         '640px': '90vw',
       },
-      data: 'Import KMZ (MyMaps) ? Ensure it does not exceed your quota (10.000 requests/month by default)',
+      data: this.translocoService.translate('messages.import_kmz'),
     })!;
 
     modal.onClose.subscribe({
       next: (bool: boolean) => {
         if (!bool) return;
 
-        this.utilsService.setLoading('Querying Google Maps API...');
+        this.utilsService.setLoading(this.translocoService.translate('messages.querying_gmaps'));
         const formdata = new FormData();
         formdata.append('file', file);
 
@@ -1580,7 +1686,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
               this.utilsService.setLoading('');
 
               if (!places.length) {
-                this.utilsService.toast('warn', 'No result', 'Your KMZ does not contain any Google Maps places');
+                this.utilsService.toast(
+                  'warn',
+                  this.translocoService.translate('messages.no_result'),
+                  this.translocoService.translate('messages.kmz_error'),
+                );
                 return;
               }
 
@@ -1635,7 +1745,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   multiPlaceModal(places: ProviderPlaceResult[]) {
     const modal: DynamicDialogRef = this.dialogService.open(MultiPlacesCreateModalComponent, {
-      header: 'Create Places',
+      header: this.translocoService.translate('dashboard.create_places'),
       modal: true,
       appendTo: 'body',
       closable: true,
@@ -1654,7 +1764,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         if (!data) return;
 
         const obs$ = data.places.map((p) => this.apiService.postPlace(p));
-        this.utilsService.setLoading('Creating places...');
+        this.utilsService.setLoading(this.translocoService.translate('messages.creating_places'));
 
         forkJoin(obs$)
           .pipe(take(1))
@@ -1675,7 +1785,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
                   )
                   .pipe(take(1))
                   .subscribe({
-                    next: (trip) => this.utilsService.toast('success', 'Success', `Added places to ${trip.name}`),
+                    next: (trip) =>
+                      this.utilsService.toast(
+                        'success',
+                        this.translocoService.translate('common.status.success'),
+                        this.translocoService.translate('messages.added_places', { name: trip.name }),
+                      ),
                   });
               }
             },
@@ -1696,7 +1811,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     if (!value) return;
 
     if (!this.settings()?.google_apikey) {
-      this.utilsService.toast('error', 'Missing Key', 'Google Maps API key not configured');
+      this.utilsService.toast(
+        'error',
+        this.translocoService.translate('messages.missing_key'),
+        this.translocoService.translate('messages.gapi_not_configured'),
+      );
       return;
     }
 
@@ -1723,7 +1842,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   openProviderMultilineModal() {
     const modal: DynamicDialogRef = this.dialogService.open(ProviderMultilineCreateModalComponent, {
-      header: 'Create multiple Places',
+      header: this.translocoService.translate('dashboard.create_multiple_places'),
       modal: true,
       appendTo: 'body',
       closable: true,
@@ -1740,7 +1859,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       next: (content: string[] | null) => {
         if (!content) return;
 
-        this.utilsService.setLoading('Querying Provider API...');
+        this.utilsService.setLoading(this.translocoService.translate('messages.querying_provider'));
         this.apiService
           .completionBulk(content)
           .pipe(take(1))
@@ -1748,7 +1867,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             next: (places) => {
               this.utilsService.setLoading('');
               if (!places.length) {
-                this.utilsService.toast('warn', 'No result', 'Provider API did not return any place');
+                this.utilsService.toast(
+                  'warn',
+                  this.translocoService.translate('messages.no_result'),
+                  this.translocoService.translate('messages.provider_no_result'),
+                );
                 return;
               }
 
@@ -1768,7 +1891,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   googleNearbyPlaces(data: L.LeafletMouseEvent) {
-    this.utilsService.setLoading('Querying Provider API... ');
+    this.utilsService.setLoading(this.translocoService.translate('messages.querying_provider'));
     const latlng = { latitude: data.latlng.lat, longitude: data.latlng.lng };
 
     this.apiService
@@ -1778,7 +1901,11 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         next: (places) => {
           this.utilsService.setLoading('');
           if (!places.length) {
-            this.utilsService.toast('warn', 'No result', 'Provider did not return any place');
+            this.utilsService.toast(
+              'warn',
+              this.translocoService.translate('messages.no_result'),
+              this.translocoService.translate('messages.provider_no_result'),
+            );
             return;
           }
 
@@ -1791,7 +1918,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   async centerOnMe() {
     const position = await getGeolocationLatLng();
     if (position.err) {
-      this.utilsService.toast('error', 'Error', position.err);
+      this.utilsService.toast('error', this.translocoService.translate('common.status.error'), position.err);
       return;
     }
 
@@ -1810,7 +1937,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     if (!from) return;
 
     const profile = this.routeManager.getProfile([from.lat, from.lng], [to.lat, to.lng]);
-    this.utilsService.setLoading('Calculating route...');
+    this.utilsService.setLoading(this.translocoService.translate('routing.calculating'));
     this.apiService
       .completionRouting({
         coordinates: [
@@ -1845,7 +1972,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .pipe(take(1))
       .subscribe({
         next: (users) => this.adminUsers.set(users),
-        error: () => this.utilsService.toast('error', 'Error', 'Failed to load users'),
+        error: () =>
+          this.utilsService.toast(
+            'error',
+            this.translocoService.translate('common.status.error'),
+            this.translocoService.translate('messages.failed_load_users'),
+          ),
       });
   }
 
@@ -1858,7 +1990,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           this.adminConfig.set(config);
           this.adminConfigForm.patchValue(config);
         },
-        error: () => this.utilsService.toast('error', 'Error', 'Failed to load configuration'),
+        error: () =>
+          this.utilsService.toast(
+            'error',
+            this.translocoService.translate('common.status.error'),
+            this.translocoService.translate('messages.failed_load_config'),
+          ),
       });
   }
 
@@ -1868,7 +2005,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .pipe(take(1))
       .subscribe({
         next: (links) => this.adminMagicLinks.set(links),
-        error: () => this.utilsService.toast('error', 'Error', 'Failed to load magic links'),
+        error: () =>
+          this.utilsService.toast(
+            'error',
+            this.translocoService.translate('common.status.error'),
+            this.translocoService.translate('messages.failed_load_magic'),
+          ),
       });
   }
 
@@ -1878,7 +2020,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .pipe(take(1))
       .subscribe({
         next: (link) => this.adminMagicLinks.update((links) => [...links, link]),
-        error: () => this.utilsService.toast('error', 'Error', 'Failed to create magic link'),
+        error: () =>
+          this.utilsService.toast(
+            'error',
+            this.translocoService.translate('common.status.error'),
+            this.translocoService.translate('messages.failed_create_magic'),
+          ),
       });
   }
 
@@ -1888,19 +2035,24 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .pipe(take(1))
       .subscribe({
         next: () => this.adminMagicLinks.update((links) => links.filter((l) => l.token !== token)),
-        error: () => this.utilsService.toast('error', 'Error', 'Failed to delete magic link'),
+        error: () =>
+          this.utilsService.toast(
+            'error',
+            this.translocoService.translate('common.status.error'),
+            this.translocoService.translate('messages.failed_delete_magic'),
+          ),
       });
   }
 
   resetUserPassword(user: AdminUser) {
     const confirmModal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Reset user password',
+      header: this.translocoService.translate('settings.reset_password'),
       modal: true,
       closable: true,
       dismissableMask: true,
       draggable: false,
       resizable: false,
-      data: `Reset password for ${user.username}? A temporary password will be displayed.`,
+      data: this.translocoService.translate('settings.reset_password_message', { name: user.username }),
     })!;
 
     confirmModal.onClose.pipe(take(1)).subscribe({
@@ -1912,7 +2064,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             .subscribe({
               next: (temporary) =>
                 this.dialogService.open(SettingsViewTokenComponent, {
-                  header: 'Temporary Password',
+                  header: this.translocoService.translate('settings.temporary_password'),
                   modal: true,
                   closable: true,
                   dismissableMask: true,
@@ -1920,10 +2072,17 @@ export class DashboardComponent implements OnInit, AfterViewInit {
                   resizable: false,
                   data: {
                     token: temporary,
-                    msg: `New password for ${user.username} is:`,
+                    msg: this.translocoService.translate('settings.temporary_password_message', {
+                      name: user.username,
+                    }),
                   },
                 }),
-              error: () => this.utilsService.toast('error', 'Error', 'Failed to reset user password'),
+              error: () =>
+                this.utilsService.toast(
+                  'error',
+                  this.translocoService.translate('common.status.error'),
+                  this.translocoService.translate('messages.failed_reset_password'),
+                ),
             });
       },
     });
@@ -1931,13 +2090,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   deleteUser(user: AdminUser) {
     const confirmModal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Delete user',
+      header: this.translocoService.translate('settings.delete_user'),
       modal: true,
       closable: true,
       dismissableMask: true,
       draggable: false,
       resizable: false,
-      data: `Permanently delete ${user.username} and all their data? This cannot be undone.`,
+      data: this.translocoService.translate('settings.delete_user_message', { name: user.username }),
     })!;
 
     confirmModal.onClose.pipe(take(1)).subscribe({
@@ -1948,7 +2107,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             .pipe(take(1))
             .subscribe({
               next: () => this.adminUsers.update((users) => users.filter((u) => u.username !== user.username)),
-              error: () => this.utilsService.toast('error', 'Error', 'Failed to delete user'),
+              error: () =>
+                this.utilsService.toast(
+                  'error',
+                  this.translocoService.translate('common.status.error'),
+                  this.translocoService.translate('messages.delete_user_failed'),
+                ),
             });
       },
     });
@@ -1966,9 +2130,18 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .subscribe({
         next: (config) => {
           this.adminConfig.set(config);
-          this.utilsService.toast('success', 'Success', 'Config updates are applied');
+          this.utilsService.toast(
+            'success',
+            this.translocoService.translate('common.status.success'),
+            this.translocoService.translate('messages.config_applied'),
+          );
         },
-        error: () => this.utilsService.toast('error', 'Error', 'Failed to save configuration'),
+        error: () =>
+          this.utilsService.toast(
+            'error',
+            this.translocoService.translate('common.status.error'),
+            this.translocoService.translate('messages.failed_save_config'),
+          ),
       });
   }
 

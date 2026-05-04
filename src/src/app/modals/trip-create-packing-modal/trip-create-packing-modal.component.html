@@ -1,21 +1,24 @@
-<div pFocusTrap class="grid items-center gap-4" [formGroup]="packingForm">
-  <p-floatlabel variant="in">
-    <p-inputnumber id="qt" formControlName="qt" mode="decimal" [maxFractionDigits]="0" [min]="0" fluid />
-    <label for="qt">Qt.</label>
-  </p-floatlabel>
+<ng-container *transloco="let t">
+  <div pFocusTrap class="grid items-center gap-4" [formGroup]="packingForm">
+    <p-floatlabel variant="in">
+      <p-inputnumber id="qt" formControlName="qt" mode="decimal" [maxFractionDigits]="0" [min]="0" fluid />
+      <label for="qt">{{ t('modals.packing.qt') }}</label>
+    </p-floatlabel>
 
-  <p-floatlabel variant="in">
-    <input class="col-span-2" id="text" formControlName="text" (keydown.enter)="closeDialog()" pInputText fluid />
-    <label for="text">Text</label>
-  </p-floatlabel>
+    <p-floatlabel variant="in">
+      <input class="col-span-2" id="text" formControlName="text" (keydown.enter)="closeDialog()" pInputText fluid />
+      <label for="text">{{ t('common.fields.text') }}</label>
+    </p-floatlabel>
 
-  <p-floatlabel variant="in">
-    <p-select [options]="packingCategories" id="category" appendTo="body" formControlName="category"
-      optionLabel="dispValue" optionValue="value" fluid />
-    <label for="category">Category</label>
-  </p-floatlabel>
+    <p-floatlabel variant="in">
+      <p-select [options]="packingCategories" id="category" appendTo="body" formControlName="category"
+        optionLabel="dispValue" optionValue="value" fluid />
+      <label for="category">{{ t('common.fields.category') }}</label>
+    </p-floatlabel>
 
-  <div class="mt-4 text-right">
-    <p-button (click)="closeDialog()" label="Create" [disabled]="!packingForm.dirty || !packingForm.valid" />
+    <div class="mt-4 text-right">
+      <p-button (click)="closeDialog()" [label]="t('common.actions.create')"
+        [disabled]="!packingForm.dirty || !packingForm.valid" />
+    </div>
   </div>
-</div>
+</ng-container>

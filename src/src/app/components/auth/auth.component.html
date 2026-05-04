@@ -1,128 +1,126 @@
-<section class="flex flex-col md:flex-row h-screen items-center">
-  <div
-    class="relative bg-white dark:bg-primary-900 w-full md:max-w-md lg:max-w-full md:mx-auto md:w-1/2 xl:w-1/3 h-screen px-6 lg:px-16 xl:px-12 flex items-center justify-center">
-    <div class="max-w-xl w-full mx-auto">
-      <div class="max-w-32 mx-auto">
-        <img src="favicon.png" class="drop-shadow-sm" />
-      </div>
-
-      <div class="block lg:hidden w-full">
-        <div class="mt-4 text-center">
-          <div class="text-4xl font-bold leading-none">Welcome to TRIP</div>
-          <div class="text-sm tracking-tight leading-6 text-primary-400">Tourism and Recreational Interest Points</div>
+<ng-container *transloco="let t">
+  <section class="flex flex-col md:flex-row h-screen items-center">
+    <div
+      class="relative bg-white dark:bg-primary-900 w-full md:max-w-md lg:max-w-full md:mx-auto md:w-1/2 xl:w-1/3 h-screen px-6 lg:px-16 xl:px-12 flex items-center justify-center">
+      <div class="max-w-xl w-full mx-auto">
+        <div class="max-w-32 mx-auto">
+          <img src="favicon.png" class="drop-shadow-sm" />
         </div>
-      </div>
 
-      @if (magicToken()) {
-      <div
-        class="mt-6 mb-4 flex items-start gap-3 px-4 py-3.5 rounded bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50">
-        <i class="pi pi-link text-green-500 text-xs shrink-0"></i>
-        <span class="text-xs text-green-700 dark:text-green-300">You have been invited to register</span>
-      </div>
-      } @else {
-      <h1 class="mt-6 text-2xl font-bold text-primary-900 dark:text-white tracking-tight">
-        {{ isRegistering() ? 'Create account' : 'Sign in' }}
-      </h1>
-      <p class="mt-1 mb-4 text-sm text-primary-400 dark:text-primary-500">
-        {{ isRegistering() ? 'Choose a username and password' : 'Enter your credentials to continue' }}
-      </p>
-      }
-
-      @if (error()) {
-      <div class="mt-4">
-        <p-message severity="error" variant="outlined" [life]="3000">{{ error() }}</p-message>
-      </div>
-      }
-
-      @if (pendingOTP()) {
-      <div pFocusTrap>
-        <p class="mt-8 text-center font-light text-primary-500">Enter your TOTP code</p>
-
-        <div class="mt-4 flex gap-2 flex-col items-center">
-          <p-inputotp [(ngModel)]="otp" [integerOnly]="true" size="large" [length]="6" />
-          <p-button text label="Confirm" (click)="verifyTOTP()" />
+        <div class="block lg:hidden w-full">
+          <div class="mt-4 text-center">
+            <div class="text-4xl font-bold leading-none">{{ t('auth.welcome') }}</div>
+            <div class="text-sm tracking-tight leading-6 text-primary-400">{{ t('auth.welcome_desc') }}</div>
+          </div>
         </div>
-      </div>
-      } @else {
-      @defer {
-      @if (authParams()?.oidc) {
-      <div class="mt-8 text-center">
-        <p-button variant="outlined" severity="primary" size="large" icon="pi pi-key" label="Sign in"
-          (click)="authenticate()" />
-      </div>
-      } @else {
-      <div pFocusTrap class="mt-4" [formGroup]="authForm">
-        <p-floatlabel variant="in">
-          <input #username pInputText id="username" formControlName="username" autocorrect="off" autocapitalize="none"
-            fluid autofocus />
-          <label for="username">Username</label>
-        </p-floatlabel>
-        @if (authForm.get('username')?.dirty && authForm.get('username')?.hasError('required')) {
-        <span class="text-base text-red-600">Username is required</span>
+
+        @if (magicToken()) {
+        <div
+          class="mt-6 mb-4 flex items-start gap-3 px-4 py-3.5 rounded bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800/50">
+          <i class="pi pi-link text-green-500 text-xs shrink-0"></i>
+          <span class="text-xs text-green-700 dark:text-green-300">{{ t('auth.invited') }}</span>
+        </div>
+        } @else {
+        <h1 class="mt-6 text-2xl font-bold text-primary-900 dark:text-white tracking-tight">
+          {{ isRegistering() ? t('auth.create_account') : t('auth.signin') }}
+        </h1>
+        <p class="mt-1 mb-4 text-sm text-primary-400 dark:text-primary-500">
+          {{ isRegistering() ? t('auth.register_desc') : t('auth.signin_desc') }}
+        </p>
         }
 
-        <p-floatlabel variant="in" class="mt-4">
-          <input pInputText type="password" inputId="password" formControlName="password" fluid
-            (keyup.enter)="onKeypressEnter()" />
-          <label for="password">Password</label>
-        </p-floatlabel>
-        @if (authForm.get('password')?.dirty && authForm.get('password')?.hasError('required')) {
-        <span class="text-base text-red-600">Password is required</span>
+        @if (error()) {
+        <div class="mt-4">
+          <p-message severity="error" variant="outlined" [life]="3000">{{ error() }}</p-message>
+        </div>
         }
 
-        <div class="mt-4 text-right">
-          @if (isRegistering()) {
-          <p-button [disabled]="!authForm.valid" (click)="register()"> Register </p-button>
-          } @else {
-          <p-button [disabled]="!authForm.valid" (click)="authenticate()"> Sign in </p-button>
+        @if (pendingOTP()) {
+        <div pFocusTrap>
+          <p class="mt-8 text-center font-light text-primary-500">{{ t('modals.enter_totp') }}</p>
+
+          <div class="mt-4 flex gap-2 flex-col items-center">
+            <p-inputotp [(ngModel)]="otp" [integerOnly]="true" size="large" [length]="6" />
+            <p-button text [label]="t('common.actions.confirm')" (click)="verifyTOTP()" />
+          </div>
+        </div>
+        } @else {
+        @defer {
+        @if (authParams()?.oidc) {
+        <div class="mt-8 text-center">
+          <p-button variant="outlined" severity="primary" size="large" icon="pi pi-key" [label]="t('auth.signin')"
+            (click)="authenticate()" />
+        </div>
+        } @else {
+        <div pFocusTrap class="mt-4" [formGroup]="authForm">
+          <p-floatlabel variant="in">
+            <input #username pInputText id="username" formControlName="username" autocorrect="off" autocapitalize="none"
+              fluid autofocus />
+            <label for="username">{{ t('common.fields.username') }}</label>
+          </p-floatlabel>
+          @if (authForm.get('username')?.dirty && authForm.get('username')?.hasError('required')) {
+          <span class="text-base text-red-600">{{ t('auth.username_req') }}</span>
           }
+
+          <p-floatlabel variant="in" class="mt-4">
+            <input pInputText type="password" inputId="password" formControlName="password" fluid
+              (keyup.enter)="onKeypressEnter()" />
+            <label for="password">{{ t('common.fields.password') }}</label>
+          </p-floatlabel>
+          @if (authForm.get('password')?.dirty && authForm.get('password')?.hasError('required')) {
+          <span class="text-base text-red-600">{{ t('auth.password_req') }}</span>
+          }
+
+          <div class="mt-4 text-right">
+            @if (isRegistering()) {
+            <p-button [disabled]="!authForm.valid" (click)="register()" [label]="t('auth.register')" />
+            } @else {
+            <p-button [disabled]="!authForm.valid" (click)="authenticate()" [label]="t('auth.signin')" />
+            }
+          </div>
         </div>
+
+        @if (authParams()?.register_enabled) {
+        <hr class="my-6 border-primary-300 w-full" />
+        @if (isRegistering()) {
+        <p class="mt-4 select-none">{{ t('auth.have_account') }} <a
+            (click)="isRegistering.set(false); magicToken.set(null)"
+            class="text-blue-500 hover:text-blue-700 font-semibold cursor-pointer">{{ t('auth.signin') }}</a>
+        </p>
+        } @else {
+        <p class="mt-4 select-none">{{ t('auth.first_time') }} <a (click)="isRegistering.set(true)"
+            class="text-blue-500 hover:text-blue-700 font-semibold cursor-pointer">{{ t('auth.create_account') }}</a>
+        </p>
+        }
+        }
+        }
+        } @placeholder (minimum 0.4s) {
+        <div class="mt-4">
+          <p-skeleton width="100%" height="3.5rem" />
+        </div>
+        <div class="mt-4">
+          <p-skeleton width="100%" height="3.5rem" />
+        </div>
+        <div class="mt-4 flex justify-end">
+          <p-skeleton width="80px" height="2.5rem" />
+        </div>
+        }
+        }
       </div>
 
-      @if (authParams()?.register_enabled) {
-      <hr class="my-6 border-primary-300 w-full" />
-      @if (isRegistering()) {
-      <p class="mt-4 select-none">
-        Have an account?
-        <a (click)="isRegistering.set(false); magicToken.set(null)"
-          class="text-blue-500 hover:text-blue-700 font-semibold cursor-pointer">Login</a>
-      </p>
-      } @else {
-      <p class="mt-4 select-none">
-        First time?
-        <a (click)="isRegistering.set(true)"
-          class="text-blue-500 hover:text-blue-700 font-semibold cursor-pointer">Create an account</a>
-      </p>
-      }
-      }
-      }
-      } @placeholder (minimum 0.4s) {
-      <div class="mt-4">
-        <p-skeleton width="100%" height="3.5rem" />
+      <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-sm flex flex-col items-center gap-2">
+        <a href="https://github.com/itskovacs/trip" class="flex items-center gap-1" target="_blank"><i
+            class="pi pi-github"></i>itskovacs/trip</a>
+        <span class="font-light text-primary-500 text-xs">{{ t('auth.made_with') }}</span>
       </div>
-      <div class="mt-4">
-        <p-skeleton width="100%" height="3.5rem" />
-      </div>
-      <div class="mt-4 flex justify-end">
-        <p-skeleton width="80px" height="2.5rem" />
-      </div>
-      }
-      }
     </div>
 
-    <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 text-sm flex flex-col items-center gap-2">
-      <a href="https://github.com/itskovacs/trip" class="flex items-center gap-1" target="_blank"><i
-          class="pi pi-github"></i>itskovacs/trip</a>
-      <span class="font-light text-primary-500 text-xs">Made with ❤️ in BZH</span>
+    <div class="hidden lg:block flex-1 h-full cover-auth relative overflow-hidden">
+      <div class="absolute inset-0 bg-linear-to-t from-black/50 via-black/10 to-transparent"></div>
+      <div class="absolute bottom-12 xl:bottom-16 left-12 xl:left-16 right-12">
+        <span class="text-xs font-bold tracking-[0.25em] uppercase text-white/35 mb-4">{{ t('auth.tags') }}</span>
+        <div class="text-4xl lg:text-5xl font-bold leading-tight text-white/85">{{ t('auth.welcome') }}</div>
+      </div>
     </div>
-  </div>
-
-  <div class="hidden lg:block flex-1 h-full cover-auth relative overflow-hidden">
-    <div class="absolute inset-0 bg-linear-to-t from-black/50 via-black/10 to-transparent"></div>
-    <div class="absolute bottom-12 xl:bottom-16 left-12 xl:left-16 right-12">
-      <span class="text-xs font-bold tracking-[0.25em] uppercase text-white/35 mb-4">MAP TRACKER &middot; TRIPS
-        PLANNER</span>
-      <div class="text-4xl lg:text-5xl font-bold leading-tight text-white/85">Welcome to TRIP</div>
-    </div>
-  </div>
-</section>
+  </section>
+</ng-container>

@@ -1,10 +1,12 @@
-<div pFocusTrap class="grid items-center gap-4">
-  <p-floatlabel variant="in">
-    <input class="col-span-2" id="name" [formControl]="memberForm" (keydown.enter)="closeDialog()" pInputText fluid />
-    <label for="name">Name</label>
-  </p-floatlabel>
+<ng-container *transloco="let t">
+  <div pFocusTrap class="grid items-center gap-4">
+    <p-floatlabel variant="in">
+      <input class="col-span-2" id="name" [formControl]="memberForm" (keydown.enter)="closeDialog()" pInputText fluid />
+      <label for="name">{{ t('common.fields.name') }}</label>
+    </p-floatlabel>
 
-  <div class="mt-4 text-right">
-    <p-button (click)="closeDialog()" [disabled]="!memberForm.value">Invite</p-button>
+    <div class="mt-4 text-right">
+      <p-button (click)="closeDialog()" [disabled]="!memberForm.value">{{ t('common.actions.invite') }}</p-button>
+    </div>
   </div>
-</div>
+</ng-container>

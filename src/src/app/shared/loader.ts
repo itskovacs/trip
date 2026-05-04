@@ -1,14 +1,16 @@
 import { Component, input, ChangeDetectionStrategy } from '@angular/core';
+import { TranslocoPipe } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-loader',
   standalone: true,
-  imports: [],
+  imports: [TranslocoPipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [],
   template: `
     @if (message()) {
       <div
-        class="z-[9000] flex items-center justify-center min-h-screen p-4 absolute inset-0 bg-white/30 dark:bg-primary-950/80 backdrop-blur-xl">
+        class="z-9000 flex items-center justify-center min-h-screen p-4 absolute inset-0 bg-white/30 dark:bg-primary-950/80 backdrop-blur-xl">
         <div
           class="flex flex-col items-center gap-8 px-12 py-10
                 bg-white/80 dark:bg-primary-950/80 rounded-3xl
@@ -54,7 +56,7 @@ import { Component, input, ChangeDetectionStrategy } from '@angular/core';
               {{ message() }}
             </h3>
             <p class="text-sm text-primary-600 dark:text-primary-400 font-medium leading-relaxed max-w-xs mx-auto">
-              This may take a moment. Please wait.
+              {{ 'common.status.wait' | transloco }}
             </p>
           </div>
         </div>

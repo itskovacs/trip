@@ -1,7 +1,8 @@
-<section>
+<ng-container *transloco="let t">
   <div>
     @if (isEditing) {
-    <textarea pTextarea id="notes" placeholder="Notes" [formControl]="notes" rows="4" autoResize fluid></textarea>
+    <textarea pTextarea id="notes" [placeholder]="t('common.fields.notes')" [formControl]="notes" rows="4" autoResize
+      fluid></textarea>
     } @else {
     @if (notes.value) {
     <div class="mt-4 border-l-3 border-primary-900 pl-6 py-2">
@@ -10,7 +11,7 @@
     </div>
     } @else {
     <div class="text-center">
-      <p class="mt-2 text-primary-500 dark:text-primary-400">Nothing yet.</p>
+      <p class="mt-2 text-primary-500 dark:text-primary-400">{{ t('modals.notes.empty') }}</p>
     </div>
     }
     }
@@ -18,11 +19,13 @@
 
   <div class="mt-4 flex justify-between">
     @if (isEditing) {
-    <p-button text label="Cancel" icon="pi pi-times" severity="danger" (click)="cancelEditing()" />
-    <p-button (click)="closeDialog()" [disabled]="notes.pristine" label="Confirm" />
+    <p-button text [label]="t('common.actions.cancel')" icon="pi pi-times" severity="danger"
+      (click)="cancelEditing()" />
+    <p-button (click)="closeDialog()" [disabled]="notes.pristine" [label]="t('common.actions.confirm')" />
     } @else {
     <div></div>
-    <p-button text label="Edit" [disabled]="isArchived" icon="pi pi-pencil" (click)="toggleEditing()" />
+    <p-button text [label]="t('common.actions.edit')" [disabled]="isArchived" icon="pi pi-pencil"
+      (click)="toggleEditing()" />
     }
   </div>
-</section>
+</ng-container>

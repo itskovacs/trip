@@ -1,4 +1,4 @@
-import { ApplicationConfig, provideZoneChangeDetection, isDevMode } from '@angular/core';
+import { ApplicationConfig, provideZoneChangeDetection, isDevMode, provideAppInitializer, inject } from '@angular/core';
 import { provideRouter } from '@angular/router';
 import { routes } from './app.routes';
 import { providePrimeNG } from 'primeng/config';
@@ -9,7 +9,8 @@ import { Interceptor } from './services/interceptor.service';
 import { DialogService } from 'primeng/dynamicdialog';
 import { provideServiceWorker } from '@angular/service-worker';
 import { TranslocoHttpLoader } from './transloco-loader';
-import { provideTransloco } from '@jsverse/transloco';
+import { getBrowserLang, provideTransloco, TranslocoService } from '@jsverse/transloco';
+import { provideTranslocoPersistTranslations } from '@jsverse/transloco-persist-translations';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -39,6 +40,16 @@ export const appConfig: ApplicationConfig = {
         prodMode: !isDevMode(),
       },
       loader: TranslocoHttpLoader,
+    }),
+    provideTranslocoPersistTranslations({
+      loader: TranslocoHttpLoader,
+      storage: { useValue: localStorage },
+    }),
+    provideAppInitializer(() => {
+      // Browser frn we set to fr, else defaults to english
+      if (getBrowserLang() != 'fr') return;
+      const translocoService = inject(TranslocoService);
+      translocoService.setActiveLang('fr');
     }),
   ],
 };

@@ -83,6 +83,7 @@ import { TripBulkEditModalComponent } from '../../modals/trip-bulk-edit-modal/tr
 import { PlaceListItemComponent } from '../../shared/place-list-item/place-list-item.component';
 import { RouteManagerService } from '../../services/route-manager.service';
 import { TripPrettyPrintModalComponent } from '../../modals/trip-pretty-print-modal/trip-pretty-print-modal.component';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 
 const HIGHLIGHT_COLORS = [
   '#e6194b',
@@ -125,6 +126,7 @@ const HIGHLIGHT_COLORS = [
     PlaceBoxContentComponent,
     PlaceListItemComponent,
     ToggleButtonModule,
+    TranslocoDirective,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './trip.component.html',
@@ -151,6 +153,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   clipboard: Clipboard;
   routeManager: RouteManagerService;
   changeDetectionRef: ChangeDetectorRef;
+  translocoService: TranslocoService;
 
   trip = signal<Trip | null>(null);
   tripMembers = signal<TripMember[]>([]);
@@ -268,7 +271,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
             (item) =>
               item.text?.toLowerCase().includes(query) ||
               item.place?.name.toLowerCase().includes(query) ||
-              item.comment?.toLowerCase().includes(query),
+              item.comment?.toLowerCase().includes(query)
           );
         }
 
@@ -382,7 +385,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
         coords.push([lat, lng]);
       }
 
-      if (items.length > 2 && coords.length > 0) {
+      console.log(items.length);
+      if (items.length >= 2 && coords.length > 0) {
         paths.push({
           coords,
           options: {
@@ -424,7 +428,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           command: () => generateTripCSVFile(this.trip()!),
         },
         {
-          label: 'Pretty Print',
+          label: 'PDF',
           icon: 'pi pi-print',
           command: () => this.togglePrint(),
         },
@@ -458,6 +462,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     this.clipboard = inject(Clipboard);
     this.routeManager = inject(RouteManagerService);
     this.changeDetectionRef = inject(ChangeDetectorRef);
+    this.translocoService = inject(TranslocoService);
 
     this.statuses = this.utilsService.statuses;
     this.username = this.utilsService.loggedUser;
@@ -540,7 +545,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     });
 
     effect(() => {
-      // fix p-tabs scroll state issues
+      //Fix p-tabs scroll state issues
       const selection = this.dispSelectedPlace();
       const activeIndex = this.selectedPlaceActiveTabIndex();
 
@@ -645,7 +650,11 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           if (!this.map) this.initMap(settings);
         },
         error: () => {
-          this.utilsService.toast('error', 'Error', 'Could not load trip');
+          this.utilsService.toast(
+            'error',
+            this.translocoService.translate('common.status.error'),
+            this.translocoService.translate('messages.could_not_load_trip'),
+          );
           this.router.navigate(['/trips']);
         },
       });
@@ -656,13 +665,13 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
     const contextMenuItems = [
       {
-        text: 'Add Point of Interest',
+        text: this.translocoService.translate('entities.item.add_poi'),
         callback: (e: any) => {
           this.addPlace(e);
         },
       },
       {
-        text: 'Copy coordinates',
+        text: this.translocoService.translate('clipboard.copy_coords'),
         callback: (e: any) => {
           const { lat, lng } = e.latlng;
           navigator.clipboard.writeText(`${parseFloat(lat).toFixed(5)}, ${parseFloat(lng).toFixed(5)}`);
@@ -769,17 +778,17 @@ export class TripComponent implements AfterViewInit, OnDestroy {
         label: 'Actions',
         items: [
           {
-            label: 'Plan',
+            label: this.translocoService.translate('common.fields.plan'),
             icon: 'pi pi-plus',
             command: () => this.addItem(),
           },
           {
-            label: 'Edit',
+            label: this.translocoService.translate('common.actions.edit'),
             icon: 'pi pi-pencil',
             command: () => this.editDay(day),
           },
           {
-            label: 'Delete',
+            label: this.translocoService.translate('common.actions.delete'),
             icon: 'pi pi-trash',
             iconClass: 'text-red-500!',
             command: () => this.deleteDay(day),
@@ -796,18 +805,18 @@ export class TripComponent implements AfterViewInit, OnDestroy {
         label: 'Actions',
         items: [
           {
-            label: 'Open Navigation',
+            label: this.translocoService.translate('view.open_navigation'),
             icon: 'pi pi-directions',
             command: () => this.itemToNavigation(),
           },
           {
-            label: 'Edit',
+            label: this.translocoService.translate('common.actions.edit'),
             icon: 'pi pi-pencil',
             disabled: this.trip()!.archived,
             command: () => this.editItem(item),
           },
           {
-            label: 'Delete',
+            label: this.translocoService.translate('common.actions.delete'),
             icon: 'pi pi-trash',
             disabled: this.trip()!.archived,
             command: () => this.deleteItem(item),
@@ -824,19 +833,24 @@ export class TripComponent implements AfterViewInit, OnDestroy {
         label: 'Actions',
         items: [
           {
-            label: 'Create Plan',
+            label: this.translocoService.translate('entities.plan.add'),
             icon: 'pi pi-link',
             disabled: this.trip()!.archived,
             command: () => this.addItem(undefined, place.id),
           },
           {
-            label: 'Edit',
+            label: this.translocoService.translate('view.open_navigation'),
+            icon: 'pi pi-car',
+            command: () => this.openNavigationToPlace(place),
+          },
+          {
+            label: this.translocoService.translate('common.actions.edit'),
             icon: 'pi pi-pencil',
             disabled: this.trip()!.archived,
             command: () => this.editPlace(place),
           },
           {
-            label: 'Unlink Place',
+            label: this.translocoService.translate('entities.place.unlink'),
             icon: 'pi pi-trash',
             disabled: this.trip()!.archived,
             command: () => this.unlinkPlaceFromTrip(place.id),
@@ -853,22 +867,22 @@ export class TripComponent implements AfterViewInit, OnDestroy {
         label: 'Actions',
         items: [
           {
-            label: 'Summary',
+            label: this.translocoService.translate('common.fields.summary'),
             icon: 'pi pi-minus',
             command: () => this.onDayClick(d),
           },
           {
-            label: 'Highlight',
+            label: this.translocoService.translate('common.actions.highlight'),
             icon: 'pi pi-wave-pulse',
             command: () => this.toggleTripDayHighlight(d.id),
           },
           {
-            label: 'Routing',
+            label: this.translocoService.translate('routing.title'),
             icon: 'pi pi-car',
             command: () => this.dayRouting(d),
           },
           {
-            label: 'Open Navigation',
+            label: this.translocoService.translate('view.open_navigation'),
             icon: 'pi pi-directions',
             command: () => this.tripDayToNavigation(d.id),
           },
@@ -883,21 +897,21 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       label: 'Lists',
       items: [
         {
-          label: 'Attachments',
+          label: this.translocoService.translate('common.fields.attachments'),
           icon: 'pi pi-paperclip',
           command: () => {
             this.openAttachmentsModal();
           },
         },
         {
-          label: 'Checklist',
+          label: this.translocoService.translate('common.fields.checklist'),
           icon: 'pi pi-list-check',
           command: () => {
             this.openChecklist();
           },
         },
         {
-          label: 'Packing list',
+          label: this.translocoService.translate('common.fields.packing_list'),
           icon: 'pi pi-briefcase',
           command: () => {
             this.openPackingList();
@@ -909,14 +923,14 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       label: 'Collaboration',
       items: [
         {
-          label: 'Members',
+          label: this.translocoService.translate('common.fields.members'),
           icon: 'pi pi-users',
           command: () => {
             this.openMembersDialog();
           },
         },
         {
-          label: 'Share',
+          label: this.translocoService.translate('common.actions.share'),
           icon: 'pi pi-share-alt',
           command: () => {
             this.isShareDialogVisible = !this.isShareDialogVisible;
@@ -928,7 +942,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       label: 'Trip',
       items: [
         {
-          label: 'Pretty Print',
+          label: 'PDF',
           icon: 'pi pi-print',
           command: () => {
             this.togglePrint();
@@ -942,14 +956,16 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           },
         },
         {
-          label: this.trip()!.archived ? 'Unarchive' : 'Archive',
+          label: this.trip()!.archived
+            ? this.translocoService.translate('common.actions.unarchive')
+            : this.translocoService.translate('common.actions.archive'),
           icon: 'pi pi-box',
           command: () => {
             this.toggleArchiveTrip();
           },
         },
         {
-          label: 'Edit',
+          label: this.translocoService.translate('common.actions.edit'),
           icon: 'pi pi-pencil',
           disabled: this.trip()!.archived,
           command: () => {
@@ -957,7 +973,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           },
         },
         {
-          label: 'Delete',
+          label: this.translocoService.translate('common.actions.delete'),
           icon: 'pi pi-trash',
           disabled: this.trip()!.archived,
           command: () => {
@@ -977,23 +993,23 @@ export class TripComponent implements AfterViewInit, OnDestroy {
         label: 'Actions',
         items: [
           {
-            label: 'Open Navigation',
+            label: this.translocoService.translate('view.open_navigation'),
             icon: 'pi pi-directions',
             command: () => this.tripDayToNavigation(d.id),
           },
           {
-            label: 'Highlight',
+            label: this.translocoService.translate('common.actions.highlight'),
             icon: 'pi pi-wave-pulse',
             command: () => this.toggleTripDayHighlight(d.id),
           },
           {
-            label: 'Edit',
+            label: this.translocoService.translate('common.actions.edit'),
             icon: 'pi pi-pencil',
             disabled: this.trip()!.archived,
             command: () => this.editDay(d),
           },
           {
-            label: 'Delete',
+            label: this.translocoService.translate('common.actions.delete'),
             icon: 'pi pi-trash',
             disabled: this.trip()!.archived,
             command: () => this.deleteDay(d),
@@ -1016,12 +1032,16 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     this.router.navigate(['/trips']);
   }
 
+  openNavigationToPlace(p: Place) {
+    openNavigation([{ lat: p.lat, lng: p.lng }]);
+  }
+
   togglePrint() {
     const trip = this.trip();
     if (!trip || !trip.days.length) return;
 
     const modal = this.dialogService.open(TripPrettyPrintModalComponent, {
-      header: 'Print options',
+      header: this.translocoService.translate('view.print_options'),
       modal: true,
       appendTo: 'body',
       closable: true,
@@ -1102,19 +1122,23 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   unlinkPlaceFromTrip(placeId: number) {
     if (this.usedPlaceIds().has(placeId)) {
-      this.utilsService.toast('error', 'Place in use', 'This place is referenced by at least one plan');
+      this.utilsService.toast(
+        'error',
+        this.translocoService.translate('entities.place.in_use'),
+        this.translocoService.translate('entities.place.referenced'),
+      );
       return;
     }
 
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Unlink Place',
+      header: this.translocoService.translate('entities.place.unlink'),
       modal: true,
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
       draggable: false,
       resizable: false,
-      data: 'Remove the place from this Trip?',
+      data: this.translocoService.translate('entities.place.remove_from_trip'),
     })!;
 
     modal.onClose.pipe(take(1)).subscribe((bool) => {
@@ -1299,7 +1323,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   async centerOnMe() {
     const position = await getGeolocationLatLng();
     if (position.err) {
-      this.utilsService.toast('error', 'Error', position.err);
+      this.utilsService.toast('error', this.translocoService.translate('common.status.error'), position.err);
       return;
     }
 
@@ -1344,7 +1368,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   addItem(dayId?: number, placeId?: number) {
     const modal = this.dialogService.open(TripCreateDayItemModalComponent, {
-      header: 'Add Item',
+      header: this.translocoService.translate('entities.plan.add'),
       modal: true,
       appendTo: 'body',
       closable: true,
@@ -1398,7 +1422,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   editItem(item: TripItem) {
     const modal = this.dialogService.open(TripCreateDayItemModalComponent, {
-      header: 'Update Item',
+      header: this.translocoService.translate('entities.plan.update'),
       modal: true,
       appendTo: 'body',
       closable: true,
@@ -1451,14 +1475,14 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   deleteItem(item: TripItem) {
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Delete Item',
+      header: this.translocoService.translate('entities.plan.delete'),
       modal: true,
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
       draggable: false,
       resizable: false,
-      data: `Delete ${item.text.substring(0, 50)}?`,
+      data: this.translocoService.translate('messages.delete_count', { count: item.text.substring(0, 50) }),
     })!;
 
     modal.onClose.pipe(take(1)).subscribe((bool) => {
@@ -1482,7 +1506,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   addDay() {
     const modal = this.dialogService.open(TripCreateDayModalComponent, {
-      header: 'Add Day(s)',
+      header: this.translocoService.translate('entities.day.add'),
       modal: true,
       appendTo: 'body',
       closable: true,
@@ -1528,7 +1552,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   editDay(day: TripDay) {
     const modal = this.dialogService.open(TripCreateDayModalComponent, {
-      header: 'Edit Day',
+      header: this.translocoService.translate('entities.day.edit'),
       modal: true,
       appendTo: 'body',
       closable: true,
@@ -1559,7 +1583,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   deleteDay(day: TripDay) {
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Delete Day',
+      header: this.translocoService.translate('entities.day.delete'),
       modal: true,
       closable: true,
       dismissableMask: true,
@@ -1568,7 +1592,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       breakpoints: {
         '640px': '90vw',
       },
-      data: `Delete ${day.label} and associated plans?`,
+      data: this.translocoService.translate('view.open_navigation', { name: day.label }),
     })!;
 
     modal.onClose.pipe(take(1)).subscribe((bool) => {
@@ -1586,7 +1610,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   addPlace(e?: any) {
     const opts = e ? { data: { place: e.latlng } } : {};
     const modal: DynamicDialogRef = this.dialogService.open(PlaceCreateModalComponent, {
-      header: 'Create Place',
+      header: this.translocoService.translate('entities.place.create'),
       modal: true,
       appendTo: 'body',
       closable: true,
@@ -1625,7 +1649,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   editPlace(pEdit: Place) {
     const modal: DynamicDialogRef = this.dialogService.open(PlaceCreateModalComponent, {
-      header: 'Edit Place',
+      header: this.translocoService.translate('entities.place.edit'),
       modal: true,
       appendTo: 'body',
       closable: true,
@@ -1673,7 +1697,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   manageTripPlaces() {
     const modal: DynamicDialogRef = this.dialogService.open(TripPlaceSelectModalComponent, {
-      header: 'Attached Places',
+      header: this.translocoService.translate('entities.place.attached'),
       modal: true,
       appendTo: 'body',
       closable: true,
@@ -1707,7 +1731,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   editTrip() {
     const modal: DynamicDialogRef = this.dialogService.open(TripCreateModalComponent, {
-      header: 'Update Trip',
+      header: this.translocoService.translate('entities.trip.update'),
       modal: true,
       appendTo: 'body',
       closable: true,
@@ -1734,7 +1758,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   deleteTrip() {
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Delete Trip',
+      header: this.translocoService.translate('entities.trip.delete'),
       modal: true,
       closable: true,
       dismissableMask: true,
@@ -1743,7 +1767,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       breakpoints: {
         '640px': '90vw',
       },
-      data: `Delete ${this.trip()!.name}?`,
+      data: this.translocoService.translate('entities.trip.delete_desc', { name: this.trip()!.name }),
     })!;
 
     modal.onClose.pipe(take(1)).subscribe({
@@ -1773,17 +1797,19 @@ export class TripComponent implements AfterViewInit, OnDestroy {
         label: 'Actions',
         items: [
           {
-            label: 'Copy to clipboard (text)',
+            label: this.translocoService.translate('clipboard.copy_to_clipboard'),
             icon: 'pi pi-clipboard',
             command: () => this.copyPackingListToClipboard(),
           },
           {
-            label: 'Quick Copy',
+            label: this.translocoService.translate('clipboard.quick_copy'),
             icon: 'pi pi-copy',
             command: () => this.copyPackingListToService(),
           },
           {
-            label: `Quick Paste (${this.utilsService.packingListToCopy.length})`,
+            label: this.translocoService.translate('clipboard.quick_paste', {
+              count: this.utilsService.packingListToCopy.length,
+            }),
             icon: 'pi pi-copy',
             command: () => this.pastePackingList(),
             disabled: this.trip()?.archived || !this.utilsService.packingListToCopy.length,
@@ -1795,7 +1821,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   addPackingItem() {
     const modal: DynamicDialogRef = this.dialogService.open(TripCreatePackingModalComponent, {
-      header: 'Add Packing',
+      header: this.translocoService.translate('entities.item.add_packing'),
       modal: true,
       appendTo: 'body',
       closable: true,
@@ -1832,7 +1858,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   deletePackingItem(item: PackingItem) {
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Delete Item',
+      header: this.translocoService.translate('entities.item.delete'),
       modal: true,
       closable: true,
       dismissableMask: true,
@@ -1841,7 +1867,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       breakpoints: {
         '640px': '90vw',
       },
-      data: `Delete ${item.text.substring(0, 50)}?`,
+      data: this.translocoService.translate('messages.delete_count', { count: item.text.substring(0, 50) }),
     })!;
 
     modal.onClose.pipe(take(1)).subscribe({
@@ -1871,8 +1897,18 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       .map((item) => `[${item.category}] ${item.qt ? item.qt + ' ' : ''}${item.text}`)
       .join('\n');
     const success = this.clipboard.copy(content);
-    if (success) this.utilsService.toast('success', 'Success', `Content copied to clipboard`);
-    else this.utilsService.toast('error', 'Error', 'Content could not be copied to clipboard');
+    if (success)
+      this.utilsService.toast(
+        'success',
+        this.translocoService.translate('common.status.success'),
+        this.translocoService.translate('clipboard.content_copied'),
+      );
+    else
+      this.utilsService.toast(
+        'error',
+        this.translocoService.translate('common.status.error'),
+        this.translocoService.translate('clipboard.content_copied_error'),
+      );
   }
 
   copyPackingListToService() {
@@ -1884,15 +1920,15 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     this.utilsService.packingListToCopy = content;
     this.utilsService.toast(
       'success',
-      'Ready to Paste',
-      `${content.length} item${content.length > 1 ? 's' : ''}  copied. Go to another Trip and use Quick Paste`,
+      this.translocoService.translate('clipboard.ready_to_paste'),
+      this.translocoService.translate('clipboard.items_copied_desc', { count: content.length }),
     );
   }
 
   pastePackingList() {
     const content: Partial<PackingItem>[] = this.utilsService.packingListToCopy;
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Confirm Paste',
+      header: this.translocoService.translate('clipboard.confirm_paste'),
       modal: true,
       closable: true,
       dismissableMask: true,
@@ -1901,7 +1937,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       breakpoints: {
         '640px': '90vw',
       },
-      data: `Paste ${content.length} items?`,
+      data: this.translocoService.translate('clipboard.paste_items', { count: content.length }),
     })!;
 
     modal.onClose.pipe(take(1)).subscribe({
@@ -1918,7 +1954,11 @@ export class TripComponent implements AfterViewInit, OnDestroy {
             next: (newItems: PackingItem[]) => {
               this.packingList.update((l) => [...l, ...newItems]);
               this.utilsService.packingListToCopy = [];
-              this.utilsService.toast('success', 'Success', 'Items pasted');
+              this.utilsService.toast(
+                'success',
+                this.translocoService.translate('common.status.success'),
+                this.translocoService.translate('clipboard.items_pasted'),
+              );
             },
           });
       },
@@ -1934,7 +1974,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   addChecklistItem() {
     const modal: DynamicDialogRef = this.dialogService.open(TripCreateChecklistModalComponent, {
-      header: 'Add Checklist',
+      header: this.translocoService.translate('entities.item.add_checklist'),
       modal: true,
       appendTo: 'body',
       closable: true,
@@ -1971,7 +2011,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   deleteChecklistItem(item: ChecklistItem) {
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Delete Item',
+      header: this.translocoService.translate('entities.item.delete'),
       modal: true,
       closable: true,
       dismissableMask: true,
@@ -1980,7 +2020,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       breakpoints: {
         '640px': '90vw',
       },
-      data: `Delete ${item.text.substring(0, 50)}?`,
+      data: this.translocoService.translate('messages.delete_count', { count: item.text.substring(0, 50) }),
     })!;
 
     modal.onClose.pipe(take(1)).subscribe({
@@ -2039,7 +2079,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   deleteAttachment(attachmentId: number) {
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Delete Attachment',
+      header: this.translocoService.translate('entities.attachment.delete'),
       modal: true,
       closable: true,
       dismissableMask: true,
@@ -2048,7 +2088,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       breakpoints: {
         '640px': '90vw',
       },
-      data: 'Delete attachment? This cannot be undone.',
+      data: this.translocoService.translate('entities.attachment.delete_desc'),
     })!;
 
     modal.onClose.pipe(take(1)).subscribe({
@@ -2084,7 +2124,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   openUnarchiveTripModal() {
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Restore Trip',
+      header: this.translocoService.translate('common.actions.restore'),
       modal: true,
       closable: true,
       dismissableMask: true,
@@ -2093,7 +2133,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       breakpoints: {
         '640px': '90vw',
       },
-      data: `Restore ${this.trip()!.name}?`,
+      data: this.translocoService.translate('messages.restore_desc', { name: this.trip()!.name }),
     })!;
 
     modal.onClose.pipe(take(1)).subscribe({
@@ -2111,7 +2151,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   openArchiveTripModal() {
     const modal = this.dialogService.open(TripArchiveModalComponent, {
-      header: `Archive ${this.trip()!.name}`,
+      header: this.translocoService.translate('common.actions.archive'),
       modal: true,
       closable: true,
       appendTo: 'body',
@@ -2198,7 +2238,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   unshareTrip() {
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Disable Share',
+      header: this.translocoService.translate('share.disable'),
       modal: true,
       closable: true,
       dismissableMask: true,
@@ -2207,7 +2247,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       breakpoints: {
         '640px': '90vw',
       },
-      data: `Stop sharing ${this.trip()!.name}?`,
+      data: this.translocoService.translate('share.stop_sharing', { name: this.trip()!.name }),
     })!;
 
     modal.onClose.pipe(take(1)).subscribe({
@@ -2247,7 +2287,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   addMember() {
     const modal: DynamicDialogRef = this.dialogService.open(TripInviteMemberModalComponent, {
-      header: 'Invite member',
+      header: this.translocoService.translate('entities.member.invite'),
       modal: true,
       appendTo: 'body',
       closable: true,
@@ -2275,7 +2315,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   deleteMember(username: string) {
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Remove Member',
+      header: this.translocoService.translate('entities.member.remove'),
       modal: true,
       closable: true,
       dismissableMask: true,
@@ -2284,7 +2324,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       breakpoints: {
         '640px': '90vw',
       },
-      data: `Delete ${username.substring(0, 50)} from Trip ?`,
+      data: this.translocoService.translate('entities.member.delete_desc', { name: username.substring(0, 50) }),
     })!;
 
     modal.onClose.pipe(take(1)).subscribe({
@@ -2313,7 +2353,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   openTripNotesModal() {
     const modal = this.dialogService.open(TripNotesModalComponent, {
-      header: 'Notes',
+      header: this.translocoService.translate('common.fields.notes'),
       modal: true,
       closable: true,
       dismissableMask: true,
@@ -2344,14 +2384,14 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     if (!items.length) return;
 
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Delete Plans',
+      header: this.translocoService.translate('entities.plan.delete'),
       modal: true,
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
       draggable: false,
       resizable: false,
-      data: `Delete ${items.length} plan${items.length > 1 ? 's' : ''}? This cannot be undone.`,
+      data: this.translocoService.translate('messages.delete_plans_count', { count: items.length }),
     })!;
 
     modal.onClose.pipe(take(1)).subscribe((bool) => {
@@ -2382,14 +2422,14 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     if (!items.length) return;
 
     const modal = this.dialogService.open(YesNoModalComponent, {
-      header: 'Duplicate Plans',
+      header: this.translocoService.translate('common.actions.duplicate'),
       modal: true,
       appendTo: 'body',
       closable: true,
       dismissableMask: true,
       draggable: false,
       resizable: false,
-      data: `Duplicate ${items.length} plan${items.length > 1 ? 's' : ''}?`,
+      data: this.translocoService.translate('messages.duplicate_count', { count: items.length }),
     })!;
 
     modal.onClose.pipe(take(1)).subscribe((bool) => {
@@ -2436,7 +2476,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     if (!items.length) return;
 
     const modal = this.dialogService.open(TripBulkEditModalComponent, {
-      header: `Edit ${items.length} Plan${items.length > 1 ? 's' : ''}`,
+      header: this.translocoService.translate('common.actions.edit'),
       modal: true,
       appendTo: 'body',
       closable: true,
@@ -2473,10 +2513,18 @@ export class TripComponent implements AfterViewInit, OnDestroy {
               return { ...currentTrip, days: updatedDays };
             });
             this.toggleMultiSelectMode();
-            this.utilsService.toast('success', 'Success', `${updatedItems.length} items updated`);
+            this.utilsService.toast(
+              'success',
+              this.translocoService.translate('common.status.success'),
+              this.translocoService.translate('messages.count_updated', { count: updatedItems.length }),
+            );
           },
           error: (err) => {
-            this.utilsService.toast('error', 'Error', 'Bulk edition failed, check console for details');
+            this.utilsService.toast(
+              'error',
+              this.translocoService.translate('common.status.error'),
+              this.translocoService.translate('messages.bulk_failed'),
+            );
             console.error('Bulk edit failed:', err);
           },
         });
@@ -2496,11 +2544,17 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     });
 
     if (coords.length < 2) {
-      this.utilsService.toast('warn', 'Not enough values', 'Not enough values to route');
+      this.utilsService.toast(
+        'warn',
+        this.translocoService.translate('routing.not_enough_values'),
+        this.translocoService.translate('routing.not_enough_values_desc'),
+      );
       return;
     }
 
-    this.utilsService.setLoading(`Calculating routes (0/${coords.length - 1})...`);
+    this.utilsService.setLoading(
+      this.translocoService.translate('routing.calculating_count', { n: 0, count: coords.length - 1 }),
+    );
     const routeSegments: Array<{ start: [number, number]; end: [number, number] }> = [];
     for (let i = 0; i < coords.length - 1; i++) {
       routeSegments.push({
@@ -2549,7 +2603,10 @@ export class TripComponent implements AfterViewInit, OnDestroy {
             this.utilsService.setLoading(
               completedRoutes === routeSegments.length
                 ? ''
-                : `Calculating routes (${completedRoutes}/${routeSegments.length})...`,
+                : this.translocoService.translate('routing.calculating_count', {
+                    n: completedRoutes,
+                    count: routeSegments.length,
+                  }),
             );
 
             const layer = this.routeManager.addRoute({
@@ -2566,7 +2623,11 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           error: (err) => {
             completedRoutes++;
             if (completedRoutes === routeSegments.length) this.utilsService.setLoading('');
-            this.utilsService.toast('error', 'Routing error', 'Route computation failed');
+            this.utilsService.toast(
+              'error',
+              this.translocoService.translate('routing.error'),
+              this.translocoService.translate('routing.failed'),
+            );
             console.error(`Routing error for segment ${index + 1}:`, err);
           },
         });
@@ -2592,7 +2653,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     if (!from || !from.lat || !from.lng) return;
 
     const profile = this.routeManager.getProfile([from.lat, from.lng], [to.lat, to.lng]);
-    this.utilsService.setLoading('Calculating route...');
+    this.utilsService.setLoading(this.translocoService.translate('routing.calculating'));
     this.apiService
       .completionRouting({
         coordinates: [

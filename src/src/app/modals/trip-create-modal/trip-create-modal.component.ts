@@ -8,10 +8,19 @@ import { FocusTrapModule } from 'primeng/focustrap';
 import { DatePickerModule } from 'primeng/datepicker';
 import { ApiService } from '../../services/api.service';
 import { take } from 'rxjs';
+import { TranslocoDirective } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-trip-create-modal',
-  imports: [FloatLabelModule, InputTextModule, DatePickerModule, ButtonModule, ReactiveFormsModule, FocusTrapModule],
+  imports: [
+    FloatLabelModule,
+    InputTextModule,
+    DatePickerModule,
+    ButtonModule,
+    ReactiveFormsModule,
+    FocusTrapModule,
+    TranslocoDirective,
+  ],
   standalone: true,
   templateUrl: './trip-create-modal.component.html',
   styleUrl: './trip-create-modal.component.scss',

@@ -1,5 +1,6 @@
 import { Component, HostListener } from '@angular/core';
 import { FormControl, ReactiveFormsModule } from '@angular/forms';
+import { TranslocoDirective } from '@jsverse/transloco';
 import { ButtonModule } from 'primeng/button';
 import { DynamicDialogRef } from 'primeng/dynamicdialog';
 import { FloatLabelModule } from 'primeng/floatlabel';
@@ -7,7 +8,7 @@ import { TextareaModule } from 'primeng/textarea';
 
 @Component({
   selector: 'app-provider-multiline-create-modal',
-  imports: [FloatLabelModule, ButtonModule, ReactiveFormsModule, TextareaModule],
+  imports: [FloatLabelModule, ButtonModule, ReactiveFormsModule, TextareaModule, TranslocoDirective],
   standalone: true,
   templateUrl: './provider-multiline-create-modal.component.html',
   styleUrl: './provider-multiline-create-modal.component.scss',

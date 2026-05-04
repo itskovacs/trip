@@ -3,11 +3,12 @@ import { RouterOutlet } from '@angular/router';
 import { ToastModule } from 'primeng/toast';
 import { LoaderComponent } from './shared/loader';
 import { UtilsService } from './services/utils.service';
+import { SupportTripComponent } from './shared/support-trip';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, ToastModule, LoaderComponent],
+  imports: [RouterOutlet, ToastModule, LoaderComponent, SupportTripComponent],
   templateUrl: './app.component.html',
   styleUrl: './app.component.scss',
 })

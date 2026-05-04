@@ -14,6 +14,7 @@ import { InputMaskModule } from 'primeng/inputmask';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Trip, TripMember, TripStatus } from '../../types/trip';
 import { MultiSelectModule } from 'primeng/multiselect';
+import { TranslocoDirective } from '@jsverse/transloco';
 
 @Component({
   selector: 'app-trip-bulk-edit-modal',
@@ -31,6 +32,7 @@ import { MultiSelectModule } from 'primeng/multiselect';
     InputGroupAddonModule,
     TextareaModule,
     InputMaskModule,
+    TranslocoDirective,
   ],
   templateUrl: './trip-bulk-edit-modal.component.html',
   styleUrl: './trip-bulk-edit-modal.component.scss',
