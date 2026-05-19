@@ -384,7 +384,7 @@ def create_tripitem(
         day_id=day_id,
         price=item.price,
         status=item.status,
-        links=items.links
+        links=item.links
     )
 
     filename = None
