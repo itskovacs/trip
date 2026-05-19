@@ -19,6 +19,8 @@ Changes you make will only affect your personal account and will be applied i
 
 **About** section has shortcuts to documentation, to contribution to support TRIP development, to the data tab or to the [admin UI](settings-admin) (if user is admin).
 
+**Language** can be updated using the world globe button.
+
 :::tip
 When toggling dark mode, if the map tile provider wasn't changed manually, it will automatically update to the corresponding dark or light version.
 :::
@@ -56,6 +58,9 @@ In **Preferences**, you can set your default map parameters, such as the initia
 
 - **Filter Default Categories**:  
    By default, no categories are hidden. You can customize this to automatically hide certain categories and reduce map clutter.
+
+- **Dog-Friendly tag**:  
+   By default, `dog-friendly` tags are showed. Disable to hide them.
 
 ### Categories
 

@@ -29,6 +29,7 @@ A place contains the following informations:
 - `toilets`: optional boolean indicating if dogs are allowed
 - `visited`: status indicating if the place has been visited (controls default visibility)
 - `gpx`: optional GPX file to display trace on the map
+- `links`: optional links dedicated section
 
 :::tip
 You can script [places creation](/docs/trip-api/place-creation) and [import](places-import) various exports to automatically create them.

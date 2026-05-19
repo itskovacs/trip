@@ -24,6 +24,7 @@ A plan has the following fields:
 - `comment`: optional notes (links will be auto-clickable)
 - `gpx`: optional GPX file to display trace on the map
 - `image`: optional image for this plan
+- `links`: optional links dedicated section
 
 :::tip
 Use the `status` field to mark _pending_ or _constraint_ or _booked_ plans to track your bookings and requirements. The [checklist](trip-attachments-lists#checklist) automatically references _pending_ and _constraint_ plans.
