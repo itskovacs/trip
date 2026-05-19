@@ -36,7 +36,7 @@ class GoogleMapsProvider(BaseMapProvider):
         url = "https://maps.googleapis.com/maps/api/place/details/json"
         params = {"cid": cid, "key": self.api_key, "fields": "place_id"}
 
-        data = await self._request("POST", url, params=params)
+        data = await self._request("GET", url, params=params)
         return data.get("result", {}).get("place_id")
 
     async def _get_photo(self, name: str) -> str | None:
@@ -72,10 +72,12 @@ class GoogleMapsProvider(BaseMapProvider):
             description_parts.append(f"Opening: \n  {'\n  '.join(hours)}")
         if phone := place.get("internationalPhoneNumber"):
             description_parts.append(f"Phone: {phone}")
-        if website := place.get("websiteUri"):
-            description_parts.append(f"Website: {website}")
         if address := place.get("formattedAddress"):
             description_parts.append(address)
+
+        links = place.get("websiteUri")
+        if links:
+            links = [links]
 
         result = ProviderPlaceResult(
             name=place.get("displayName", {}).get("text"),
@@ -87,6 +89,7 @@ class GoogleMapsProvider(BaseMapProvider):
             allowdog=place.get("allowsDogs"),
             restroom=place.get("restroom"),
             description="\n".join(description_parts),
+            links=links
         )
 
         if photos := place.get("photos"):

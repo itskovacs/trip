@@ -162,6 +162,16 @@ def create_admin_backup(
     session: SessionDep,
     current_user: Annotated[str, Depends(require_admin)],
 ) -> BackupRead:
+    existing = session.exec(
+        select(Backup).where(
+            Backup.user == current_user,
+            Backup.status.in_([BackupStatus.PENDING, BackupStatus.PROCESSING]),
+            Backup.full.is_(True),
+        )
+    ).first()
+    if existing:
+        raise HTTPException(status_code=409, detail="A backup is already in progress")
+
     db_backup = Backup(user=current_user, full=True)
     session.add(db_backup)
     session.commit()
@@ -200,7 +210,7 @@ def download_backup(
 
 
 @router.delete("/backups/{backup_id}")
-async def delete_admin_backup(
+def delete_admin_backup(
     backup_id: int, session: SessionDep, current_user: Annotated[str, Depends(require_admin)]
 ):
     db_backup = session.get(Backup, backup_id)

@@ -5,7 +5,7 @@ from types import SimpleNamespace
 from typing import Annotated
 
 from pydantic import BaseModel, StringConstraints, field_validator
-from sqlalchemy import Index, MetaData, UniqueConstraint, event, select
+from sqlalchemy import JSON, Column, Index, MetaData, UniqueConstraint, event, select
 from sqlalchemy.orm import Session, object_session
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -53,6 +53,14 @@ class TripItemStatusEnum(str, Enum):
     CONFIRMED = "booked"
     CONSTRAINT = "constraint"
     OPTIONAL = "optional"
+
+
+class BookingTypeEnum(str, Enum):
+    flight = "flight"
+    car = "car"
+    hotel = "hotel"
+    activity = "activity"
+    generic = "generic"
 
 
 class PackingListCategoryEnum(str, Enum):
@@ -131,7 +139,8 @@ class ProviderPlaceResult(BaseModel):
     description: str | None = None
     types: list[str] = []
     image: str | None = None
-    restroom: bool | None
+    restroom: bool | None = None
+    links: list[str] | None = None
 
 
 class ProviderBoundaries(BaseModel):
@@ -234,7 +243,7 @@ class BackupBase(SQLModel):
     filename: str | None = None
     error_message: str | None = None
     file_size: int | None = None
-    full: bool | None = None
+    full: bool = False
 
 
 class Backup(BackupBase, table=True):
@@ -257,7 +266,7 @@ def mark_backup_for_deletion(mapper, connection, target: Backup):
 class BackupRead(BackupBase):
     id: int
     created_at: datetime
-    status: str
+    status: BackupStatus
     user: str
 
     @classmethod
@@ -285,6 +294,7 @@ class UserBase(SQLModel):
     mode_gpx_in_place: bool | None = False
     mode_display_visited: bool | None = False
     mode_map_position: bool | None = False
+    show_dog_tag: bool | None = True
     api_token: str | None = None
     duplicate_dist: int | None = None
     language: str | None = None
@@ -297,7 +307,7 @@ class User(UserBase, table=True):
     totp_secret: str | None = None
     google_apikey: str | None = None
     map_provider: MapProvider = Field(default=MapProvider.OPENSTREETMAP)
-    is_admin: bool | None = False
+    is_admin: bool = False
 
 
 @event.listens_for(User, "before_delete")
@@ -378,6 +388,7 @@ class UserRead(UserBase):
             mode_gpx_in_place=obj.mode_gpx_in_place,
             mode_display_visited=obj.mode_display_visited,
             mode_map_position=obj.mode_map_position,
+            show_dog_tag=obj.show_dog_tag,
             totp_enabled=obj.totp_enabled,
             google_apikey=True if obj.google_apikey else False,
             api_token=True if obj.api_token else False,
@@ -470,12 +481,14 @@ class PlaceBase(SQLModel):
     visited: bool | None = None
     gpx: str | None = None
     restroom: bool | None = None
+    links: list[str] | None = None
 
 
 class Place(PlaceBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     cdate: date = Field(default_factory=lambda: datetime.now(UTC))
     user: str = Field(foreign_key="user.username", ondelete="CASCADE", index=True)
+    links: list[str] | None = Field(default=None, sa_column=Column(JSON))
 
     image_id: int | None = Field(default=None, foreign_key="image.id", ondelete="CASCADE")
     image: Image | None = Relationship(back_populates="places")
@@ -515,6 +528,7 @@ class PlaceRead(PlaceBase):
     image: str | None
     image_id: int | None
     user: str
+    trip_count: int = 0
 
     @classmethod
     def serialize(cls, obj: Place, exclude_gpx=True) -> "PlaceRead":
@@ -538,6 +552,8 @@ class PlaceRead(PlaceBase):
             if exclude_gpx
             else obj.gpx,  # Generic PlaceRead. Avoid large resp.
             restroom=obj.restroom,
+            links=obj.links,
+            trip_count=len(obj.trips),
         )
 
 
@@ -684,11 +700,39 @@ class TripDay(TripDayBase, table=True):
     items: list["TripItem"] = Relationship(
         back_populates="day", sa_relationship_kwargs={"order_by": "TripItem.time"}, cascade_delete=True
     )
+    bookings: list["TripBooking"] = Relationship(back_populates="day", cascade_delete=True)
+
+
+class TripBookingBase(SQLModel):
+    type: BookingTypeEnum = BookingTypeEnum.generic
+    label: str
+    reference: str | None = None
+    notes: str | None = None
+
+
+class TripBooking(TripBookingBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+    day_id: int = Field(foreign_key="tripday.id", ondelete="CASCADE", index=True)
+    trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE", index=True)
+    day: TripDay | None = Relationship(back_populates="bookings")
+
+
+class TripBookingCreate(TripBookingBase):
+    pass
+
+
+class TripBookingUpdate(TripBookingBase):
+    pass
+
+
+class TripBookingRead(TripBookingBase):
+    id: int
 
 
 class TripDayRead(TripDayBase):
     id: int
     items: list["TripItemRead"]
+    bookings: list[TripBookingRead]
 
     @classmethod
     def serialize(cls, obj: TripDay) -> "TripDayRead":
@@ -697,6 +741,7 @@ class TripDayRead(TripDayBase):
             dt=obj.dt,
             label=obj.label,
             items=[TripItemRead.serialize(item) for item in obj.items],
+            bookings=[TripBookingRead.model_validate(b) for b in obj.bookings],
             notes=obj.notes,
         )
 
@@ -710,7 +755,7 @@ class TripItemBase(SQLModel):
     time: Annotated[
         str,
         StringConstraints(min_length=2, max_length=5, pattern=r"^([01]\d|2[0-3])(:[0-5]\d)?$"),
-    ]
+    ] | None = None
     text: str
     comment: str | None = None
     lat: float | None = None
@@ -718,9 +763,12 @@ class TripItemBase(SQLModel):
     lng: float | None = None
     status: TripItemStatusEnum | None = None
     gpx: str | None = None
+    links: list[str] | None = None
 
     @field_validator("time", mode="before")
-    def pad_mm_if_needed(cls, value: str) -> str:
+    def pad_mm_if_needed(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
         if re.fullmatch(r"^([01]\d|2[0-3])$", value):  # If it's just HH
             return f"{value}:00"
         return value
@@ -728,6 +776,7 @@ class TripItemBase(SQLModel):
 
 class TripItem(TripItemBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
+    links: list[str] | None = Field(default=None, sa_column=Column(JSON))
 
     place_id: int | None = Field(default=None, foreign_key="place.id", ondelete="SET NULL")
     place: Place | None = Relationship(back_populates="trip_items")
@@ -791,6 +840,7 @@ class TripItemRead(TripItemBase):
             image_id=obj.image_id,
             gpx=obj.gpx,
             paid_by=obj.paid_by,
+            links=obj.links,
             attachments=[TripAttachmentRead.serialize(att) for att in obj.attachments],
         )
 
@@ -839,12 +889,14 @@ class TripShareItemRead(TripItemBase):
             image_id=None,
             gpx=obj.gpx,
             paid_by=None,
+            links=obj.links,
         )
 
 
 class TripShareDayRead(TripDayBase):
     id: int
     items: list["TripShareItemRead"]
+    bookings: list[TripBookingRead]
 
     @classmethod
     def serialize(cls, obj: TripDay) -> "TripShareDayRead":
@@ -853,6 +905,7 @@ class TripShareDayRead(TripDayBase):
             dt=obj.dt,
             label=obj.label,
             items=[TripShareItemRead.serialize(item) for item in obj.items],
+            bookings=[TripBookingRead.model_validate(b) for b in obj.bookings],
             notes=obj.notes,
         )
 

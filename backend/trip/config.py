@@ -28,7 +28,7 @@ class Settings(BaseSettings):
     ATTACHMENT_MAX_SIZE: int = 10 * 1024 * 1024  # 10MB
     BACKUPS_FOLDER: str = "storage/backups"
 
-    SECRET_KEY: str = secrets.token_hex(32)
+    SECRET_KEY: str = ""
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 1440
@@ -111,16 +111,20 @@ def migrate_config_file():
         return
 
     from .utils.utils import backup_file
+
     dst = backup_file(LEGACY_CONFIG_FILE)
-    logger.warn(f"[CONFIG] Legacy config file (config.yml) backed up to {dst}")
+    logger.warning(f"[CONFIG] Legacy config file (config.yml) backed up to {dst}")
 
     if CONFIG_FILE.exists():
         LEGACY_CONFIG_FILE.unlink()
-        logger.warn("[CONFIG] Legacy config file (config.yml) deleted")
+        logger.warning("[CONFIG] Legacy config file (config.yml) deleted")
         return
 
     LEGACY_CONFIG_FILE.rename(CONFIG_FILE)
-    logger.warn("[CONFIG] Legacy config file (config.yml) renamed to config.env")
+    logger.warning("[CONFIG] Legacy config file (config.yml) renamed to config.env")
 
 
-migrate_config_file()
+def ensure_secret_key():
+    settings = get_settings()
+    if not settings.SECRET_KEY:
+        update_config({"SECRET_KEY": secrets.token_hex(32)})

@@ -111,6 +111,8 @@ def delete_category(
         .where(Category.id == category_id)
     ).first()
 
+    verify_exists_and_owns(current_user, db_category)
+
     for place in db_category.places:
         if place.image:
             session.delete(place.image)

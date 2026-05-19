@@ -125,8 +125,6 @@ class OpenStreetMapProvider(BaseMapProvider):
             description_parts.append(f"Opening: {hours}")
         if phone := tags.get("contact:phone"):
             description_parts.append(f"Phone: {phone}")
-        if website := tags.get("contact:website"):
-            description_parts.append(f"Website: {website}")
         if address := place.get("display_name"):
             description_parts.append(address)
 
@@ -140,6 +138,10 @@ class OpenStreetMapProvider(BaseMapProvider):
         }
         place_types.discard(None)
 
+        links = tags.get("contact:website")
+        if links:
+            links = [links]
+
         return ProviderPlaceResult(
             name=place.get("name") or place.get("display_name", "").split(",")[0],
             place=place.get("name") or place.get("display_name", ""),
@@ -152,6 +154,7 @@ class OpenStreetMapProvider(BaseMapProvider):
             description="\n".join(description_parts),
             category=self._categorize(place_types),
             image=None,
+            links=links
         )
 
     async def text_search(self, query: str, location: dict[str, Any] | None = None) -> list[dict[str, Any]]:

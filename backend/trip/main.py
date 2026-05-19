@@ -8,11 +8,13 @@ from fastapi.staticfiles import StaticFiles
 from starlette.middleware.gzip import GZipMiddleware
 
 from . import __version__
-from .config import get_settings
+from .config import ensure_secret_key, get_settings, migrate_config_file
 from .db.core import init_and_migrate_db
-from .routers import (admin, auth, categories, places, providers, settings,
-                      token, trips)
+from .routers import (admin, auth, bookings, categories, places, providers,
+                      settings, token, trips)
 from .utils.utils import silence_http_logging
+
+migrate_config_file()
 
 if not Path(get_settings().FRONTEND_FOLDER).is_dir():
     raise ValueError()
@@ -23,6 +25,7 @@ Path(get_settings().ATTACHMENTS_FOLDER).mkdir(parents=True, exist_ok=True)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    ensure_secret_key()
     await init_and_migrate_db()
     silence_http_logging()
     yield
@@ -33,7 +36,7 @@ app = FastAPI(lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -41,6 +44,7 @@ app.add_middleware(
 app.add_middleware(GZipMiddleware, minimum_size=1000)
 
 app.include_router(auth.router)
+app.include_router(bookings.router)
 app.include_router(categories.router)
 app.include_router(places.router)
 app.include_router(settings.router)

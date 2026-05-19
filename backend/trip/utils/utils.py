@@ -79,7 +79,7 @@ def remove_image(filename: str):
         pass
 
 
-async def httpx_get(link: str) -> str:
+async def httpx_get(link: str) -> dict:
     headers = {
         "User-Agent": "Mozilla/5.0 (compatible; TRIP/1 PyJWKClient; +https://github.com/itskovacs/trip)",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
@@ -123,6 +123,8 @@ async def download_file(link: str) -> tuple[str, int]:
             path = assets_folder_path() / generate_filename(infer_extension)
             path.write_bytes(response.content)
             return str(path), file_size
+    except HTTPException:
+        raise
     except Exception as exc:
         logger.error(f"[IMAGE FETCH] Error: {exc}")
         return "", 0

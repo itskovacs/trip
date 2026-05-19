@@ -117,6 +117,16 @@ def create_backup_export(
     session: SessionDep,
     current_user: Annotated[str, Depends(get_current_username)],
 ) -> BackupRead:
+    existing = session.exec(
+        select(Backup).where(
+            Backup.user == current_user,
+            Backup.status.in_([BackupStatus.PENDING, BackupStatus.PROCESSING]),
+            Backup.full.isnot(True),
+        )
+    ).first()
+    if existing:
+        raise HTTPException(status_code=409, detail="A backup is already in progress")
+
     db_backup = Backup(user=current_user)
     session.add(db_backup)
     session.commit()
@@ -157,14 +167,18 @@ def download_backup(
 
 
 @router.delete("/backups/{backup_id}")
-async def delete_backup(
+def delete_backup(
     backup_id: int, session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]
 ):
-    db_backup = session.get(Backup, backup_id)
+    db_backup = session.exec(
+        select(Backup).where(
+            Backup.id == backup_id,
+            Backup.user == current_user,
+            Backup.full.isnot(True),
+        )
+    ).first()
     if not db_backup:
         raise HTTPException(status_code=404, detail="Not found")
-    if not db_backup.user == current_user:
-        raise HTTPException(status_code=403, detail="Forbidden")
 
     session.delete(db_backup)
     session.commit()

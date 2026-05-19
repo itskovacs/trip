@@ -1,3 +1,4 @@
+import logging
 from typing import Annotated
 
 from fastapi import APIRouter, Header, HTTPException
@@ -14,6 +15,9 @@ from .places import create_place
 from .providers import bulk_to_places, google_resolve_shortlink, text_search
 
 router = APIRouter(prefix="/api/by_token", tags=["by_token"])
+
+
+logger = logging.getLogger(__name__)
 
 
 @router.post("/place", response_model=PlaceRead)

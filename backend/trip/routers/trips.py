@@ -9,7 +9,7 @@ from sqlmodel import select
 from ..config import get_settings
 from ..deps import SessionDep, get_current_username
 from ..models.models import (Image, Place, Trip, TripAttachment,
-                             TripAttachmentRead, TripChecklistItem,
+                             TripAttachmentRead, TripBooking, TripChecklistItem,
                              TripChecklistItemCreate, TripChecklistItemRead,
                              TripChecklistItemUpdate, TripCreate, TripDay,
                              TripDayBase, TripDayRead, TripInvitationRead,
@@ -123,6 +123,7 @@ def read_trip(
         select(Trip)
         .options(
             selectinload(Trip.days).selectinload(TripDay.items),
+            selectinload(Trip.days).selectinload(TripDay.bookings),
             selectinload(Trip.places),
             selectinload(Trip.image),
             selectinload(Trip.memberships),
@@ -238,6 +239,8 @@ def delete_trip(
     session: SessionDep, trip_id: int, current_user: Annotated[str, Depends(get_current_username)]
 ):
     db_trip = _get_verified_trip(session, trip_id, current_user)
+    if db_trip.user != current_user:
+        raise HTTPException(status_code=403, detail="Forbidden")
     if db_trip.archived:
         raise HTTPException(status_code=400, detail="Bad request")
 
@@ -281,7 +284,7 @@ def get_trip_balance(
     for item in trip_items:
         if not item.price or not item.paid_by:
             continue
-        paid_by_map[item.paid_by] += item.price
+        paid_by_map[item.paid_by] = paid_by_map.get(item.paid_by, 0) + item.price
     xpected_per_person = sum(paid_by_map.values()) / len(members)
 
     return {member: paid_by_map[member] - xpected_per_person for member in paid_by_map}
@@ -381,6 +384,7 @@ def create_tripitem(
         day_id=day_id,
         price=item.price,
         status=item.status,
+        links=items.links
     )
 
     filename = None
@@ -1005,6 +1009,8 @@ def read_shared_trip(
 ) -> TripRead | TripShareRead:
     share = _trip_from_token_or_404(session, token)
     db_trip = session.get(Trip, share.trip_id)
+    if not db_trip:
+        raise HTTPException(status_code=404, detail="Not found")
 
     return TripRead.serialize(db_trip) if share.is_full_access else TripShareRead.serialize(db_trip)
 

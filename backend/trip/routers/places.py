@@ -20,7 +20,7 @@ def read_places(
 ) -> list[PlaceRead]:
     db_places = session.exec(
         select(Place)
-        .options(selectinload(Place.image), selectinload(Place.category))
+        .options(selectinload(Place.image), selectinload(Place.category), selectinload(Place.trips))
         .where(Place.user == current_user)
     ).all()
     return [PlaceRead.serialize(p) for p in db_places]
@@ -43,6 +43,7 @@ async def create_place(
         category_id=place.category_id,
         visited=place.visited,
         restroom=place.restroom,
+        links=place.links,
         user=current_user,
     )
 
@@ -53,15 +54,18 @@ async def create_place(
             if fp:
                 patch_image(fp)
                 image = Image(filename=fp.split("/")[-1], file_size=file_size, user=current_user)
+                session.add(image)
+                session.flush()
+                new_place.image_id = image.id
         else:
             image_bytes = b64img_decode(place.image)
             filename, file_size = save_image_to_file(image_bytes, get_settings().PLACE_IMAGE_SIZE)
             if not filename:
                 raise HTTPException(status_code=400, detail="Bad request")
             image = Image(filename=filename, file_size=file_size, user=current_user)
-        session.add(image)
-        session.flush()
-        new_place.image_id = image.id
+            session.add(image)
+            session.flush()
+            new_place.image_id = image.id
 
     try:
         session.add(new_place)

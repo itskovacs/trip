@@ -188,6 +188,7 @@ async def google_mymaps_kmz_import(
         raise HTTPException(status_code=400, detail="Invalid KMZ file")
 
     places = await asyncio.to_thread(parse_mymaps_kmz, file)
+
     async def _process_kml_place(place: dict, provider: BaseMapProvider) -> ProviderPlaceResult | None:
         try:
             if url := place.get("url"):

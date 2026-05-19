@@ -1,3 +1,4 @@
+import asyncio
 import logging
 from typing import Annotated
 
@@ -50,7 +51,7 @@ async def oidc_login(
     state: str = Body(..., embed=True),
     oidc_state: str = Cookie(None),
 ) -> Token:
-    if not (get_settings().OIDC_CLIENT_ID or get_settings().OIDC_CLIENT_SECRET):
+    if not (get_settings().OIDC_CLIENT_ID and get_settings().OIDC_CLIENT_SECRET):
         raise HTTPException(status_code=400, detail="Partial OIDC config")
 
     if not oidc_state or state != oidc_state:
@@ -60,7 +61,8 @@ async def oidc_login(
     token_endpoint = oidc_config.get("token_endpoint")
     try:
         oidc_client = get_oidc_client()
-        token = oidc_client.fetch_token(
+        token = await asyncio.to_thread(
+            oidc_client.fetch_token,
             token_endpoint,
             grant_type="authorization_code",
             code=code,
@@ -112,7 +114,7 @@ async def oidc_login(
 
 @router.post("/login", response_model=Token | PendingTOTP)
 def login(req: LoginRegisterModel, session: SessionDep) -> Token | PendingTOTP:
-    if get_settings().OIDC_CLIENT_ID or get_settings().OIDC_CLIENT_SECRET:
+    if get_settings().OIDC_CLIENT_ID and get_settings().OIDC_CLIENT_SECRET:
         raise HTTPException(status_code=400, detail="OIDC is configured")
 
     db_user = session.get(User, req.username)
@@ -120,6 +122,9 @@ def login(req: LoginRegisterModel, session: SessionDep) -> Token | PendingTOTP:
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     if db_user.totp_enabled:
+        now = dt_utc()
+        for k in [k for k, v in pending_totp_usernames.items() if v["exp"] <= now]:
+            del pending_totp_usernames[k]
         pending_totp_secret = generate_totp_secret()  # A random code to track for verify fn
         pending_totp_usernames[db_user.username] = {
             "pending_code": pending_totp_secret,
@@ -154,7 +159,7 @@ async def login_verify_totp(
 
 @router.post("/register", response_model=Token)
 def register(req: LoginRegisterModel, session: SessionDep) -> Token:
-    if get_settings().OIDC_CLIENT_ID or get_settings().OIDC_CLIENT_SECRET:
+    if get_settings().OIDC_CLIENT_ID and get_settings().OIDC_CLIENT_SECRET:
         raise HTTPException(status_code=400, detail="OIDC is configured")
 
     if not get_settings().REGISTER_ENABLE:

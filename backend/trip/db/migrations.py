@@ -20,12 +20,12 @@ def _003_set_admin_for_single_user(session: Session):
         return
 
     dst = backup_file(Path(get_settings().SQLITE_FILE))
-    logger.warn(f"[Migration 003_set_admin_for_single_user] Database backed up to {dst} before changes")
+    logger.warning(f"[Migration 003_set_admin_for_single_user] Database backed up to {dst} before changes")
 
     user.is_admin = True
     session.add(user)
     session.commit()
-    logger.warn(f"[Migration 003_set_admin_for_single_user] Made {user.username} admin")
+    logger.warning(f"[Migration 003_set_admin_for_single_user] Made {user.username} admin")
 
 
 def _002_remove_orphan_image(session: Session):
@@ -50,7 +50,7 @@ def _002_remove_orphan_image(session: Session):
                 )
 
     if orphans:
-        logger.warn(f"[Migration 002_remove_orphan_image] Removed {orphans} orphan images")
+        logger.warning(f"[Migration 002_remove_orphan_image] Removed {orphans} orphan images")
 
 
 def _001_image_file_size(session: Session):
@@ -59,7 +59,7 @@ def _001_image_file_size(session: Session):
         return
 
     dst = backup_file(Path(get_settings().SQLITE_FILE))
-    logger.warn(f"[Migration 001_image_file_size] Database backed up to {dst} before changes")
+    logger.warning(f"[Migration 001_image_file_size] Database backed up to {dst} before changes")
 
     assets = Path(get_settings().ASSETS_FOLDER)
     for image in images:
@@ -67,7 +67,7 @@ def _001_image_file_size(session: Session):
         image.file_size = path.stat().st_size if path.exists() else 0
         session.add(image)
     session.commit()
-    logger.warn(f"[Migration 001_image_file_size] Computed {len(images)} file_size property")
+    logger.warning(f"[Migration 001_image_file_size] Computed {len(images)} file_size property")
 
 
 def run_migrations(session: Session):
