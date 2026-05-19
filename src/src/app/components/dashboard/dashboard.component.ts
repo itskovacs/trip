@@ -317,6 +317,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
             this.updateLanguage('fr');
           },
         },
+        {
+          label: 'Português (BR)',
+          command: () => {
+            this.updateLanguage('pt-BR');
+          },
+        },
       ],
     },
   ];

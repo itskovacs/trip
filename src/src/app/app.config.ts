@@ -34,7 +34,7 @@ export const appConfig: ApplicationConfig = {
     }),
     provideTransloco({
       config: {
-        availableLangs: ['en', 'fr'],
+        availableLangs: ['en', 'fr', 'pt-BR'],
         defaultLang: 'en',
         reRenderOnLangChange: true,
         prodMode: !isDevMode(),
@@ -47,9 +47,23 @@ export const appConfig: ApplicationConfig = {
     }),
     provideAppInitializer(() => {
       // Browser frn we set to fr, else defaults to english
-      if (getBrowserLang() != 'fr') return;
       const translocoService = inject(TranslocoService);
-      translocoService.setActiveLang('fr');
+      const availableLangs = translocoService.getAvailableLangs() as string[];
+
+      // navigator.language gives the full tag e.g. 'pt-BR', 'pt-PT', 'fr-FR'
+      const fullLang = navigator.language;
+      const exactMatch = availableLangs.find((lang) => lang.toLowerCase() === fullLang.toLowerCase());
+
+      if (exactMatch) {
+        translocoService.setActiveLang(exactMatch);
+        return;
+      }
+
+      // Strips the region, giving just 'pt', 'fr' etc.
+      const baseLang = fullLang.split('-')[0];
+      const baseMatch = availableLangs.find((lang) => lang.toLowerCase().startsWith(baseLang.toLowerCase()));
+
+      if (baseMatch) translocoService.setActiveLang(baseMatch);
     }),
   ],
 };
