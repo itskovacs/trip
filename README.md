@@ -3,7 +3,7 @@
 
 <div align="center">
 
-[![Sponsor](https://img.shields.io/badge/sponsor-30363D?style=for-the-badge&logo=GitHub-Sponsors)](https://ko-fi.com/itskovacs)
+[![Support](https://img.shields.io/badge/Support-30363D?style=for-the-badge&logo=GitHub-Sponsors)](https://ko-fi.com/itskovacs)
 ![Status](https://img.shields.io/badge/status-active-success?style=for-the-badge)
 [![GitHub Issues](https://img.shields.io/github/issues/itskovacs/trip?style=for-the-badge&color=ededed)](https://github.com/itskovacs/trip/issues)
 ![Pulls](https://img.shields.io/badge/pulls-200k+-2596be?style=for-the-badge)
@@ -21,7 +21,6 @@
 - 📦 [About](#about)
 - 🌱 [Getting Started](#getting_started)
 - 📸 [Demo](#demo)
-- 📜 [License](#license)
 
 ## 📦 About <a name = "about"></a>
 
@@ -85,14 +84,6 @@ A demo is available at [itskovacs-trip.netlify.app](https://itskovacs-trip.netli
 | ![](./.github/sc_trip.jpg) | ![](./.github/sc_trips.jpg) |
 
 </div>
-
-<br>
-
-## 📜 License <a name = "license"></a>
-
-~~TRIP is licensed under the **CC-BY-NC-4.0**. You may use, modify, and share freely with attribution, but **commercial use is strictly prohibited**.~~
-
-In the spirit of free and open-source software, TRIP is now licensed under the MIT License to make it easier to use, modify, and share.
 
 <br>
 
