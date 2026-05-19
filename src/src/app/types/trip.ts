@@ -41,17 +41,30 @@ export interface TripAttachment {
   uploaded_by: string;
 }
 
+export type BookingType = 'flight' | 'car' | 'hotel' | 'activity' | 'generic';
+
+export interface TripBooking {
+  id: number;
+  type: BookingType;
+  label: string;
+  reference?: string;
+  notes?: string;
+  day_id?: number;
+  trip_id?: number;
+}
+
 export interface TripDay {
   id: number;
   dt?: string;
   label: string;
   items: TripItem[];
+  bookings?: TripBooking[];
   notes?: string;
 }
 
 export interface TripItem {
   id: number;
-  time: string;
+  time?: string;
   text: string;
   comment?: string;
   place?: Place;
@@ -65,6 +78,7 @@ export interface TripItem {
   gpx?: string;
   paid_by?: string;
   attachments?: TripAttachment[];
+  links?: string[];
 }
 
 export interface TripStatus {
@@ -77,7 +91,7 @@ export interface FlattenedTripItem {
   td_label: string;
   td_date?: string;
   id: number;
-  time: string;
+  time?: string;
   text: string;
   comment?: string;
   place?: Place;
@@ -92,6 +106,7 @@ export interface FlattenedTripItem {
   gpx?: string;
   paid_by?: string;
   attachments?: TripAttachment[];
+  links?: string[];
 }
 
 export interface TripMember {
@@ -133,6 +148,7 @@ export interface PrintOptions {
   places: boolean;
   notes: boolean;
   metadata: boolean;
+  showBookings?: boolean;
 }
 
 export interface ViewTripItem extends TripItem {

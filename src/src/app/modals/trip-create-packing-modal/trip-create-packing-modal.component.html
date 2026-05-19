@@ -12,12 +12,15 @@
 
     <p-floatlabel variant="in">
       <p-select [options]="packingCategories" id="category" appendTo="body" formControlName="category"
-        optionLabel="dispValue" optionValue="value" fluid />
+        optionValue="value" fluid>
+        <ng-template pTemplate="selectedItem" let-item>{{ t(item.dispValue) }}</ng-template>
+        <ng-template pTemplate="item" let-item>{{ t(item.dispValue) }}</ng-template>
+      </p-select>
       <label for="category">{{ t('common.fields.category') }}</label>
     </p-floatlabel>
 
     <div class="mt-4 text-right">
-      <p-button (click)="closeDialog()" [label]="t('common.actions.create')"
+      <p-button (click)="closeDialog()" [label]="isEditMode ? t('common.actions.save') : t('common.actions.create')"
         [disabled]="!packingForm.dirty || !packingForm.valid" />
     </div>
   </div>

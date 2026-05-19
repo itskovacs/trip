@@ -22,6 +22,7 @@ import * as L from 'leaflet';
 import { TableModule } from 'primeng/table';
 import {
   Trip,
+  TripBooking,
   TripDay,
   TripItem,
   TripStatus,
@@ -141,6 +142,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   translocoService: TranslocoService;
 
   trip = signal<Trip | null>(null);
+  hasError = signal(false);
   packingList = signal<PackingItem[]>([]);
   checklistItems = signal<ChecklistItem[]>([]);
 
@@ -188,6 +190,16 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
       });
     });
     return places;
+  });
+  printOptionsBookings = computed(() => {
+    const options = this.printOptions();
+    if (!options?.showBookings) return [];
+    const bookings: TripBooking[] = [];
+    this.trip()?.days.forEach((d) => {
+      if (!options.days.has(d.id)) return;
+      (d.bookings ?? []).forEach((b) => bookings.push(b));
+    });
+    return bookings;
   });
   usedPlaceIds = computed(() => {
     const trip = this.trip();
@@ -240,14 +252,14 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
 
     return currentTrip.days
       .map((day) => {
-        let filteredItems = day.items;
+        let filteredItems = [...day.items];
 
         if (hasQuery) {
           filteredItems = filteredItems.filter(
             (item) =>
               item.text?.toLowerCase().includes(query) ||
               item.place?.name.toLowerCase().includes(query) ||
-              item.comment?.toLowerCase().includes(query)
+              item.comment?.toLowerCase().includes(query),
           );
         }
 
@@ -360,7 +372,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
         coords.push([lat, lng]);
       }
 
-      if (items.length > 2 && coords.length > 0) {
+      if (items.length >= 2 && coords.length > 0) {
         paths.push({
           coords,
           options: {
@@ -565,7 +577,10 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
     });
 
     const plansPanelWidth = localStorage.getItem('plansPanelWidth');
-    if (plansPanelWidth) this.panelWidth.set(parseInt(plansPanelWidth));
+    if (plansPanelWidth) {
+      const width = parseInt(plansPanelWidth, 10);
+      if (!isNaN(width)) this.panelWidth.set(width);
+    }
 
     effect(() => {
       const currentTrip = this.trip();
@@ -620,6 +635,14 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
       .pipe(take(1))
       .subscribe({
         next: (trip) => this.trip.set(trip),
+        error: () => {
+          this.hasError.set(true);
+          this.utilsService.toast(
+            'error',
+            this.translocoService.translate('common.status.error'),
+            this.translocoService.translate('messages.could_not_load_trip'),
+          );
+        },
       });
   }
 
@@ -1150,7 +1173,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   }
 
   copyPackingListToClipboard() {
-    const content = this.packingList()
+    const content = [...this.packingList()]
       .sort((a, b) =>
         a.category !== b.category
           ? a.category.localeCompare(b.category)
@@ -1206,6 +1229,14 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
     URL.revokeObjectURL(downloadURL);
   }
 
+  getDomain(url: string): string {
+    try {
+      return new URL(url).hostname;
+    } catch {
+      return url;
+    }
+  }
+
   itemToNavigation() {
     const item = this.selectedItem();
     const placeItems = this.selectedPlaceItems();
@@ -1218,7 +1249,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   tripDayToNavigation(dayId: number) {
     const idx = this.trip()?.days.findIndex((d) => d.id === dayId);
     if (!this.trip() || idx === undefined || idx == -1) return;
-    const data = this.trip()!.days[idx].items.sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
+    const data = [...this.trip()!.days[idx].items].sort((a, b) => (a.time ?? '').localeCompare(b.time ?? ''));
     const items = data.filter((item) => item.lat && item.lng);
     if (!items.length) return;
     openNavigation(items.map((item) => ({ lat: item.lat!, lng: item.lng! })));
@@ -1261,5 +1292,27 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
     const lat: number = latlng ? latlng[0] : selected!.lat!;
     const lng: number = latlng ? latlng[1] : selected!.lng!;
     this.map.flyTo([lat, lng], this.map.getZoom() || 9, { duration: 2 });
+  }
+
+  bookingTypeIcon(type: string): string {
+    const icons: Record<string, string> = {
+      flight: '✈️',
+      car: '🚗',
+      hotel: '🏨',
+      activity: '🎪',
+      generic: '📋',
+    };
+    return icons[type] ?? '📋';
+  }
+
+  bookingTypeClass(type: string): string {
+    const classes: Record<string, string> = {
+      flight: 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300',
+      car: 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
+      hotel: 'bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300',
+      activity: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
+      generic: 'bg-primary-100 text-primary-600 dark:bg-primary-800 dark:text-primary-300',
+    };
+    return classes[type] ?? classes['generic'];
   }
 }

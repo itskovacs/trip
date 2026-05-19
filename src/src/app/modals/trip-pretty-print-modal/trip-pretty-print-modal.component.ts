@@ -52,6 +52,7 @@ export class TripPrettyPrintModalComponent {
       places: true,
       notes: true,
       metadata: true,
+      showBookings: true,
     });
 
     if (this.config.data) {

@@ -157,6 +157,7 @@ export class AuthService {
   logout(custom_msg: string = '', is_error = false): void {
     this.loggedUser = '';
     this.removeTokens();
+    this.apiService.clearUserState();
 
     if (custom_msg) {
       if (is_error) {

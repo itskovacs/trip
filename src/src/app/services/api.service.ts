@@ -12,6 +12,7 @@ import {
   Trip,
   TripAttachment,
   TripBase,
+  TripBooking,
   TripDay,
   TripInvitation,
   TripItem,
@@ -59,11 +60,15 @@ export class ApiService {
   getCategories(): Observable<Category[]> {
     if (!this.categoriesSubject.value) {
       return this.httpClient.get<Category[]>(`${this.apiBaseUrl}/categories`).pipe(
-        map((categories) => categories.sort((a, b) => a.name.localeCompare(b.name))),
         tap((categories) => this._categoriesSubjectNext(categories)),
       );
     }
     return this.categories$ as Observable<Category[]>;
+  }
+
+  clearUserState(): void {
+    this.categoriesSubject.next(null);
+    this.settingsSubject.next(null);
   }
 
   postCategory(c: Category): Observable<Category> {
@@ -155,6 +160,18 @@ export class ApiService {
 
   deleteTripDay(tripId: number, day_id: number): Observable<null> {
     return this.httpClient.delete<null>(`${this.apiBaseUrl}/trips/${tripId}/days/${day_id}`);
+  }
+
+  postTripBooking(tripId: number, dayId: number, booking: Partial<TripBooking>): Observable<TripBooking> {
+    return this.httpClient.post<TripBooking>(`${this.apiBaseUrl}/trips/${tripId}/days/${dayId}/bookings`, booking);
+  }
+
+  putTripBooking(bookingId: number, booking: Partial<TripBooking>): Observable<TripBooking> {
+    return this.httpClient.put<TripBooking>(`${this.apiBaseUrl}/bookings/${bookingId}`, booking);
+  }
+
+  deleteTripBooking(bookingId: number): Observable<null> {
+    return this.httpClient.delete<null>(`${this.apiBaseUrl}/bookings/${bookingId}`);
   }
 
   postTripDayItem(item: TripItem, tripId: number, day_id: number): Observable<TripItem> {

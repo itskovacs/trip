@@ -77,6 +77,7 @@
       "itinerary": "Itinéraire",
       "label": "Libellé",
       "latitude": "Latitude",
+      "links": "Liens",
       "longitude": "Longitude",
       "map": "Carte",
       "member": "Membre",
@@ -190,6 +191,8 @@
     "gpx_indicator_desc": "Afficher une boussole quand des données GPX sont disponibles",
     "encode_map_position": "Mémoriser position et place",
     "encode_map_position_desc": "Encoder la position de la carte et la place sélectionnée dans l'URL pour restaurer la même vue à l'actualisation",
+    "dog_tag": "Tag chien admis",
+    "dog_tag_desc": "Afficher l'indicateur chien admis sur les places et le filtre rapide",
     "always_display_visited": "Afficher les places visitées",
     "always_display_visited_desc": "Toujours afficher les places visitées sous forme de petits points",
     "currency": "Devise",
@@ -264,6 +267,26 @@
       "empty": "Aucune invitation en attente."
     }
   },
+  "bookings": {
+    "add_booking": "réservation",
+    "new_booking": "Nouvelle réservation",
+    "edit_booking": "Modifier la réservation",
+    "type": "Type",
+    "label": "Libellé",
+    "reference": "Référence",
+    "price": "Prix",
+    "notes": "Notes",
+    "save": "Enregistrer",
+    "cancel": "Annuler",
+    "delete": "Supprimer",
+    "types": {
+      "flight": "✈️ Vol",
+      "car": "🚗 Voiture",
+      "hotel": "🏨 Hôtel",
+      "activity": "🎪 Activité",
+      "generic": "📋 Autre"
+    }
+  },
   "support": {
     "support": "Soutenir TRIP",
     "support_desc": "TRIP est gratuit et maintenu grâce au soutien de la communauté. Envisagez de soutenir son développement en ",
@@ -290,6 +313,7 @@
     "possible_duplicate_desc": "Une place potentiellement en double ({{name}}) existe. Créer quand même ?",
     "confirm_deletion": "Confirmer la suppression",
     "confirm_deletion_desc": "Supprimer {{name}} ?",
+    "confirm_deletion_desc_in_use": "{{name}} est utilisé dans {{count}} voyage(s). Supprimer quand même ?",
     "could_not_parse_gpx": "Impossible d'analyser les données GPX",
     "could_not_retrieve_gpx": "Impossible de récupérer les données GPX",
     "ingesting_backup": "Intégration de votre sauvegarde...",
@@ -379,7 +403,8 @@
       "add_checklist": "Ajouter une Checklist",
       "add_packing": "Ajouter un Bagage",
       "add_poi": "Ajouter un Point d'Intérêt",
-      "delete": "Supprimer l'Élément"
+      "delete": "Supprimer l'Élément",
+      "edit": "Modifier l'Élément"
     },
     "member": {
       "delete_desc": "Supprimer {{name}} du Voyage ?",
@@ -484,6 +509,7 @@
     },
     "enter_totp": "Entrez votre code TOTP",
     "item": {
+      "link_placeholder": "https://...",
       "paid_by": "Payé par",
       "plan_text": "Texte du Plan",
       "upload_new": "Télécharger un nouveau"
@@ -505,11 +531,42 @@
       "empty": "Rien pour le moment."
     },
     "packing": {
-      "qt": "Qté"
+      "qt": "Qté",
+      "suggestions": "Suggestions",
+      "categories": {
+        "documents": "Documents",
+        "clothes": "Vêtements",
+        "toiletries": "Toilette",
+        "tech": "Tech",
+        "other": "Autre"
+      },
+      "items": {
+        "passport": "Passeport",
+        "id_card": "Carte d'identité",
+        "t_shirt": "T-shirt",
+        "socks": "Chaussettes",
+        "pants": "Pantalon",
+        "underwear": "Sous-vêtements",
+        "jacket": "Veste",
+        "pajamas": "Pyjama",
+        "toothbrush": "Brosse à dents",
+        "toothpaste": "Dentifrice",
+        "shampoo": "Shampoing",
+        "deodorant": "Déodorant",
+        "sunscreen": "Crème solaire",
+        "phone_charger": "Chargeur téléphone",
+        "headphones": "Écouteurs",
+        "power_bank": "Batterie externe",
+        "cash": "Espèces",
+        "keys": "Clés",
+        "medications": "Médicaments",
+        "sunglasses": "Lunettes de soleil"
+      }
     },
     "place": {
       "dog_friendly": "Adapté aux chiens",
       "duration": "Durée (minutes)",
+      "link_placeholder": "https://...",
       "image_url_dialog": {
         "header": "Ajouter l'URL de l'image",
         "label": "URL de l'image"
@@ -565,6 +622,10 @@
         "description": "Champs à inclure",
         "selected": "{0} propriétés sélectionnées",
         "title": "Propriétés"
+      },
+      "bookings": {
+        "title": "Réservations",
+        "description": "Inclure les réservations des jours"
       }
     },
     "provider": {
@@ -589,6 +650,7 @@
     "price": "Prix",
     "duration": "Durée",
     "description": "Description",
+    "links": "Liens",
     "display_gpx": "Afficher le GPX",
     "open_navigation": "Ouvrir dans Navigation",
     "fly_to_place": "Aller à la Place",

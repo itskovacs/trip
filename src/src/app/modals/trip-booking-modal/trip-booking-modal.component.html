@@ -1,0 +1,40 @@
+<ng-container *transloco="let t; prefix: 'bookings'">
+  <form [formGroup]="bookingForm" class="space-y-4 py-2">
+
+    <p-floatlabel variant="on">
+      <p-select inputId="booking-type" formControlName="type" [options]="bookingTypes" optionLabel="label"
+        optionValue="value" class="w-full" />
+      <label for="booking-type">{{ t('type') }}</label>
+    </p-floatlabel>
+
+    <p-floatlabel variant="on">
+      <input pInputText id="booking-label" formControlName="label" class="w-full" />
+      <label for="booking-label">{{ t('label') }} *</label>
+    </p-floatlabel>
+
+    <p-floatlabel variant="on">
+      <input pInputText id="booking-reference" formControlName="reference" class="w-full" />
+      <label for="booking-reference">{{ t('reference') }}</label>
+    </p-floatlabel>
+
+    <p-floatlabel variant="on">
+      <textarea pTextarea id="booking-notes" formControlName="notes" rows="3" class="w-full resize-none"></textarea>
+      <label for="booking-notes">{{ t('notes') }}</label>
+    </p-floatlabel>
+
+    <div class="flex items-center justify-between gap-2 pt-1">
+      @if (isEdit()) {
+      <p-button [label]="t('delete')" icon="pi pi-trash" severity="danger" [outlined]="true" size="small"
+        (click)="delete()" />
+      } @else {
+      <span></span>
+      }
+      <div class="flex items-center gap-2">
+        <p-button [label]="t('cancel')" severity="secondary" [outlined]="true" size="small" (click)="cancel()" />
+        <p-button [label]="t('save')" icon="pi pi-check" severity="success" size="small" [disabled]="!bookingForm.valid"
+          (click)="save()" />
+      </div>
+    </div>
+
+  </form>
+</ng-container>

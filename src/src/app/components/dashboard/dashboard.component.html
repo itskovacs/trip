@@ -133,21 +133,7 @@
         <h3 class="mt-6 text-sm font-bold text-primary-900 dark:text-white">{{ t('dashboard.quick_filters') }}</h3>
 
         <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
-          <button (click)="filter_display_visited.set(!filter_display_visited())"
-            class="cursor-pointer inline-flex items-center gap-2 h-8 px-3 rounded-lg text-sm font-medium transition-all"
-            [class]="
-              filter_display_visited()
-                ? 'bg-blue-600 text-white'
-                : 'bg-primary-100 dark:bg-black text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800'
-            ">
-            @if (filter_display_visited()) {
-            <i class="pi pi-check text-xs"></i>
-            } @else {
-            <i class="pi pi-eye text-xs"></i>
-            }
-            <span class="truncate">{{ t('modals.place.visited') }}</span>
-          </button>
-
+          @if (isDogTagMode()) {
           <button (click)="filter_dog_only.set(!filter_dog_only())"
             class="cursor-pointer inline-flex items-center gap-2 h-8 px-3 rounded-lg text-sm font-medium transition-all"
             [class]="
@@ -161,6 +147,22 @@
             <span>🐶</span>
             }
             <span class="truncate">{{ t('modals.place.dog_friendly') }}</span>
+          </button>
+          }
+
+          <button (click)="filter_display_visited.set(!filter_display_visited())"
+            class="cursor-pointer inline-flex items-center gap-2 h-8 px-3 rounded-lg text-sm font-medium transition-all"
+            [class]="
+              filter_display_visited()
+                ? 'bg-blue-600 text-white'
+                : 'bg-primary-100 dark:bg-black text-primary-700 dark:text-primary-300 hover:bg-primary-200 dark:hover:bg-primary-800'
+            ">
+            @if (filter_display_visited()) {
+            <i class="pi pi-check text-xs"></i>
+            } @else {
+            <i class="pi pi-eye text-xs"></i>
+            }
+            <span class="truncate">{{ t('modals.place.visited') }}</span>
           </button>
 
           <button (click)="filter_display_favorite_only.set(!filter_display_favorite_only())"
@@ -606,8 +608,9 @@
 
                         <div class="w-full md:w-68">
                           <p-select id="map_provider" [options]="providers" [filter]="false" optionValue="value"
-                            optionLabel="disp" formControlName="map_provider" [placeholder]="t('settings.provider_placeholder')" [showClear]="true"
-                            appendTo="body" pSize="small" class="capitalize" fluid />
+                            optionLabel="disp" formControlName="map_provider"
+                            [placeholder]="t('settings.provider_placeholder')" [showClear]="true" appendTo="body"
+                            pSize="small" class="capitalize" fluid />
                         </div>
                       </div>
 
@@ -813,6 +816,21 @@
                         <p-toggleswitch [(ngModel)]="isMapPositionMode" (onChange)="toggleMapPositionMode()"
                           class="shrink-0 ml-4" />
                       </div>
+
+                      <div
+                        class="flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700">
+                        <div class="flex items-center gap-3 min-w-0 flex-1">
+                          <i class="pi pi-tag text-emerald-600 dark:text-emerald-400 shrink-0"></i>
+                          <div class="min-w-0">
+                            <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">{{
+                              t('settings.dog_tag') }}</span>
+                            <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">{{
+                              t('settings.dog_tag_desc') }}</p>
+                          </div>
+                        </div>
+                        <p-toggleswitch [(ngModel)]="isDogTagMode" (onChange)="toggleDogTagMode()"
+                          class="shrink-0 ml-4" />
+                      </div>
                     </div>
                     }
                   </section>
@@ -887,8 +905,8 @@
                         <div class="w-full md:w-68">
                           <p-multiselect id="do_not_display" [options]="doNotDisplayOptions()" [group]="true"
                             [filter]="false" [showToggleAll]="false" formControlName="do_not_display"
-                            [placeholder]="t('common.actions.select')" [showClear]="true" appendTo="body" pSize="small" class="capitalize"
-                            fluid />
+                            [placeholder]="t('common.actions.select')" [showClear]="true" appendTo="body" pSize="small"
+                            class="capitalize" fluid />
                         </div>
                       </div>
                     </div>
@@ -1389,8 +1407,10 @@
                         </div>
                       </div>
                       <div class="w-full md:w-68 grid grid-cols-2 gap-2">
-                        <input pInputText formControlName="DEFAULT_MAP_LAT" [placeholder]="t('settings.lat')" pSize="small" fluid />
-                        <input pInputText formControlName="DEFAULT_MAP_LNG" [placeholder]="t('settings.lng')" pSize="small" fluid />
+                        <input pInputText formControlName="DEFAULT_MAP_LAT" [placeholder]="t('settings.lat')"
+                          pSize="small" fluid />
+                        <input pInputText formControlName="DEFAULT_MAP_LNG" [placeholder]="t('settings.lng')"
+                          pSize="small" fluid />
                       </div>
                     </div>
 
@@ -1471,10 +1491,10 @@
                         </div>
                       </div>
                       <div class="w-full md:w-68 grid grid-cols-2 gap-2">
-                        <p-inputnumber formControlName="ACCESS_TOKEN_EXPIRE_MINUTES" [min]="1" [placeholder]="t('settings.access')"
-                          pSize="small" fluid [showButtons]="false" />
-                        <p-inputnumber formControlName="REFRESH_TOKEN_EXPIRE_MINUTES" [min]="1" [placeholder]="t('settings.refresh')"
-                          pSize="small" fluid [showButtons]="false" />
+                        <p-inputnumber formControlName="ACCESS_TOKEN_EXPIRE_MINUTES" [min]="1"
+                          [placeholder]="t('settings.access')" pSize="small" fluid [showButtons]="false" />
+                        <p-inputnumber formControlName="REFRESH_TOKEN_EXPIRE_MINUTES" [min]="1"
+                          [placeholder]="t('settings.refresh')" pSize="small" fluid [showButtons]="false" />
                       </div>
                     </div>
 
@@ -1489,14 +1509,14 @@
                         </div>
                       </div>
                       <div class="w-full md:w-68 space-y-2">
-                        <input pInputText formControlName="OIDC_DISCOVERY_URL" [placeholder]="t('settings.oidc_discovery_url')" pSize="small"
-                          fluid />
-                        <input pInputText formControlName="OIDC_CLIENT_ID" [placeholder]="t('settings.oidc_client_id')" pSize="small"
-                          fluid />
-                        <input pInputText formControlName="OIDC_CLIENT_SECRET" [placeholder]="t('settings.oidc_client_secret')" pSize="small"
-                          fluid />
-                        <input pInputText formControlName="OIDC_REDIRECT_URI" [placeholder]="t('settings.oidc_redirect_uri')" pSize="small"
-                          fluid />
+                        <input pInputText formControlName="OIDC_DISCOVERY_URL"
+                          [placeholder]="t('settings.oidc_discovery_url')" pSize="small" fluid />
+                        <input pInputText formControlName="OIDC_CLIENT_ID" [placeholder]="t('settings.oidc_client_id')"
+                          pSize="small" fluid />
+                        <input pInputText formControlName="OIDC_CLIENT_SECRET"
+                          [placeholder]="t('settings.oidc_client_secret')" pSize="small" fluid />
+                        <input pInputText formControlName="OIDC_REDIRECT_URI"
+                          [placeholder]="t('settings.oidc_redirect_uri')" pSize="small" fluid />
                       </div>
                     </div>
                   </div>

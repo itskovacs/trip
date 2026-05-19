@@ -1,5 +1,5 @@
 <ng-container *transloco="let t">
-  @defer (when trip()) {
+  @defer (when trip() || hasError()) {
   @if (trip()) {
   <div class="relative h-screen w-screen overflow-hidden bg-primary-950" [class.prettyprint]="printOptions()">
     <div class="fixed inset-0 w-full h-full z-0">
@@ -258,10 +258,12 @@
                       <span class="absolute -top-1 -right-1 w-3 h-3 rounded-full"
                         [style.background]="item.status.color"></span>
                       }
+                      @if (item.time) {
                       <span
                         class="px-2.5 py-1 text-xs sm:text-sm font-mono font-medium bg-primary-100 dark:bg-primary-800 text-primary-700 dark:text-primary-300 rounded whitespace-nowrap">
                         {{ item.time }}
                       </span>
+                      }
                     </div>
 
                     <div class="flex-1 min-w-0">
@@ -357,6 +359,23 @@
                 </div>
                 }
               </div>
+
+              @if (group.day.bookings?.length) {
+              <div class="pl-4 md:pr-4 pb-2 pt-1">
+                <div class="flex flex-wrap gap-1.5">
+                  @for (booking of group.day.bookings ?? []; track booking.id) {
+                  <span class="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md"
+                    [class]="bookingTypeClass(booking.type)">
+                    {{ bookingTypeIcon(booking.type) }} {{ booking.label }}
+                    @if (booking.reference) {
+                    <span class="opacity-60">&middot; {{ booking.reference }}</span>
+                    }
+                  </span>
+                  }
+                </div>
+              </div>
+              }
+
               }
             </div>
             } @placeholder (minimum 0.4s) {
@@ -531,9 +550,11 @@
 
               <div class="flex items-center gap-2 mt-1">
                 <span class="text-sm font-medium truncate max-w-[50%]">{{ getItemDayLabel(item) }}</span>
+                @if (item.time) {
                 <span class="text-primary-300 dark:text-primary-700">&middot;</span>
                 <span class="text-xs font-mono font-medium px-1.5 py-0.5 bg-primary-100 dark:bg-primary-800 rounded">{{
                   item.time }}</span>
+                }
               </div>
             </div>
 
@@ -561,9 +582,11 @@
                 <span class="text-sm font-medium truncate max-w-[120px]">
                   {{ getItemDayLabel(item) }}
                 </span>
+                @if (item.time) {
                 <span class="text-xs font-mono font-medium px-1.5 py-0.5 bg-primary-100 dark:bg-primary-800 rounded">
                   {{ item.time }}
                 </span>
+                }
               </div>
             </p-tab>
             }
@@ -647,6 +670,23 @@
                   <div
                     class="border-l-3 border-primary-300 dark:border-primary-700 pl-3 py-1 text-sm text-primary-700 dark:text-primary-300 whitespace-pre-wrap leading-relaxed"
                     [innerHTML]="item.comment | linkify"></div>
+                </div>
+                }
+
+                @if (item.links?.length) {
+                <div class="flex flex-col mt-4">
+                  <span
+                    class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1.5">{{
+                    t('common.fields.links') }}</span>
+                  <div class="flex flex-wrap gap-1.5">
+                    @for (link of item.links; track link) {
+                    <a [href]="link" target="_blank" rel="noopener noreferrer"
+                      class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg border border-primary-200 dark:border-primary-700 bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-800 transition-colors">
+                      <i class="pi pi-external-link text-xs!"></i>
+                      {{ getDomain(link) }}
+                    </a>
+                    }
+                  </div>
                 </div>
                 }
 
@@ -736,10 +776,12 @@
 
                 <div class="flex items-center gap-2 mt-1">
                   <span class="text-sm font-medium truncate max-w-[50%]">{{ item.day }}</span>
+                  @if (item.time) {
                   <span class="text-primary-300 dark:text-primary-700">&middot;</span>
                   <span
                     class="text-xs font-mono font-medium px-1.5 py-0.5 bg-primary-100 dark:bg-primary-800 rounded">{{
                     item.time }}</span>
+                  }
                 </div>
               </div>
             </div>
@@ -811,8 +853,8 @@
                 <div
                   class="h-8 flex items-center gap-1.5 px-3 py-1.5 text-sm rounded bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700">
                   <i class="pi pi-arrow-right text-blue-600 dark:text-blue-400 text-xs"></i>
-                  <span class="text-xs font-medium text-blue-700 dark:text-blue-300 truncate">{{ item.distance }}km from
-                    previous</span>
+                  <span class="text-xs font-medium text-blue-700 dark:text-blue-300 truncate">{{
+                    t('view.distance_from_previous', { distance: item.distance }) }}</span>
                 </div>
               </div>
               }
@@ -826,6 +868,22 @@
             <div
               class="border-l-3 border-primary-300 dark:border-primary-700 pl-3 py-1 text-sm text-primary-700 dark:text-primary-300 whitespace-pre-wrap leading-relaxed"
               [innerHTML]="item.comment | linkify"></div>
+          </div>
+          }
+
+          @if (item.links?.length) {
+          <div class="flex flex-col mt-4">
+            <span class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1.5">{{
+              t('common.fields.links') }}</span>
+            <div class="flex flex-wrap gap-1.5">
+              @for (link of item.links; track link) {
+              <a [href]="link" target="_blank" rel="noopener noreferrer"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg border border-primary-200 dark:border-primary-700 bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-800 transition-colors">
+                <i class="pi pi-external-link text-xs!"></i>
+                {{ getDomain(link) }}
+              </a>
+              }
+            </div>
           </div>
           }
 
@@ -959,8 +1017,8 @@
 
           @if (day.notes) {
           <div class="flex flex-col min-w-0">
-            <span
-              class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">{{ t('common.fields.notes') }}</span>
+            <span class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">{{
+              t('common.fields.notes') }}</span>
             <div
               class="border-l-3 border-primary-300 dark:border-primary-700 pl-3 py-1 text-sm text-primary-700 dark:text-primary-300 whitespace-pre-wrap leading-relaxed"
               [innerHTML]="day.notes | linkify"></div>
@@ -969,8 +1027,8 @@
 
           @if (attachments.length) {
           <div class="flex flex-col min-w-0">
-            <span
-              class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">{{ t('view.attachments_count', { count: attachments.length }) }}</span>
+            <span class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">{{
+              t('view.attachments_count', { count: attachments.length }) }}</span>
             <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-2">
               @for (attachment of attachments; track attachment.id) {
               <div (click)="downloadAttachment(attachment)"
@@ -1237,10 +1295,29 @@
           </div>
           }
 
+          @if (options?.showBookings && group.day.bookings?.length) {
+          <div class="mb-4 flex flex-col gap-1">
+            @for (booking of (group.day.bookings ?? []); track booking.id) {
+            <div class="flex items-center gap-2 text-sm text-primary-700">
+              <span class="shrink-0">{{ bookingTypeIcon(booking.type) }}</span>
+              <span class="font-medium">{{ booking.label }}</span>
+              @if (booking.reference) {
+              <span class="text-primary-400">&middot; {{ booking.reference }}</span>
+              }
+              @if (booking.notes) {
+              <span class="text-primary-400 italic truncate">{{ booking.notes }}</span>
+              }
+            </div>
+            }
+          </div>
+          }
+
           @for (item of group.items; track item.id) {
           <div class="flex gap-4 items-center rounded-lg p-3 -mx-3">
+            @if (item.time) {
             <span class="px-2.5 py-1 text-xs font-mono font-medium bg-primary-100 text-primary-700 rounded">{{
               item.time }}</span>
+            }
 
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2">
@@ -1340,5 +1417,9 @@
     </div>
   </section>
   }
+  } @placeholder {
+  <section class="min-h-screen flex items-center justify-center">
+    <i class="pi pi-spin pi-spinner text-4xl text-primary-500"></i>
+  </section>
   }
 </ng-container>

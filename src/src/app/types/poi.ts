@@ -26,6 +26,8 @@ export interface Place {
   visited?: boolean;
   favorite?: boolean;
   restroom?: boolean;
+  links?: string[];
+  trip_count?: number;
 }
 
 export interface ProviderBoundaries {

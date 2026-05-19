@@ -91,8 +91,8 @@
                   styleClass="text-white/90!" (click)="openUnarchiveTripModal()" />
                 @if (trip()?.archival_review) {
                 <p-button size="small" text [outlined]="true"
-                  [icon]="isArchivalReviewDisplayed() ? 'pi pi-chevron-up' : 'pi pi-chevron-down'" [label]="t('common.fields.notes')"
-                  (click)="toggleArchiveReview()" />
+                  [icon]="isArchivalReviewDisplayed() ? 'pi pi-chevron-up' : 'pi pi-chevron-down'"
+                  [label]="t('common.fields.notes')" (click)="toggleArchiveReview()" />
                 }
                 <p-button size="small" icon="pi pi-times" text [outlined]="true" severity="danger"
                   (click)="isArchiveWarningVisible.set(false)" />
@@ -195,7 +195,8 @@
               @if (isMultiSelectMode()) {
               <div class="z-30 mt-3 flex gap-2 justify-between items-center" animate.enter="slide-y"
                 animate.leave="a-slide-y">
-                <div class="h-8 flex items-center gap-1 text-sm font-medium truncate min-w-0">{{ t('view.selected_count', {
+                <div class="h-8 flex items-center gap-1 text-sm font-medium truncate min-w-0">{{
+                  t('view.selected_count', {
                   count: selectedItemsCount() }) }}
                   @if (selectedItemsCount()) {
                   <p-button icon="pi pi-times" (click)="clearMultiSelectSelection()" text size="small"
@@ -225,8 +226,8 @@
               @if (isFilteringMode()) {
               <div class="z-30 mt-3 grid sm:grid-cols-3 gap-2" animate.enter="slide-y" animate.leave="a-slide-y">
                 <p-multiselect display="chip" fluid [options]="availableItemProps" [(ngModel)]="selectedItemProps"
-                  [placeholder]="t('common.fields.cols')" [class]="canToggleTextAndPlace() ? 'sm:col-span-2' : 'sm:col-span-3'"
-                  appendTo="body" size="small" />
+                  [placeholder]="t('common.fields.cols')"
+                  [class]="canToggleTextAndPlace() ? 'sm:col-span-2' : 'sm:col-span-3'" appendTo="body" size="small" />
 
                 @if (canToggleTextAndPlace()) {
                 <p-togglebutton [onLabel]="t('view.on_show_text')" [offLabel]="t('view.off_show_text')" size="small"
@@ -290,6 +291,28 @@
                 </div>
               </div>
 
+              <div class="pl-4 md:pr-4">
+                <div class="flex flex-wrap gap-1.5">
+                  @for (booking of group.day.bookings ?? []; track booking.id) {
+                  <span (click)="openBookingModal(group.day, booking); $event.stopPropagation()"
+                    class="cursor-pointer flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md transition-colors"
+                    [class]="bookingTypeClass(booking.type)">
+                    {{ bookingTypeIcon(booking.type) }} {{ booking.label }}
+                    @if (booking.reference) {
+                    <span class="opacity-60">&middot; {{ booking.reference }}</span>
+                    }
+                  </span>
+                  }
+                  @if (!trip()?.archived) {
+                  <button (click)="openBookingModal(group.day); $event.stopPropagation()"
+                    class="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md border border-dashed border-primary-300 dark:border-primary-600 text-primary-500 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-800 transition-colors cursor-pointer">
+                    <i class="pi pi-plus" style="font-size: 10px"></i>
+                    {{ t('bookings.add_booking') }}
+                  </button>
+                  }
+                </div>
+              </div>
+
               <div class="space-y-2 pl-4 md:pr-4">
                 @for (item of group.items; track item.id) {
                 <div
@@ -309,10 +332,12 @@
                       <span class="absolute -top-1 -right-1 w-3 h-3 rounded-full"
                         [style.background]="item.status.color"></span>
                       }
+                      @if (item.time) {
                       <span
                         class="px-2.5 py-1 text-xs sm:text-sm font-mono font-medium bg-primary-100 dark:bg-primary-800 text-primary-700 dark:text-primary-300 rounded whitespace-nowrap">
                         {{ item.time }}
                       </span>
+                      }
                     </div>
 
                     <div class="flex-1 min-w-0">
@@ -605,10 +630,10 @@
                 [disabled]="trip()?.archived" (click)="addItem(undefined, selection.place.id)" />
               <p-button (click)="openNavigationToPlace(selection.place)" text icon="pi pi-car" />
               <p-button icon="pi pi-expand" text [pTooltip]="t('common.actions.fly_to')" (click)="flyTo()" />
-              <p-button icon="pi pi-pencil" text [disabled]="trip()?.archived" [pTooltip]="t('entities.plan.edit')"
+              <p-button icon="pi pi-pencil" text [disabled]="trip()?.archived" [pTooltip]="t('entities.place.edit')"
                 (click)="editPlace(selection.place)" />
               <p-button icon="pi pi-trash" text severity="danger" [disabled]="trip()?.archived"
-                [pTooltip]="t('entities.plan.delete')" (click)="unlinkPlaceFromTrip(selection.place.id)" />
+                [pTooltip]="t('entities.place.unlink')" (click)="unlinkPlaceFromTrip(selection.place.id)" />
               <p-button (click)="selectedPlace.set(null); selectedPlaceActiveTabIndex.set(0)" text icon="pi pi-times" />
             </div>
 
@@ -632,9 +657,11 @@
 
               <div class="flex items-center gap-2 mt-1">
                 <span class="text-sm font-medium truncate max-w-[50%]">{{ getItemDayLabel(item) }}</span>
+                @if (item.time) {
                 <span class="text-primary-300 dark:text-primary-700">&middot;</span>
                 <span class="text-xs font-mono font-medium px-1.5 py-0.5 bg-primary-100 dark:bg-primary-800 rounded">{{
                   item.time }}</span>
+                }
               </div>
             </div>
 
@@ -667,9 +694,11 @@
                 <span class="text-sm font-medium truncate max-w-[120px]">
                   {{ getItemDayLabel(item) }}
                 </span>
+                @if (item.time) {
                 <span class="text-xs font-mono font-medium px-1.5 py-0.5 bg-primary-100 dark:bg-primary-800 rounded">
                   {{ item.time }}
                 </span>
+                }
               </div>
             </p-tab>
             }
@@ -761,6 +790,23 @@
                 </div>
                 }
 
+                @if (item.links?.length) {
+                <div class="flex flex-col mt-4">
+                  <span
+                    class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1.5">{{
+                    t('common.fields.links') }}</span>
+                  <div class="flex flex-wrap gap-1.5">
+                    @for (link of item.links; track link) {
+                    <a [href]="link" target="_blank" rel="noopener noreferrer"
+                      class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg border border-primary-200 dark:border-primary-700 bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-800 transition-colors">
+                      <i class="pi pi-external-link text-xs!"></i>
+                      {{ getDomain(link) }}
+                    </a>
+                    }
+                  </div>
+                </div>
+                }
+
                 @if (item.attachments?.length) {
                 <div class="flex flex-col mt-4">
                   <span
@@ -848,10 +894,12 @@
 
                 <div class="flex items-center gap-2 mt-1">
                   <span class="text-sm font-medium truncate max-w-[50%]">{{ item.day }}</span>
+                  @if (item.time) {
                   <span class="text-primary-300 dark:text-primary-700">&middot;</span>
                   <span
                     class="text-xs font-mono font-medium px-1.5 py-0.5 bg-primary-100 dark:bg-primary-800 rounded">{{
                     item.time }}</span>
+                  }
                 </div>
               </div>
             </div>
@@ -945,6 +993,22 @@
             <div
               class="border-l-3 border-primary-300 dark:border-primary-700 pl-3 py-1 text-sm text-primary-700 dark:text-primary-300 whitespace-pre-wrap leading-relaxed"
               [innerHTML]="item.comment | linkify"></div>
+          </div>
+          }
+
+          @if (item.links?.length) {
+          <div class="flex flex-col mt-4">
+            <span class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1.5">{{
+              t('common.fields.links') }}</span>
+            <div class="flex flex-wrap gap-1.5">
+              @for (link of item.links; track link) {
+              <a [href]="link" target="_blank" rel="noopener noreferrer"
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg border border-primary-200 dark:border-primary-700 bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-800 transition-colors">
+                <i class="pi pi-external-link text-xs!"></i>
+                {{ getDomain(link) }}
+              </a>
+              }
+            </div>
           </div>
           }
 
@@ -1339,17 +1403,34 @@
     <section class="p-4 max-h-[80vh] overflow-hidden flex flex-col">
       <div class="flex flex-wrap items-center justify-center gap-3 mb-6">
         <p-button (click)="addPackingItem()" [disabled]="trip()?.archived" icon="pi pi-plus"
-          [label]="t('entities.plan.add')" text />
+          [label]="t('entities.item.add_packing')" text />
         <div class="h-6 w-px bg-primary-200 dark:bg-primary-700 mx-2 hidden sm:block"></div>
         <p-button (click)="menuTripPacking.toggle($event)" icon="pi pi-ellipsis-h" text />
       </div>
+
+      @if (availableSuggestions().length > 0 && !trip()?.archived) {
+      <div class="mb-4">
+        <p class="text-xs font-semibold text-primary-400 uppercase tracking-wider mb-2">{{
+          t('modals.packing.suggestions') }}</p>
+        <div class="flex flex-wrap gap-2">
+          @for (s of availableSuggestions(); track s.text) {
+          <button type="button"
+            class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm border border-primary-200 dark:border-primary-700 bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-800 transition-colors cursor-pointer"
+            (click)="addSuggestedPackingItem(s)">
+            <i class="pi pi-plus text-xs"></i>
+            {{ t(s.text) }}
+          </button>
+          }
+        </div>
+      </div>
+      }
 
       <div class="overflow-y-auto px-2 pb-4">
         @for (category of dispPackingList() | keyvalue; track category.key) {
         <div class="mb-6 break-inside-avoid">
           <h3
             class="text-sm font-bold text-primary-500 dark:text-primary-400 uppercase tracking-wider mb-3 px-1 sticky top-0 bg-white dark:bg-primary-900 z-10 py-2">
-            {{ category.key }}
+            {{ t('modals.packing.categories.' + category.key) }}
           </h3>
 
           <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-3">
@@ -1374,6 +1455,8 @@
               </label>
 
               <div class="opacity-0 group-hover:opacity-100 transition-opacity flex items-center">
+                <p-button icon="pi pi-pencil" text severity="secondary" size="small" [disabled]="trip()?.archived"
+                  (click)="editPackingItem(item)" />
                 <p-button icon="pi pi-trash" text severity="danger" size="small" [disabled]="trip()?.archived"
                   (click)="deletePackingItem(item)" />
               </div>
@@ -1511,10 +1594,29 @@
           </div>
           }
 
+          @if (options?.showBookings && group.day.bookings?.length) {
+          <div class="mb-2 flex gap-1">
+            @for (booking of (group.day.bookings ?? []); track booking.id) {
+            <span
+              class="flex items-center w-fit px-2.5 py-1 text-xs font-mono font-medium bg-primary-100 text-primary-700 rounded"
+              [class]="bookingTypeClass(booking.type)">{{ bookingTypeIcon(booking.type) }} {{ booking.label }}
+              @if (booking.reference) {
+              <span class="opacity-60">&middot; {{ booking.reference }}</span>
+              }
+              @if (booking.notes) {
+              <span class="text-primary-400 italic truncate">{{ booking.notes }}</span>
+              }
+            </span>
+            }
+          </div>
+          }
+
           @for (item of group.items; track item.id) {
           <div class="flex gap-4 items-center rounded-lg p-3 -mx-3">
+            @if (item.time) {
             <span class="px-2.5 py-1 text-xs font-mono font-medium bg-primary-100 text-primary-700 rounded">{{
               item.time }}</span>
+            }
 
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2">

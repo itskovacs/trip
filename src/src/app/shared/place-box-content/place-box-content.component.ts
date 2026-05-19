@@ -1,10 +1,12 @@
 import { ChangeDetectionStrategy, Component, EventEmitter, inject, Input, Output, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { ButtonModule } from 'primeng/button';
 import { MenuModule } from 'primeng/menu';
 import { Place } from '../../types/poi';
 import { MenuItem } from 'primeng/api';
+import { ApiService } from '../../services/api.service';
 import { UtilsService } from '../../services/utils.service';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
 import { LinkifyPipe } from '../pipes/linkify.pipe';
 import { TooltipModule } from 'primeng/tooltip';
@@ -31,6 +33,8 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 })
 export class PlaceBoxContentComponent {
   translocoService = inject(TranslocoService);
+  private apiService = inject(ApiService);
+  showDogTag = toSignal(this.apiService.settings$.pipe(map((s) => s?.show_dog_tag !== false)), { initialValue: true });
   @Input() selectedPlace: Place | null = null;
   @Input() showButtons: boolean = true;
   @Input() showMeta: boolean = true;
@@ -153,5 +157,13 @@ export class PlaceBoxContentComponent {
   onCoordsCopied() {
     this.tooltipCopied.set(true);
     setTimeout(() => this.tooltipCopied.set(false), 1200);
+  }
+
+  getDomain(url: string): string {
+    try {
+      return new URL(url).hostname;
+    } catch {
+      return url;
+    }
   }
 }

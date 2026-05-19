@@ -1,13 +1,14 @@
 import { Component, HostListener } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
-import { DynamicDialogRef } from 'primeng/dynamicdialog';
+import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { InputTextModule } from 'primeng/inputtext';
 import { FocusTrapModule } from 'primeng/focustrap';
 import { SelectModule } from 'primeng/select';
 import { InputNumberModule } from 'primeng/inputnumber';
 import { TranslocoDirective } from '@jsverse/transloco';
+import { PackingItem } from '../../types/trip';
 
 @Component({
   selector: 'app-trip-create-packing-modal',
@@ -34,29 +35,31 @@ export class TripCreatePackingModalComponent {
   }
 
   packingForm: FormGroup;
+  isEditMode = false;
   readonly packingCategories = [
-    { value: 'clothes', dispValue: 'Clothes' },
-    { value: 'toiletries', dispValue: 'Toiletries' },
-    { value: 'tech', dispValue: 'Tech' },
-    { value: 'documents', dispValue: 'Documents' },
-    { value: 'other', dispValue: 'Other' },
+    { value: 'clothes', dispValue: 'modals.packing.categories.clothes' },
+    { value: 'toiletries', dispValue: 'modals.packing.categories.toiletries' },
+    { value: 'tech', dispValue: 'modals.packing.categories.tech' },
+    { value: 'documents', dispValue: 'modals.packing.categories.documents' },
+    { value: 'other', dispValue: 'modals.packing.categories.other' },
   ];
 
   constructor(
     private ref: DynamicDialogRef,
+    private config: DynamicDialogConfig,
     private fb: FormBuilder,
   ) {
+    const existing: PackingItem | undefined = this.config.data;
+    this.isEditMode = !!existing;
     this.packingForm = this.fb.group({
-      qt: null,
-      text: ['', { validators: Validators.required }],
-      category: ['', { validators: Validators.required }],
+      qt: [existing?.qt ?? null],
+      text: [existing?.text ?? '', { validators: Validators.required }],
+      category: [existing?.category ?? '', { validators: Validators.required }],
     });
   }
 
   closeDialog() {
     if (!this.packingForm.valid) return;
-
-    let ret = this.packingForm.value;
-    this.ref.close(ret);
+    this.ref.close(this.packingForm.value);
   }
 }

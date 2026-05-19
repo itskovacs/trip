@@ -18,7 +18,7 @@
           } @else {
           <p-floatlabel variant="in">
             <p-multiselect [options]="trip?.days" optionValue="id" optionLabel="label" formControlName="day_id"
-              [showToggleAll]="false" display="chip" scrollHeight="320px" appendTo="body"
+              [showToggleAll]="false" scrollHeight="320px" appendTo="body"
               [selectedItemsLabel]="t('messages.days_selected')" fluid>
               <ng-template let-day #item>
                 <div class="whitespace-normal">{{ day.label }}</div>
@@ -191,6 +191,28 @@
             @if (descriptionInput.value) {
             <p-button text icon="pi pi-times" severity="danger" class="absolute right-2 top-2"
               (click)="itemForm.get('comment')?.setValue(''); itemForm.markAsDirty()" />
+            }
+          </div>
+
+          <div class="space-y-2">
+            <div class="flex items-center gap-2">
+              <input type="url" pInputText fluid [value]="newLinkInput()"
+                (input)="newLinkInput.set($any($event.target).value)" [placeholder]="t('modals.place.link_placeholder')"
+                (keydown.enter)="$event.preventDefault(); addLink(newLinkInput())" />
+              <p-button icon="pi pi-plus" size="small" [disabled]="!newLinkInput() || !isValidUrl(newLinkInput())"
+                (click)="addLink(newLinkInput())" />
+            </div>
+            @if (itemForm.get('links')?.value?.length) {
+            <div class="flex flex-wrap gap-1.5">
+              @for (link of itemForm.get('links')?.value; track $index) {
+              <span
+                class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs min-w-0 max-w-60 truncate font-medium rounded-lg border border-primary-200 dark:border-primary-700 bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300">
+                <i class="pi pi-external-link text-xs!"></i>
+                <span class="max-w-40 truncate">{{ link }}</span>
+                <p-button icon="pi pi-times" (click)="removeLink($index)" text size="small" severity="danger" />
+              </span>
+              }
+            </div>
             }
           </div>
         </div>

@@ -16,9 +16,8 @@ export function computeDistLatLng(lat1: number, lon1: number, lat2: number, lon2
   return R * c;
 }
 
-export function daterangeToTripDays(daterange: Date[]): Partial<TripDay>[] {
+export function daterangeToTripDays(daterange: Date[], locale?: string): Partial<TripDay>[] {
   const [from, to] = daterange;
-  const months = ['Jan.', 'Feb.', 'Mar.', 'Apr.', 'May.', 'Jun.', 'Jul.', 'Aug.', 'Sep.', 'Oct.', 'Nov.', 'Dec.'];
 
   const tripDays: Partial<TripDay>[] = [];
   const current = new Date(from);
@@ -26,7 +25,8 @@ export function daterangeToTripDays(daterange: Date[]): Partial<TripDay>[] {
     const year = current.getFullYear();
     const month = String(current.getMonth() + 1).padStart(2, '0');
     const day = String(current.getDate()).padStart(2, '0');
-    const label = `${day} ${months[current.getMonth()]}`;
+    const monthAbbr = current.toLocaleString(locale ?? 'default', { month: 'short' });
+    const label = `${day} ${monthAbbr}`;
     tripDays.push({ label, dt: `${year}-${month}-${day}` });
     current.setDate(current.getDate() + 1);
   }

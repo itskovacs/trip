@@ -55,9 +55,8 @@ export const Interceptor = (req: HttpRequest<unknown>, next: HttpHandlerFn): Obs
       const errDetails = ERROR_CONFIG[err.status];
       if (errDetails) {
         console.error(err);
-        let msg = '';
-        msg = err.message || errDetails.detail;
-        if (!Array.isArray(err.error?.detail)) {
+        let msg = err.message || errDetails.detail;
+        if (err.error?.detail && !Array.isArray(err.error.detail)) {
           msg = err.error.detail;
         }
         return showAndThrowError(errDetails.title, msg);
@@ -85,6 +84,7 @@ export const Interceptor = (req: HttpRequest<unknown>, next: HttpHandlerFn): Obs
       } else if (err.status == 401 && !req.url.endsWith('/refresh')) {
         //  If any API route 401 -> redirect to login. We skip /refresh/ to prevent toast on login errors.
         authService.logout(`${err.error?.detail || err.message || 'You must be authenticated'}`, true);
+        return throwError(() => err);
       }
 
       console.error(err);

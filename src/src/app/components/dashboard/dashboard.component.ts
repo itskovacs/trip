@@ -175,12 +175,14 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   isGPXInPlaceMode = signal(false);
   isVisitedMode = signal(false);
   isMapPositionMode = signal(false);
+  isDogTagMode = signal(true);
   filter_display_visited = signal(false);
   filter_display_favorite_only = signal(false);
   filter_display_restroom = signal(false);
   filter_dog_only = signal(false);
   boundariesFiltering = signal<ProviderBoundaries | null>(null);
   hoveredElement = signal<HTMLElement | null>(null);
+  private selectedMarkerElement: HTMLElement | null = null;
   providers: { disp: string; value: string }[] = [
     { disp: 'OpenStreetMap API', value: 'osm' },
     { disp: 'Google API', value: 'google' },
@@ -391,6 +393,39 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         this.diffAndRenderMarkers(placesToDisplay);
       });
     });
+
+    effect(() => {
+      const id = this.selectedPlaceId();
+
+      if (this.selectedMarkerElement) {
+        this.selectedMarkerElement.classList.remove('list-hover');
+        this.selectedMarkerElement = null;
+      }
+
+      if (!id || !this.markerClusterGroup) return;
+
+      let targetMarker: L.Marker | undefined;
+      this.markerClusterGroup.eachLayer((layer: any) => {
+        if (layer.options?.placeId === id) targetMarker = layer;
+      });
+
+      if (!targetMarker) return;
+
+      const markerEl = targetMarker.getElement() as HTMLElement;
+      if (markerEl) {
+        markerEl.classList.add('list-hover');
+        this.selectedMarkerElement = markerEl;
+      } else {
+        const parentCluster = (this.markerClusterGroup as any).getVisibleParent(targetMarker);
+        if (parentCluster) {
+          const clusterEl = parentCluster.getElement() as HTMLElement;
+          if (clusterEl) {
+            clusterEl.classList.add('list-hover');
+            this.selectedMarkerElement = clusterEl;
+          }
+        }
+      }
+    });
   }
 
   ngOnInit(): void {
@@ -416,6 +451,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           this.isGPXInPlaceMode.set(!!settings.mode_gpx_in_place);
           this.isVisitedMode.set(!!settings.mode_display_visited);
           this.isMapPositionMode.set(!!settings.mode_map_position);
+          this.isDogTagMode.set(settings.show_dog_tag !== false);
           this.utilsService.toggleDarkMode(!!settings.mode_dark);
 
           this.categories.set(this.sortCategoriesArray(categories));
@@ -583,6 +619,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     marker
       .on('click', (e) => {
         this.selectedPlaceId.set(place.id);
+
         let toView = { ...e.latlng };
         if ('ontouchstart' in window) {
           const pixelPoint = this.map!.latLngToContainerPoint(e.latlng);
@@ -663,12 +700,17 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   }
 
   resetHoverPlace() {
-    if (!this.hoveredElement()) return;
-    this.hoveredElement()?.classList.remove('list-hover');
+    const el = this.hoveredElement();
+    if (!el) return;
+    if (el !== this.selectedMarkerElement) {
+      el.classList.remove('list-hover');
+    }
     this.hoveredElement.set(null);
   }
 
   hoverPlace(p: Place) {
+    this.resetHoverPlace();
+
     let marker: L.Marker | undefined;
     this.markerClusterGroup?.eachLayer((layer: any) => {
       if (layer.getLatLng && layer.getLatLng().equals([p.lat, p.lng])) marker = layer;
@@ -743,7 +785,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         '960px': '75vw',
         '640px': '90vw',
       },
-      data: this.translocoService.translate('messages.confirm_deletion_desc', { name: selected.name }),
+      data:
+        selected.trip_count
+          ? this.translocoService.translate('messages.confirm_deletion_desc_in_use', {
+              name: selected.name,
+              count: selected.trip_count,
+            })
+          : this.translocoService.translate('messages.confirm_deletion_desc', { name: selected.name }),
     })!;
 
     modal.onClose.subscribe({
@@ -942,6 +990,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           this.isGPXInPlaceMode.set(!!resp.settings.mode_gpx_in_place);
           this.isVisitedMode.set(!!resp.settings.mode_display_visited);
           this.isMapPositionMode.set(!!resp.settings.mode_map_position);
+          this.isDogTagMode.set(resp.settings.show_dog_tag !== false);
           this.utilsService.toggleDarkMode(!!resp.settings.mode_dark);
           this.resetFilters();
 
@@ -1183,6 +1232,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   closePlaceBox() {
     this.selectedPlaceId.set(null);
+    this.resetHoverPlace();
   }
 
   closePlaceGPX() {
@@ -1321,6 +1371,21 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   toggleMapPositionMode() {
     this.apiService
       .putSettings({ mode_map_position: this.isMapPositionMode() })
+      .pipe(take(1))
+      .subscribe({
+        next: () =>
+          this.utilsService.toast(
+            'success',
+            this.translocoService.translate('common.status.success'),
+            this.translocoService.translate('messages.preferences_saved'),
+          ),
+      });
+  }
+
+  toggleDogTagMode() {
+    if (!this.isDogTagMode()) this.filter_dog_only.set(false);
+    this.apiService
+      .putSettings({ show_dog_tag: this.isDogTagMode() })
       .pipe(take(1))
       .subscribe({
         next: () =>

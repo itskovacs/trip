@@ -22,6 +22,7 @@ import * as L from 'leaflet';
 import { TableModule } from 'primeng/table';
 import {
   Trip,
+  TripBooking,
   TripDay,
   TripItem,
   TripStatus,
@@ -80,6 +81,7 @@ import { computeDistLatLng, daterangeToTripDays } from '../../shared/utils';
 import { TabList, TabsModule } from 'primeng/tabs';
 import { PlaceBoxContentComponent } from '../../shared/place-box-content/place-box-content.component';
 import { TripBulkEditModalComponent } from '../../modals/trip-bulk-edit-modal/trip-bulk-edit-modal.component';
+import { TripBookingModalComponent } from '../../modals/trip-booking-modal/trip-booking-modal.component';
 import { PlaceListItemComponent } from '../../shared/place-list-item/place-list-item.component';
 import { RouteManagerService } from '../../services/route-manager.service';
 import { TripPrettyPrintModalComponent } from '../../modals/trip-pretty-print-modal/trip-pretty-print-modal.component';
@@ -206,6 +208,16 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     });
     return places;
   });
+  printOptionsBookings = computed(() => {
+    const options = this.printOptions();
+    if (!options?.showBookings) return [];
+    const bookings: TripBooking[] = [];
+    this.trip()?.days.forEach((d) => {
+      if (!options.days.has(d.id)) return;
+      (d.bookings ?? []).forEach((b) => bookings.push(b));
+    });
+    return bookings;
+  });
   usedPlaceIds = computed(() => {
     const trip = this.trip();
     if (!trip?.days) return new Set<number>();
@@ -264,14 +276,14 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
     return currentTrip.days
       .map((day) => {
-        let filteredItems = day.items;
+        let filteredItems = [...day.items];
 
         if (hasQuery) {
           filteredItems = filteredItems.filter(
             (item) =>
               item.text?.toLowerCase().includes(query) ||
               item.place?.name.toLowerCase().includes(query) ||
-              item.comment?.toLowerCase().includes(query)
+              item.comment?.toLowerCase().includes(query),
           );
         }
 
@@ -358,6 +370,38 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       .filter((item) => item.status && ['pending', 'constraint'].includes(item.status.label));
   });
   itemsToPasteCount = computed(() => this.utilsService.packingListToCopy.length);
+
+  readonly suggestedPackingItems: { text: string; category: string }[] = [
+    { text: 'modals.packing.items.passport', category: 'documents' },
+    { text: 'modals.packing.items.id_card', category: 'documents' },
+    { text: 'modals.packing.items.t_shirt', category: 'clothes' },
+    { text: 'modals.packing.items.socks', category: 'clothes' },
+    { text: 'modals.packing.items.pants', category: 'clothes' },
+    { text: 'modals.packing.items.underwear', category: 'clothes' },
+    { text: 'modals.packing.items.jacket', category: 'clothes' },
+    { text: 'modals.packing.items.pajamas', category: 'clothes' },
+    { text: 'modals.packing.items.toothbrush', category: 'toiletries' },
+    { text: 'modals.packing.items.toothpaste', category: 'toiletries' },
+    { text: 'modals.packing.items.shampoo', category: 'toiletries' },
+    { text: 'modals.packing.items.deodorant', category: 'toiletries' },
+    { text: 'modals.packing.items.sunscreen', category: 'toiletries' },
+    { text: 'modals.packing.items.phone_charger', category: 'tech' },
+    { text: 'modals.packing.items.headphones', category: 'tech' },
+    { text: 'modals.packing.items.power_bank', category: 'tech' },
+    { text: 'modals.packing.items.cash', category: 'other' },
+    { text: 'modals.packing.items.keys', category: 'other' },
+    { text: 'modals.packing.items.medications', category: 'other' },
+    { text: 'modals.packing.items.sunglasses', category: 'other' },
+  ];
+
+  availableSuggestions = computed(() =>
+    this.suggestedPackingItems.filter(
+      (s) =>
+        !this.packingList().some(
+          (p) => p.text?.toLowerCase() === this.translocoService.translate(s.text).toLowerCase(),
+        ),
+    ),
+  );
   highlightLayerData = computed<HighlightData | null>(() => {
     const dayId = this.highlightedDayId();
     const trip = this.trip();
@@ -385,7 +429,6 @@ export class TripComponent implements AfterViewInit, OnDestroy {
         coords.push([lat, lng]);
       }
 
-      console.log(items.length);
       if (items.length >= 2 && coords.length > 0) {
         paths.push({
           coords,
@@ -590,7 +633,10 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     });
 
     const plansPanelWidth = localStorage.getItem('plansPanelWidth');
-    if (plansPanelWidth) this.panelWidth.set(parseInt(plansPanelWidth));
+    if (plansPanelWidth) {
+      const width = parseInt(plansPanelWidth, 10);
+      if (!isNaN(width)) this.panelWidth.set(width);
+    }
   }
 
   ngAfterViewInit() {
@@ -1592,7 +1638,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       breakpoints: {
         '640px': '90vw',
       },
-      data: this.translocoService.translate('view.open_navigation', { name: day.label }),
+      data: this.translocoService.translate('entities.day.delete_desc', { name: day.label }),
     })!;
 
     modal.onClose.pipe(take(1)).subscribe((bool) => {
@@ -1605,6 +1651,98 @@ export class TripComponent implements AfterViewInit, OnDestroy {
         if (this.selectedDay()?.id === day.id) this.selectedDay.set(null);
       });
     });
+  }
+
+  openBookingModal(day: TripDay, booking?: TripBooking) {
+    const modal = this.dialogService.open(TripBookingModalComponent, {
+      header: booking
+        ? this.translocoService.translate('bookings.edit_booking')
+        : this.translocoService.translate('bookings.new_booking'),
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      draggable: false,
+      resizable: false,
+      data: { booking },
+      breakpoints: { '640px': '95vw' },
+      width: '400px',
+    })!;
+
+    modal.onClose
+      .pipe(take(1))
+      .subscribe((result: { action: 'save' | 'delete'; booking?: Partial<TripBooking> } | null) => {
+        if (!result) return;
+
+        const tripId = this.trip()!.id;
+
+        if (result.action === 'save') {
+          if (booking) {
+            this.apiService
+              .putTripBooking(booking.id, result.booking!)
+              .pipe(take(1))
+              .subscribe((updated) => {
+                this.trip.update((t) => {
+                  if (!t) return null;
+                  const days = t.days.map((d) =>
+                    d.id === day.id
+                      ? { ...d, bookings: (d.bookings ?? []).map((b) => (b.id === updated.id ? updated : b)) }
+                      : d,
+                  );
+                  return { ...t, days };
+                });
+              });
+          } else {
+            this.apiService
+              .postTripBooking(tripId, day.id, result.booking!)
+              .pipe(take(1))
+              .subscribe((created) => {
+                this.trip.update((t) => {
+                  if (!t) return null;
+                  const days = t.days.map((d) =>
+                    d.id === day.id ? { ...d, bookings: [...(d.bookings ?? []), created] } : d,
+                  );
+                  return { ...t, days };
+                });
+              });
+          }
+        } else if (result.action === 'delete' && booking) {
+          this.apiService
+            .deleteTripBooking(booking.id)
+            .pipe(take(1))
+            .subscribe(() => {
+              this.trip.update((t) => {
+                if (!t) return null;
+                const days = t.days.map((d) =>
+                  d.id === day.id ? { ...d, bookings: (d.bookings ?? []).filter((b) => b.id !== booking.id) } : d,
+                );
+                return { ...t, days };
+              });
+            });
+        }
+      });
+  }
+
+  bookingTypeIcon(type: string): string {
+    const icons: Record<string, string> = {
+      flight: '✈️',
+      car: '🚗',
+      hotel: '🏨',
+      activity: '🎪',
+      generic: '📋',
+    };
+    return icons[type] ?? '📋';
+  }
+
+  bookingTypeClass(type: string): string {
+    const classes: Record<string, string> = {
+      flight: 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300',
+      car: 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
+      hotel: 'bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300',
+      activity: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
+      generic: 'bg-primary-100 text-primary-600 dark:bg-primary-800 dark:text-primary-300',
+    };
+    return classes[type] ?? classes['generic'];
   }
 
   addPlace(e?: any) {
@@ -1845,6 +1983,44 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           });
       },
     });
+  }
+
+  editPackingItem(item: PackingItem) {
+    const modal: DynamicDialogRef = this.dialogService.open(TripCreatePackingModalComponent, {
+      header: this.translocoService.translate('entities.item.edit'),
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      draggable: false,
+      resizable: false,
+      breakpoints: { '640px': '90vw' },
+      data: item,
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (updated: Partial<PackingItem> | null) => {
+        if (!updated) return;
+        this.apiService
+          .putPackingItem(this.trip()!.id, item.id, updated)
+          .pipe(take(1))
+          .subscribe({
+            next: (saved) => this.packingList.update((l) => l.map((i) => (i.id === item.id ? saved : i))),
+          });
+      },
+    });
+  }
+
+  addSuggestedPackingItem(suggestion: { text: string; category: string }) {
+    this.apiService
+      .postPackingItem(this.trip()!.id, {
+        text: this.translocoService.translate(suggestion.text),
+        category: suggestion.category,
+      } as PackingItem)
+      .pipe(take(1))
+      .subscribe({
+        next: (item) => this.packingList.update((l) => [...l, item]),
+      });
   }
 
   onCheckPackingItem(e: CheckboxChangeEvent, id: number) {
@@ -2194,6 +2370,14 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     URL.revokeObjectURL(downloadURL);
   }
 
+  getDomain(url: string): string {
+    try {
+      return new URL(url).hostname;
+    } catch {
+      return url;
+    }
+  }
+
   itemToNavigation() {
     const item = this.selectedItem();
     const placeItems = this.selectedPlaceItems();
@@ -2206,7 +2390,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   tripDayToNavigation(dayId: number) {
     const idx = this.trip()?.days.findIndex((d) => d.id === dayId);
     if (!this.trip() || idx === undefined || idx == -1) return;
-    const data = this.trip()!.days[idx].items.sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0));
+    const data = [...this.trip()!.days[idx].items].sort((a, b) => (a.time ?? '').localeCompare(b.time ?? ''));
     const items = data.filter((item) => item.lat && item.lng);
     if (!items.length) return;
     openNavigation(items.map((item) => ({ lat: item.lat!, lng: item.lng! })));

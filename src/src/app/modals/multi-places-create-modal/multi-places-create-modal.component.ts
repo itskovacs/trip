@@ -28,6 +28,7 @@ export class MultiPlacesCreateModalComponent {
   config = inject(DynamicDialogConfig);
   utilsService = inject(UtilsService);
 
+  showDogTag = toSignal(this.apiService.settings$.pipe(map((s) => s?.show_dog_tag !== false)), { initialValue: true });
   categories = toSignal(this.apiService.getCategories(), { initialValue: [] as Category[] });
   places = signal<Place[]>([]);
   isTripsDialogVisible = signal(false);

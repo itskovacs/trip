@@ -77,6 +77,7 @@
       "itinerary": "Itinerary",
       "label": "Label",
       "latitude": "Latitude",
+      "links": "Links",
       "longitude": "Longitude",
       "map": "Map",
       "member": "Member",
@@ -190,6 +191,8 @@
     "gpx_indicator_desc": "Show compass when GPX data available",
     "encode_map_position": "Store Map Position and Place",
     "encode_map_position_desc": "Encode map position and selected place in the URL to restore the same view on refresh",
+    "dog_tag": "Dog-Friendly Tag",
+    "dog_tag_desc": "Show the dog-friendly indicator on places and the filter chip",
     "always_display_visited": "Show Visited Places",
     "always_display_visited_desc": "Always display visited places as small dots",
     "currency": "Currency",
@@ -264,6 +267,26 @@
       "empty": "No pending invitations."
     }
   },
+  "bookings": {
+    "add_booking": "booking",
+    "new_booking": "New booking",
+    "edit_booking": "Edit booking",
+    "type": "Type",
+    "label": "Label",
+    "reference": "Reference",
+    "price": "Price",
+    "notes": "Notes",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "types": {
+      "flight": "✈️ Flight",
+      "car": "🚗 Car",
+      "hotel": "🏨 Hotel",
+      "activity": "🎪 Activity",
+      "generic": "📋 Generic"
+    }
+  },
   "support": {
     "support": "Support TRIP",
     "support_desc": "TRIP is free to use and maintained through community support. Consider supporting its development by ",
@@ -290,6 +313,7 @@
     "possible_duplicate_desc": "A possible duplicate place ({{name}}) exists. Create anyway?",
     "confirm_deletion": "Confirm deletion",
     "confirm_deletion_desc": "Delete {{name}} ?",
+    "confirm_deletion_desc_in_use": "{{name}} is used in {{count}} trip(s). Delete anyway?",
     "could_not_parse_gpx": "Couldn't parse GPX data",
     "could_not_retrieve_gpx": "Couldn't retrieve GPX data",
     "ingesting_backup": "Ingesting your backup...",
@@ -379,7 +403,8 @@
       "add_checklist": "Add Checklist",
       "add_packing": "Add Packing",
       "add_poi": "Add Point of Interest",
-      "delete": "Delete Item"
+      "delete": "Delete Item",
+      "edit": "Edit Item"
     },
     "member": {
       "delete_desc": "Delete {{name}} from Trip ?",
@@ -484,6 +509,7 @@
     },
     "enter_totp": "Enter your TOTP code",
     "item": {
+      "link_placeholder": "https://...",
       "paid_by": "Paid By",
       "plan_text": "Plan Text",
       "upload_new": "Upload New"
@@ -505,11 +531,42 @@
       "empty": "Nothing yet."
     },
     "packing": {
-      "qt": "Qt."
+      "qt": "Qt.",
+      "suggestions": "Suggestions",
+      "categories": {
+        "documents": "Documents",
+        "clothes": "Clothes",
+        "toiletries": "Toiletries",
+        "tech": "Tech",
+        "other": "Other"
+      },
+      "items": {
+        "passport": "Passport",
+        "id_card": "ID Card",
+        "t_shirt": "T-shirt",
+        "socks": "Socks",
+        "pants": "Pants",
+        "underwear": "Underwear",
+        "jacket": "Jacket",
+        "pajamas": "Pajamas",
+        "toothbrush": "Toothbrush",
+        "toothpaste": "Toothpaste",
+        "shampoo": "Shampoo",
+        "deodorant": "Deodorant",
+        "sunscreen": "Sunscreen",
+        "phone_charger": "Phone Charger",
+        "headphones": "Headphones",
+        "power_bank": "Power Bank",
+        "cash": "Cash",
+        "keys": "Keys",
+        "medications": "Medications",
+        "sunglasses": "Sunglasses"
+      }
     },
     "place": {
       "dog_friendly": "Dog-friendly",
       "duration": "Duration (minutes)",
+      "link_placeholder": "https://...",
       "image_url_dialog": {
         "header": "Add Image URL",
         "label": "Image URL"
@@ -565,6 +622,10 @@
         "description": "Fields to include",
         "selected": "{0} properties selected",
         "title": "Properties"
+      },
+      "bookings": {
+        "title": "Bookings",
+        "description": "Include day bookings"
       }
     },
     "provider": {
@@ -589,6 +650,7 @@
     "price": "Price",
     "duration": "Duration",
     "description": "Description",
+    "links": "Links",
     "display_gpx": "Display GPX",
     "open_navigation": "Open in Navigation",
     "fly_to_place": "Fly to Place",

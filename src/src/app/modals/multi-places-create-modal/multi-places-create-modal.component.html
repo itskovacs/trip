@@ -66,6 +66,7 @@
         </p>
 
         <div class="flex items-center gap-2">
+          @if (showDogTag()) {
           <span class="pi flex items-center px-1.5 py-0.5 rounded text-xs" style="font-size: 12px" [class]="
         p.allowdog
          ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-400'
@@ -73,6 +74,7 @@
        ">
             🐶
           </span>
+          }
 
           <span class="pi flex items-center px-1.5 py-0.5 rounded text-xs" style="font-size: 12px" [class]="
         p.restroom

@@ -40,7 +40,7 @@ export function generateTripICSFile(trip: Trip, utilsService: UtilsService): voi
     } else {
       const startObj = new Date(`${date}T${time}`);
       const endObj = new Date(startObj.getTime() + 60 * 60 * 1000);
-      dtEnd = endObj.toISOString().replace(/[-:]/g, '').split('.')[0];
+      dtEnd = endObj.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
     }
 
     const eventDescription: string[] = [];
