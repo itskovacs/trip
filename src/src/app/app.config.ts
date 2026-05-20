@@ -46,24 +46,19 @@ export const appConfig: ApplicationConfig = {
       storage: { useValue: localStorage },
     }),
     provideAppInitializer(() => {
-      // Browser frn we set to fr, else defaults to english
       const translocoService = inject(TranslocoService);
       const availableLangs = translocoService.getAvailableLangs() as string[];
 
-      // navigator.language gives the full tag e.g. 'pt-BR', 'pt-PT', 'fr-FR'
-      const fullLang = navigator.language;
-      const exactMatch = availableLangs.find((lang) => lang.toLowerCase() === fullLang.toLowerCase());
+      const fullLang = navigator.language.toLowerCase();
+      const baseLang = getBrowserLang() ?? translocoService.getDefaultLang();
 
-      if (exactMatch) {
-        translocoService.setActiveLang(exactMatch);
-        return;
-      }
+      const lang =
+        availableLangs.find((l) => l.toLowerCase() === fullLang) ??
+        availableLangs.find((l) => l.toLowerCase() === baseLang) ??
+        translocoService.getDefaultLang();
 
-      // Strips the region, giving just 'pt', 'fr' etc.
-      const baseLang = fullLang.split('-')[0];
-      const baseMatch = availableLangs.find((lang) => lang.toLowerCase().startsWith(baseLang.toLowerCase()));
-
-      if (baseMatch) translocoService.setActiveLang(baseMatch);
+      translocoService.setActiveLang(lang);
+      return lastValueFrom(translocoService.load(lang));
     }),
   ],
 };
