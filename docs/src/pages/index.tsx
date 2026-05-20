@@ -5,7 +5,7 @@ import HomepageFeatures from "@site/src/components/HomepageFeatures";
 
 export default function Home(): ReactNode {
   return (
-    <Layout title={`Home`} description="TRIP 1.45.0 documentation. See github.com/itskovacs/trip for more information">
+    <Layout title={`Home`} description="TRIP 1.45.1 documentation. See github.com/itskovacs/trip for more information">
       <div
         style={{
           display: "flex",
