@@ -34,7 +34,7 @@ export const appConfig: ApplicationConfig = {
     }),
     provideTransloco({
       config: {
-        availableLangs: ['en', 'fr'],
+        availableLangs: ['en', 'fr', 'pt-BR'],
         defaultLang: 'en',
         reRenderOnLangChange: true,
         prodMode: !isDevMode(),
@@ -46,10 +46,19 @@ export const appConfig: ApplicationConfig = {
       storage: { useValue: localStorage },
     }),
     provideAppInitializer(() => {
-      // Browser frn we set to fr, else defaults to english
-      if (getBrowserLang() != 'fr') return;
       const translocoService = inject(TranslocoService);
-      translocoService.setActiveLang('fr');
+      const availableLangs = translocoService.getAvailableLangs() as string[];
+
+      const fullLang = navigator.language.toLowerCase();
+      const baseLang = getBrowserLang() ?? translocoService.getDefaultLang();
+
+      const lang =
+        availableLangs.find((l) => l.toLowerCase() === fullLang) ??
+        availableLangs.find((l) => l.toLowerCase() === baseLang) ??
+        translocoService.getDefaultLang();
+
+      translocoService.setActiveLang(lang);
+      return lastValueFrom(translocoService.load(lang));
     }),
   ],
 };
