@@ -818,7 +818,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
 
   editPlace(p?: Place) {
     const selected = this.selectedPlace();
-    const target = selected || p;
+    const target = p || selected;
     if (!target) return;
     const _placeToEdit: Place = { ...target };
 
