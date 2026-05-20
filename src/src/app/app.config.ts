@@ -11,6 +11,7 @@ import { provideServiceWorker } from '@angular/service-worker';
 import { TranslocoHttpLoader } from './transloco-loader';
 import { getBrowserLang, provideTransloco, TranslocoService } from '@jsverse/transloco';
 import { provideTranslocoPersistTranslations } from '@jsverse/transloco-persist-translations';
+import { lastValueFrom } from 'rxjs';
 
 export const appConfig: ApplicationConfig = {
   providers: [
