@@ -74,7 +74,7 @@
       "gpx": "GPX",
       "image": "Afbeelding",
       "item": "Item",
-      "itinerary": "Reisroute",
+      "itinerary": "Reisplan",
       "label": "Label",
       "latitude": "Breedtegraad",
       "links": "Links",
@@ -480,7 +480,7 @@
     "print_options": "Afdrukopties",
     "selected_count": "{{count}} geselecteerd",
     "trip_archived": "Trip is gearchiveerd",
-    "your_itinerary": "Jouw reisroute"
+    "your_itinerary": "Jouw reisplan"
   },
   "modals": {
     "archive": {
