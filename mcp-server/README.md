@@ -20,6 +20,7 @@ docker compose up -d
 ```
 
 Environment variables:
+
 - `TRIP_API_URL` — TRIP backend URL (default: http://localhost:8080)
 - `TRIP_USERNAME` — Login username
 - `TRIP_PASSWORD` — Login password
@@ -27,12 +28,13 @@ Environment variables:
 ## Connect
 
 Claude Code (`~/.claude/settings.json`):
+
 ```json
 {
   "mcpServers": {
     "trip": {
-      "type": "sse",
-      "url": "http://localhost:3001/sse"
+      "type": "http",
+      "url": "http://localhost:3001/mcp"
     }
   }
 }
