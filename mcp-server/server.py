@@ -34,7 +34,8 @@ async def delete_trip(trip_id: int) -> dict:
 
 @mcp.tool()
 async def link_places(trip_id: int, place_ids: list[int]) -> dict:
-    """Link places to a trip. Must be called before adding items with place references."""
+    """Replace the full set of places linked to a trip. Existing links not in place_ids are removed.
+    Must be called before adding items with place references."""
     return await api_put(f"/api/trips/{trip_id}", {"place_ids": place_ids})
 
 # ── Days ──
@@ -47,10 +48,9 @@ async def add_day(trip_id: int, label: str, date: str = "") -> dict:
     return await api_post(f"/api/trips/{trip_id}/days", data)
 
 @mcp.tool()
-async def update_day(trip_id: int, day_id: int, label: str = "", date: str = "") -> dict:
-    """Update a day."""
-    data = {}
-    if label: data["label"] = label
+async def update_day(trip_id: int, day_id: int, label: str, date: str = "") -> dict:
+    """Update a day. label is required (use get_trip to retrieve the current value if only updating the date)."""
+    data: dict = {"label": label}
     if date: data["dt"] = date
     return await api_put(f"/api/trips/{trip_id}/days/{day_id}", data)
 
@@ -70,11 +70,20 @@ async def add_item(trip_id: int, day_id: int, text: str, time: str = "09:00",
     return await api_post(f"/api/trips/{trip_id}/days/{day_id}/items", data)
 
 @mcp.tool()
-async def update_item(trip_id: int, day_id: int, item_id: int, text: str = "", time: str = "") -> dict:
-    """Update an item."""
-    data = {}
+async def update_item(trip_id: int, day_id: int, item_id: int, text: str = "", time: str = "",
+                      price: float | None = None, status: str = "",
+                      place_id: int | None = None, remove_place: bool = False) -> dict:
+    """Update an item. Always pass place_id to preserve the place reference (use get_trip to retrieve it).
+    Set remove_place=True to detach the place. Status: pending/booked/constraint/optional."""
+    data: dict = {}
     if text: data["text"] = text
     if time: data["time"] = time
+    if price is not None: data["price"] = price
+    if status: data["status"] = status
+    if remove_place:
+        data["place"] = None
+    elif place_id is not None:
+        data["place"] = place_id
     return await api_put(f"/api/trips/{trip_id}/days/{day_id}/items/{item_id}", data)
 
 @mcp.tool()
@@ -150,4 +159,4 @@ async def invite_member(trip_id: int, username: str) -> dict:
     return await api_post(f"/api/trips/{trip_id}/members", {"user": username})
 
 if __name__ == "__main__":
-    mcp.run(transport="sse", host="0.0.0.0", port=3001)
+    mcp.run(transport="http", host="0.0.0.0", port=3001)
