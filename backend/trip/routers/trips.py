@@ -490,12 +490,13 @@ def update_tripitem(
                     session.rollback()
                     raise HTTPException(status_code=400, detail="Bad request")
 
-    place_id = item_data.pop("place", None)
-    db_item.place_id = place_id
-    if place_id is not None:
-        place_in_trip = any(p.id == place_id for p in db_trip.places)
-        if not place_in_trip:
-            raise HTTPException(status_code=400, detail="Bad request")
+    if "place" in item_data:
+        place_id = item_data.pop("place")
+        db_item.place_id = place_id
+        if place_id is not None:
+            place_in_trip = any(p.id == place_id for p in db_trip.places)
+            if not place_in_trip:
+                raise HTTPException(status_code=400, detail="Bad request")
 
     if "paid_by" in item_data:
         paid_by = item_data.pop("paid_by")
