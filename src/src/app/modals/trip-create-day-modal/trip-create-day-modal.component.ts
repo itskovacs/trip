@@ -40,7 +40,7 @@ export class TripCreateDayModalComponent {
 
   dayForm: FormGroup;
   daysForm: FormGroup;
-  dayNames: string[] = [];
+  existingDays: TripDay[] = [];
   months = ['Jan.', 'Feb.', 'Mar.', 'Apr.', 'May.', 'Jun.', 'Jul.', 'Aug.', 'Sep.', 'Oct.', 'Nov.', 'Dec.'];
   tabValue: number = 0;
 
@@ -70,9 +70,7 @@ export class TripCreateDayModalComponent {
         });
       }
 
-      this.dayNames = (this.config.data.days || [])
-        .filter((d: TripDay) => d.id !== this.config.data.day?.id)
-        .map((d: TripDay) => d.label);
+      this.existingDays = (this.config.data.days || []).filter((d: TripDay) => d.id !== this.config.data.day?.id);
     }
 
     this.dayForm
@@ -97,15 +95,26 @@ export class TripCreateDayModalComponent {
   }
 
   closeDialog() {
-    let ret;
+    let ret: any;
     if (this.tabValue === 0) {
       if (!this.dayForm.valid) return;
       ret = this.dayForm.value;
-      if (this.dayNames.includes(ret['label'])) {
-        this.utilsService.toast('error', 'Error', 'Day label is already in use');
+      const newDt = ret['dt'] ? this.formatDateWithoutTimezone(ret['dt']) : null;
+      const conflictingDay = this.existingDays.find((d: TripDay) => {
+        if (d.label !== ret['label']) return false;
+        const existingDt = d.dt || null;
+        if (newDt === null && existingDt === null) return true;
+        if (newDt !== null && existingDt !== null && newDt === existingDt) return true;
+        return false;
+      });
+      if (conflictingDay) {
+        const reason = conflictingDay.dt
+          ? `A day on ${conflictingDay.dt} already uses this label`
+          : 'A day without a date already uses this label';
+        this.utilsService.toast('error', 'Error', reason);
         return;
       }
-      if (ret['dt']) ret['dt'] = this.formatDateWithoutTimezone(ret['dt']);
+      if (ret['dt']) ret['dt'] = newDt;
     } else if (this.tabValue === 1) {
       if (!this.daysForm.valid) return;
       ret = this.daysForm.value;

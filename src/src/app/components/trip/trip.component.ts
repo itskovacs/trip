@@ -932,6 +932,12 @@ export class TripComponent implements AfterViewInit, OnDestroy {
             icon: 'pi pi-directions',
             command: () => this.tripDayToNavigation(d.id),
           },
+          {
+            label: this.translocoService.translate('common.actions.edit'),
+            icon: 'pi pi-pencil',
+            disabled: this.trip()!.archived,
+            command: () => this.editDay(d),
+          },
         ],
       },
     ];

@@ -177,7 +177,7 @@ export class TripCreateDayItemModalComponent {
       delete ret['image_id'];
     }
     if (ret['gpx'] == '1') delete ret['gpx'];
-    if (!ret['place']) delete ret['place'];
+    if (!ret['place']) ret['place'] = null;
     if (ret['attachments']) {
       ret['attachment_ids'] = ret['attachments'];
       delete ret['attachments'];
