@@ -972,7 +972,10 @@ def create_trip_attachment(
         uploaded_by=current_user,
         trip_id=trip_id,
     )
-    stored_filename = save_attachment(trip_id, file)
+    try:
+        stored_filename = save_attachment(trip_id, file)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
     if not stored_filename:
         raise HTTPException(status_code=400, detail="Bad request")
 
@@ -1049,6 +1052,8 @@ async def download_shared_trip_attachment(
     attachment_id: int,
 ):
     _trip = _trip_from_token_or_404(session, token)
+    if not _trip.is_full_access:
+        raise HTTPException(status_code=404, detail="Attachment not found")
     attachment = session.exec(
         select(TripAttachment).where(
             TripAttachment.trip_id == _trip.trip_id, TripAttachment.id == attachment_id

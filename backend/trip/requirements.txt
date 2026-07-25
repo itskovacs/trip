@@ -8,3 +8,4 @@ Pillow~=11.2
 authlib~=1.6
 alembic~=1.16
 pyotp~=2.9
+defusedxml~=0.7

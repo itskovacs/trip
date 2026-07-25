@@ -27,6 +27,10 @@ class Settings(BaseSettings):
     ATTACHMENTS_FOLDER: str = "storage/attachments"
     ATTACHMENT_MAX_SIZE: int = 10 * 1024 * 1024  # 10MB
     BACKUPS_FOLDER: str = "storage/backups"
+    BACKUP_IMPORT_MAX_ENTRY_SIZE: int = 100 * 1024 * 1024  # 100MB
+    BACKUP_IMPORT_MAX_TOTAL_SIZE: int = 500 * 1024 * 1024  # 500MB
+    KML_MAX_ENTRY_SIZE: int = 50 * 1024 * 1024  # 50MB
+    PROVIDER_IMPORT_MAX_SIZE: int = 20 * 1024 * 1024  # 20MB
 
     SECRET_KEY: str = ""
     ALGORITHM: str = "HS256"

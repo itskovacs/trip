@@ -109,6 +109,8 @@ async def token_google_search(
         if not result:
             raise HTTPException(status_code=404, detail="Place not found")
 
+    except HTTPException:
+        raise
     except Exception as exc:
         logger.error(f"[BY_TOKEN] Error resolving Google Search query '{query}': {exc}")
         raise HTTPException(status_code=404, detail="Not found")

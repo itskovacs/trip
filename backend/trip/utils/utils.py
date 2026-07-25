@@ -229,12 +229,22 @@ def save_image_to_file(content: bytes, size: int = 600) -> tuple[str, int]:
     return "", 0
 
 
+def enforce_upload_size(file: UploadFile, max_size: int) -> None:
+    if file.size is not None and file.size > max_size:
+        raise HTTPException(status_code=400, detail="File is too large")
+
+
 def save_attachment(trip_id: int, file: UploadFile) -> str:
     if file.content_type != "application/pdf":
         raise ValueError("Unsupported attachment format")
 
-    if file.size > get_settings().ATTACHMENT_MAX_SIZE:
+    if file.size is not None and file.size > get_settings().ATTACHMENT_MAX_SIZE:
         raise ValueError("File size is above ATTACHMENT_MAX_SIZE")
+
+    header = file.file.read(5)
+    file.file.seek(0)
+    if header != b"%PDF-":
+        raise ValueError("Unsupported attachment format")
 
     filename = generate_filename("pdf")
     filepath = attachments_trip_folder_path(trip_id) / filename

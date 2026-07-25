@@ -1,6 +1,7 @@
 from typing import Annotated
 
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.concurrency import run_in_threadpool
 from sqlalchemy.orm import selectinload
 from sqlmodel import select
 
@@ -52,14 +53,17 @@ async def create_place(
         if place.image[:4] == "http":
             fp, file_size = await download_file(place.image)
             if fp:
-                patch_image(fp)
-                image = Image(filename=fp.split("/")[-1], file_size=file_size, user=current_user)
+                filename = fp.split("/")[-1]
+                await run_in_threadpool(patch_image, fp)
+                image = Image(filename=filename, file_size=file_size, user=current_user)
                 session.add(image)
                 session.flush()
                 new_place.image_id = image.id
         else:
             image_bytes = b64img_decode(place.image)
-            filename, file_size = save_image_to_file(image_bytes, get_settings().PLACE_IMAGE_SIZE)
+            filename, file_size = await run_in_threadpool(
+                save_image_to_file, image_bytes, get_settings().PLACE_IMAGE_SIZE
+            )
             if not filename:
                 raise HTTPException(status_code=400, detail="Bad request")
             image = Image(filename=filename, file_size=file_size, user=current_user)
@@ -96,14 +100,17 @@ async def update_place(
         if image[:4] == "http":
             fp, file_size = await download_file(place.image)
             if fp:
-                patch_image(fp)
-                image = Image(filename=fp.split("/")[-1], file_size=file_size, user=current_user)
+                filename = fp.split("/")[-1]
+                await run_in_threadpool(patch_image, fp)
+                image = Image(filename=filename, file_size=file_size, user=current_user)
                 session.add(image)
                 session.flush()
                 image_updated = True
         else:
             image_bytes = b64img_decode(place.image)
-            filename, file_size = save_image_to_file(image_bytes, get_settings().PLACE_IMAGE_SIZE)
+            filename, file_size = await run_in_threadpool(
+                save_image_to_file, image_bytes, get_settings().PLACE_IMAGE_SIZE
+            )
             if not filename:
                 raise HTTPException(status_code=400, detail="Bad request")
             image = Image(filename=filename, file_size=file_size, user=current_user)
@@ -120,6 +127,8 @@ async def update_place(
                     db_place.image_id = None
                     session.refresh(db_place)
                 except Exception:
+                    if filename:
+                        remove_image(filename)
                     raise HTTPException(status_code=400, detail="Bad request")
             db_place.image_id = image.id
 

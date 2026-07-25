@@ -16,14 +16,15 @@ from ..db.core import get_engine
 from ..deps import SessionDep, get_current_username
 from ..models.models import (Backup, BackupStatus, Category, CategoryRead,
                              Image, Place, PlaceRead, Trip, TripAttachment,
-                             TripBooking, TripChecklistItem,
-                             TripChecklistItemRead, TripDay, TripItem,
-                             TripItemAttachmentLink, TripPackingListItem,
+                             TripBooking, TripBookingAttachmentLink,
+                             TripChecklistItem, TripChecklistItemRead, TripDay,
+                             TripItem, TripItemAttachmentLink,
+                             TripItemImageLink, TripPackingListItem,
                              TripPackingListItemRead, TripRead, User, UserRead)
 from .date import dt_utc, iso_to_dt
 from .utils import (assets_folder_path, attachments_folder_path,
-                    attachments_trip_folder_path, b64img_decode, remove_image,
-                    save_image_to_file)
+                    attachments_trip_folder_path, b64img_decode,
+                    generate_urlsafe, remove_image, save_image_to_file)
 from .xml import parse_mymaps_kml
 
 logger = logging.getLogger(__name__)
@@ -132,10 +133,15 @@ def process_backup_export(backup_id: int, full: bool = False):
 
         backup_dt = dt_utc()
         iso_date = backup_dt.strftime("%Y-%m-%dT%H-%M-%S")
+        # A short random token is appended so concurrent exports (e.g. two admin full
+        # backups started close together) can never collide on the same filename/path.
+        # This token is internal only: download endpoints rebuild a user-facing
+        # filename from created_at/user at download time, so it never leaks out.
+        unique_token = generate_urlsafe()[:8]
         if full:
-            filename = f"TRIP_{iso_date}_full_backup.zip"
+            filename = f"TRIP_{iso_date}_full_backup_{unique_token}.zip"
         else:
-            filename = f"TRIP_{db_backup.user}_{iso_date}_backup.zip"
+            filename = f"TRIP_{db_backup.user}_{iso_date}_backup_{unique_token}.zip"
         backups_dir = Path(get_settings().BACKUPS_FOLDER)
         backups_dir.mkdir(parents=True, exist_ok=True)
         zip_fp = backups_dir / filename
@@ -166,6 +172,14 @@ def process_backup_export(backup_id: int, full: bool = False):
                 logger.error(f"[BACKUP EXPORT]: Failed to clean ({zip_fp}): {exc}")
 
 
+def _read_bounded(zipf: ZipFile, name: str, max_size: int) -> bytes:
+    with zipf.open(name, "r") as entry:
+        data = entry.read(max_size + 1)
+    if len(data) > max_size:
+        raise ValueError(f"Zip entry {name!r} exceeds max allowed decompressed size ({max_size})")
+    return data
+
+
 # use def instead of async def https://fastapi.tiangolo.com/async/#path-operation-functions
 def process_backup_import(
     session: SessionDep, current_user: Annotated[str, Depends(get_current_username)], file: UploadFile
@@ -177,6 +191,13 @@ def process_backup_import(
 
     file.file.seek(0)
     with ZipFile(file.file, "r") as zipf:
+        # Cheap upfront zip-bomb guard: ZipInfo.file_size is metadata read from the
+        # central directory, no decompression needed. Reject grossly oversized
+        # archives before doing any real work.
+        total_declared_size = sum(info.file_size for info in zipf.infolist())
+        if total_declared_size > get_settings().BACKUP_IMPORT_MAX_TOTAL_SIZE:
+            raise HTTPException(status_code=400, detail="Backup archive is too large")
+
         zip_filenames = []
         for name in zipf.namelist():
             if ".." in name or name.startswith("/"):
@@ -187,7 +208,7 @@ def process_backup_import(
             raise HTTPException(status_code=400, detail="Invalid file")
 
         try:
-            data = json.loads(zipf.read("data.json"))
+            data = json.loads(_read_bounded(zipf, "data.json", get_settings().BACKUP_IMPORT_MAX_ENTRY_SIZE))
         except Exception:
             raise HTTPException(status_code=400, detail="Invalid file")
 
@@ -225,7 +246,11 @@ def process_backup_import(
                         category_filename = category.get("image").split("/")[-1]
                         if category_filename and category_filename in image_files:
                             try:
-                                image_bytes = zipf.read(image_files[category_filename])
+                                image_bytes = _read_bounded(
+                                    zipf,
+                                    image_files[category_filename],
+                                    get_settings().BACKUP_IMPORT_MAX_ENTRY_SIZE,
+                                )
                                 filename, file_size = save_image_to_file(
                                     image_bytes, get_settings().PLACE_IMAGE_SIZE
                                 )
@@ -260,7 +285,11 @@ def process_backup_import(
                     category_filename = category.get("image").split("/")[-1]
                     if category_filename and category_filename in image_files:
                         try:
-                            image_bytes = zipf.read(image_files[category_filename])
+                            image_bytes = _read_bounded(
+                                zipf,
+                                image_files[category_filename],
+                                get_settings().BACKUP_IMPORT_MAX_ENTRY_SIZE,
+                            )
                             filename, file_size = save_image_to_file(
                                 image_bytes, get_settings().PLACE_IMAGE_SIZE
                             )
@@ -304,7 +333,11 @@ def process_backup_import(
                     place_filename = place.get("image").split("/")[-1]
                     if place_filename and place_filename in image_files:
                         try:
-                            image_bytes = zipf.read(image_files[place_filename])
+                            image_bytes = _read_bounded(
+                                zipf,
+                                image_files[place_filename],
+                                get_settings().BACKUP_IMPORT_MAX_ENTRY_SIZE,
+                            )
                             filename, file_size = save_image_to_file(
                                 image_bytes, get_settings().PLACE_IMAGE_SIZE
                             )
@@ -378,7 +411,9 @@ def process_backup_import(
                     trip_filename = trip.get("image").split("/")[-1]
                     if trip_filename and trip_filename in image_files:
                         try:
-                            image_bytes = zipf.read(image_files[trip_filename])
+                            image_bytes = _read_bounded(
+                                zipf, image_files[trip_filename], get_settings().BACKUP_IMPORT_MAX_ENTRY_SIZE
+                            )
                             filename, file_size = save_image_to_file(
                                 image_bytes, get_settings().TRIP_IMAGE_SIZE
                             )
@@ -415,7 +450,9 @@ def process_backup_import(
 
                     if stored_filename in attachment_files:
                         try:
-                            attachment_bytes = zipf.read(attachment_files[stored_filename])
+                            attachment_bytes = _read_bounded(
+                                zipf, attachment_files[stored_filename], get_settings().ATTACHMENT_MAX_SIZE
+                            )
                             new_attachment = {
                                 key: attachment[key]
                                 for key in attachment
@@ -563,6 +600,9 @@ def process_legacy_import(
     session: SessionDep, current_user: Annotated[str, Depends(get_current_username)], file: UploadFile
 ):
     # supports previous import format (JSON file) — no packing list, no checklist, no attachments
+    if file.size is not None and file.size > get_settings().BACKUP_IMPORT_MAX_TOTAL_SIZE:
+        raise HTTPException(status_code=400, detail="File is too large")
+
     try:
         content = file.file.read()
         data = json.loads(content)
@@ -822,10 +862,20 @@ def parse_mymaps_kmz(file: UploadFile) -> list[dict]:
             kml_files = [name for name in kmz.namelist() if name.endswith(".kml")]
             if not kml_files:
                 raise ValueError("Invalid KMZ file: missing KML file")
+
             for kml_filename in kml_files:
-                with kmz.open(kml_filename, "r") as kml_file:
-                    kml_content = kml_file.read().decode("utf-8")
+                # Per-entry isolation: one malformed/oversized KML file must not
+                # discard places already parsed from other files in the same
+                # archive.
+                try:
+                    kml_bytes = _read_bounded(kmz, kml_filename, get_settings().KML_MAX_ENTRY_SIZE)
+                    kml_content = kml_bytes.decode("utf-8")
                     places.extend(parse_mymaps_kml(kml_content))
+                except Exception as exc:
+                    logger.warning(f"[KMZ IMPORT]: Skipping KML entry {kml_filename!r}: {exc}")
+                    continue
+    except HTTPException:
+        raise
     except Exception as exc:
         logger.error(f"[KMZ IMPORT]: {exc}")
         raise HTTPException(status_code=400, detail="Failed to parse KMZ file")
