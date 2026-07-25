@@ -40,7 +40,7 @@ export function generateTripICSFile(trip: Trip, utilsService: UtilsService): voi
     } else {
       const startObj = new Date(`${date}T${time}`);
       const endObj = new Date(startObj.getTime() + 60 * 60 * 1000);
-      dtEnd = endObj.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+      dtEnd = formatICSDateFromDate(endObj);
     }
 
     const eventDescription: string[] = [];
@@ -55,7 +55,7 @@ export function generateTripICSFile(trip: Trip, utilsService: UtilsService): voi
     }
     if (item.price) eventDescription.push(`${item.price} ${trip.currency}`);
 
-    const description = eventDescription.join('\\n');
+    const description = eventDescription.join('\n');
     const location = item.place?.name || (lat && lng ? `${lat}, ${lng}` : '');
 
     let statusLabel = '';
@@ -101,7 +101,15 @@ function formatICSDate(dateStr: string, timeStr: string): string {
   const [y, m, d] = dateStr.split('-');
   const [hh, mm] = timeStr.split(':');
   const local = new Date(+y, +m - 1, +d, +hh, +mm, 0);
-  return local.toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
+  return formatICSDateFromDate(local);
+}
+
+function formatICSDateFromDate(date: Date): string {
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return (
+    `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}` +
+    `T${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`
+  );
 }
 
 function escapeICSText(text: string): string {

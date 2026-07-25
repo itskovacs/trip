@@ -696,7 +696,9 @@ def process_legacy_import(
                     b64_image = data.get("images", {}).get(str(category.get("image_id")))
                     if b64_image:
                         image_bytes = b64img_decode(b64_image)
-                        filename, file_size = save_image_to_file(image_bytes, get_settings().PLACE_IMAGE_SIZE)
+                        filename, file_size = save_image_to_file(
+                            image_bytes, get_settings().PLACE_IMAGE_SIZE
+                        )
                         if not filename:
                             raise HTTPException(status_code=500, detail="Error saving image")
 
@@ -901,7 +903,9 @@ def process_legacy_import(
             "categories": [
                 CategoryRead.serialize(c)
                 for c in session.exec(
-                    select(Category).options(selectinload(Category.image)).where(Category.user == current_user)
+                    select(Category)
+                    .options(selectinload(Category.image))
+                    .where(Category.user == current_user)
                 ).all()
             ],
             "settings": UserRead.serialize(session.get(User, current_user)),

@@ -60,9 +60,9 @@ export class ApiService {
 
   getCategories(): Observable<Category[]> {
     if (!this.categoriesSubject.value) {
-      return this.httpClient.get<Category[]>(`${this.apiBaseUrl}/categories`).pipe(
-        tap((categories) => this._categoriesSubjectNext(categories)),
-      );
+      return this.httpClient
+        .get<Category[]>(`${this.apiBaseUrl}/categories`)
+        .pipe(tap((categories) => this._categoriesSubjectNext(categories)));
     }
     return this.categories$ as Observable<Category[]>;
   }
@@ -82,7 +82,7 @@ export class ApiService {
     return this.httpClient.put<Category>(this.apiBaseUrl + `/categories/${c_id}`, c).pipe(
       tap((category) => {
         const categories = this.categoriesSubject.value || [];
-        const idx = categories?.findIndex((c) => c.id == c_id) || -1;
+        const idx = categories.findIndex((c) => c.id == c_id);
         if (idx > -1) {
           const updated = [...categories];
           updated[idx] = category;
@@ -96,7 +96,7 @@ export class ApiService {
     return this.httpClient.delete<{}>(this.apiBaseUrl + `/categories/${category_id}`).pipe(
       tap(() => {
         const categories = this.categoriesSubject.value || [];
-        const idx = categories?.findIndex((c) => c.id == category_id) || -1;
+        const idx = categories.findIndex((c) => c.id == category_id);
         if (idx > -1) {
           const updated = categories.filter((_, i) => i != idx);
           this._categoriesSubjectNext(updated);

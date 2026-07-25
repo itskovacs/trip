@@ -21,7 +21,7 @@ def get_session():
 SessionDep = Annotated[Session, Depends(get_session)]
 
 
-def get_current_username(token: Annotated[str, Depends(oauth_password_scheme)], session: SessionDep) -> str:
+def get_current_username(session: SessionDep, token: Annotated[str, Depends(oauth_password_scheme)]) -> str:
     try:
         payload = jwt.decode(token, get_settings().SECRET_KEY, algorithms=[get_settings().ALGORITHM])
         username = payload.get("sub")

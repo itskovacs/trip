@@ -51,6 +51,7 @@ export function generateTripCSVFile(trip: Trip): void {
 
 function escape_rfc4180(field: string): string {
   if (!field) return '';
+  if (/^[=+\-@\t\r]/.test(field)) field = "'" + field;
   if (/[",\n\r]/.test(field)) return `"${field.replace(/"/g, '""')}"`;
   return field;
 }

@@ -136,12 +136,12 @@
                 <div class="flex gap-1">
                   <span
                     class="flex items-center gap-1.5 rounded px-2.5 py-1 w-fit text-xs font-semibold text-primary-600 bg-primary-100 dark:bg-primary-900/30 dark:text-primary-200">
-                    <i class="pi pi-calendar text-[10px]"></i>{{ trip()?.days?.length }}</span>
+                    <i class="pi pi-calendar text-[10px]!"></i>{{ trip()?.days?.length }}</span>
 
                   @if (totalPrice()) {
                   <span
                     class="flex items-center gap-1.5 rounded px-2.5 py-1 w-fit text-xs font-semibold text-primary-600 bg-primary-100 dark:bg-primary-900/30 dark:text-primary-200">
-                    <i class="pi pi-wallet text-[10px]"></i> {{ (totalPrice() | number: '1.0-2') || '-' }}
+                    <i class="pi pi-wallet text-[10px]!"></i> {{ (totalPrice() | number: '1.0-2') || '-' }}
                     {{ trip()?.currency }}
                   </span>
                   }

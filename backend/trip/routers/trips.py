@@ -186,23 +186,6 @@ def update_trip(
         raise HTTPException(status_code=400, detail="Bad request")
 
     trip_data = trip.model_dump(exclude_unset=True)
-    trip_image = trip_data.pop("image", None)
-    filename = None
-    if trip_image:
-        image_bytes = b64img_decode(trip_image)
-        filename, file_size = save_image_to_file(image_bytes, get_settings().TRIP_IMAGE_SIZE)
-        if not filename:
-            raise HTTPException(status_code=400, detail="Bad request")
-
-        if db_trip.image:
-            session.delete(db_trip.image)
-            session.flush()
-
-        image = Image(filename=filename, file_size=file_size, user=current_user)
-        session.add(image)
-        session.flush()
-        session.refresh(db_trip)
-        db_trip.image_id = image.id
 
     place_ids = trip_data.pop("place_ids", None)
     if place_ids is not None:  # Could be empty [], so 'in'
@@ -223,6 +206,24 @@ def update_trip(
         invalid_place_ids = item_place_ids - set(place.id for place in db_trip.places)
         if invalid_place_ids:  # TripItem references a Place that Trip.places misses
             raise HTTPException(status_code=400, detail="Bad Request")
+
+    trip_image = trip_data.pop("image", None)
+    filename = None
+    if trip_image:
+        image_bytes = b64img_decode(trip_image)
+        filename, file_size = save_image_to_file(image_bytes, get_settings().TRIP_IMAGE_SIZE)
+        if not filename:
+            raise HTTPException(status_code=400, detail="Bad request")
+
+        if db_trip.image:
+            session.delete(db_trip.image)
+            session.flush()
+
+        image = Image(filename=filename, file_size=file_size, user=current_user)
+        session.add(image)
+        session.flush()
+        session.refresh(db_trip)
+        db_trip.image_id = image.id
 
     for key, value in trip_data.items():
         setattr(db_trip, key, value)
@@ -515,6 +516,15 @@ def update_tripitem(
             if not place_in_trip:
                 raise HTTPException(status_code=400, detail="Bad request")
 
+    if "day_id" in item_data:
+        new_day_id = item_data.pop("day_id")
+        if new_day_id is None:
+            raise HTTPException(status_code=400, detail="Bad request")
+        new_day = session.get(TripDay, new_day_id)
+        if not new_day or new_day.trip_id != trip_id:
+            raise HTTPException(status_code=400, detail="Bad request")
+        db_item.day_id = new_day_id
+
     if "paid_by" in item_data:
         paid_by = item_data.pop("paid_by")
         if paid_by:
@@ -655,7 +665,6 @@ def get_shared_trip_details(
     current_user: Annotated[str, Depends(get_current_username)],
 ) -> TripShareDetails:
     _get_verified_trip(session, trip_id, current_user)
-
     share = session.exec(select(TripShare).where(TripShare.trip_id == trip_id)).first()
     if not share:
         raise HTTPException(status_code=404, detail="Not found")
@@ -671,7 +680,6 @@ def create_shared_trip(
     current_user: Annotated[str, Depends(get_current_username)],
 ) -> TripShareDetails:
     _get_verified_trip(session, trip_id, current_user)
-
     shared = session.exec(select(TripShare).where(TripShare.trip_id == trip_id)).first()
     if shared:
         raise HTTPException(status_code=409, detail="The resource already exists")
@@ -692,7 +700,6 @@ def delete_shared_trip(
     current_user: Annotated[str, Depends(get_current_username)],
 ):
     _get_verified_trip(session, trip_id, current_user)
-
     db_share = session.exec(select(TripShare).where(TripShare.trip_id == trip_id)).first()
     if not db_share:
         raise HTTPException(status_code=404, detail="Not found")
@@ -722,7 +729,6 @@ def create_packing_item(
     current_user: Annotated[str, Depends(get_current_username)],
 ) -> TripPackingListItemRead:
     db_trip = _get_verified_trip(session, trip_id, current_user)
-
     if db_trip.archived:
         raise HTTPException(status_code=400, detail="Bad request")
 
@@ -742,7 +748,6 @@ def update_packing_item(
     current_user: Annotated[str, Depends(get_current_username)],
 ) -> TripPackingListItemRead:
     db_trip = _get_verified_trip(session, trip_id, current_user)
-
     if db_trip.archived:
         raise HTTPException(status_code=400, detail="Bad request")
 
@@ -773,7 +778,6 @@ def delete_packing_item(
     current_user: Annotated[str, Depends(get_current_username)],
 ):
     db_trip = _get_verified_trip(session, trip_id, current_user)
-
     if db_trip.archived:
         raise HTTPException(status_code=400, detail="Bad request")
 
@@ -810,7 +814,6 @@ def create_checklist_item(
     current_user: Annotated[str, Depends(get_current_username)],
 ) -> TripChecklistItemRead:
     db_trip = _get_verified_trip(session, trip_id, current_user)
-
     if db_trip.archived:
         raise HTTPException(status_code=400, detail="Bad request")
 
@@ -830,7 +833,6 @@ def update_checklist_item(
     current_user: Annotated[str, Depends(get_current_username)],
 ) -> TripChecklistItemRead:
     db_trip = _get_verified_trip(session, trip_id, current_user)
-
     if db_trip.archived:
         raise HTTPException(status_code=400, detail="Bad request")
 
@@ -859,7 +861,6 @@ def delete_checklist_item(
     current_user: Annotated[str, Depends(get_current_username)],
 ):
     db_trip = _get_verified_trip(session, trip_id, current_user)
-
     if db_trip.archived:
         raise HTTPException(status_code=400, detail="Bad request")
 
@@ -883,7 +884,6 @@ def read_trip_members(
     session: SessionDep, trip_id: int, current_user: Annotated[str, Depends(get_current_username)]
 ) -> list[TripMemberRead]:
     _get_verified_trip(session, trip_id, current_user)
-
     members: list[TripMemberRead] = []
     owner = session.exec(select(Trip.user).where(Trip.id == trip_id)).first()
     members.append(TripMemberRead(user=owner, invited_by=None, invited_at=None, joined_at=None))
@@ -901,7 +901,6 @@ def invite_trip_member(
     current_user: Annotated[str, Depends(get_current_username)],
 ) -> TripMemberRead:
     db_trip = _get_verified_trip(session, trip_id, current_user)
-
     if db_trip.archived:
         raise HTTPException(status_code=400, detail="Bad request")
 
@@ -957,13 +956,9 @@ def delete_trip_member(
         raise HTTPException(status_code=404, detail="Not found")
 
     # Set NULL to TripItem.paid_by for this username
-    trip_item_ids = (
-        session.exec(
-            select(TripItem.id).join(TripDay).where(TripDay.trip_id == trip_id, TripItem.paid_by == username)
-        )
-        .scalars()
-        .all()
-    )
+    trip_item_ids = session.exec(
+        select(TripItem.id).join(TripDay).where(TripDay.trip_id == trip_id, TripItem.paid_by == username)
+    ).all()
 
     if trip_item_ids:
         session.exec(update(TripItem).where(TripItem.id.in_(trip_item_ids)).values(paid_by=None))

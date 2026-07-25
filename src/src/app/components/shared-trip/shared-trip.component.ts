@@ -1035,7 +1035,6 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   }
 
   onDayClick(day: TripDay) {
-    this.toggleTripDayHighlight(null);
     if (this.selectedDay()?.id === day.id) {
       this.selectedPlace.set(null);
       this.selectedItem.set(null);
@@ -1046,7 +1045,6 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
     this.selectedDay.set(day);
     this.selectedPlace.set(null);
     this.selectedItem.set(null);
-    this.toggleTripDayHighlight(day.id);
   }
 
   onPlaceClick(place: Place) {

@@ -137,7 +137,9 @@ export class TripsComponent implements OnInit {
   removeInvitationAndHide(trip_id: number) {
     this.invitations = this.invitations.filter((inv) => inv.id != trip_id);
     this.hasPendingInvitations = !!this.invitations.length;
-    this.invitationsDialogVisible = false;
+    if (this.invitations.length === 0) {
+      this.invitationsDialogVisible = false;
+    }
   }
 
   acceptInvitation(trip_id: number) {

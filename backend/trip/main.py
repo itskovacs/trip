@@ -16,8 +16,9 @@ from .utils.utils import silence_http_logging
 
 migrate_config_file()
 
-if not Path(get_settings().FRONTEND_FOLDER).is_dir():
-    raise ValueError()
+frontend_folder = get_settings().FRONTEND_FOLDER
+if not Path(frontend_folder).is_dir():
+    raise ValueError(f"FRONTEND_FOLDER is not a valid directory: {frontend_folder!r}")
 
 Path(get_settings().ASSETS_FOLDER).mkdir(parents=True, exist_ok=True)
 Path(get_settings().ATTACHMENTS_FOLDER).mkdir(parents=True, exist_ok=True)

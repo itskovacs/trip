@@ -10,7 +10,8 @@
             <p-select [options]="trip?.days" optionValue="id" optionLabel="label" inputId="day_id"
               formControlName="day_id" scrollHeight="320px" appendTo="body" [checkmark]="true" [filter]="true" fluid>
               <ng-template let-day #item>
-                <div class="whitespace-normal">{{ day.label }} @if (day.dt) {<span class="text-xs text-gray-400 dark:text-gray-500">{{ day.dt }}</span>}</div>
+                <div class="whitespace-normal">{{ day.label }} @if (day.dt) {<span
+                    class="text-xs text-gray-400 dark:text-gray-500">{{ day.dt }}</span>}</div>
               </ng-template>
             </p-select>
             <label for="day_id">{{ t('common.fields.day') }}</label>
@@ -21,7 +22,8 @@
               [showToggleAll]="false" scrollHeight="320px" appendTo="body"
               [selectedItemsLabel]="t('messages.days_selected')" fluid>
               <ng-template let-day #item>
-                <div class="whitespace-normal">{{ day.label }} @if (day.dt) {<span class="text-xs text-gray-400 dark:text-gray-500">{{ day.dt }}</span>}</div>
+                <div class="whitespace-normal">{{ day.label }} @if (day.dt) {<span
+                    class="text-xs text-gray-400 dark:text-gray-500">{{ day.dt }}</span>}</div>
               </ng-template>
             </p-multiselect>
             <label>{{ t('common.fields.days') }}</label>
