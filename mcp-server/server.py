@@ -22,14 +22,19 @@ async def get_trip(trip_id: int) -> dict:
     return await api_get(f"/api/trips/{trip_id}")
 
 @mcp.tool()
-async def update_trip(trip_id: int, name: str = "", currency: str = "", notes: str = "") -> dict:
+async def update_trip(trip_id: int, name: str | None = None, currency: str | None = None,
+                      notes: str | None = None) -> dict:
     """Update trip name, currency, or notes."""
-    data = {k: v for k, v in {"name": name, "currency": currency, "notes": notes}.items() if v}
+    data = {k: v for k, v in {"name": name, "currency": currency, "notes": notes}.items() if v is not None}
     return await api_put(f"/api/trips/{trip_id}", data)
 
 @mcp.tool()
-async def delete_trip(trip_id: int) -> dict:
-    """Delete a trip."""
+async def delete_trip(trip_id: int, confirm: bool = False) -> dict:
+    """Delete a trip. Destructive and irreversible. Requires confirm=True to actually execute:
+    call once without confirm to review, then call again with confirm=True to proceed."""
+    if not confirm:
+        return {"error": "Confirmation required: this permanently deletes the trip and all its "
+                          "days/items/bookings. Re-invoke with confirm=True to proceed."}
     return await api_delete(f"/api/trips/{trip_id}")
 
 @mcp.tool()
@@ -48,15 +53,19 @@ async def add_day(trip_id: int, label: str, date: str = "") -> dict:
     return await api_post(f"/api/trips/{trip_id}/days", data)
 
 @mcp.tool()
-async def update_day(trip_id: int, day_id: int, label: str, date: str = "") -> dict:
+async def update_day(trip_id: int, day_id: int, label: str, date: str | None = None) -> dict:
     """Update a day. label is required (use get_trip to retrieve the current value if only updating the date)."""
     data: dict = {"label": label}
-    if date: data["dt"] = date
+    if date is not None: data["dt"] = date
     return await api_put(f"/api/trips/{trip_id}/days/{day_id}", data)
 
 @mcp.tool()
-async def delete_day(trip_id: int, day_id: int) -> dict:
-    """Delete a day."""
+async def delete_day(trip_id: int, day_id: int, confirm: bool = False) -> dict:
+    """Delete a day. Destructive and irreversible — also deletes its items. Requires confirm=True
+    to actually execute: call once without confirm to review, then call again with confirm=True."""
+    if not confirm:
+        return {"error": "Confirmation required: this permanently deletes the day and all its "
+                          "items. Re-invoke with confirm=True to proceed."}
     return await api_delete(f"/api/trips/{trip_id}/days/{day_id}")
 
 # ── Items ──
@@ -70,16 +79,20 @@ async def add_item(trip_id: int, day_id: int, text: str, time: str = "09:00",
     return await api_post(f"/api/trips/{trip_id}/days/{day_id}/items", data)
 
 @mcp.tool()
-async def update_item(trip_id: int, day_id: int, item_id: int, text: str = "", time: str = "",
-                      price: float | None = None, status: str = "",
+async def update_item(trip_id: int, day_id: int, item_id: int, text: str | None = None,
+                      time: str | None = None, price: float | None = None, status: str | None = None,
                       place_id: int | None = None, remove_place: bool = False) -> dict:
-    """Update an item. Always pass place_id to preserve the place reference (use get_trip to retrieve it).
-    Set remove_place=True to detach the place. Status: pending/booked/constraint/optional."""
+    """Update an item. Only the fields you pass are changed; omitted fields are left as-is.
+    In particular, omitting place_id preserves the item's existing place reference (it is NOT
+    cleared) — you don't need to pass place_id just to keep the current place. Pass place_id to
+    set/replace the place, or set remove_place=True to detach it. If you need to inspect the
+    current place reference first, note that get_trip's item.place field is a nested place object
+    (not a bare place id) — use item.place.id. Status: pending/booked/constraint/optional."""
     data: dict = {}
-    if text: data["text"] = text
-    if time: data["time"] = time
+    if text is not None: data["text"] = text
+    if time is not None: data["time"] = time
     if price is not None: data["price"] = price
-    if status: data["status"] = status
+    if status is not None: data["status"] = status
     if remove_place:
         data["place"] = None
     elif place_id is not None:
@@ -87,17 +100,24 @@ async def update_item(trip_id: int, day_id: int, item_id: int, text: str = "", t
     return await api_put(f"/api/trips/{trip_id}/days/{day_id}/items/{item_id}", data)
 
 @mcp.tool()
-async def delete_item(trip_id: int, day_id: int, item_id: int) -> dict:
-    """Delete an item."""
+async def delete_item(trip_id: int, day_id: int, item_id: int, confirm: bool = False) -> dict:
+    """Delete an item. Destructive and irreversible. Requires confirm=True to actually execute:
+    call once without confirm to review, then call again with confirm=True to proceed."""
+    if not confirm:
+        return {"error": "Confirmation required: this permanently deletes the item. Re-invoke "
+                          "with confirm=True to proceed."}
     return await api_delete(f"/api/trips/{trip_id}/days/{day_id}/items/{item_id}")
 
 # ── Places ──
 
 @mcp.tool()
-async def create_place(name: str, lat: float, lng: float, category_id: int = 1,
+async def create_place(name: str, lat: float, lng: float, category_id: int,
                        description: str = "", price: float = 0, duration: int = 60,
                        image_url: str = "") -> dict:
-    """Create a place. Pass image_url for a photo (server downloads automatically)."""
+    """Create a place. Pass image_url for a photo (server downloads automatically).
+    category_id must be one of the caller's own categories (see list_categories) — the
+    backend does not verify ownership, so an arbitrary id can silently attach a category
+    that belongs to a different user."""
     data = {"name": name, "lat": lat, "lng": lng, "place": name,
             "description": description, "price": price, "duration": duration,
             "category_id": category_id}
@@ -110,16 +130,21 @@ async def list_places() -> list:
     return await api_get("/api/places")
 
 @mcp.tool()
-async def update_place(place_id: int, name: str = "", description: str = "") -> dict:
+async def update_place(place_id: int, name: str | None = None, description: str | None = None) -> dict:
     """Update a place."""
     data = {}
-    if name: data["name"] = name
-    if description: data["description"] = description
+    if name is not None: data["name"] = name
+    if description is not None: data["description"] = description
     return await api_put(f"/api/places/{place_id}", data)
 
 @mcp.tool()
-async def delete_place(place_id: int) -> dict:
-    """Delete a place."""
+async def delete_place(place_id: int, confirm: bool = False) -> dict:
+    """Delete a place. Destructive and irreversible — also removes it from any trips it's linked
+    to. Requires confirm=True to actually execute: call once without confirm to review, then call
+    again with confirm=True to proceed."""
+    if not confirm:
+        return {"error": "Confirmation required: this permanently deletes the place. Re-invoke "
+                          "with confirm=True to proceed."}
     return await api_delete(f"/api/places/{place_id}")
 
 # ── Categories ──
