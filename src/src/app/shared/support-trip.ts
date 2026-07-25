@@ -4,7 +4,7 @@ import { ButtonModule } from 'primeng/button';
 import { TranslocoDirective } from '@jsverse/transloco';
 
 const TRIP_COUNTER = 'TRIP_SUPPORT_COUNTER';
-const TRIP_SUPPORTED = 'TRIP_SUPPORT_DONE';
+const TRIP_SUPPORTED = 'TRIP_SUPPORT';
 
 @Component({
   selector: 'app-support-trip',
@@ -59,7 +59,7 @@ export class SupportTripComponent implements OnInit {
 
     const openCount = parseInt(localStorage.getItem(TRIP_COUNTER) || '0', 10) + 1;
     localStorage.setItem(TRIP_COUNTER, openCount.toString());
-    if (openCount > 9) setTimeout(() => this.showSupport.set(true), 2500);
+    if (openCount > 11) setTimeout(() => this.showSupport.set(true), 2500);
   }
 
   dismiss(support: boolean = false) {
