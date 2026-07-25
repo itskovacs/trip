@@ -264,7 +264,7 @@ def delete_trip(
     return {}
 
 
-@router.get("/{trip_id}/balance")
+@router.get("/{trip_id}/balance", response_model=dict[str, TripBalanceEntry])
 def get_trip_balance(
     session: SessionDep,
     trip_id: int,
@@ -288,7 +288,13 @@ def get_trip_balance(
         paid_by_map[item.paid_by] = paid_by_map.get(item.paid_by, 0) + item.price
     xpected_per_person = sum(paid_by_map.values()) / len(members)
 
-    return {member: paid_by_map[member] - xpected_per_person for member in paid_by_map}
+    return {
+        member: TripBalanceEntry(
+            balance=round(paid_by_map[member] - xpected_per_person, 2),
+            paid=round(paid_by_map[member], 2),
+        )
+        for member in paid_by_map
+    }
 
 
 @router.post("/{trip_id}/days", response_model=TripDayRead)

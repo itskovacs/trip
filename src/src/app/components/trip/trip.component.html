@@ -1307,31 +1307,37 @@
               <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
                 @if (!m.invited_at) {
                 <span
-                  class="text-center bg-red-100 text-red-800 text-xs px-2.5 py-0.5 rounded-md group-hover:hidden dark:bg-red-100/85">Owner</span>
+                  class="text-center bg-red-100 text-red-800 text-xs px-2.5 py-0.5 rounded-md dark:bg-red-100/85">{{ t('trips.roles.owner') }}</span>
                 }
 
                 @if (m.invited_at && !m.joined_at) {
                 <span
-                  class="text-center bg-primary-100 text-primary-800 text-xs px-2.5 py-0.5 rounded-md group-hover:hidden dark:bg-primary-100/85">Invited</span>
+                  class="text-center bg-primary-100 text-primary-800 text-xs px-2.5 py-0.5 rounded-md dark:bg-primary-100/85">{{ t('trips.roles.invited') }}</span>
                 }
 
                 @if (m.joined_at) {
                 <span
-                  class="text-center bg-blue-100 text-blue-800 text-xs px-2.5 py-0.5 rounded-md group-hover:hidden dark:bg-blue-100/85">Member</span>
+                  class="text-center bg-blue-100 text-blue-800 text-xs px-2.5 py-0.5 rounded-md dark:bg-blue-100/85">{{ t('trips.roles.member') }}</span>
                 }
               </div>
             </div>
           </div>
 
           <div class="flex items-center gap-2">
-            <span [class]="
+            <div class="flex flex-col gap-1">
+              <span class="bg-primary-100 text-primary-800 text-center text-xs px-2.5 py-0.5 rounded-md">{{
+                m.paid ? (m.paid | number:'1.2-2') : '-' }} {{
+                trip()?.currency }}</span>
+
+              <span [class]="
               m.balance
                 ? m.balance > 0
                   ? 'bg-green-100 text-green-800'
                   : 'bg-red-100 text-red-800'
                 : 'bg-primary-100 text-primary-800'
-            " class="text-center text-xs px-2.5 py-0.5 rounded-md group-hover:hidden">{{ m.balance || '-' }} {{
-              trip()?.currency }}</span>
+            " class="text-center text-xs px-2.5 py-0.5 rounded-md">{{ m.balance ? (m.balance |
+                number:'1.2-2') : '-' }} {{ trip()?.currency }}</span>
+            </div>
 
             @if (m.invited_at) {
             <p-button text (click)="deleteMember(m.user)" [disabled]="trip()?.archived" icon="pi pi-trash"

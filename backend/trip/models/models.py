@@ -906,6 +906,11 @@ class TripItemRead(TripItemBase):
         )
 
 
+class TripBalanceEntry(BaseModel):
+    balance: float
+    paid: float
+
+
 class TripShareDetails(BaseModel):
     url: str
     is_full_access: bool | None

@@ -2564,7 +2564,13 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           if (members.length > 1) {
             this.apiService.getTripBalance(this.trip()!.id).subscribe({
               next: (balances) =>
-                this.tripMembers.update((current) => current.map((m) => ({ ...m, balance: balances[m.user] ?? 0 }))),
+                this.tripMembers.update((current) =>
+                  current.map((m) => ({
+                    ...m,
+                    balance: balances[m.user]?.balance ?? 0,
+                    paid: balances[m.user]?.paid ?? 0,
+                  })),
+                ),
             });
           }
           this.isMembersDialogVisible = !this.isMembersDialogVisible;

@@ -125,6 +125,12 @@ export interface TripMember {
   joined_at?: string;
 
   balance?: number; // Injected
+  paid?: number; // Injected
+}
+
+export interface TripBalanceEntry {
+  balance: number;
+  paid: number;
 }
 
 export interface TripInvitation extends TripBase {

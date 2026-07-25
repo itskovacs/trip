@@ -11,6 +11,7 @@ import {
   SharedTripDetails,
   Trip,
   TripAttachment,
+  TripBalanceEntry,
   TripBase,
   TripBooking,
   TripDay,
@@ -132,8 +133,8 @@ export class ApiService {
     return this.httpClient.get<Trip>(`${this.apiBaseUrl}/trips/${id}`);
   }
 
-  getTripBalance(id: number): Observable<{ [user: string]: number }> {
-    return this.httpClient.get<{ [user: string]: number }>(`${this.apiBaseUrl}/trips/${id}/balance`, {
+  getTripBalance(id: number): Observable<{ [user: string]: TripBalanceEntry }> {
+    return this.httpClient.get<{ [user: string]: TripBalanceEntry }>(`${this.apiBaseUrl}/trips/${id}/balance`, {
       headers: { ignore_not_found: 'true' },
     });
   }
