@@ -224,16 +224,19 @@
               }
 
               @if (isFilteringMode()) {
-              <div class="z-30 mt-3 grid sm:grid-cols-3 gap-2" animate.enter="slide-y" animate.leave="a-slide-y">
+              <div class="z-30 mt-3 grid grid-cols-2 gap-2" animate.enter="slide-y" animate.leave="a-slide-y">
                 <p-multiselect display="chip" fluid [options]="availableItemProps" [(ngModel)]="selectedItemProps"
-                  [placeholder]="t('common.fields.cols')"
-                  [class]="canToggleTextAndPlace() ? 'sm:col-span-2' : 'sm:col-span-3'" appendTo="body" size="small" />
+                  [placeholder]="t('common.fields.cols')" class="col-span-full" appendTo="body" size="small" />
 
                 @if (canToggleTextAndPlace()) {
                 <p-togglebutton [onLabel]="t('view.on_show_text')" [offLabel]="t('view.off_show_text')" size="small"
                   [ngModel]="isTextAndPlaceToggled()" (ngModelChange)="isTextAndPlaceToggled.set($event)"
                   [pt]="{ content: 'min-w-0', label: 'truncate' }" />
                 }
+
+                <p-togglebutton [onLabel]="t('view.on_show_bookings')" [offLabel]="t('view.off_show_bookings')"
+                  size="small" [ngModel]="showBookings()" (ngModelChange)="showBookings.set($event)"
+                  [pt]="{ content: 'min-w-0', label: 'truncate' }" />
 
                 <div class="relative col-span-full">
                   <input pInputText [formControl]="plansSearchInput" [placeholder]="t('common.actions.search')"
@@ -293,12 +296,14 @@
                 </div>
               </div>
 
-              <div class="pl-4 md:pr-4">
-                <div class="flex flex-wrap gap-1.5">
-                  @for (booking of group.day.bookings ?? []; track booking.id) {
-                  <span (click)="openBookingModal(group.day, booking); $event.stopPropagation()"
+              @if (showBookings()) {
+              <div class="pl-4 md:pr-4 min-w-0 overflow-x-auto">
+                <div class="flex gap-1.5">
+                  @for (booking of sortBookings(group.day.bookings ?? []); track booking.id) {
+                  <span (click)="!trip()?.archived && openBookingModal(group.day, booking); $event.stopPropagation()"
                     class="cursor-pointer flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md transition-colors"
-                    [class]="bookingTypeClass(booking.type)">
+                    [class]="bookingTypeClass(booking.type)" [class.opacity-60]="trip()?.archived"
+                    [class.cursor-not-allowed]="trip()?.archived">
                     {{ bookingTypeIcon(booking.type) }} {{ booking.label }}
                     @if (booking.reference) {
                     <span class="opacity-60">&middot; {{ booking.reference }}</span>
@@ -314,6 +319,7 @@
                   }
                 </div>
               </div>
+              }
 
               <div class="space-y-2 pl-4 md:pr-4">
                 @for (item of group.items; track item.id) {
@@ -1587,9 +1593,8 @@
 
           @if (options?.showBookings && group.day.bookings?.length) {
           <div class="mb-2 flex gap-1">
-            @for (booking of (group.day.bookings ?? []); track booking.id) {
-            <span
-              class="flex items-center w-fit px-2.5 py-1 text-xs font-mono font-medium bg-primary-100 text-primary-700 rounded"
+            @for (booking of sortBookings(group.day.bookings ?? []); track booking.id) {
+            <span class="flex items-center w-fit px-2.5 py-1 text-xs font-mono font-medium rounded"
               [class]="bookingTypeClass(booking.type)">{{ bookingTypeIcon(booking.type) }} {{ booking.label }}
               @if (booking.reference) {
               <span class="opacity-60">&middot; {{ booking.reference }}</span>

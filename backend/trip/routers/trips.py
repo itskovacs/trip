@@ -124,7 +124,7 @@ def read_trip(
         select(Trip)
         .options(
             selectinload(Trip.days).selectinload(TripDay.items),
-            selectinload(Trip.days).selectinload(TripDay.bookings),
+            selectinload(Trip.days).selectinload(TripDay.bookings).selectinload(TripBooking.attachments),
             selectinload(Trip.places),
             selectinload(Trip.image),
             selectinload(Trip.memberships),

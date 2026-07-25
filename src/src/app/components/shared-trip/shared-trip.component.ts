@@ -62,13 +62,20 @@ import { generateTripICSFile } from '../../shared/trip-base/ics';
 import { generateTripCSVFile } from '../../shared/trip-base/csv';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FileSizePipe } from '../../shared/pipes/filesize.pipe';
-import { computeDistLatLng } from '../../shared/utils';
+import {
+  bookingTypeClass as sharedBookingTypeClass,
+  bookingTypeIcon as sharedBookingTypeIcon,
+  computeDistLatLng,
+  sortBookings as sharedSortBookings,
+} from '../../shared/utils';
 import { TabList, TabsModule } from 'primeng/tabs';
 import { PlaceBoxContentComponent } from '../../shared/place-box-content/place-box-content.component';
 import { PlaceListItemComponent } from '../../shared/place-list-item/place-list-item.component';
 import { TripPrettyPrintModalComponent } from '../../modals/trip-pretty-print-modal/trip-pretty-print-modal.component';
 import { ToggleButtonModule } from 'primeng/togglebutton';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { LinkChipComponent } from '../../shared/link-chip/link-chip.component';
+import { ItemGalleryComponent } from '../../shared/item-gallery/item-gallery.component';
 
 const HIGHLIGHT_COLORS = [
   '#e6194b',
@@ -1298,24 +1305,14 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   }
 
   bookingTypeIcon(type: string): string {
-    const icons: Record<string, string> = {
-      flight: '✈️',
-      car: '🚗',
-      hotel: '🏨',
-      activity: '🎪',
-      generic: '📋',
-    };
-    return icons[type] ?? '📋';
+    return sharedBookingTypeIcon(type);
   }
 
   bookingTypeClass(type: string): string {
-    const classes: Record<string, string> = {
-      flight: 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300',
-      car: 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
-      hotel: 'bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300',
-      activity: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
-      generic: 'bg-primary-100 text-primary-600 dark:bg-primary-800 dark:text-primary-300',
-    };
-    return classes[type] ?? classes['generic'];
+    return sharedBookingTypeClass(type);
+  }
+
+  sortBookings(bookings: TripBooking[]): TripBooking[] {
+    return sharedSortBookings(bookings);
   }
 }

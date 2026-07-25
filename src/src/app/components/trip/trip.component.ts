@@ -77,7 +77,13 @@ import { generateTripICSFile } from '../../shared/trip-base/ics';
 import { generateTripCSVFile } from '../../shared/trip-base/csv';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FileSizePipe } from '../../shared/pipes/filesize.pipe';
-import { computeDistLatLng, daterangeToTripDays } from '../../shared/utils';
+import {
+  bookingTypeClass as sharedBookingTypeClass,
+  bookingTypeIcon as sharedBookingTypeIcon,
+  computeDistLatLng,
+  daterangeToTripDays,
+  sortBookings as sharedSortBookings,
+} from '../../shared/utils';
 import { TabList, TabsModule } from 'primeng/tabs';
 import { PlaceBoxContentComponent } from '../../shared/place-box-content/place-box-content.component';
 import { TripBulkEditModalComponent } from '../../modals/trip-bulk-edit-modal/trip-bulk-edit-modal.component';
@@ -176,6 +182,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   isPlacesPanelVisible = signal<boolean>(false);
   isDaysPanelVisible = signal<boolean>(false);
   showOnlyUnplannedPlaces = signal<boolean>(false);
+  showBookings = signal<boolean>(true);
   printOptions = signal<PrintOptions | null>(null);
   isArchivalReviewDisplayed = signal<boolean>(false);
   isArchiveWarningVisible = signal<boolean>(true);
@@ -1130,6 +1137,10 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     this.isFilteringMode.update((v) => !v);
   }
 
+  toggleBookingsVisibility() {
+    this.showBookings.update((v) => !v);
+  }
+
   togglePlansPanel() {
     this.isPlansPanelCollapsed.update((v) => !v);
   }
@@ -1221,6 +1232,12 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     day.items.forEach((item) => {
       if (!item.attachments) return;
       item.attachments.forEach((attachment) => {
+        attachments.set(attachment.id, attachment);
+      });
+    });
+    day.bookings?.forEach((booking) => {
+      if (!booking.attachments) return;
+      booking.attachments.forEach((attachment) => {
         attachments.set(attachment.id, attachment);
       });
     });
@@ -1667,7 +1684,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   openBookingModal(day: TripDay, booking?: TripBooking) {
     const modal = this.dialogService.open(TripBookingModalComponent, {
       header: booking
-        ? this.translocoService.translate('bookings.edit_booking')
+        ? this.translocoService.translate('bookings.view_booking')
         : this.translocoService.translate('bookings.new_booking'),
       modal: true,
       appendTo: 'body',
@@ -1675,14 +1692,14 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       dismissableMask: true,
       draggable: false,
       resizable: false,
-      data: { booking },
-      breakpoints: { '640px': '95vw' },
-      width: '400px',
+      data: { booking, day, days: this.trip()!.days, trip: this.trip()! },
+      breakpoints: { '768px': '95vw' },
+      width: '600px',
     })!;
 
     modal.onClose
       .pipe(take(1))
-      .subscribe((result: { action: 'save' | 'delete'; booking?: Partial<TripBooking> } | null) => {
+      .subscribe((result: { action: 'save' | 'delete'; booking?: Partial<TripBooking>; dayIds?: number[] } | null) => {
         if (!result) return;
 
         const tripId = this.trip()!.id;
@@ -1704,17 +1721,70 @@ export class TripComponent implements AfterViewInit, OnDestroy {
                 });
               });
           } else {
-            this.apiService
-              .postTripBooking(tripId, day.id, result.booking!)
+            const dayIds = result.dayIds?.length ? result.dayIds : [day.id];
+
+            // Each day is its own creation request, so one failing must not discard the
+            // others' already-created bookings from local state: catch per-day and
+            // reconcile only what actually succeeded instead of letting forkJoin discard
+            // everything on one error.
+            const obs$ = dayIds.map((dayId) =>
+              this.apiService.postTripBooking(tripId, dayId, result.booking!).pipe(
+                map((created) => ({ ok: true as const, dayId, booking: created })),
+                catchError((err) => {
+                  console.error(`Multi-day booking creation failed for day ${dayId}:`, err);
+                  return of({ ok: false as const, dayId, booking: null as TripBooking | null });
+                }),
+              ),
+            );
+
+            forkJoin(obs$)
               .pipe(take(1))
-              .subscribe((created) => {
-                this.trip.update((t) => {
-                  if (!t) return null;
-                  const days = t.days.map((d) =>
-                    d.id === day.id ? { ...d, bookings: [...(d.bookings ?? []), created] } : d,
+              .subscribe((results) => {
+                const created = results.filter((r) => r.ok).map((r) => ({ dayId: r.dayId, booking: r.booking! }));
+                const failedCount = results.length - created.length;
+
+                if (created.length) {
+                  this.trip.update((t) => {
+                    if (!t) return null;
+                    const bookingsByDay = created.reduce(
+                      (acc, c) => {
+                        (acc[c.dayId] ??= []).push(c.booking);
+                        return acc;
+                      },
+                      {} as Record<number, TripBooking[]>,
+                    );
+
+                    const days = t.days.map((d) =>
+                      bookingsByDay[d.id] ? { ...d, bookings: [...(d.bookings ?? []), ...bookingsByDay[d.id]] } : d,
+                    );
+                    return { ...t, days };
+                  });
+                }
+
+                if (dayIds.length === 1) return;
+
+                if (failedCount === 0) {
+                  this.utilsService.toast(
+                    'success',
+                    this.translocoService.translate('common.status.success'),
+                    this.translocoService.translate('messages.count_bookings_added', { count: created.length }),
                   );
-                  return { ...t, days };
-                });
+                } else if (created.length === 0) {
+                  this.utilsService.toast(
+                    'error',
+                    this.translocoService.translate('common.status.error'),
+                    this.translocoService.translate('messages.bulk_add_booking_failed'),
+                  );
+                } else {
+                  this.utilsService.toast(
+                    'error',
+                    this.translocoService.translate('common.status.error'),
+                    this.translocoService.translate('messages.bulk_add_booking_partial_failed', {
+                      success: created.length,
+                      failed: failedCount,
+                    }),
+                  );
+                }
               });
           }
         } else if (result.action === 'delete' && booking) {
@@ -1735,25 +1805,15 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   }
 
   bookingTypeIcon(type: string): string {
-    const icons: Record<string, string> = {
-      flight: '✈️',
-      car: '🚗',
-      hotel: '🏨',
-      activity: '🎪',
-      generic: '📋',
-    };
-    return icons[type] ?? '📋';
+    return sharedBookingTypeIcon(type);
   }
 
   bookingTypeClass(type: string): string {
-    const classes: Record<string, string> = {
-      flight: 'bg-sky-100 text-sky-700 dark:bg-sky-950 dark:text-sky-300',
-      car: 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300',
-      hotel: 'bg-violet-100 text-violet-700 dark:bg-violet-950 dark:text-violet-300',
-      activity: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-950 dark:text-emerald-300',
-      generic: 'bg-primary-100 text-primary-600 dark:bg-primary-800 dark:text-primary-300',
-    };
-    return classes[type] ?? classes['generic'];
+    return sharedBookingTypeClass(type);
+  }
+
+  sortBookings(bookings: TripBooking[]): TripBooking[] {
+    return sharedSortBookings(bookings);
   }
 
   addPlace(e?: any) {

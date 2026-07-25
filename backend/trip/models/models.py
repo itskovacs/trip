@@ -61,6 +61,8 @@ class BookingTypeEnum(str, Enum):
     car = "car"
     hotel = "hotel"
     activity = "activity"
+    train = "train"
+    boat = "boat"
     generic = "generic"
 
 
@@ -713,6 +715,11 @@ class TripDay(TripDayBase, table=True):
     bookings: list["TripBooking"] = Relationship(back_populates="day", cascade_delete=True)
 
 
+class TripBookingAttachmentLink(SQLModel, table=True):
+    booking_id: int = Field(foreign_key="tripbooking.id", ondelete="CASCADE", primary_key=True, index=True)
+    attachment_id: int = Field(foreign_key="tripattachment.id", ondelete="CASCADE", primary_key=True)
+
+
 class TripBookingBase(SQLModel):
     type: BookingTypeEnum = BookingTypeEnum.generic
     label: str
@@ -726,16 +733,36 @@ class TripBooking(TripBookingBase, table=True):
     trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE", index=True)
     day: TripDay | None = Relationship(back_populates="bookings")
 
+    attachments: list["TripAttachment"] = Relationship(
+        back_populates="bookings", link_model=TripBookingAttachmentLink
+    )
+
 
 class TripBookingCreate(TripBookingBase):
-    pass
+    attachment_ids: list[int] = []
 
 
 class TripBookingUpdate(TripBookingBase):
-    pass
+    attachment_ids: list[int] = []
 
 
 class TripBookingRead(TripBookingBase):
+    id: int
+    attachments: list["TripAttachmentRead"]
+
+    @classmethod
+    def serialize(cls, obj: TripBooking) -> "TripBookingRead":
+        return cls(
+            id=obj.id,
+            type=obj.type,
+            label=obj.label,
+            reference=obj.reference,
+            notes=obj.notes,
+            attachments=[TripAttachmentRead.serialize(att) for att in obj.attachments],
+        )
+
+
+class TripShareBookingRead(TripBookingBase):
     id: int
 
 
@@ -751,7 +778,7 @@ class TripDayRead(TripDayBase):
             dt=obj.dt,
             label=obj.label,
             items=[TripItemRead.serialize(item) for item in obj.items],
-            bookings=[TripBookingRead.model_validate(b) for b in obj.bookings],
+            bookings=[TripBookingRead.serialize(b) for b in obj.bookings],
             notes=obj.notes,
         )
 
@@ -925,7 +952,7 @@ class TripShareItemRead(TripItemBase):
 class TripShareDayRead(TripDayBase):
     id: int
     items: list["TripShareItemRead"]
-    bookings: list[TripBookingRead]
+    bookings: list[TripShareBookingRead]
 
     @classmethod
     def serialize(cls, obj: TripDay) -> "TripShareDayRead":
@@ -934,7 +961,7 @@ class TripShareDayRead(TripDayBase):
             dt=obj.dt,
             label=obj.label,
             items=[TripShareItemRead.serialize(item) for item in obj.items],
-            bookings=[TripBookingRead.model_validate(b) for b in obj.bookings],
+            bookings=[TripShareBookingRead.model_validate(b) for b in obj.bookings],
             notes=obj.notes,
         )
 
@@ -1041,6 +1068,9 @@ class TripAttachment(TripAttachmentBase, table=True):
     trip: Trip | None = Relationship(back_populates="attachments")
 
     items: list["TripItem"] = Relationship(back_populates="attachments", link_model=TripItemAttachmentLink)
+    bookings: list["TripBooking"] = Relationship(
+        back_populates="attachments", link_model=TripBookingAttachmentLink
+    )
 
 
 @event.listens_for(TripAttachment, "after_delete")

@@ -484,8 +484,21 @@ def process_backup_import(
                     session.flush()
 
                     for booking in day.get("bookings", []):
-                        booking_data = {key: booking[key] for key in booking if key != "id"}
-                        session.add(TripBooking(**booking_data, day_id=new_day.id, trip_id=new_trip.id))
+                        booking_data = {
+                            key: booking[key] for key in booking if key not in {"id", "attachments"}
+                        }
+                        new_booking = TripBooking(**booking_data, day_id=new_day.id, trip_id=new_trip.id)
+                        session.add(new_booking)
+                        session.flush()
+                        session.refresh(new_booking)
+                        for attachment in booking.get("attachments", []):
+                            attachment_id = attachment.get("id")
+                            if attachment_id and attachment_id in trip_attachment_mapping:
+                                new_attachment_id = trip_attachment_mapping[attachment_id]
+                                link = TripBookingAttachmentLink(
+                                    booking_id=new_booking.id, attachment_id=new_attachment_id
+                                )
+                                attachment_links_to_add.append(link)
 
                     for item in day.get("items", []):
                         if item.get("paid_by"):

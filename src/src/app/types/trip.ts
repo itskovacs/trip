@@ -41,7 +41,7 @@ export interface TripAttachment {
   uploaded_by: string;
 }
 
-export type BookingType = 'flight' | 'car' | 'hotel' | 'activity' | 'generic';
+export type BookingType = 'flight' | 'car' | 'hotel' | 'activity' | 'train' | 'boat' | 'generic';
 
 export interface TripBooking {
   id: number;
@@ -51,6 +51,8 @@ export interface TripBooking {
   notes?: string;
   day_id?: number;
   trip_id?: number;
+  attachments?: TripAttachment[];
+  attachment_ids?: number[];
 }
 
 export interface TripDay {

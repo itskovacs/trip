@@ -4,9 +4,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import select
 
 from ..deps import SessionDep, get_current_username
-from ..models.models import (Trip, TripBooking, TripBookingCreate,
-                             TripBookingRead, TripBookingUpdate, TripDay,
-                             TripMember)
+from ..models.models import (Trip, TripAttachment, TripBooking,
+                             TripBookingCreate, TripBookingRead,
+                             TripBookingUpdate, TripDay, TripMember)
 
 router = APIRouter(prefix="/api", tags=["bookings"])
 
@@ -41,11 +41,25 @@ def create_booking(
     if not day or day.trip_id != trip_id:
         raise HTTPException(status_code=404, detail="Not found")
 
-    db_booking = TripBooking(**booking.model_dump(), day_id=day_id, trip_id=trip_id)
+    booking_data = booking.model_dump()
+    attachment_ids = booking_data.pop("attachment_ids")
+
+    db_booking = TripBooking(**booking_data, day_id=day_id, trip_id=trip_id)
+
+    if attachment_ids:
+        attachments = session.exec(
+            select(TripAttachment)
+            .where(TripAttachment.id.in_(attachment_ids))
+            .where(TripAttachment.trip_id == trip_id)
+        ).all()
+        if len(attachments) != len(attachment_ids):
+            raise HTTPException(status_code=400, detail="One or more attachments not found in trip")
+        db_booking.attachments = list(attachments)
+
     session.add(db_booking)
     session.commit()
     session.refresh(db_booking)
-    return TripBookingRead.model_validate(db_booking)
+    return TripBookingRead.serialize(db_booking)
 
 
 @router.put("/bookings/{booking_id}", response_model=TripBookingRead)
@@ -59,14 +73,32 @@ def update_booking(
     if not db_booking:
         raise HTTPException(status_code=404, detail="Not found")
 
-    _get_verified_trip(session, db_booking.trip_id, current_user)
+    trip = _get_verified_trip(session, db_booking.trip_id, current_user)
+    if trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
 
-    for key, value in booking.model_dump().items():
+    booking_data = booking.model_dump(exclude_unset=True)
+
+    attachment_ids = booking_data.pop("attachment_ids", None)
+    if attachment_ids is not None:  # Could be empty [], so 'in'
+        if attachment_ids:
+            attachments = session.exec(
+                select(TripAttachment)
+                .where(TripAttachment.id.in_(attachment_ids))
+                .where(TripAttachment.trip_id == db_booking.trip_id)
+            ).all()
+            if len(attachments) != len(attachment_ids):
+                raise HTTPException(status_code=400, detail="One or more attachments not found in trip")
+            db_booking.attachments = list(attachments)
+        else:
+            db_booking.attachments = []
+
+    for key, value in booking_data.items():
         setattr(db_booking, key, value)
 
     session.commit()
     session.refresh(db_booking)
-    return TripBookingRead.model_validate(db_booking)
+    return TripBookingRead.serialize(db_booking)
 
 
 @router.delete("/bookings/{booking_id}")
@@ -79,7 +111,9 @@ def delete_booking(
     if not db_booking:
         raise HTTPException(status_code=404, detail="Not found")
 
-    _get_verified_trip(session, db_booking.trip_id, current_user)
+    trip = _get_verified_trip(session, db_booking.trip_id, current_user)
+    if trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
 
     session.delete(db_booking)
     session.commit()

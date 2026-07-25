@@ -1,4 +1,69 @@
 <ng-container *transloco="let t; prefix: 'bookings'">
+
+  @if (isExisting() && !isEditing()) {
+  <div class="space-y-4 py-2">
+    <div class="flex items-center gap-2">
+      <span class="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded-md"
+        [class]="bookingTypeClass(bookingForm.value.type)">
+        {{ bookingTypeIcon(bookingForm.value.type) }} {{ t('types.' + bookingForm.value.type) }}
+      </span>
+    </div>
+
+    <div>
+      <span class="text-xs uppercase tracking-wide text-primary-400">{{ t('label') }}</span>
+      <p class="text-sm font-medium text-primary-900 dark:text-white">{{ bookingForm.value.label }}</p>
+    </div>
+
+    @if (bookingForm.value.reference) {
+    <div>
+      <span class="text-xs uppercase tracking-wide text-primary-400">{{ t('reference') }}</span>
+      <p class="text-sm text-primary-800 dark:text-primary-200">{{ bookingForm.value.reference }}</p>
+    </div>
+    }
+
+    @if (bookingForm.value.notes) {
+    <div>
+      <span class="text-xs uppercase tracking-wide text-primary-400">{{ t('notes') }}</span>
+      <p class="text-sm whitespace-pre-wrap text-primary-800 dark:text-primary-200">{{ bookingForm.value.notes }}</p>
+    </div>
+    }
+
+    @if (originalBooking?.attachments?.length) {
+    <div>
+      <span class="text-xs uppercase tracking-wide text-primary-400">{{ t('attachments') }}</span>
+      <div class="grid md:grid-cols-2 gap-2 pt-1">
+        @for (attachment of originalBooking?.attachments; track attachment.id) {
+        <div (click)="downloadAttachment(attachment)"
+          class="group relative cursor-pointer flex items-center gap-3 rounded-lg border border-primary-200 bg-white hover:bg-primary-100 dark:hover:bg-white/5 p-3 transition-all dark:border-primary-800 dark:bg-primary-950">
+          <div
+            class="group relative flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-md bg-red-50 transition-colors dark:bg-red-900/30">
+            <i class="pi pi-file text-red-600 transition-opacity group-hover:opacity-0 dark:text-red-400"></i>
+            <i
+              class="pi pi-arrow-down absolute -translate-y-4 text-red-600 opacity-0 transition-none group-hover:translate-y-0 group-hover:opacity-100 group-hover:transition-all group-hover:duration-300 dark:text-red-400"></i>
+          </div>
+
+          <div class="min-w-0 flex-1">
+            <div class="truncate font-mono text-sm text-primary-900 dark:text-primary-100">
+              {{ attachment.filename }}
+            </div>
+            <div class="flex items-center gap-2 mt-1 text-xs font-mono text-primary-500 dark:text-primary-400">
+              <span class="truncate">{{ attachment.file_size | fileSize }}</span>
+              <span
+                class="bg-primary-100 text-primary-800 text-xs font-medium px-2.5 py-0.5 rounded min-w-fit dark:bg-primary-400">{{
+                attachment.uploaded_by }}</span>
+            </div>
+          </div>
+        </div>
+        }
+      </div>
+    </div>
+    }
+  </div>
+
+  <div class="flex items-center justify-end gap-2 pt-1">
+    <p-button [label]="t('edit')" icon="pi pi-pencil" size="small" (click)="startEditing()" />
+  </div>
+  } @else {
   <form [formGroup]="bookingForm" class="space-y-4 py-2">
 
     <p-floatlabel variant="on">
@@ -22,19 +87,53 @@
       <label for="booking-notes">{{ t('notes') }}</label>
     </p-floatlabel>
 
-    <div class="flex items-center justify-between gap-2 pt-1">
-      @if (isEdit()) {
+    <p-floatlabel variant="on">
+      <p-multiselect inputId="booking-attachments" [options]="trip?.attachments ?? []" optionValue="id"
+        optionLabel="filename" formControlName="attachment_ids" [showToggleAll]="false" display="chip"
+        scrollHeight="320px" appendTo="body" fluid>
+        <ng-template #footer>
+          <div class="p-2 border-t border-primary-200 dark:border-primary-700">
+            <p-button (click)="fileUpload.click()" icon="pi pi-plus" [label]="t('upload_new')" text size="small"
+              fluid />
+            <input type="file" accept="application/pdf" class="hidden" (change)="onFileUploadInputChange($event)"
+              #fileUpload />
+          </div>
+        </ng-template>
+      </p-multiselect>
+      <label for="booking-attachments">{{ t('attachments') }}</label>
+    </p-floatlabel>
+
+    @if (!isExisting()) {
+    <p-floatlabel variant="on">
+      <p-multiselect inputId="booking-days" [options]="days" optionValue="id" optionLabel="label"
+        formControlName="day_id" [showToggleAll]="false" scrollHeight="320px" appendTo="body"
+        [selectedItemsLabel]="t('days_selected')" display="chip" fluid>
+        <ng-template let-day #item>
+          <div class="whitespace-normal">{{ day.label }}
+            @if (day.dt) {
+            <span class="text-xs text-gray-400 dark:text-gray-500">{{ day.dt }}</span>
+            }
+          </div>
+        </ng-template>
+      </p-multiselect>
+      <label for="booking-days">{{ t('days') }}</label>
+    </p-floatlabel>
+    }
+
+    <div class="flex items-center gap-2 pt-1" [class]="isExisting() ? 'justify-between' : 'justify-end'">
+      @if (isExisting()) {
       <p-button [label]="t('delete')" icon="pi pi-trash" severity="danger" [outlined]="true" size="small"
         (click)="delete()" />
-      } @else {
-      <span></span>
       }
       <div class="flex items-center gap-2">
-        <p-button [label]="t('cancel')" severity="secondary" [outlined]="true" size="small" (click)="cancel()" />
-        <p-button [label]="t('save')" icon="pi pi-check" severity="success" size="small" [disabled]="!bookingForm.valid"
-          (click)="save()" />
+        <p-button [label]="t('cancel')" severity="secondary" [outlined]="true" size="small"
+          (click)="isExisting() ? cancelEditing() : cancel()" />
+        <p-button [label]="t('save')" icon="pi pi-check" severity="success" size="small"
+          [disabled]="!bookingForm.valid" (click)="save()" />
       </div>
     </div>
 
   </form>
+  }
+
 </ng-container>

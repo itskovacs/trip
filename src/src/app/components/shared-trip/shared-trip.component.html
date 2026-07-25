@@ -361,9 +361,9 @@
               </div>
 
               @if (group.day.bookings?.length) {
-              <div class="pl-4 md:pr-4 pb-2 pt-1">
-                <div class="flex flex-wrap gap-1.5">
-                  @for (booking of group.day.bookings ?? []; track booking.id) {
+              <div class="pl-4 md:pr-4 min-w-0 overflow-x-auto">
+                <div class="flex gap-1.5">
+                  @for (booking of sortBookings(group.day.bookings ?? []); track booking.id) {
                   <span class="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md"
                     [class]="bookingTypeClass(booking.type)">
                     {{ bookingTypeIcon(booking.type) }} {{ booking.label }}
@@ -1285,24 +1285,23 @@
           }
 
           @if (options?.showBookings && group.day.bookings?.length) {
-          <div class="mb-4 flex flex-col gap-1">
-            @for (booking of (group.day.bookings ?? []); track booking.id) {
-            <div class="flex items-center gap-2 text-sm text-primary-700">
-              <span class="shrink-0">{{ bookingTypeIcon(booking.type) }}</span>
-              <span class="font-medium">{{ booking.label }}</span>
+          <div class="mb-2 flex gap-1">
+            @for (booking of sortBookings(group.day.bookings ?? []); track booking.id) {
+            <span class="flex items-center w-fit px-2.5 py-1 text-xs font-mono font-medium rounded"
+              [class]="bookingTypeClass(booking.type)">{{ bookingTypeIcon(booking.type) }} {{ booking.label }}
               @if (booking.reference) {
-              <span class="text-primary-400">&middot; {{ booking.reference }}</span>
+              <span class="opacity-60">&middot; {{ booking.reference }}</span>
               }
               @if (booking.notes) {
               <span class="text-primary-400 italic truncate">{{ booking.notes }}</span>
               }
-            </div>
+            </span>
             }
           </div>
           }
 
           @for (item of group.items; track item.id) {
-          <div class="flex gap-4 items-center rounded-lg p-3 -mx-3">
+          <div class="flex gap-4 items-start rounded-lg p-3 -mx-3 break-inside-avoid">
             @if (item.time) {
             <span class="px-2.5 py-1 text-xs font-mono font-medium bg-primary-100 text-primary-700 rounded">{{
               item.time }}</span>
