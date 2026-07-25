@@ -848,8 +848,10 @@
                     t('common.fields.gpx') }}
                   </span>
                   <div class="flex gap-2">
-                    <p-button disabled icon="pi pi-compass" [label]="t('common.actions.display')"
-                      [pTooltip]="t('common.status.wip')" text />
+                    <p-button (click)="toggleItemGPX(item)"
+                      [icon]="displayedItemGpxId() === item.id ? 'pi pi-eye-slash' : 'pi pi-compass'"
+                      [label]="displayedItemGpxId() === item.id ? t('common.actions.hide') : t('common.actions.display')"
+                      text />
                     <p-button (click)="downloadItemGPX()" icon="pi pi-download" [label]="t('common.actions.download')"
                       text />
                   </div>
@@ -1049,8 +1051,10 @@
               t('common.fields.gpx') }}
             </span>
             <div class="flex gap-2">
-              <p-button disabled icon="pi pi-compass" [label]="t('common.actions.display')"
-                [pTooltip]="t('common.status.wip')" text />
+              <p-button (click)="toggleItemGPX(item)"
+                [icon]="displayedItemGpxId() === item.id ? 'pi pi-eye-slash' : 'pi pi-compass'"
+                [label]="displayedItemGpxId() === item.id ? t('common.actions.hide') : t('common.actions.display')"
+                text />
               <p-button (click)="downloadItemGPX()" icon="pi pi-download" [label]="t('common.actions.download')" text />
             </div>
           </div>

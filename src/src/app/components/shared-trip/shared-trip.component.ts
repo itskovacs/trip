@@ -425,6 +425,8 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   markers = new Map<number, L.Marker>();
   selectedItemMarker?: L.Marker;
   highlightedMarkerElement?: HTMLElement;
+  gpxLayerGroup?: L.LayerGroup;
+  displayedItemGpxId = signal<number | null>(null);
 
   constructor() {
     this.apiService = inject(ApiService);
@@ -569,6 +571,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
 
       untracked(() => {
         this.clearSelectedItemHighlight();
+        this.clearItemGPX();
         if (!this.map) return;
         if (place) {
           const existingMarker = this.markers.get(place.id);
@@ -619,6 +622,11 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
       this.map?.removeLayer(this.tripMapAntLayer);
       this.tripMapAntLayer = undefined;
     }
+    if (this.gpxLayerGroup) {
+      this.map?.removeLayer(this.gpxLayerGroup);
+      this.gpxLayerGroup = undefined;
+    }
+    this.displayedItemGpxId.set(null);
     this.markers.forEach((marker) => marker.remove());
     this.markers.clear();
     if (this.markerClusterGroup) {
@@ -1156,6 +1164,36 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
       this.highlightedMarkerElement.classList.remove('list-hover');
       this.highlightedMarkerElement = undefined;
     }
+  }
+
+  toggleItemGPX(item: ViewTripItem) {
+    if (!this.map || !item.gpx) return;
+
+    if (this.displayedItemGpxId() === item.id) {
+      this.clearItemGPX();
+      return;
+    }
+
+    if (!this.gpxLayerGroup) this.gpxLayerGroup = L.layerGroup().addTo(this.map);
+    this.gpxLayerGroup.clearLayers();
+
+    try {
+      const polyline = gpxToPolyline(item.gpx);
+      this.gpxLayerGroup.addLayer(polyline);
+      this.map.fitBounds(polyline.getBounds(), { padding: [20, 20] });
+      this.displayedItemGpxId.set(item.id);
+    } catch {
+      this.utilsService.toast(
+        'error',
+        this.translocoService.translate('common.status.error'),
+        this.translocoService.translate('messages.could_not_parse_gpx'),
+      );
+    }
+  }
+
+  clearItemGPX() {
+    this.gpxLayerGroup?.clearLayers();
+    this.displayedItemGpxId.set(null);
   }
 
   openPackingList() {

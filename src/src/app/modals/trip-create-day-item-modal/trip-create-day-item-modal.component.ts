@@ -77,6 +77,7 @@ export class TripCreateDayItemModalComponent {
     private config: DynamicDialogConfig,
     private apiService: ApiService,
     private utilsService: UtilsService,
+    private translocoService: TranslocoService,
   ) {
     this.statuses = this.utilsService.statuses;
 
@@ -203,6 +204,30 @@ export class TripCreateDayItemModalComponent {
     this.itemForm.get('price')?.setValue(p.price || 0);
     if (!this.itemForm.get('text')?.value) this.itemForm.get('text')?.setValue(p.name);
     if (p.description && !this.itemForm.get('comment')?.value) this.itemForm.get('comment')?.setValue(p.description);
+
+    // Places embedded in the trip carry a '1' placeholder instead of the real GPX (payload-size
+    // optimization) so the full track has to be fetched separately before it can be copied onto the item.
+    if (p.gpx === '1' && !this.itemForm.get('gpx')?.value) {
+      this.apiService
+        .getPlaceGPX(p.id)
+        .pipe(take(1))
+        .subscribe({
+          next: (full) => {
+            if (!full.gpx || full.gpx === '1') return;
+            if (this.itemForm.get('place')?.value !== pid) return;
+            if (this.itemForm.get('gpx')?.value) return;
+            this.itemForm.get('gpx')?.setValue(full.gpx);
+            this.itemForm.get('gpx')?.markAsDirty();
+          },
+          error: () => {
+            this.utilsService.toast(
+              'error',
+              this.translocoService.translate('common.status.error'),
+              this.translocoService.translate('messages.could_not_retrieve_gpx'),
+            );
+          },
+        });
+    }
   }
 
   togglePriceMembersPopover(e: any) {

@@ -506,6 +506,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   markers = new Map<number, L.Marker>();
   selectedItemMarker?: L.Marker;
   highlightedMarkerElement?: HTMLElement;
+  gpxLayerGroup?: L.LayerGroup;
+  displayedItemGpxId = signal<number | null>(null);
 
   constructor() {
     this.apiService = inject(ApiService);
@@ -627,6 +629,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
       untracked(() => {
         this.clearSelectedItemHighlight();
+        this.clearItemGPX();
         if (!this.map) return;
         if (place) {
           const existingMarker = this.markers.get(place.id);
@@ -671,6 +674,12 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       this.map?.removeLayer(this.tripMapAntLayer);
       this.tripMapAntLayer = undefined;
     }
+
+    if (this.gpxLayerGroup) {
+      this.map?.removeLayer(this.gpxLayerGroup);
+      this.gpxLayerGroup = undefined;
+    }
+    this.displayedItemGpxId.set(null);
 
     this.markers.forEach((marker) => marker.remove());
     this.markers.clear();
@@ -1440,6 +1449,36 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     }
   }
 
+  toggleItemGPX(item: ViewTripItem) {
+    if (!this.map || !item.gpx) return;
+
+    if (this.displayedItemGpxId() === item.id) {
+      this.clearItemGPX();
+      return;
+    }
+
+    if (!this.gpxLayerGroup) this.gpxLayerGroup = L.layerGroup().addTo(this.map);
+    this.gpxLayerGroup.clearLayers();
+
+    try {
+      const polyline = gpxToPolyline(item.gpx);
+      this.gpxLayerGroup.addLayer(polyline);
+      this.map.fitBounds(polyline.getBounds(), { padding: [20, 20] });
+      this.displayedItemGpxId.set(item.id);
+    } catch {
+      this.utilsService.toast(
+        'error',
+        this.translocoService.translate('common.status.error'),
+        this.translocoService.translate('messages.could_not_parse_gpx'),
+      );
+    }
+  }
+
+  clearItemGPX() {
+    this.gpxLayerGroup?.clearLayers();
+    this.displayedItemGpxId.set(null);
+  }
+
   addItem(dayId?: number, placeId?: number) {
     const modal = this.dialogService.open(TripCreateDayItemModalComponent, {
       header: this.translocoService.translate('entities.plan.add'),
@@ -1569,6 +1608,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           );
           return { ...current, days };
         });
+        if (this.displayedItemGpxId() === item.id) this.clearItemGPX();
         if (this.selectedItem()?.id === item.id) this.selectedItem.set(null);
         if (this.selectedPlace()?.id === item.place?.id) {
           const remainingItems = this.selectedPlaceItems().filter((i) => i.id !== item.id);
