@@ -9,6 +9,7 @@
     "register_desc": "Kies een gebruikersnaam en wachtwoord",
     "username_req": "Gebruikersnaam is verplicht",
     "password_req": "Wachtwoord is verplicht",
+    "password_minlength": "Wachtwoord moet minstens 8 tekens lang zijn",
     "have_account": "Heb je al een account?",
     "first_time": "Eerste keer?",
     "create_account": "Account aanmaken",
@@ -23,7 +24,6 @@
       "cancel": "Annuleren",
       "clear": "Wissen",
       "close": "Sluiten",
-      "compute": "Berekenen",
       "confirm": "Bevestigen",
       "copy": "Kopiëren",
       "create": "Aanmaken",
@@ -36,6 +36,7 @@
       "filter": "Filteren",
       "fly_to": "Vlieg naar",
       "generate": "Genereren",
+      "hide": "Verbergen",
       "highlight": "Markeren",
       "invite": "Uitnodigen",
       "manage": "Beheren",
@@ -54,7 +55,6 @@
       "update": "Bijwerken"
     },
     "fields": {
-      "attachment": "Bijlage",
       "attachments": "Bijlagen",
       "categories": "Categorieën",
       "category": "Categorie",
@@ -70,21 +70,19 @@
       "days": "Dagen",
       "description": "Beschrijving",
       "distance": "Afstand",
-      "document": "Document",
       "gpx": "GPX",
       "image": "Afbeelding",
-      "item": "Item",
       "itinerary": "Reisplan",
       "label": "Label",
       "latitude": "Breedtegraad",
       "links": "Links",
       "longitude": "Lengtegraad",
       "map": "Kaart",
+      "markdown_hint": "Markdown ondersteund",
       "member": "Lid",
       "members": "Leden",
       "name": "Naam",
       "notes": "Notities",
-      "owner": "Eigenaar",
       "packing_list": "Paklijst",
       "password": "Wachtwoord",
       "place": "Locatie",
@@ -92,9 +90,7 @@
       "plan": "Plan",
       "plan_lowercase": "plan",
       "plans": "Plannen",
-      "poi": "Interessepunt",
       "price": "Prijs",
-      "reference": "Referentie",
       "status": "Status",
       "summary": "Samenvatting",
       "text": "Tekst",
@@ -110,7 +106,6 @@
     },
     "status": {
       "error": "Fout",
-      "invited": "Uitgenodigd",
       "success": "Gelukt",
       "unplanned": "Niet gepland",
       "wait": "Dit kan even duren. Een ogenblik geduld.",
@@ -132,6 +127,7 @@
     "update_category": "Categorie bijwerken",
     "create_category": "Categorie aanmaken",
     "delete_category": "Deze categorie verwijderen?",
+    "delete_category_with_places": "{{name}} wordt gebruikt door {{count}} locatie(s). Toch verwijderen?",
     "create_places": "Locaties aanmaken",
     "create_multiple_places": "Meerdere locaties aanmaken"
   },
@@ -140,16 +136,13 @@
     "settings_desc": "Pas je ervaring aan",
     "dark_mode": "Donkere modus",
     "language": "Taal wijzigen",
-    "github": "Github TRIP",
     "logout": "Uitloggen",
     "about": "Over",
     "account": "Account",
     "preferences": "Voorkeuren",
     "data": "Gegevens",
     "made_with": "Made with ❤️ in BZH",
-    "version": "Versie {{version}}",
     "check_update": "Update controleren",
-    "up_to_date": "Up-to-date!",
     "new_version": "Nieuwe versie beschikbaar!",
     "latest_version": "Nieuwste versie",
     "running_latest": "Je gebruikt de nieuwste versie van TRIP",
@@ -195,7 +188,6 @@
     "dog_tag_desc": "Toon de hondvriendelijke indicator op locaties en de filterchip",
     "always_display_visited": "Bezochte locaties tonen",
     "always_display_visited_desc": "Toon bezochte locaties altijd als kleine puntjes",
-    "currency": "Valuta",
     "currency_desc": "Werk de standaardvaluta bij",
     "duplicate_dist": "Drempel duplicaatafstand",
     "duplicate_dist_desc": "Bepaal hoe nauw strings moeten overeenkomen. Hogere waarden accepteren meer verschillen; 0 om uit te schakelen",
@@ -207,7 +199,6 @@
     "category_delete": "Categorie verwijderen",
     "data_desc": "Beheer je gegevens",
     "backups": "Back-ups",
-    "backups_desc": "Maak een back-up om je gegevens te beschermen",
     "no_backups": "Nog geen back-ups",
     "no_backups_desc": "Maak een back-up om TRIP-gegevens te beschermen",
     "data_export": "Exporteer je gegevens",
@@ -240,7 +231,6 @@
     "token_expiration": "Token verloopt (min)",
     "access": "Toegang",
     "refresh": "Vernieuwen",
-    "oidc": "OIDC",
     "oidc_desc": "OpenID Connect-configuratie",
     "oidc_discovery_url": "Discovery-URL",
     "oidc_client_id": "Client-ID",
@@ -251,6 +241,8 @@
     "handle_with_care": "Behandel met zorg",
     "reset_password": "Wachtwoord opnieuw instellen",
     "reset_password_message": "Wachtwoord opnieuw instellen voor {{name}}? Een tijdelijk wachtwoord wordt getoond.",
+    "reset_totp": "2FA opnieuw instellen",
+    "reset_totp_message": "Tweefactorauthenticatie voor {{name}} opnieuw instellen? Diegene kan dan inloggen met alleen het wachtwoord.",
     "temporary_password": "Tijdelijk wachtwoord",
     "temporary_password_message": "Nieuw wachtwoord voor {{name}} is:",
     "delete_user": "Gebruiker verwijderen",
@@ -265,16 +257,25 @@
       "on": "Op",
       "invited_you": "heeft je uitgenodigd om samen te werken.",
       "empty": "Geen openstaande uitnodigingen."
+    },
+    "roles": {
+      "owner": "Eigenaar",
+      "invited": "Uitgenodigd",
+      "member": "Lid"
     }
   },
   "bookings": {
     "add_booking": "boeking",
+    "attachments": "Bijlagen",
     "new_booking": "Nieuwe boeking",
-    "edit_booking": "Boeking bewerken",
+    "view_booking": "Boeking bekijken",
+    "days": "Dagen",
+    "days_selected": "{0} dagen geselecteerd",
+    "edit": "Bewerken",
+    "upload_new": "Nieuwe uploaden",
     "type": "Type",
     "label": "Label",
     "reference": "Referentie",
-    "price": "Prijs",
     "notes": "Notities",
     "save": "Opslaan",
     "cancel": "Annuleren",
@@ -284,6 +285,8 @@
       "car": "🚗 Auto",
       "hotel": "🏨 Hotel",
       "activity": "🎪 Activiteit",
+      "train": "🚆 Trein",
+      "boat": "⛴️ Boot",
       "generic": "📋 Algemeen"
     }
   },
@@ -297,10 +300,25 @@
   },
   "messages": {
     "bulk_failed": "Bulkbewerking mislukt, raadpleeg console voor details",
+    "bulk_partial_failed": "{{success}} item(s) bijgewerkt, {{failed}} mislukt — raadpleeg console voor details",
+    "bulk_delete_failed": "Bulkverwijdering mislukt, raadpleeg console voor details",
+    "bulk_delete_partial_failed": "{{success}} item(s) verwijderd, {{failed}} mislukt — raadpleeg console voor details",
+    "bulk_duplicate_failed": "Bulkduplicatie mislukt, raadpleeg console voor details",
+    "bulk_duplicate_partial_failed": "{{success}} item(s) gedupliceerd, {{failed}} mislukt — raadpleeg console voor details",
+    "bulk_add_day_failed": "Kon geen enkele dag toevoegen, raadpleeg console voor details",
+    "bulk_add_day_partial_failed": "{{success}} dag(en) toegevoegd, {{failed}} mislukt — raadpleeg console voor details",
+    "bulk_add_item_failed": "Kon geen enkel plan toevoegen, raadpleeg console voor details",
+    "bulk_add_item_partial_failed": "{{success}} plan(nen) toegevoegd, {{failed}} mislukt — raadpleeg console voor details",
+    "bulk_add_booking_failed": "Kon geen enkele boeking toevoegen, raadpleeg console voor details",
+    "bulk_add_booking_partial_failed": "{{success}} boeking(en) toegevoegd, {{failed}} mislukt — raadpleeg console voor details",
     "could_not_load_trip": "Kon trip niet laden",
     "count_updated": "{{count}} items bijgewerkt",
+    "count_deleted": "{{count}} items verwijderd",
+    "count_duplicated": "{{count}} items gedupliceerd",
+    "count_days_added": "{{count}} dagen toegevoegd",
+    "count_plans_added": "{{count}} plannen toegevoegd",
+    "count_bookings_added": "{{count}} boeking(en) toegevoegd",
     "days_selected": "{0} dagen geselecteerd",
-    "plans_selected": "{0} plannen geselecteerd",
     "delete_count": "{{count}} verwijderen?",
     "delete_plans_count": "{{count}} plan(nen) verwijderen? Dit kan niet ongedaan worden gemaakt.",
     "duplicate_count": "{{count}} plan(nen) dupliceren?",
@@ -331,7 +349,6 @@
     "no_return": "Google API gaf geen locatie terug",
     "missing_results": "Enkele resultaten ontbreken",
     "missing_results_desc": "[{{len}}]/[{{len2}}] Google gaf geen resultaat voor elk object",
-    "error_reading_file": "Fout bij lezen bestand.",
     "expected_kmz": ".kmz-bestand verwacht",
     "import_kmz": "KMZ importeren (MyMaps)? Zorg dat dit je quota niet overschrijdt (standaard 10.000 verzoeken/maand)",
     "kmz_error": "Je KMZ bevat geen Google Maps-locaties",
@@ -347,6 +364,8 @@
     "failed_create_magic": "Kon magische link niet aanmaken",
     "failed_delete_magic": "Kon magische link niet verwijderen",
     "failed_reset_password": "Kon gebruikerswachtwoord niet opnieuw instellen",
+    "totp_reset": "Tweefactorauthenticatie opnieuw ingesteld",
+    "failed_reset_totp": "Kon tweefactorauthenticatie van gebruiker niet opnieuw instellen",
     "delete_user_failed": "Kon gebruiker niet verwijderen",
     "config_applied": "Configuratie-updates zijn toegepast",
     "failed_save_config": "Kon configuratie niet opslaan"
@@ -390,7 +409,8 @@
     "attachment": {
       "add": "Document toevoegen",
       "delete": "Bijlage verwijderen",
-      "delete_desc": "Bijlage verwijderen? Dit kan niet ongedaan worden gemaakt."
+      "delete_desc": "Bijlage verwijderen? Dit kan niet ongedaan worden gemaakt.",
+      "download_all": "Alles downloaden"
     },
     "day": {
       "add": "Dag(en) toevoegen",
@@ -434,7 +454,6 @@
     },
     "trip": {
       "create": "Trip aanmaken",
-      "archive": "Trip archiveren",
       "delete": "Trip verwijderen",
       "delete_desc": "{{name}} verwijderen?",
       "highlight": "Trip markeren",
@@ -473,7 +492,9 @@
     "distance_from_previous": "{{distance}}km vanaf vorige",
     "distance_km": "{{distance}} km",
     "drag_resize": "Sleep om grootte aan te passen. Dubbelklik om te resetten.",
+    "off_show_bookings": "Boekingen verborgen",
     "off_show_text": "Locatie tonen",
+    "on_show_bookings": "Boekingen zichtbaar",
     "on_show_text": "Tekst + locatie tonen",
     "open_navigation": "Navigatie openen",
     "places_count": "Locaties ({{count}})",
@@ -493,6 +514,7 @@
       }
     },
     "bulk": {
+      "attachments_replace_hint": "Dit vervangt de volledige bijlagenlijst van elk plan, in plaats van eraan toe te voegen.",
       "check_box_update_field": "Vink het selectievakje aan om een veld bij te werken. Laat leeg om de waarde te wissen.",
       "select_fields_to_update": "Selecteer velden om bij te werken"
     },
@@ -504,15 +526,16 @@
       "create": "Aanmaken",
       "create_a_day": "Een dag aanmaken",
       "create_days": "Dagen aanmaken",
-      "day_notes": "Dagnotities",
-      "label": "Label"
+      "day_notes": "Dagnotities"
     },
     "enter_totp": "Voer je TOTP-code in",
     "item": {
-      "link_placeholder": "https://...",
       "paid_by": "Betaald door",
       "plan_text": "Plantekst",
-      "upload_new": "Nieuw uploaden"
+      "upload_new": "Nieuw uploaden",
+      "add_image": "Afbeelding(en) toevoegen",
+      "set_cover": "Als omslag instellen",
+      "remove_image": "Afbeelding verwijderen"
     },
     "multiplaces": {
       "bulk_update": "Bulk bijwerken",
@@ -604,9 +627,6 @@
       }
     },
     "print": {
-      "days": {
-        "description": "Dagen om op te nemen in afdruk"
-      },
       "metadata": {
         "description": "Metadata opnemen (prijs, dagen)",
         "title": "Metadata"
@@ -626,6 +646,9 @@
       "bookings": {
         "title": "Boekingen",
         "description": "Dagboekingen opnemen"
+      },
+      "images": {
+        "description": "Afbeeldingen van items opnemen"
       }
     },
     "provider": {

@@ -13,7 +13,8 @@
     "first_time": "É a primeira vez?",
     "create_account": "Criar uma conta",
     "made_with": "Feito com ❤️ in BZH",
-    "tags": "MAPA DE LOCAIS · PLANEJADOR DE VIAGENS"
+    "tags": "MAPA DE LOCAIS · PLANEJADOR DE VIAGENS",
+    "password_minlength": "A senha deve ter pelo menos 8 caracteres"
   },
   "common": {
     "actions": {
@@ -23,7 +24,6 @@
       "cancel": "Cancelar",
       "clear": "Limpar",
       "close": "Fechar",
-      "compute": "Calcular",
       "confirm": "Confirmar",
       "copy": "Copiar",
       "create": "Criar",
@@ -36,6 +36,7 @@
       "filter": "Filtrar",
       "fly_to": "Voar para",
       "generate": "Gerar",
+      "hide": "Ocultar",
       "highlight": "Destacar",
       "invite": "Convidar",
       "manage": "Gerenciar",
@@ -54,7 +55,6 @@
       "update": "Atualizar"
     },
     "fields": {
-      "attachment": "Anexo",
       "attachments": "Anexos",
       "categories": "Categorias",
       "category": "Categoria",
@@ -70,20 +70,19 @@
       "days": "Dias",
       "description": "Descrição",
       "distance": "Distância",
-      "document": "Documento",
       "gpx": "GPX",
       "image": "Imagem",
-      "item": "Item",
       "itinerary": "Roteiro",
       "label": "Etiqueta",
       "latitude": "Latitude",
+      "links": "Links",
       "longitude": "Longitude",
       "map": "Mapa",
+      "markdown_hint": "Markdown suportado",
       "member": "Membro",
       "members": "Membros",
       "name": "Nome",
       "notes": "Notas",
-      "owner": "Proprietário",
       "packing_list": "Lista de Bagagem",
       "password": "Senha",
       "place": "Lugar",
@@ -91,9 +90,7 @@
       "plan": "Plano",
       "plan_lowercase": "plano",
       "plans": "Planos",
-      "poi": "Ponto de Interesse",
       "price": "Preço",
-      "reference": "Referência",
       "status": "Status",
       "summary": "Sumário",
       "text": "Texto",
@@ -109,7 +106,6 @@
     },
     "status": {
       "error": "Erro",
-      "invited": "Convidado",
       "success": "Sucesso",
       "unplanned": "Não planejado",
       "wait": "Isso pode levar um momento. Por favor espere.",
@@ -131,6 +127,7 @@
     "update_category": "Atualizar Categoria",
     "create_category": "Criar Categoria",
     "delete_category": "Excluir esta categoria ?",
+    "delete_category_with_places": "{{name}} é usado por {{count}} local(is). Excluir mesmo assim?",
     "create_places": "Criar Lugares",
     "create_multiple_places": "Criar Múltiplos Lugares"
   },
@@ -139,16 +136,13 @@
     "settings_desc": "Customize sua experiencia",
     "dark_mode": "Modo Escuro",
     "language": "Alterar idioma",
-    "github": "Github TRIP",
     "logout": "Sair",
     "about": "Sobre",
     "account": "Conta",
     "preferences": "Preferencias",
     "data": "Dados",
     "made_with": "Feito com ❤️ in BZH",
-    "version": "Versão {{version}}",
     "check_update": "Checar por atualizações",
-    "up_to_date": "Atualizado!",
     "new_version": "Nova versão disponível!",
     "latest_version": "Versão mais recente",
     "running_latest": "Você está usando a última versão do TRIP",
@@ -190,9 +184,10 @@
     "gpx_indicator_desc": "Mostrar bússola quando houver dados GPX disponíveis",
     "encode_map_position": "Salvar posição do mapa e local",
     "encode_map_position_desc": "Salvar a posição do mapa e o local selecionado na URL para restaurar a mesma visualização ao recarregar",
+    "dog_tag": "Etiqueta Dog-friendly",
+    "dog_tag_desc": "Mostrar o indicador dog-friendly nos locais e no filtro rápido",
     "always_display_visited": "Mostrar locais visitados",
     "always_display_visited_desc": "Sempre exibir locais visitados como pequenos pontos",
-    "currency": "Moeda",
     "currency_desc": "Atualizar a moeda padrão",
     "duplicate_dist": "Limite de distância para duplicatas",
     "duplicate_dist_desc": "Controla o quão semelhantes os textos devem ser. Valores maiores aceitam mais diferenças; use 0 para desativar",
@@ -204,7 +199,6 @@
     "category_delete": "Excluir categoria",
     "data_desc": "Gerencie seus dados",
     "backups": "Backups",
-    "backups_desc": "Crie um backup para proteger seus dados",
     "no_backups": "Nenhum backup ainda",
     "no_backups_desc": "Crie um backup para proteger os dados do TRIP",
     "data_export": "Exportar seus dados",
@@ -237,7 +231,6 @@
     "token_expiration": "Expiração do token (min)",
     "access": "Acesso",
     "refresh": "Atualizar",
-    "oidc": "OIDC",
     "oidc_desc": "Configuração do OpenID Connect",
     "oidc_discovery_url": "URL de descoberta",
     "oidc_client_id": "ID do cliente",
@@ -248,6 +241,8 @@
     "handle_with_care": "Manuseie com cuidado",
     "reset_password": "Redefinir senha",
     "reset_password_message": "Redefinir a senha de {{name}}? Uma senha temporária será exibida.",
+    "reset_totp": "Redefinir 2FA",
+    "reset_totp_message": "Redefinir a autenticação de dois fatores de {{name}}? Ele poderá entrar apenas com a senha.",
     "temporary_password": "Senha temporária",
     "temporary_password_message": "A nova senha de {{name}} é:",
     "delete_user": "Excluir usuário",
@@ -262,6 +257,37 @@
       "on": "Em",
       "invited_you": "convidou você para colaborar.",
       "empty": "Nenhum convite pendente."
+    },
+    "roles": {
+      "owner": "Proprietário",
+      "invited": "Convidado",
+      "member": "Membro"
+    }
+  },
+  "bookings": {
+    "add_booking": "reserva",
+    "attachments": "Anexos",
+    "new_booking": "Nova reserva",
+    "view_booking": "Ver reserva",
+    "days": "Dias",
+    "days_selected": "{0} dias selecionados",
+    "edit": "Editar",
+    "upload_new": "Enviar novo",
+    "type": "Tipo",
+    "label": "Etiqueta",
+    "reference": "Referência",
+    "notes": "Notas",
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "delete": "Excluir",
+    "types": {
+      "flight": "✈️ Voo",
+      "car": "🚗 Carro",
+      "hotel": "🏨 Hotel",
+      "activity": "🎪 Atividade",
+      "train": "🚆 Trem",
+      "boat": "⛴️ Barco",
+      "generic": "📋 Geral"
     }
   },
   "support": {
@@ -274,10 +300,25 @@
   },
   "messages": {
     "bulk_failed": "Edição em massa falhou, verifique o console para mais detalhes",
+    "bulk_partial_failed": "{{success}} item(ns) atualizado(s), {{failed}} falharam — verifique o console para mais detalhes",
+    "bulk_delete_failed": "Exclusão em massa falhou, verifique o console para mais detalhes",
+    "bulk_delete_partial_failed": "{{success}} item(ns) excluído(s), {{failed}} falharam — verifique o console para mais detalhes",
+    "bulk_duplicate_failed": "Duplicação em massa falhou, verifique o console para mais detalhes",
+    "bulk_duplicate_partial_failed": "{{success}} item(ns) duplicado(s), {{failed}} falharam — verifique o console para mais detalhes",
+    "bulk_add_day_failed": "Não foi possível adicionar nenhum dia, verifique o console para mais detalhes",
+    "bulk_add_day_partial_failed": "{{success}} dia(s) adicionado(s), {{failed}} falharam — verifique o console para mais detalhes",
+    "bulk_add_item_failed": "Não foi possível adicionar nenhum plano, verifique o console para mais detalhes",
+    "bulk_add_item_partial_failed": "{{success}} plano(s) adicionado(s), {{failed}} falharam — verifique o console para mais detalhes",
+    "bulk_add_booking_failed": "Não foi possível adicionar nenhuma reserva, verifique o console para mais detalhes",
+    "bulk_add_booking_partial_failed": "{{success}} reserva(s) adicionada(s), {{failed}} falharam — verifique o console para mais detalhes",
     "could_not_load_trip": "Não foi possível carregar a viagem",
     "count_updated": "{{count}} itens atualizados",
+    "count_deleted": "{{count}} itens excluídos",
+    "count_duplicated": "{{count}} itens duplicados",
+    "count_days_added": "{{count}} dias adicionados",
+    "count_plans_added": "{{count}} planos adicionados",
+    "count_bookings_added": "{{count}} reserva(s) adicionada(s)",
     "days_selected": "{0} dias selecionados",
-    "plans_selected": "{0} planos selecionados",
     "delete_count": "Excluir {{count}}?",
     "delete_plans_count": "Excluir {{count}} plano(s)? Esta ação não pode ser desfeita.",
     "duplicate_count": "Duplicar {{count}} plano(s)?",
@@ -290,6 +331,7 @@
     "possible_duplicate_desc": "Já existe um possível local duplicado ({{name}}). Criar mesmo assim?",
     "confirm_deletion": "Confirmar exclusão",
     "confirm_deletion_desc": "Excluir {{name}}?",
+    "confirm_deletion_desc_in_use": "{{name}} é usado em {{count}} viagem(ns). Excluir mesmo assim?",
     "could_not_parse_gpx": "Não foi possível processar os dados GPX",
     "could_not_retrieve_gpx": "Não foi possível obter os dados GPX",
     "ingesting_backup": "Importando seu backup...",
@@ -307,7 +349,6 @@
     "no_return": "A API do Google não retornou nenhum local",
     "missing_results": "Alguns resultados estão faltando",
     "missing_results_desc": "[{{len}}]/[{{len2}}] O Google não retornou resultado para todos os objetos",
-    "error_reading_file": "Erro ao ler o arquivo.",
     "expected_kmz": "Esperado um arquivo .kmz",
     "import_kmz": "Importar KMZ (MyMaps)? Certifique-se de não exceder sua cota (10.000 requisições/mês por padrão)",
     "kmz_error": "Seu KMZ não contém nenhum local do Google Maps",
@@ -323,6 +364,8 @@
     "failed_create_magic": "Falha ao criar link mágico",
     "failed_delete_magic": "Falha ao excluir link mágico",
     "failed_reset_password": "Falha ao redefinir a senha do usuário",
+    "totp_reset": "Autenticação de dois fatores redefinida",
+    "failed_reset_totp": "Falha ao redefinir a autenticação de dois fatores do usuário",
     "delete_user_failed": "Falha ao excluir usuário",
     "config_applied": "As atualizações de configuração foram aplicadas",
     "failed_save_config": "Falha ao salvar configuração"
@@ -366,7 +409,8 @@
     "attachment": {
       "add": "Adicionar documento",
       "delete": "Excluir anexo",
-      "delete_desc": "Excluir anexo? Esta ação não pode ser desfeita."
+      "delete_desc": "Excluir anexo? Esta ação não pode ser desfeita.",
+      "download_all": "Baixar tudo"
     },
     "day": {
       "add": "Adicionar dia(s)",
@@ -379,7 +423,8 @@
       "add_checklist": "Adicionar checklist",
       "add_packing": "Adicionar bagagem",
       "add_poi": "Adicionar ponto de interesse",
-      "delete": "Excluir item"
+      "delete": "Excluir item",
+      "edit": "Editar item"
     },
     "member": {
       "delete_desc": "Remover {{name}} da viagem?",
@@ -409,7 +454,6 @@
     },
     "trip": {
       "create": "Criar viagem",
-      "archive": "Arquivar viagem",
       "delete": "Excluir viagem",
       "delete_desc": "Excluir {{name}}?",
       "highlight": "Destacar viagem",
@@ -448,7 +492,9 @@
     "distance_from_previous": "{{distance}} km do anterior",
     "distance_km": "{{distance}} km",
     "drag_resize": "Arraste para redimensionar. Clique duas vezes para redefinir.",
+    "off_show_bookings": "Reservas ocultas",
     "off_show_text": "Mostrar local",
+    "on_show_bookings": "Reservas exibidas",
     "on_show_text": "Mostrar texto + local",
     "open_navigation": "Abrir navegação",
     "places_count": "Locais ({{count}})",
@@ -468,6 +514,7 @@
       }
     },
     "bulk": {
+      "attachments_replace_hint": "Isso substitui totalmente a lista de anexos de cada plano, não adiciona a ela.",
       "check_box_update_field": "Clique no checkbox para atualizar o campo. Deixe vazio para limpar o valor.",
       "select_fields_to_update": "Selecione os campos para atualizar"
     },
@@ -479,14 +526,16 @@
       "create": "Criar",
       "create_a_day": "Criar um dia",
       "create_days": "Criar dias",
-      "day_notes": "Notas do dia",
-      "label": "Etiqueta"
+      "day_notes": "Notas do dia"
     },
     "enter_totp": "Coloque seu codigo TOTP",
     "item": {
       "paid_by": "Pago Por",
       "plan_text": "Texto de Planejamento",
-      "upload_new": "Novo Upload"
+      "upload_new": "Novo Upload",
+      "add_image": "Adicionar imagem(ns)",
+      "set_cover": "Definir como capa",
+      "remove_image": "Remover imagem"
     },
     "multiplaces": {
       "bulk_update": "Atualização em massa",
@@ -505,11 +554,42 @@
       "empty": "Nada ainda."
     },
     "packing": {
-      "qt": "Qtd."
+      "qt": "Qtd.",
+      "suggestions": "Sugestões",
+      "categories": {
+        "documents": "Documentos",
+        "clothes": "Roupas",
+        "toiletries": "Higiene",
+        "tech": "Tecnologia",
+        "other": "Outros"
+      },
+      "items": {
+        "passport": "Passaporte",
+        "id_card": "Carteira de Identidade",
+        "t_shirt": "Camiseta",
+        "socks": "Meias",
+        "pants": "Calça",
+        "underwear": "Roupa Íntima",
+        "jacket": "Jaqueta",
+        "pajamas": "Pijama",
+        "toothbrush": "Escova de Dente",
+        "toothpaste": "Pasta de Dente",
+        "shampoo": "Shampoo",
+        "deodorant": "Desodorante",
+        "sunscreen": "Protetor Solar",
+        "phone_charger": "Carregador de Celular",
+        "headphones": "Fones de Ouvido",
+        "power_bank": "Bateria Portátil",
+        "cash": "Dinheiro",
+        "keys": "Chaves",
+        "medications": "Medicamentos",
+        "sunglasses": "Óculos de Sol"
+      }
     },
     "place": {
       "dog_friendly": "Dog-friendly",
       "duration": "Duração (minutos)",
+      "link_placeholder": "https://...",
       "image_url_dialog": {
         "header": "Adicionar URL da Imagem",
         "label": "URL da Imagem"
@@ -547,9 +627,6 @@
       }
     },
     "print": {
-      "days": {
-        "description": "Dias para incluir na impressão"
-      },
       "metadata": {
         "description": "Incluir metadados (preço, dias)",
         "title": "Metadados"
@@ -565,6 +642,13 @@
         "description": "Propriedades a incluir",
         "selected": "{0} propriedades selecionadas",
         "title": "Propriedades"
+      },
+      "bookings": {
+        "title": "Reservas",
+        "description": "Incluir reservas dos dias"
+      },
+      "images": {
+        "description": "Incluir imagens dos itens"
       }
     },
     "provider": {
@@ -589,6 +673,7 @@
     "price": "Preço",
     "duration": "Duração",
     "description": "Descrição",
+    "links": "Links",
     "display_gpx": "Exibir GPX",
     "open_navigation": "Abrir na Navegação",
     "fly_to_place": "Voar para o lugar",
