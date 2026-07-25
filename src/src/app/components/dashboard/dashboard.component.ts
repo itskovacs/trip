@@ -753,13 +753,17 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const selected = this.selectedPlace();
     if (!selected) return;
 
-    const favoriteBool = !selected.favorite;
+    const previousFavorite = selected.favorite;
+    const favoriteBool = !previousFavorite;
     this.apiService
       .putPlace(selected.id, { favorite: favoriteBool })
       .pipe(take(1))
       .subscribe({
         next: () => {
           this.updatePlaceInList(selected.id, { favorite: favoriteBool });
+        },
+        error: () => {
+          this.updatePlaceInList(selected.id, { favorite: previousFavorite });
         },
       });
   }
@@ -768,13 +772,17 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const selected = this.selectedPlace();
     if (!selected) return;
 
-    const visitedBool = !selected.visited;
+    const previousVisited = selected.visited;
+    const visitedBool = !previousVisited;
     this.apiService
       .putPlace(selected.id, { visited: visitedBool })
       .pipe(take(1))
       .subscribe({
         next: () => {
           this.updatePlaceInList(selected.id, { visited: visitedBool });
+        },
+        error: () => {
+          this.updatePlaceInList(selected.id, { visited: previousVisited });
         },
       });
   }
@@ -1192,7 +1200,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     });
   }
 
-  deleteCategory(c_id: number) {
+  deleteCategory(c: Category) {
+    const placesCount = this.getCategoryPlacesCount(c.name);
+
     const modal = this.dialogService.open(YesNoModalComponent, {
       header: this.translocoService.translate('messages.confirm_deletion'),
       modal: true,
@@ -1203,7 +1213,12 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       breakpoints: {
         '640px': '90vw',
       },
-      data: this.translocoService.translate('dashboard.delete_category'),
+      data: placesCount
+        ? this.translocoService.translate('dashboard.delete_category_with_places', {
+            name: c.name,
+            count: placesCount,
+          })
+        : this.translocoService.translate('dashboard.delete_category'),
     })!;
 
     modal.onClose.pipe(take(1)).subscribe({
@@ -1211,12 +1226,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         if (!bool) return;
 
         this.apiService
-          .deleteCategory(c_id)
+          .deleteCategory(c.id)
           .pipe(take(1))
           .subscribe({
             next: () => {
-              this.categories.update((categories) => categories.filter((c) => c.id !== c_id));
-              this.activeCategories.set(new Set(this.categories().map((c) => c.name)));
+              this.categories.update((categories) => categories.filter((cat) => cat.id !== c.id));
+              this.activeCategories.set(new Set(this.categories().map((cat) => cat.name)));
+              this.places.update((places) => places.filter((p) => p.category.id !== c.id));
             },
           });
       },
@@ -1261,7 +1277,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const downloadURL = URL.createObjectURL(dataBlob);
     const link = document.createElement('a');
     link.href = downloadURL;
-    link.download = `TRIP_${this.selectedPlaceGPX.name}.gpx`;
+    link.download = `TRIP_${selected.name}.gpx`;
     link.click();
     link.remove();
     URL.revokeObjectURL(downloadURL);
@@ -1622,6 +1638,46 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     });
   }
 
+  /**
+   * Quote-aware CSV record splitter. A naive `text.split('\n')` treats every
+   * literal newline as a row boundary, which corrupts rows whose quoted
+   * fields (e.g. multi-line notes) contain embedded newlines. This does a
+   * single pass, toggling an "inside quotes" flag on `"` and only treating
+   * `\n` / `\r\n` as a record boundary while outside quotes.
+   */
+  private splitCsvRecords(text: string): string[] {
+    const records: string[] = [];
+    let current = '';
+    let insideQuotes = false;
+
+    for (let i = 0; i < text.length; i++) {
+      const char = text[i];
+
+      if (char === '"') {
+        insideQuotes = !insideQuotes;
+        current += char;
+        continue;
+      }
+
+      if (!insideQuotes && (char === '\n' || char === '\r')) {
+        if (char === '\r' && text[i + 1] === '\n') {
+          i++;
+        }
+        records.push(current);
+        current = '';
+        continue;
+      }
+
+      current += char;
+    }
+
+    if (current.length) {
+      records.push(current);
+    }
+
+    return records;
+  }
+
   onGoogleTakeoutInputChange(event: Event) {
     const input = event.target as HTMLInputElement;
     if (!input.files?.length) return;
@@ -1639,8 +1695,9 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const reader = new FileReader();
     reader.onload = (e: ProgressEvent<FileReader>) => {
       const text = e.target?.result as string;
-      const header = text.split('\n')[0];
-      const lines = text.split('\n').filter((line) => line.includes('!1s'));
+      const records = this.splitCsvRecords(text);
+      const header = records[0];
+      const lines = records.filter((line) => line.includes('!1s'));
       let processed = 0;
 
       this.utilsService.setLoading(`${this.translocoService.translate('messages.querying_gmaps')} [0/${lines.length}]`);
