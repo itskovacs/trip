@@ -353,7 +353,7 @@ export class ApiService {
   }
 
   disableTOTP(code: string): Observable<{}> {
-    return this.httpClient.delete<{}>(this.apiBaseUrl + `/settings/totp/${code}`);
+    return this.httpClient.delete<{}>(this.apiBaseUrl + '/settings/totp', { body: { code } });
   }
 
   verifyTOTP(code: string): Observable<any> {
@@ -414,6 +414,10 @@ export class ApiService {
     return this.httpClient
       .post<{ temporary: string }>(this.apiBaseUrl + `/admin/users/${username}/reset-password`, {})
       .pipe(map((resp) => resp.temporary));
+  }
+
+  adminResetUserTotp(username: string): Observable<{}> {
+    return this.httpClient.post<{}>(this.apiBaseUrl + `/admin/users/${username}/reset-totp`, {});
   }
 
   adminGetMagic(): Observable<MagicLink[]> {

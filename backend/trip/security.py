@@ -98,3 +98,8 @@ async def get_oidc_config():
 
     OIDC_CONFIG = await httpx_get(discovery_url)
     return OIDC_CONFIG
+
+
+def invalidate_oidc_cache() -> None:
+    global OIDC_CONFIG
+    OIDC_CONFIG = {}

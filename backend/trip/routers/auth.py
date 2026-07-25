@@ -5,7 +5,7 @@ from typing import Annotated
 import jwt
 from fastapi import APIRouter, Body, Cookie, Depends, HTTPException
 from fastapi.responses import JSONResponse
-from sqlmodel import select
+from sqlmodel import delete, select
 
 from ..config import get_settings
 from ..db.core import init_user_data
@@ -103,10 +103,17 @@ async def oidc_login(
 
     user = session.get(User, username)
     if not user:
+        is_first_user = session.exec(select(User)).first() is None
         # TODO: password is non-null, we must init the pw with something, the model is not made for OIDC
-        user = User(username=username, password=hash_password(generate_filename("find-something-else")))
+        user = User(
+            username=username,
+            password=hash_password(generate_filename("find-something-else")),
+            is_admin=is_first_user,
+        )
         session.add(user)
         session.commit()
+        if is_first_user:
+            logger.critical(f"[OIDC Login] First user registered, {username} is admin")
         init_user_data(session, username)
 
     return create_tokens(data={"sub": username})
@@ -162,6 +169,9 @@ def register(req: LoginRegisterModel, session: SessionDep) -> Token:
     if get_settings().OIDC_CLIENT_ID and get_settings().OIDC_CLIENT_SECRET:
         raise HTTPException(status_code=400, detail="OIDC is configured")
 
+    if len(req.password) < 8:
+        raise HTTPException(status_code=400, detail="Password must be at least 8 characters long")
+
     if not get_settings().REGISTER_ENABLE:
         if not req.magicToken:
             raise HTTPException(status_code=400, detail="Registration disabled")
@@ -171,10 +181,7 @@ def register(req: LoginRegisterModel, session: SessionDep) -> Token:
             raise HTTPException(status_code=404, detail="Invalid token: not found")
 
         if db_token.expires < dt_utc():
-            session.delete(db_token)
-            session.commit()
             raise HTTPException(status_code=404, detail="Invalid token: expired")
-        session.delete(db_token)
 
     db_user = session.get(User, req.username)
     if db_user:
@@ -182,6 +189,13 @@ def register(req: LoginRegisterModel, session: SessionDep) -> Token:
 
     existing_user = session.exec(select(User)).first()
     is_first_user = existing_user is None
+
+    if not get_settings().REGISTER_ENABLE:
+        result = session.exec(
+            delete(MagicLink).where(MagicLink.token == req.magicToken, MagicLink.expires >= dt_utc())
+        )
+        if result.rowcount == 0:
+            raise HTTPException(status_code=404, detail="Invalid token: already used or expired")
 
     new_user = User(username=req.username, password=hash_password(req.password), is_admin=is_first_user)
     session.add(new_user)

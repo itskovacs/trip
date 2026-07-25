@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, effect, inject, signal } from '@angular/core';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -69,6 +69,17 @@ export class AuthComponent {
         },
       ],
       password: ['', { validators: Validators.required }],
+    });
+
+    // Registration requires a minimum password length, but /login must keep
+    // accepting existing (possibly shorter) passwords, so the validator is
+    // toggled on the shared password control based on the current mode.
+    effect(() => {
+      const passwordControl = this.authForm.get('password');
+      passwordControl?.setValidators(
+        this.isRegistering() ? [Validators.required, Validators.minLength(8)] : [Validators.required],
+      );
+      passwordControl?.updateValueAndValidity({ emitEvent: false });
     });
 
     this.route.queryParams.pipe(take(1)).subscribe((params) => {

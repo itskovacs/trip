@@ -5,7 +5,8 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from fastapi.responses import FileResponse
 from sqlmodel import func, select
 
-from ..config import get_settings, update_config
+from ..config import (OIDC_CLIENT_SECRET_MASK, Settings, get_settings,
+                      update_config)
 from ..deps import SessionDep, require_admin
 from ..models.models import (AdminUserRead, Backup, BackupRead, BackupStatus,
                              ConfigRead, ConfigUpdate, Image, MagicLink,
@@ -145,15 +146,40 @@ def reset_user_password(username: str, session: SessionDep) -> TempPasswordRead:
     return TempPasswordRead(temporary=temporary)
 
 
+@router.post("/users/{username}/reset-totp")
+def reset_user_totp(username: str, session: SessionDep):
+    db_user = session.get(User, username)
+    if not db_user:
+        raise HTTPException(status_code=404, detail="Not found")
+    if db_user.is_admin:
+        raise HTTPException(status_code=403, detail="Forbidden")
+    db_user.totp_secret = None
+    db_user.totp_enabled = False
+    session.add(db_user)
+    session.commit()
+    return {}
+
+
+def _config_read_with_masked_secret(settings: Settings) -> ConfigRead:
+    settings_dict = settings.model_dump()
+    if settings_dict.get("OIDC_CLIENT_SECRET"):
+        settings_dict["OIDC_CLIENT_SECRET"] = OIDC_CLIENT_SECRET_MASK
+    return ConfigRead(**settings_dict)
+
+
 @router.get("/config", response_model=ConfigRead)
 def get_config(session: SessionDep) -> ConfigRead:
-    return ConfigRead(**get_settings().model_dump())
+    return _config_read_with_masked_secret(get_settings())
 
 
 @router.put("/config", response_model=ConfigRead)
 def update_server_config(config_update: ConfigUpdate, session: SessionDep) -> ConfigRead:
-    new_settings = update_config(config_update.model_dump(exclude_none=True))
-    return ConfigRead(**new_settings.model_dump())
+    updates = config_update.model_dump(exclude_none=True)
+    if updates.get("OIDC_CLIENT_SECRET") == OIDC_CLIENT_SECRET_MASK:
+        # Frontend echoed back the masked placeholder unchanged; don't overwrite the real secret.
+        updates.pop("OIDC_CLIENT_SECRET")
+    new_settings = update_config(updates)
+    return _config_read_with_masked_secret(new_settings)
 
 
 @router.post("/backups", response_model=BackupRead)
@@ -218,6 +244,9 @@ def delete_admin_backup(
         raise HTTPException(status_code=404, detail="Not found")
     if not db_backup.user == current_user:
         raise HTTPException(status_code=403, detail="Forbidden")
+
+    if db_backup.status in (BackupStatus.PENDING, BackupStatus.PROCESSING):
+        raise HTTPException(status_code=409, detail="A backup is already in progress")
 
     session.delete(db_backup)
     session.commit()

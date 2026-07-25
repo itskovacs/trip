@@ -2167,6 +2167,41 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     });
   }
 
+  resetUserTotp(user: AdminUser) {
+    const confirmModal = this.dialogService.open(YesNoModalComponent, {
+      header: this.translocoService.translate('settings.reset_totp'),
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      draggable: false,
+      resizable: false,
+      data: this.translocoService.translate('settings.reset_totp_message', { name: user.username }),
+    })!;
+
+    confirmModal.onClose.pipe(take(1)).subscribe({
+      next: (confirmed: boolean) => {
+        if (confirmed)
+          this.apiService
+            .adminResetUserTotp(user.username)
+            .pipe(take(1))
+            .subscribe({
+              next: () =>
+                this.utilsService.toast(
+                  'success',
+                  this.translocoService.translate('common.status.success'),
+                  this.translocoService.translate('messages.totp_reset'),
+                ),
+              error: () =>
+                this.utilsService.toast(
+                  'error',
+                  this.translocoService.translate('common.status.error'),
+                  this.translocoService.translate('messages.failed_reset_totp'),
+                ),
+            });
+      },
+    });
+  }
+
   deleteUser(user: AdminUser) {
     const confirmModal = this.dialogService.open(YesNoModalComponent, {
       header: this.translocoService.translate('settings.delete_user'),

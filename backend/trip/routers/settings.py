@@ -86,9 +86,11 @@ async def verify_totp(
     return {}
 
 
-@router.delete("/totp/{code}")
+@router.delete("/totp")
 async def delete_totp(
-    session: SessionDep, code: str, current_user: Annotated[str, Depends(get_current_username)]
+    session: SessionDep,
+    current_user: Annotated[str, Depends(get_current_username)],
+    code: str = Body(..., embed=True),
 ):
     db_user = session.get(User, current_user)
     if not db_user or not db_user.totp_enabled or not db_user.totp_secret:
@@ -179,6 +181,9 @@ def delete_backup(
     ).first()
     if not db_backup:
         raise HTTPException(status_code=404, detail="Not found")
+
+    if db_backup.status in (BackupStatus.PENDING, BackupStatus.PROCESSING):
+        raise HTTPException(status_code=409, detail="A backup is already in progress")
 
     session.delete(db_backup)
     session.commit()

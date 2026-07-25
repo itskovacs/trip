@@ -3,6 +3,7 @@ export interface AdminUser {
   is_admin: boolean;
   quota_bytes: number;
   quota_places: number;
+  totp_enabled: boolean;
   google_apikey: boolean;
   api_token: boolean;
 }

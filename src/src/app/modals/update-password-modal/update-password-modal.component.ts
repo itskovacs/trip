@@ -44,6 +44,7 @@ export class UpdatePasswordModalComponent {
 
   closeDialog() {
     if (!this.current.value || !this.updated.value) return;
+    if (this.updated.value.length < 8) return;
     if (this.otpEnabled && !this.otp) return;
 
     this.ref.close({

@@ -1258,6 +1258,11 @@
                       <p-button icon="pi pi-key" severity="warn" size="small" text
                         [pTooltip]="t('settings.reset_password')" tooltipPosition="left"
                         (click)="resetUserPassword(user)" />
+                      @if (user.totp_enabled) {
+                      <p-button icon="pi pi-shield" severity="warn" size="small" text
+                        [pTooltip]="t('settings.reset_totp')" tooltipPosition="left"
+                        (click)="resetUserTotp(user)" />
+                      }
                       <p-button icon="pi pi-trash" severity="danger" size="small" text pTooltip="Delete"
                         tooltipPosition="left" (click)="deleteUser(user)" />
                     </div>
@@ -1513,7 +1518,7 @@
                           [placeholder]="t('settings.oidc_discovery_url')" pSize="small" fluid />
                         <input pInputText formControlName="OIDC_CLIENT_ID" [placeholder]="t('settings.oidc_client_id')"
                           pSize="small" fluid />
-                        <input pInputText formControlName="OIDC_CLIENT_SECRET"
+                        <input pInputText type="password" formControlName="OIDC_CLIENT_SECRET"
                           [placeholder]="t('settings.oidc_client_secret')" pSize="small" fluid />
                         <input pInputText formControlName="OIDC_REDIRECT_URI"
                           [placeholder]="t('settings.oidc_redirect_uri')" pSize="small" fluid />

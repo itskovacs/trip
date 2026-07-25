@@ -102,7 +102,7 @@ class LoginRegisterModel(BaseModel):
 
 class UpdateUserPassword(BaseModel):
     current: str
-    updated: str
+    updated: Annotated[str, StringConstraints(min_length=8)]
     code: str | None = None
 
 
@@ -293,6 +293,11 @@ class BackupRead(BackupBase):
             status=obj.status,
             user=obj.user,
         )
+
+
+class DataMigration(SQLModel, table=True):
+    name: str = Field(primary_key=True)
+    applied_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class UserBase(SQLModel):

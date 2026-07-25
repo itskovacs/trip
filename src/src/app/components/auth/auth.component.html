@@ -70,6 +70,9 @@
           @if (authForm.get('password')?.dirty && authForm.get('password')?.hasError('required')) {
           <span class="text-base text-red-600">{{ t('auth.password_req') }}</span>
           }
+          @if (authForm.get('password')?.dirty && authForm.get('password')?.hasError('minlength')) {
+          <span class="text-base text-red-600">{{ t('auth.password_minlength') }}</span>
+          }
 
           <div class="mt-4 text-right">
             @if (isRegistering()) {
