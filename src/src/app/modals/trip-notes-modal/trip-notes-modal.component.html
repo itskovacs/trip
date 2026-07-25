@@ -3,11 +3,13 @@
     @if (isEditing) {
     <textarea pTextarea id="notes" [placeholder]="t('common.fields.notes')" [formControl]="notes" rows="4" autoResize
       fluid></textarea>
+    <span class="mt-1 block text-xs text-primary-500 dark:text-primary-400">{{ t('common.fields.markdown_hint')
+      }}</span>
     } @else {
     @if (notes.value) {
     <div class="mt-4 border-l-3 border-primary-900 pl-6 py-2">
-      <span class="leading-relaxed text-primary-800 dark:text-primary-200 whitespace-pre-wrap"
-        [innerHTML]="notes.value | linkify"></span>
+      <span class="leading-relaxed text-primary-800 dark:text-primary-200 markdown-content"
+        [innerHTML]="notes.value | markdown"></span>
     </div>
     } @else {
     <div class="text-center">

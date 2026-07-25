@@ -668,8 +668,8 @@
                     class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">{{
                     t('common.fields.comment') }}</span>
                   <div
-                    class="border-l-3 border-primary-300 dark:border-primary-700 pl-3 py-1 text-sm text-primary-700 dark:text-primary-300 whitespace-pre-wrap leading-relaxed"
-                    [innerHTML]="item.comment | linkify"></div>
+                    class="border-l-3 border-primary-300 dark:border-primary-700 pl-3 py-1 text-sm text-primary-700 dark:text-primary-300 markdown-content leading-relaxed"
+                    [innerHTML]="item.comment | markdown"></div>
                 </div>
                 }
 
@@ -680,11 +680,7 @@
                     t('common.fields.links') }}</span>
                   <div class="flex flex-wrap gap-1.5">
                     @for (link of item.links; track link) {
-                    <a [href]="link" target="_blank" rel="noopener noreferrer"
-                      class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg border border-primary-200 dark:border-primary-700 bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-800 transition-colors">
-                      <i class="pi pi-external-link text-xs!"></i>
-                      {{ getDomain(link) }}
-                    </a>
+                    <app-link-chip [url]="link" />
                     }
                   </div>
                 </div>
@@ -860,8 +856,8 @@
             <span class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">{{
               t('common.fields.comment') }}</span>
             <div
-              class="border-l-3 border-primary-300 dark:border-primary-700 pl-3 py-1 text-sm text-primary-700 dark:text-primary-300 whitespace-pre-wrap leading-relaxed"
-              [innerHTML]="item.comment | linkify"></div>
+              class="border-l-3 border-primary-300 dark:border-primary-700 pl-3 py-1 text-sm text-primary-700 dark:text-primary-300 markdown-content leading-relaxed"
+              [innerHTML]="item.comment | markdown"></div>
           </div>
           }
 
@@ -871,11 +867,7 @@
               t('common.fields.links') }}</span>
             <div class="flex flex-wrap gap-1.5">
               @for (link of item.links; track link) {
-              <a [href]="link" target="_blank" rel="noopener noreferrer"
-                class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium rounded-lg border border-primary-200 dark:border-primary-700 bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-800 transition-colors">
-                <i class="pi pi-external-link text-xs!"></i>
-                {{ getDomain(link) }}
-              </a>
+              <app-link-chip [url]="link" />
               }
             </div>
           </div>
@@ -1009,8 +1001,8 @@
             <span class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">{{
               t('common.fields.notes') }}</span>
             <div
-              class="border-l-3 border-primary-300 dark:border-primary-700 pl-3 py-1 text-sm text-primary-700 dark:text-primary-300 whitespace-pre-wrap leading-relaxed"
-              [innerHTML]="day.notes | linkify"></div>
+              class="border-l-3 border-primary-300 dark:border-primary-700 pl-3 py-1 text-sm text-primary-700 dark:text-primary-300 markdown-content leading-relaxed"
+              [innerHTML]="day.notes | markdown"></div>
           </div>
           }
 

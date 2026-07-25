@@ -52,7 +52,7 @@ import { UtilsService } from '../../services/utils.service';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { MenuItem } from 'primeng/api';
 import { Menu, MenuModule } from 'primeng/menu';
-import { LinkifyPipe } from '../../shared/pipes/linkify.pipe';
+import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
 import { DialogModule } from 'primeng/dialog';
 import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
 import { TooltipModule } from 'primeng/tooltip';
@@ -105,7 +105,7 @@ const MAX_MAP_INIT_RETRIES = 5;
     SkeletonModule,
     MenuModule,
     InputTextModule,
-    LinkifyPipe,
+    MarkdownPipe,
     FloatLabelModule,
     TableModule,
     ButtonModule,
@@ -1237,14 +1237,6 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
     link.click();
     link.remove();
     URL.revokeObjectURL(downloadURL);
-  }
-
-  getDomain(url: string): string {
-    try {
-      return new URL(url).hostname;
-    } catch {
-      return url;
-    }
   }
 
   itemToNavigation() {

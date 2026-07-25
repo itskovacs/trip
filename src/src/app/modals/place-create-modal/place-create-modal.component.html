@@ -169,6 +169,8 @@
               (click)="placeForm.get('description')?.setValue(''); placeForm.markAsDirty()"
               [pTooltip]="t('common.actions.clear')" />
             }
+            <span class="mt-1 block text-xs text-primary-500 dark:text-primary-400">{{ t('common.fields.markdown_hint')
+              }}</span>
           </div>
 
           <div class="space-y-2">

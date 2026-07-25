@@ -8,11 +8,12 @@ import { ApiService } from '../../services/api.service';
 import { UtilsService } from '../../services/utils.service';
 import { Observable, map } from 'rxjs';
 import { AsyncPipe } from '@angular/common';
-import { LinkifyPipe } from '../pipes/linkify.pipe';
+import { MarkdownPipe } from '../pipes/markdown.pipe';
 import { TooltipModule } from 'primeng/tooltip';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { NaturalDurationPipe } from '../pipes/naturalduration.pipe';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { LinkChipComponent } from '../link-chip/link-chip.component';
 
 @Component({
   selector: 'app-place-box-content',
@@ -21,11 +22,12 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
     ButtonModule,
     MenuModule,
     AsyncPipe,
-    LinkifyPipe,
+    MarkdownPipe,
     ClipboardModule,
     TooltipModule,
     NaturalDurationPipe,
     TranslocoDirective,
+    LinkChipComponent,
   ],
   templateUrl: './place-box-content.component.html',
   styleUrls: ['./place-box-content.component.scss'],
@@ -157,13 +159,5 @@ export class PlaceBoxContentComponent {
   onCoordsCopied() {
     this.tooltipCopied.set(true);
     setTimeout(() => this.tooltipCopied.set(false), 1200);
-  }
-
-  getDomain(url: string): string {
-    try {
-      return new URL(url).hostname;
-    } catch {
-      return url;
-    }
   }
 }

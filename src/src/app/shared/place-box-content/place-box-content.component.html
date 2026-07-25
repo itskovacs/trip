@@ -132,8 +132,8 @@
   <div class="flex flex-col mt-4 max-h-40 overflow-y-auto min-w-0">
     <span class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1"> {{
       t('description') }}</span>
-    <span class="wrap-break-word whitespace-pre-wrap text-primary-900 dark:text-primary-100"
-      [innerHTML]="selectedPlace.description || '-' | linkify">
+    <span class="wrap-break-word markdown-content text-primary-900 dark:text-primary-100"
+      [innerHTML]="selectedPlace.description ? (selectedPlace.description | markdown) : '-'">
     </span>
   </div>
 
@@ -143,11 +143,7 @@
       t('links') }}</span>
     <div class="flex flex-wrap gap-1.5">
       @for (link of selectedPlace.links; track link) {
-      <a [href]="link" target="_blank" rel="noopener noreferrer"
-        class="inline-flex items-center h-8 gap-1.5 px-3 py-1.5 text-xs font-medium text-primary-600 dark:text-primary-300 cursor-pointer rounded border bg-primary-50 dark:bg-primary-800 hover:bg-primary-100 dark:hover:bg-primary-700 border-primary-200 dark:border-primary-700 transition-colors min-w-0">
-        <i class="pi pi-external-link text-xs!"></i>
-        {{ getDomain(link) }}
-      </a>
+      <app-link-chip [url]="link" />
       }
     </div>
   </div>

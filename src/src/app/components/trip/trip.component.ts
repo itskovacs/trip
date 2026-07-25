@@ -52,14 +52,14 @@ import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { TripPlaceSelectModalComponent } from '../../modals/trip-place-select-modal/trip-place-select-modal.component';
 import { TripCreateDayModalComponent } from '../../modals/trip-create-day-modal/trip-create-day-modal.component';
 import { TripCreateDayItemModalComponent } from '../../modals/trip-create-day-item-modal/trip-create-day-item-modal.component';
-import { debounceTime, distinctUntilChanged, forkJoin, Observable, of, switchMap, take } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, forkJoin, map, Observable, of, switchMap, take } from 'rxjs';
 import { YesNoModalComponent } from '../../modals/yes-no-modal/yes-no-modal.component';
 import { UtilsService } from '../../services/utils.service';
 import { TripCreateModalComponent } from '../../modals/trip-create-modal/trip-create-modal.component';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { MenuItem } from 'primeng/api';
 import { Menu, MenuModule } from 'primeng/menu';
-import { LinkifyPipe } from '../../shared/pipes/linkify.pipe';
+import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
 import { PlaceCreateModalComponent } from '../../modals/place-create-modal/place-create-modal.component';
 import { Settings } from '../../types/settings';
 import { DialogModule } from 'primeng/dialog';
@@ -121,7 +121,7 @@ const HIGHLIGHT_COLORS = [
     SkeletonModule,
     MenuModule,
     InputTextModule,
-    LinkifyPipe,
+    MarkdownPipe,
     FloatLabelModule,
     TableModule,
     ButtonModule,
@@ -2439,14 +2439,6 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     link.click();
     link.remove();
     URL.revokeObjectURL(downloadURL);
-  }
-
-  getDomain(url: string): string {
-    try {
-      return new URL(url).hostname;
-    } catch {
-      return url;
-    }
   }
 
   itemToNavigation() {
