@@ -835,14 +835,8 @@
                 </div>
                 }
 
-                @if (item.image) {
-                <div class="flex flex-col mt-4">
-                  <span
-                    class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">{{
-                    t('common.fields.image') }}
-                  </span>
-                  <img [src]="item.image" class="w-full rounded-lg object-cover" loading="lazy" />
-                </div>
+                @if (item.images?.length) {
+                <app-item-gallery [images]="item.images!" [coverId]="item.image_id" />
                 }
 
                 @if (item.gpx) {
@@ -1047,13 +1041,8 @@
           </div>
           }
 
-          @if (item.image) {
-          <div class="flex flex-col mt-4">
-            <span class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">{{
-              t('common.fields.image') }}
-            </span>
-            <img [src]="item.image" class="w-full rounded-lg object-cover" loading="lazy" />
-          </div>
+          @if (item.images?.length) {
+          <app-item-gallery [images]="item.images!" [coverId]="item.image_id" />
           }
 
           @if (item.gpx) {
@@ -1614,7 +1603,7 @@
           }
 
           @for (item of group.items; track item.id) {
-          <div class="flex gap-4 items-center rounded-lg p-3 -mx-3">
+          <div class="flex gap-4 items-start rounded-lg p-3 -mx-3 break-inside-avoid">
             @if (item.time) {
             <span class="px-2.5 py-1 text-xs font-mono font-medium bg-primary-100 text-primary-700 rounded">{{
               item.time }}</span>
@@ -1639,6 +1628,14 @@
 
               @if (options?.props?.has('comment') && item.comment) {
               <p class="text-sm text-primary-500 whitespace-pre-wrap italic">{{ item.comment }}</p>
+              }
+
+              @if (options?.images && item.images?.length) {
+              <div class="flex flex-wrap gap-2 mt-2">
+                @for (img of item.images; track img.id) {
+                <img [src]="img.url" class="size-24 rounded-lg object-cover" />
+                }
+              </div>
               }
             </div>
 

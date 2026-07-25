@@ -8,8 +8,9 @@ from sqlmodel import select
 
 from ..config import get_settings
 from ..deps import SessionDep, get_current_username
-from ..models.models import (Image, Place, Trip, TripAttachment,
-                             TripAttachmentRead, TripBooking, TripChecklistItem,
+from ..models.models import (Image, ItemImageInput, Place, Trip,
+                             TripAttachment, TripAttachmentRead,
+                             TripBalanceEntry, TripBooking, TripChecklistItem,
                              TripChecklistItemCreate, TripChecklistItemRead,
                              TripChecklistItemUpdate, TripCreate, TripDay,
                              TripDayBase, TripDayRead, TripInvitationRead,
@@ -246,8 +247,8 @@ def delete_trip(
 
     for day in db_trip.days:
         for item in day.items:
-            if item.image:
-                session.delete(item.image)
+            for image in item.images:
+                session.delete(image)
 
     if db_trip.image:
         try:
@@ -353,9 +354,47 @@ def delete_tripday(
     if not db_day or (db_day.trip_id != trip_id):
         raise HTTPException(status_code=400, detail="Bad request")
 
+    for item in db_day.items:
+        for image in item.images:
+            session.delete(image)
+
     session.delete(db_day)
     session.commit()
     return {}
+
+
+def _resolve_item_images(
+    session: SessionDep,
+    images: list[ItemImageInput],
+    current_user: str,
+    allowed_image_ids: set[int],
+) -> tuple[list[Image], list[str]]:
+    resolved: list[Image] = []
+    new_filenames: list[str] = []
+    for entry in images:
+        if entry.id is not None:
+            image = session.get(Image, entry.id) if entry.id in allowed_image_ids else None
+            if not image:
+                raise HTTPException(status_code=400, detail="Image not found")
+            resolved.append(image)
+        elif entry.data:
+            image_bytes = b64img_decode(entry.data)
+            filename, file_size = save_image_to_file(image_bytes, 0)
+            if not filename:
+                raise HTTPException(status_code=400, detail="Bad request")
+            new_filenames.append(filename)
+            image = Image(filename=filename, file_size=file_size, user=current_user)
+            session.add(image)
+            session.flush()
+            resolved.append(image)
+    return resolved, new_filenames
+
+
+def _cover_image_id(images: list[Image], cover_index: int | None) -> int | None:
+    if not images:
+        return None
+    idx = cover_index if cover_index is not None and 0 <= cover_index < len(images) else 0
+    return images[idx].id
 
 
 @router.post("/{trip_id}/days/{day_id}/items", response_model=TripItemRead)
@@ -384,20 +423,9 @@ def create_tripitem(
         day_id=day_id,
         price=item.price,
         status=item.status,
-        links=item.links
+        links=item.links,
+        gpx=item.gpx,
     )
-
-    filename = None
-    if item.image:
-        image_bytes = b64img_decode(item.image)
-        filename, file_size = save_image_to_file(image_bytes, 0)
-        if not filename:
-            raise HTTPException(status_code=400, detail="Bad request")
-
-        image = Image(filename=filename, file_size=file_size, user=current_user)
-        session.add(image)
-        session.flush()
-        new_item.image_id = image.id
 
     if item.place is not None:
         place_in_trip = any(place.id == item.place for place in db_trip.places)
@@ -425,13 +453,21 @@ def create_tripitem(
 
         new_item.attachments = list(attachments)
 
+    new_filenames: list[str] = []
+    if item.images:
+        # A new item has no existing gallery, so only freshly uploaded (data) entries
+        # are valid here - reused ids have nothing to reference yet.
+        resolved, new_filenames = _resolve_item_images(session, item.images, current_user, set())
+        new_item.images = resolved
+        new_item.image_id = _cover_image_id(resolved, item.cover_index)
+
     try:
         session.add(new_item)
         session.commit()
     except Exception:
         session.rollback()
-        if filename:
-            remove_image(filename)
+        for fn in new_filenames:
+            remove_image(fn)
         raise HTTPException(status_code=500, detail="Failed to create")
     return TripItemRead.serialize(new_item)
 
@@ -459,36 +495,8 @@ def update_tripitem(
         raise HTTPException(status_code=400, detail="Bad request")
 
     item_data = item.model_dump(exclude_unset=True)
-    # TODO: Optimize logic; image=data: parse / image=none: remove / no image key: pass
-    filename = None
-    if "image" in item_data:  # no image key: pass
-        image_b64 = item_data.pop("image", None)  # image=data: parse
-        if image_b64:
-            image_bytes = b64img_decode(image_b64)
-            filename, file_size = save_image_to_file(image_bytes, 0)
-            if not filename:
-                raise HTTPException(status_code=400, detail="Bad request")
-
-            if db_item.image:
-                session.delete(db_item.image)
-                session.flush()
-
-            image = Image(filename=filename, file_size=file_size, user=current_user)
-            session.add(image)
-            session.flush()
-            session.refresh(db_item)
-            db_item.image_id = image.id
-
-        else:  # image=none: remove if previous
-            if getattr(db_item, "image_id", None):
-                old_image = session.get(Image, db_item.image_id)
-                try:
-                    session.delete(old_image)
-                    db_item.image_id = None
-                    session.refresh(db_item)
-                except Exception:
-                    session.rollback()
-                    raise HTTPException(status_code=400, detail="Bad request")
+    if "text" in item_data and not item_data["text"]:
+        raise HTTPException(status_code=400, detail="Bad request")
 
     if "place" in item_data:
         place_id = item_data.pop("place")
@@ -525,6 +533,24 @@ def update_tripitem(
         else:
             db_item.attachments = []
 
+    item_data.pop("cover_index", None)
+    # An absent "images" key leaves the gallery untouched; an empty list clears it.
+    new_filenames: list[str] = []
+    if "images" in item_data:
+        item_data.pop("images")
+        old_images = list(db_item.images)
+        allowed_ids = {img.id for img in old_images}
+        resolved, new_filenames = _resolve_item_images(session, item.images or [], current_user, allowed_ids)
+        resolved_ids = {img.id for img in resolved}
+
+        db_item.images = resolved
+        db_item.image_id = _cover_image_id(resolved, item.cover_index)
+        session.flush()
+
+        for old in old_images:
+            if old.id not in resolved_ids:
+                session.delete(old)
+
     for key, value in item_data.items():
         setattr(db_item, key, value)
 
@@ -533,8 +559,8 @@ def update_tripitem(
         session.commit()
     except Exception:
         session.rollback()
-        if filename:
-            remove_image(filename)
+        for fn in new_filenames:
+            remove_image(fn)
         raise HTTPException(status_code=500, detail="Failed to update")
     return TripItemRead.serialize(db_item)
 
@@ -559,9 +585,10 @@ def delete_tripitem(
     if not db_item or (db_item.day_id != day_id):
         raise HTTPException(status_code=400, detail="Bad request")
 
-    if db_item.image:
+    if db_item.images:
         try:
-            session.delete(db_item.image)
+            for image in db_item.images:
+                session.delete(image)
         except Exception:
             raise HTTPException(
                 status_code=500,

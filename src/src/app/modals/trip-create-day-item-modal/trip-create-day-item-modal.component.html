@@ -121,103 +121,116 @@
           }
         </p-inputgroup>
       </div>
+    </div>
 
-      <div class="grid md:grid-cols-[auto_1fr] gap-4">
+    <div class="space-y-4">
+      <h2 class="text-sm font-semibold text-primary-900 dark:text-primary-50">{{ t('common.sections.additional') }}</h2>
+
+      <div class="grid md:grid-cols-3 gap-4">
         <div
-          class="flex flex-col items-center justify-center gap-2 p-4 bg-primary-50 dark:bg-primary-800 rounded-lg border border-primary-200 dark:border-primary-700">
-          <div class="relative group">
-            @if (itemForm.get('image_id')?.value || itemForm.get('image')?.value) {
-            <img [src]="itemForm.get('image')?.value || '/favicon.png'"
-              class="size-24 object-cover rounded-lg shadow ring-2 ring-primary-200 dark:ring-primary-700 cursor-pointer transition-all group-hover:ring-primary-400"
-              (click)="imageInput.click()" />
-            <div
-              class="absolute inset-0 bg-black/60 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
-              (click)="imageInput.click()">
-              <i class="pi pi-camera text-white text-2xl"></i>
-            </div>
+          class="flex items-center gap-4 p-3 bg-primary-50 dark:bg-primary-800 rounded-lg border border-primary-200 dark:border-primary-700">
+          <p-button severity="secondary" size="small" [label]="t('common.fields.image')" (click)="imageInput.click()"
+            icon="pi pi-image" [disabled]="images().length >0" />
 
-            <button type="button"
-              class="cursor-pointer absolute -top-2 -right-2 size-7 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-full shadow transition"
-              (click)="clearImage(); $event.stopPropagation()">
+          @if (itemForm.get('gpx')?.value) {
+          <p-button icon="pi pi-check" styleClass="hover:border-red-500! hover:bg-red-500! dark:hover:bg-red-900/40!"
+            [label]="t('common.fields.gpx')" severity="success" size="small" (click)="clearGPX()" />
+          } @else {
+          <p-button icon="pi pi-paperclip" [label]="t('common.fields.gpx')" severity="secondary" size="small"
+            (click)="gpxInput.click()" />
+          }
+          <input type="file" accept=".gpx" #gpxInput class="hidden" (change)="onGPXSelected($event)" />
+        </div>
+
+        <p-floatlabel variant="in" class="md:col-span-2">
+          <p-multiselect [options]="trip?.attachments ?? []" optionValue="id" optionLabel="filename" class="h-full"
+            formControlName="attachments" [showToggleAll]="false" display="chip" scrollHeight="320px" appendTo="body"
+            fluid>
+            <ng-template #footer>
+              <div class="p-2 border-t border-primary-200 dark:border-primary-700">
+                <p-button (click)="fileUpload.click()" icon="pi pi-plus" [label]="t('modals.item.upload_new')" text
+                  size="small" fluid />
+                <input type="file" class="hidden" (change)="onFileUploadInputChange($event)" #fileUpload />
+              </div>
+            </ng-template>
+          </p-multiselect>
+          <label for="attachments">{{ t('common.fields.attachments') }}</label>
+        </p-floatlabel>
+      </div>
+
+      @if (images().length) {
+      <div
+        class="flex flex-wrap gap-2 p-3 bg-primary-50 dark:bg-primary-800 rounded-lg border border-primary-200 dark:border-primary-700">
+        @for (img of images(); track $index) {
+        <div class="relative group size-20">
+          <img [src]="img.url"
+            class="size-20 aspect-square object-cover rounded-lg shadow transition ring-offset-1 ring-offset-primary-50 dark:ring-offset-primary-800"
+            [class.ring-2]="$index === coverIndex()" [class.ring-primary-500]="$index === coverIndex()" />
+
+          @if ($index === coverIndex()) {
+          <div class="absolute top-1 left-1 size-5 flex items-center justify-center rounded-full bg-black/50">
+            <i class="pi pi-star-fill text-amber-400 text-xs"></i>
+          </div>
+          }
+
+          <div
+            class="absolute inset-0 rounded-lg bg-black/50 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            @if ($index !== coverIndex()) {
+            <button type="button" (click)="setCover($index)" [title]="t('modals.item.set_cover')"
+              class="cursor-pointer size-7 flex items-center justify-center rounded-full bg-white/15 hover:bg-white/30 text-white transition">
+              <i class="pi pi-star text-xs"></i>
+            </button>
+            }
+            <button type="button" (click)="removeImage($index)" [title]="t('modals.item.remove_image')"
+              class="cursor-pointer size-7 flex items-center justify-center rounded-full bg-red-500/80 hover:bg-red-600 text-white transition">
               <i class="pi pi-times text-xs"></i>
             </button>
-            } @else {
-            <div
-              class="size-24 flex items-center justify-center bg-primary-100 dark:bg-primary-900 rounded-lg border-2 border-dashed border-primary-300 dark:border-primary-600 cursor-pointer transition hover:border-primary-400"
-              (click)="imageInput.click()">
-              <i class="pi pi-image text-3xl text-primary-400"></i>
-            </div>
-            }
-            <input type="file" accept="image/*" #imageInput class="hidden" (change)="onImageSelected($event)" />
           </div>
         </div>
+        }
 
-        <div class="space-y-4">
-          <div class="grid md:grid-cols-3 gap-4">
-            <div
-              class="flex flex-wrap gap-4 p-3 bg-primary-50 dark:bg-primary-800 rounded-lg border border-primary-200 dark:border-primary-700">
-              <div class="flex items-center gap-2">
-                @if (itemForm.get('gpx')?.value) {
-                <p-button icon="pi pi-check"
-                  styleClass="hover:border-red-500! hover:bg-red-500! dark:hover:bg-red-900/40!"
-                  [label]="t('common.fields.gpx')" severity="success" size="small" (click)="clearGPX()" />
-                } @else {
-                <p-button icon="pi pi-paperclip" [label]="t('common.fields.gpx')" severity="secondary" size="small"
-                  (click)="gpxInput.click()" />
-                }
-                <input type="file" accept=".gpx" #gpxInput class="hidden" (change)="onGPXSelected($event)" />
-              </div>
-            </div>
-
-            <p-floatlabel variant="in" class="md:col-span-2">
-              <p-multiselect [options]="trip?.attachments ?? []" optionValue="id" optionLabel="filename" class="h-full"
-                formControlName="attachments" [showToggleAll]="false" display="chip" scrollHeight="320px"
-                appendTo="body" fluid>
-                <ng-template #footer>
-                  <div class="p-2 border-t border-primary-200 dark:border-primary-700">
-                    <p-button (click)="fileUpload.click()" icon="pi pi-plus" [label]="t('modals.item.upload_new')" text
-                      size="small" fluid />
-                    <input type="file" class="hidden" (change)="onFileUploadInputChange($event)" #fileUpload />
-                  </div>
-                </ng-template>
-              </p-multiselect>
-              <label for="attachments">{{ t('common.fields.attachments') }}</label>
-            </p-floatlabel>
-          </div>
-
-          <div class="relative">
-            <textarea pTextarea id="comment" formControlName="comment" [placeholder]="t('common.fields.comment')"
-              rows="4" #descriptionInput fluid class="pr-12!"></textarea>
-            @if (descriptionInput.value) {
-            <p-button text icon="pi pi-times" severity="danger" class="absolute right-2 top-2"
-              (click)="itemForm.get('comment')?.setValue(''); itemForm.markAsDirty()" />
-            }
-          </div>
-
-          <div class="space-y-2">
-            <div class="flex items-center gap-2">
-              <input type="url" pInputText fluid [value]="newLinkInput()"
-                (input)="newLinkInput.set($any($event.target).value)" [placeholder]="t('modals.place.link_placeholder')"
-                (keydown.enter)="$event.preventDefault(); addLink(newLinkInput())" />
-              <p-button icon="pi pi-plus" size="small" [disabled]="!newLinkInput() || !isValidUrl(newLinkInput())"
-                (click)="addLink(newLinkInput())" />
-            </div>
-            @if (itemForm.get('links')?.value?.length) {
-            <div class="flex flex-wrap gap-1.5">
-              @for (link of itemForm.get('links')?.value; track $index) {
-              <span
-                class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs min-w-0 max-w-60 truncate font-medium rounded-lg border border-primary-200 dark:border-primary-700 bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300">
-                <i class="pi pi-external-link text-xs!"></i>
-                <span class="max-w-40 truncate">{{ link }}</span>
-                <p-button icon="pi pi-times" (click)="removeLink($index)" text size="small" severity="danger" />
-              </span>
-              }
-            </div>
-            }
-          </div>
-        </div>
+        <button type="button" (click)="imageInput.click()" [title]="t('modals.item.add_image')"
+          class="cursor-pointer size-20 flex items-center justify-center rounded-lg border-2 border-dashed border-primary-300 dark:border-primary-600 text-primary-400 hover:border-primary-400 transition">
+          <i class="pi pi-plus text-2xl"></i>
+        </button>
       </div>
+      }
+
+      <div class="relative">
+        <textarea pTextarea id="comment" formControlName="comment" [placeholder]="t('common.fields.comment')" rows="4"
+          #descriptionInput fluid class="pr-12!"></textarea>
+        @if (descriptionInput.value) {
+        <p-button text icon="pi pi-times" severity="danger" class="absolute right-2 top-2"
+          (click)="itemForm.get('comment')?.setValue(''); itemForm.markAsDirty()" />
+        }
+        <span class="mt-1 block text-xs text-primary-500 dark:text-primary-400">{{ t('common.fields.markdown_hint')
+          }}</span>
+      </div>
+
+      <div class="space-y-2">
+        <div class="flex items-center gap-2">
+          <input type="url" pInputText fluid [value]="newLinkInput()"
+            (input)="newLinkInput.set($any($event.target).value)" [placeholder]="t('modals.place.link_placeholder')"
+            (keydown.enter)="$event.preventDefault(); addLink(newLinkInput())" />
+          <p-button icon="pi pi-plus" size="small" [disabled]="!newLinkInput() || !isValidUrl(newLinkInput())"
+            (click)="addLink(newLinkInput())" />
+        </div>
+        @if (itemForm.get('links')?.value?.length) {
+        <div class="flex flex-wrap gap-1.5">
+          @for (link of itemForm.get('links')?.value; track $index) {
+          <span
+            class="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs min-w-0 max-w-60 truncate font-medium rounded-lg border border-primary-200 dark:border-primary-700 bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300">
+            <i class="pi pi-external-link text-xs!"></i>
+            <span class="max-w-40 truncate">{{ link }}</span>
+            <p-button icon="pi pi-times" (click)="removeLink($index)" text size="small" severity="danger" />
+          </span>
+          }
+        </div>
+        }
+      </div>
+      <input type="file" accept="image/*" multiple #imageInput class="hidden" (change)="onImagesSelected($event)" />
     </div>
+
     <div class="flex justify-end gap-3 pt-4 border-t border-primary-200 dark:border-primary-700">
       <p-button [label]="itemForm.get('id')?.value !== -1 ? t('common.actions.update') : t('common.actions.create')"
         icon="pi pi-check" [disabled]="!itemForm.dirty || !itemForm.valid" (click)="closeDialog()" />

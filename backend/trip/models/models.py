@@ -5,7 +5,8 @@ from types import SimpleNamespace
 from typing import Annotated
 
 from pydantic import BaseModel, StringConstraints, field_validator
-from sqlalchemy import JSON, Column, Index, MetaData, UniqueConstraint, event, select
+from sqlalchemy import (JSON, Column, Index, MetaData, UniqueConstraint, event,
+                        select)
 from sqlalchemy.orm import Session, object_session
 from sqlmodel import Field, Relationship, SQLModel
 
@@ -226,6 +227,15 @@ class Image(ImageBase, table=True):
     places: list["Place"] = Relationship(back_populates="image")
     trips: list["Trip"] = Relationship(back_populates="image")
     tripitems: list["TripItem"] = Relationship(back_populates="image")
+
+
+class ImageRead(BaseModel):
+    id: int
+    url: str
+
+    @classmethod
+    def serialize(cls, obj: Image) -> "ImageRead":
+        return cls(id=obj.id, url=_prefix_assets_url(obj.filename))
 
 
 @event.listens_for(Image, "after_delete")
@@ -751,11 +761,19 @@ class TripItemAttachmentLink(SQLModel, table=True):
     attachment_id: int = Field(foreign_key="tripattachment.id", ondelete="CASCADE", primary_key=True)
 
 
+class TripItemImageLink(SQLModel, table=True):
+    item_id: int = Field(foreign_key="tripitem.id", ondelete="CASCADE", primary_key=True, index=True)
+    image_id: int = Field(foreign_key="image.id", ondelete="CASCADE", primary_key=True)
+
+
 class TripItemBase(SQLModel):
-    time: Annotated[
-        str,
-        StringConstraints(min_length=2, max_length=5, pattern=r"^([01]\d|2[0-3])(:[0-5]\d)?$"),
-    ] | None = None
+    time: (
+        Annotated[
+            str,
+            StringConstraints(min_length=2, max_length=5, pattern=r"^([01]\d|2[0-3])(:[0-5]\d)?$"),
+        ]
+        | None
+    ) = None
     text: str
     comment: str | None = None
     lat: float | None = None
@@ -793,11 +811,19 @@ class TripItem(TripItemBase, table=True):
         back_populates="items", link_model=TripItemAttachmentLink
     )
 
+    images: list["Image"] = Relationship(link_model=TripItemImageLink)
+
+
+class ItemImageInput(BaseModel):
+    id: int | None = None
+    data: str | None = None
+
 
 class TripItemCreate(TripItemBase):
     place: int | None = None
     status: TripItemStatusEnum | None = None
-    image: str | None = None
+    images: list[ItemImageInput] = []
+    cover_index: int | None = None
     paid_by: str | None = None
     attachment_ids: list[int] = []
 
@@ -808,7 +834,8 @@ class TripItemUpdate(TripItemBase):
     place: int | None = None
     day_id: int | None = None
     status: TripItemStatusEnum | None = None
-    image: str | None = None
+    images: list[ItemImageInput] | None = None
+    cover_index: int | None = None
     paid_by: str | None = None
     attachment_ids: list[int] = []
 
@@ -820,6 +847,7 @@ class TripItemRead(TripItemBase):
     status: TripItemStatusEnum | None
     image: str | None
     image_id: int | None
+    images: list[ImageRead]
     paid_by: str | None
     attachments: list["TripAttachmentRead"]
 
@@ -838,6 +866,7 @@ class TripItemRead(TripItemBase):
             place=PlaceRead.serialize(obj.place) if obj.place else None,
             image=_prefix_assets_url(obj.image.filename) if obj.image else None,
             image_id=obj.image_id,
+            images=[ImageRead.serialize(img) for img in obj.images],
             gpx=obj.gpx,
             paid_by=obj.paid_by,
             links=obj.links,

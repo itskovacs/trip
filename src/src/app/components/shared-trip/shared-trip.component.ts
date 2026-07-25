@@ -114,6 +114,8 @@ const MAX_MAP_INIT_RETRIES = 5;
     PlaceListItemComponent,
     ToggleButtonModule,
     TranslocoDirective,
+    LinkChipComponent,
+    ItemGalleryComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './shared-trip.component.html',
@@ -912,6 +914,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
         props: this.availableItemProps,
         selectedProps: this.selectedItemProps(),
         days: trip.days,
+        isFullAccess: this.isFullAccess(),
       },
     })!;
 

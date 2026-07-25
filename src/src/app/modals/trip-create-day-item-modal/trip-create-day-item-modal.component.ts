@@ -4,7 +4,7 @@ import { ButtonModule } from 'primeng/button';
 import { DynamicDialogConfig, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { FloatLabelModule } from 'primeng/floatlabel';
 import { InputTextModule } from 'primeng/inputtext';
-import { Trip, TripAttachment, TripDay, TripMember, TripStatus } from '../../types/trip';
+import { Trip, TripAttachment, TripDay, TripItemImage, TripMember, TripStatus } from '../../types/trip';
 import { Place } from '../../types/poi';
 import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
@@ -19,7 +19,14 @@ import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
 import { Popover, PopoverModule } from 'primeng/popover';
 import { ApiService } from '../../services/api.service';
 import { take } from 'rxjs';
-import { TranslocoDirective } from '@jsverse/transloco';
+import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+
+/** One gallery slot while editing: an existing image (`id`) or a freshly picked one (`data`). */
+interface EditImage {
+  id?: number;
+  data?: string;
+  url: string;
+}
 
 @Component({
   selector: 'app-trip-create-day-item-modal',
@@ -59,8 +66,8 @@ export class TripCreateDayItemModalComponent {
   itemForm: FormGroup;
   places: Place[] = [];
   statuses: TripStatus[] = [];
-  previous_image_id: number | null = null;
-  previous_image: string | null = null;
+  images = signal<EditImage[]>([]);
+  coverIndex = signal(0);
   trip?: Trip;
   newLinkInput = signal('');
 
@@ -87,8 +94,6 @@ export class TripCreateDayItemModalComponent {
       place: null,
       status: null,
       price: null,
-      image: null,
-      image_id: null,
       gpx: null,
       lat: [
         '',
@@ -114,13 +119,19 @@ export class TripCreateDayItemModalComponent {
       this.places = data.places ?? [];
       this.trip = data.trip ?? [];
 
-      if (data.item)
+      if (data.item) {
         this.itemForm.patchValue({
           ...data.item,
           place: data.item.place?.id ?? null,
           attachments: data.item.attachments.map((a: TripAttachment) => a.id),
           links: data.item.links ?? [],
         });
+
+        const existing: TripItemImage[] = data.item.images ?? [];
+        this.images.set(existing.map((img) => ({ id: img.id, url: img.url })));
+        const coverPos = existing.findIndex((img) => img.id === data.item.image_id);
+        this.coverIndex.set(coverPos >= 0 ? coverPos : 0);
+      }
 
       if (data.selectedDayId) this.itemForm.get('day_id')?.setValue([data.selectedDayId]);
       if (data.selectedPlaceId) {
@@ -172,10 +183,8 @@ export class TripCreateDayItemModalComponent {
       ret['lat'] = null;
       ret['lng'] = null;
     }
-    if (ret['image_id']) {
-      delete ret['image'];
-      delete ret['image_id'];
-    }
+    ret['images'] = this.images().map((img) => (img.id != null ? { id: img.id } : { data: img.data }));
+    ret['cover_index'] = this.coverIndex();
     if (ret['gpx'] == '1') delete ret['gpx'];
     if (!ret['place']) ret['place'] = null;
     if (ret['attachments']) {
@@ -215,36 +224,35 @@ export class TripCreateDayItemModalComponent {
     this.op.hide();
   }
 
-  onImageSelected(event: Event) {
+  onImagesSelected(event: Event) {
     const input = event.target as HTMLInputElement;
-    if (input.files?.length) {
-      const file = input.files[0];
+    if (!input.files?.length) return;
+
+    Array.from(input.files).forEach((file) => {
       const reader = new FileReader();
-
       reader.onload = (e) => {
-        if (this.itemForm.get('image_id')?.value) {
-          this.previous_image_id = this.itemForm.get('image_id')?.value;
-          this.previous_image = this.itemForm.get('image')?.value;
-          this.itemForm.get('image_id')?.setValue(null);
-        }
-
-        this.itemForm.get('image')?.setValue(e.target?.result as string);
-        this.itemForm.get('image')?.markAsDirty();
+        const url = e.target?.result as string;
+        this.images.update((list) => [...list, { data: url, url }]);
+        this.itemForm.markAsDirty();
       };
-
       reader.readAsDataURL(file);
-    }
+    });
+
+    input.value = ''; // allow re-picking the same file
   }
 
-  clearImage() {
-    this.itemForm.get('image')?.setValue(null);
-    this.itemForm.get('image_id')?.setValue(null);
+  setCover(index: number) {
+    this.coverIndex.set(index);
     this.itemForm.markAsDirty();
+  }
 
-    if (this.previous_image && this.previous_image_id) {
-      this.itemForm.get('image_id')?.setValue(this.previous_image_id);
-      this.itemForm.get('image')?.setValue(this.previous_image);
-    }
+  removeImage(index: number) {
+    this.images.update((list) => list.filter((_, i) => i !== index));
+    this.coverIndex.update((cover) => {
+      if (index === cover) return 0;
+      return index < cover ? cover - 1 : cover;
+    });
+    this.itemForm.markAsDirty();
   }
 
   onGPXSelected(event: Event) {

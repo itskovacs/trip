@@ -80,6 +80,7 @@ def _user_backup_export(user: str, backup_dt, zip_fp: Path, session: Session):
                     selectinload(TripItem.place).selectinload(Place.category).selectinload(Category.image),
                     selectinload(TripItem.place).selectinload(Place.image),
                     selectinload(TripItem.image),
+                    selectinload(TripItem.images),
                 ),
                 selectinload(Trip.places).options(
                     selectinload(Place.category).selectinload(Category.image),
@@ -497,7 +498,8 @@ def process_backup_import(
                         item_data = {
                             key: item[key]
                             for key in item
-                            if key not in {"id", "place", "place_id", "image", "image_id", "attachments"}
+                            if key
+                            not in {"id", "place", "place_id", "image", "image_id", "images", "attachments"}
                         }
                         item_data["day_id"] = new_day.id
 
@@ -506,30 +508,52 @@ def process_backup_import(
                             new_place_id = trip_place_id_map.get(place_id)
                             item_data["place_id"] = new_place_id
 
-                        if item.get("image_id"):
-                            place_filename = item.get("image", "").split("/")[-1]
-                            if place_filename and place_filename in image_files:
-                                try:
-                                    image_bytes = zipf.read(image_files[place_filename])
-                                    filename, file_size = save_image_to_file(
-                                        image_bytes, get_settings().PLACE_IMAGE_SIZE
-                                    )
-                                    if filename:
-                                        image = Image(
-                                            filename=filename, file_size=file_size, user=current_user
-                                        )
-                                        session.add(image)
-                                        session.flush()
-                                        session.refresh(image)
-                                        created_image_filenames.append(filename)
-                                        item_data["image_id"] = image.id
-                                except Exception as exc:
-                                    logger.warning(f"[BACKUP IMPORT]: Failed to restore item image: {exc}")
+                        # Restore the image gallery. Newer backups carry an "images" list;
+                        # older ones only have the single cover image/image_id, which we
+                        # normalize into the same one-entry shape.
+                        old_cover_id = item.get("image_id")
+                        image_entries = item.get("images")
+                        if not image_entries and old_cover_id:
+                            image_entries = [{"id": old_cover_id, "url": item.get("image", "")}]
+
+                        restored_images: list[Image] = []
+                        cover_image: Image | None = None
+                        for img_entry in image_entries or []:
+                            img_filename = img_entry.get("url", "").split("/")[-1]
+                            if not img_filename or img_filename not in image_files:
+                                continue
+                            try:
+                                image_bytes = _read_bounded(
+                                    zipf,
+                                    image_files[img_filename],
+                                    get_settings().BACKUP_IMPORT_MAX_ENTRY_SIZE,
+                                )
+                                filename, file_size = save_image_to_file(
+                                    image_bytes, get_settings().PLACE_IMAGE_SIZE
+                                )
+                                if filename:
+                                    image = Image(filename=filename, file_size=file_size, user=current_user)
+                                    session.add(image)
+                                    session.flush()
+                                    session.refresh(image)
+                                    created_image_filenames.append(filename)
+                                    restored_images.append(image)
+                                    if img_entry.get("id") == old_cover_id:
+                                        cover_image = image
+                            except Exception as exc:
+                                logger.warning(f"[BACKUP IMPORT]: Failed to restore item image: {exc}")
+
+                        if restored_images:
+                            item_data["image_id"] = (cover_image or restored_images[0]).id
 
                         trip_item = TripItem(**item_data)
                         session.add(trip_item)
                         session.flush()
                         session.refresh(trip_item)
+
+                        for image in restored_images:
+                            session.add(TripItemImageLink(item_id=trip_item.id, image_id=image.id))
+
                         for attachment in item.get("attachments", []):
                             attachment_id = attachment.get("id")
                             if attachment_id and attachment_id in trip_attachment_mapping:
@@ -748,7 +772,6 @@ def process_legacy_import(
             session.flush()
 
         trip_place_id_map = {old_id: new_p.id for old_id, new_p in zip(place_old_ids, places)}
-        items_to_add = []
         for trip in data.get("trips", []):
             trip_data = {
                 key: trip[key]
@@ -804,6 +827,7 @@ def process_legacy_import(
                     ):
                         item_data["place_id"] = new_place_id
 
+                    cover_image: Image | None = None
                     if item.get("image_id"):
                         b64_image = data.get("images", {}).get(str(item.get("image_id")))
                         if b64_image:
@@ -818,12 +842,15 @@ def process_legacy_import(
                                 session.refresh(image)
                                 created_image_filenames.append(filename)
                                 item_data["image_id"] = image.id
+                                cover_image = image
 
                     trip_item = TripItem(**item_data)
-                    items_to_add.append(trip_item)
+                    session.add(trip_item)
+                    session.flush()
 
-        if items_to_add:
-            session.add_all(items_to_add)
+                    # Link the cover into the gallery so it shows in the multi-image view.
+                    if cover_image:
+                        session.add(TripItemImageLink(item_id=trip_item.id, image_id=cover_image.id))
 
         session.commit()
         return {

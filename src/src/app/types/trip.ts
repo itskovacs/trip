@@ -75,10 +75,16 @@ export interface TripItem {
   status?: string | TripStatus;
   image?: string;
   image_id?: number;
+  images?: TripItemImage[];
   gpx?: string;
   paid_by?: string;
   attachments?: TripAttachment[];
   links?: string[];
+}
+
+export interface TripItemImage {
+  id: number;
+  url: string;
 }
 
 export interface TripStatus {
@@ -103,6 +109,7 @@ export interface FlattenedTripItem {
   distance?: number;
   image?: string;
   image_id?: number;
+  images?: TripItemImage[];
   gpx?: string;
   paid_by?: string;
   attachments?: TripAttachment[];
@@ -149,6 +156,7 @@ export interface PrintOptions {
   notes: boolean;
   metadata: boolean;
   showBookings?: boolean;
+  images?: boolean;
 }
 
 export interface ViewTripItem extends TripItem {

@@ -86,6 +86,8 @@ import { PlaceListItemComponent } from '../../shared/place-list-item/place-list-
 import { RouteManagerService } from '../../services/route-manager.service';
 import { TripPrettyPrintModalComponent } from '../../modals/trip-pretty-print-modal/trip-pretty-print-modal.component';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
+import { LinkChipComponent } from '../../shared/link-chip/link-chip.component';
+import { ItemGalleryComponent } from '../../shared/item-gallery/item-gallery.component';
 
 const HIGHLIGHT_COLORS = [
   '#e6194b',
@@ -129,6 +131,8 @@ const HIGHLIGHT_COLORS = [
     PlaceListItemComponent,
     ToggleButtonModule,
     TranslocoDirective,
+    LinkChipComponent,
+    ItemGalleryComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './trip.component.html',
@@ -1109,6 +1113,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
         props: this.availableItemProps,
         selectedProps: this.selectedItemProps(),
         days: trip.days,
+        isFullAccess: true,
       },
     })!;
 

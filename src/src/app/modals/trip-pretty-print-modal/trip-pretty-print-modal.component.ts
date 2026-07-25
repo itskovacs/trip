@@ -40,6 +40,7 @@ export class TripPrettyPrintModalComponent {
   printForm: FormGroup;
   days: TripDay[] = [];
   props: string[] = [];
+  showImagesToggle = true;
 
   constructor(
     private ref: DynamicDialogRef,
@@ -53,11 +54,13 @@ export class TripPrettyPrintModalComponent {
       notes: true,
       metadata: true,
       showBookings: true,
+      images: false,
     });
 
     if (this.config.data) {
       this.days = this.config.data.days;
       this.props = this.config.data.props;
+      this.showImagesToggle = this.config.data.isFullAccess ?? true;
       this.printForm.get('days')?.setValue(this.days.map((d) => d.id));
       this.printForm.get('props')?.setValue(this.config.data.selectedProps);
     }

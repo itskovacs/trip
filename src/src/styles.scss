@@ -351,7 +351,125 @@ html {
   animation: slide-y-centered-x 0.3s both reverse;
 }
 
+@keyframes fade-scale {
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.fade-scale {
+  animation: fade-scale 0.2s ease-out both normal;
+}
+
+.a-fade-scale {
+  animation: fade-scale 0.15s ease-in both reverse;
+}
+
 // https://github.com/primefaces/primeng/issues/17089...
 .p-inputgroup .p-floatlabel p-inputmask input {
   width: 100%;
+}
+
+// Rendered markdown (Place description, Trip/Day notes, Plan comment).
+// Tailwind's preflight strips list styling and link/heading defaults, so
+// they're reinstated here, scoped to this class only.
+.markdown-content {
+  overflow-wrap: break-word;
+
+  > *:first-child {
+    margin-top: 0;
+  }
+
+  > *:last-child {
+    margin-bottom: 0;
+  }
+
+  p {
+    margin: 0.5em 0;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    margin: 0.75em 0 0.35em;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  h1 {
+    font-size: 1.25em;
+  }
+  h2 {
+    font-size: 1.15em;
+  }
+  h3,
+  h4,
+  h5,
+  h6 {
+    font-size: 1em;
+  }
+
+  ul,
+  ol {
+    margin: 0.5em 0;
+    padding-left: 1.4em;
+  }
+
+  ul {
+    list-style: disc;
+  }
+
+  ol {
+    list-style: decimal;
+  }
+
+  li {
+    margin: 0.15em 0;
+  }
+
+  blockquote {
+    margin: 0.5em 0;
+    padding-left: 0.75em;
+    @apply border-l-3 border-primary-400 dark:border-primary-600 text-primary-600 dark:text-primary-400;
+  }
+
+  code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
+    font-size: 0.9em;
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+    @apply bg-primary-100 dark:bg-primary-800;
+  }
+
+  a {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    font-weight: 500;
+    @apply text-primary-700 dark:text-primary-300;
+  }
+
+  table {
+    border-collapse: collapse;
+    margin: 0.5em 0;
+    font-size: 0.9em;
+  }
+
+  th,
+  td {
+    padding: 0.3em 0.6em;
+    @apply border border-primary-300 dark:border-primary-700;
+  }
+
+  th {
+    font-weight: 600;
+    @apply bg-primary-100 dark:bg-primary-800;
+  }
 }
