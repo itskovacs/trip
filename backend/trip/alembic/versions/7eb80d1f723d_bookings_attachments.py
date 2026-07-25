@@ -28,8 +28,6 @@ def upgrade():
     with op.batch_alter_table('tripbookingattachmentlink', schema=None) as batch_op:
         batch_op.create_index(batch_op.f('ix_tripbookingattachmentlink_booking_id'), ['booking_id'], unique=False)
 
-    op.execute("ALTER TABLE tripbooking DROP COLUMN price;")
-
 
 def downgrade():
     with op.batch_alter_table('tripbookingattachmentlink', schema=None) as batch_op:
