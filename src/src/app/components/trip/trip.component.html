@@ -1356,6 +1356,8 @@
         <p-button (click)="fileUpload.click()" [disabled]="trip()?.archived" icon="pi pi-file-import"
           [label]="t('entities.attachment.add')" text />
         <input type="file" style="display: none" (change)="onFileUploadInputChange($event)" #fileUpload />
+        <p-button (click)="downloadAllAttachments()" [disabled]="!trip()?.attachments?.length" icon="pi pi-download"
+          [label]="t('entities.attachment.download_all')" text />
       </div>
 
       <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-2 mt-2 pb-4">

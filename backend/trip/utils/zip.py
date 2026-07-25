@@ -2,6 +2,7 @@ import json
 import logging
 import sqlite3
 import tempfile
+from io import BytesIO
 from pathlib import Path
 from typing import Annotated
 from zipfile import ZIP_DEFLATED, ZipFile
@@ -39,6 +40,35 @@ def _stream_path_to_zip(zipf: ZipFile, path: Path, zip_dir: str):
             continue
         rel_path = fp.relative_to(path)
         zipf.write(fp, f"{zip_dir}/{rel_path}")
+
+
+def _dedupe_zip_filename(filename: str, used_names: set[str]) -> str:
+    if filename not in used_names:
+        used_names.add(filename)
+        return filename
+
+    stem, dot, ext = filename.rpartition(".")
+    suffix = f".{ext}" if dot else ""
+    base = stem if dot else filename
+
+    counter = 1
+    candidate = f"{base} ({counter}){suffix}"
+    while candidate in used_names:
+        counter += 1
+        candidate = f"{base} ({counter}){suffix}"
+
+    used_names.add(candidate)
+    return candidate
+
+
+def zip_trip_attachments(trip_id: int, attachments: list[TripAttachment], zip_fp: Path | BytesIO):
+    used_names: set[str] = set()
+    with ZipFile(zip_fp, "w", ZIP_DEFLATED, compresslevel=9) as zipf:
+        for attachment in attachments:
+            att_path = attachments_trip_folder_path(trip_id) / attachment.stored_filename
+            if not att_path.is_file():
+                continue
+            zipf.write(att_path, _dedupe_zip_filename(attachment.filename, used_names))
 
 
 def _admin_backup_export(zip_fp: Path):

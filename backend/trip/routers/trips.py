@@ -1,6 +1,8 @@
+from io import BytesIO
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from fastapi import (APIRouter, Depends, File, HTTPException, Response,
+                     UploadFile)
 from fastapi.responses import FileResponse
 from sqlalchemy import update
 from sqlalchemy.orm import selectinload
@@ -26,6 +28,7 @@ from ..utils.date import dt_utc
 from ..utils.utils import (attachments_trip_folder_path, b64img_decode,
                            generate_urlsafe, remove_image, save_attachment,
                            save_image_to_file)
+from ..utils.zip import zip_trip_attachments
 
 router = APIRouter(prefix="/api/trips", tags=["trips"])
 
@@ -625,6 +628,26 @@ async def download_trip_attachment(
     return FileResponse(path=file_path, filename=attachment.filename, media_type="application/pdf")
 
 
+@router.get("/{trip_id}/attachments/download-all")
+async def download_all_trip_attachments(
+    session: SessionDep,
+    trip_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+):
+    _get_verified_trip(session, trip_id, current_user)
+    attachments = session.exec(select(TripAttachment).where(TripAttachment.trip_id == trip_id)).all()
+    if not attachments:
+        raise HTTPException(status_code=404, detail="No attachments to download")
+
+    buf = BytesIO()
+    zip_trip_attachments(trip_id, attachments, buf)
+    return Response(
+        content=buf.getvalue(),
+        media_type="application/zip",
+        headers={"Content-Disposition": "attachment; filename=attachments.zip"},
+    )
+
+
 @router.get("/{trip_id}/share", response_model=TripShareDetails)
 def get_shared_trip_details(
     session: SessionDep,
@@ -1101,3 +1124,29 @@ async def download_shared_trip_attachment(
         raise HTTPException(status_code=404, detail="Attachment not found")
 
     return FileResponse(path=file_path, filename=attachment.filename, media_type="application/pdf")
+
+
+@router.get("/shared/{token}/attachments/download-all")
+async def download_all_shared_trip_attachments(
+    session: SessionDep,
+    token: str,
+):
+    share = _trip_from_token_or_404(session, token)
+    if not share.is_full_access:
+        raise HTTPException(status_code=404, detail="Not found")
+
+    db_trip = session.get(Trip, share.trip_id)
+    if not db_trip:
+        raise HTTPException(status_code=404, detail="Not found")
+
+    attachments = session.exec(select(TripAttachment).where(TripAttachment.trip_id == share.trip_id)).all()
+    if not attachments:
+        raise HTTPException(status_code=404, detail="No attachments to download")
+
+    buf = BytesIO()
+    zip_trip_attachments(db_trip.id, attachments, buf)
+    return Response(
+        content=buf.getvalue(),
+        media_type="application/zip",
+        headers={"Content-Disposition": "attachment; filename=attachments.zip"},
+    )

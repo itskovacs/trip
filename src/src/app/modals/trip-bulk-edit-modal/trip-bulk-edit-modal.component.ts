@@ -15,6 +15,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Trip, TripMember, TripStatus } from '../../types/trip';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { TranslocoDirective } from '@jsverse/transloco';
+import { ApiService } from '../../services/api.service';
+import { take } from 'rxjs';
 
 @Component({
   selector: 'app-trip-bulk-edit-modal',
@@ -47,6 +49,7 @@ export class TripBulkEditModalComponent {
     private ref: DynamicDialogRef,
     private config: DynamicDialogConfig,
     private fb: FormBuilder,
+    private apiService: ApiService,
   ) {
     const data = this.config.data;
     this.members = data.members ?? [];
@@ -67,6 +70,7 @@ export class TripBulkEditModalComponent {
       price: [{ value: null, disabled: true }],
       comment: [{ value: '', disabled: true }],
       attachment_ids: [{ value: [], disabled: true }],
+      paid_by: [{ value: null, disabled: true }],
       enable_day_id: [false],
       enable_time: [false],
       enable_text: [false],
@@ -77,13 +81,40 @@ export class TripBulkEditModalComponent {
       enable_price: [false],
       enable_comment: [false],
       enable_attachment_ids: [false],
+      enable_paid_by: [false],
     });
     this.setupToggles();
+
+    if (this.trip?.id) {
+      this.apiService
+        .getTripMembers(this.trip.id)
+        .pipe(take(1))
+        .subscribe((members) => (this.members = members));
+    }
+  }
+
+  get hasMultipleMembers(): boolean {
+    return this.members.length > 1;
   }
 
   setupToggles() {
     //todo: group lat and lng into one same checkbox logic
-    const keys = ['day_id', 'time', 'text', 'place', 'status', 'lat', 'lng', 'price', 'comment', 'attachment_ids'];
+    const keys = [
+      'day_id',
+      'time',
+      'text',
+      'place',
+      'status',
+      'lat',
+      'lng',
+      'price',
+      'comment',
+      'attachment_ids',
+      'paid_by',
+    ];
+    // day_id and text are required, non-nullable columns: clearing them via bulk edit would
+    // fail on every selected item, so require a value whenever their checkbox is enabled.
+    const requiredWhenEnabled = ['day_id', 'text'];
     keys.forEach((key) => {
       this.editForm
         .get(`enable_${key}`)
@@ -92,10 +123,13 @@ export class TripBulkEditModalComponent {
           const control = this.editForm.get(key);
           if (enabled) {
             control?.enable();
+            if (requiredWhenEnabled.includes(key)) control?.addValidators(Validators.required);
           } else {
             control?.disable();
             control?.reset();
+            if (requiredWhenEnabled.includes(key)) control?.removeValidators(Validators.required);
           }
+          control?.updateValueAndValidity({ emitEvent: false });
         });
     });
 
@@ -145,7 +179,19 @@ export class TripBulkEditModalComponent {
     if (!this.editForm.valid) return;
     const formValue = this.editForm.value;
     const data: any = {};
-    const keys = ['day_id', 'time', 'text', 'place', 'status', 'lat', 'lng', 'price', 'comment', 'attachment_ids'];
+    const keys = [
+      'day_id',
+      'time',
+      'text',
+      'place',
+      'status',
+      'lat',
+      'lng',
+      'price',
+      'comment',
+      'attachment_ids',
+      'paid_by',
+    ];
 
     let hasChanges = false;
     keys.forEach((key) => {

@@ -7,6 +7,14 @@ import { map } from 'rxjs';
 type ToastSeverity = 'info' | 'warn' | 'error' | 'success';
 const JWT_USER = 'TRIP_USER';
 const DARK_MODE = 'TRIP_DARK_MODE';
+const TRIP_VIEW_PREFS = 'TRIP_VIEW_PREFS';
+
+export interface TripViewPrefs {
+  panelWidth: number | null;
+  selectedItemProps: string[];
+  isTextAndPlaceToggled: boolean;
+  showBookings: boolean;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -42,6 +50,19 @@ export class UtilsService {
     localStorage.setItem(DARK_MODE, String(enabled));
     const element = document.querySelector('html');
     element?.classList.toggle('dark', enabled);
+  }
+
+  getTripViewPrefs(): Partial<TripViewPrefs> {
+    try {
+      return JSON.parse(localStorage.getItem(TRIP_VIEW_PREFS) ?? '{}');
+    } catch {
+      return {};
+    }
+  }
+
+  saveTripViewPrefs(patch: Partial<TripViewPrefs>) {
+    const prefs = { ...this.getTripViewPrefs(), ...patch };
+    localStorage.setItem(TRIP_VIEW_PREFS, JSON.stringify(prefs));
   }
 
   toast(severity: ToastSeverity = 'info', summary = 'Info', detail = '', life = 3000): void {

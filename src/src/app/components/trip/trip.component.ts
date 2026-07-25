@@ -646,11 +646,18 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       });
     });
 
-    const plansPanelWidth = localStorage.getItem('plansPanelWidth');
-    if (plansPanelWidth) {
-      const width = parseInt(plansPanelWidth, 10);
-      if (!isNaN(width)) this.panelWidth.set(width);
-    }
+    const viewPrefs = this.utilsService.getTripViewPrefs();
+    if (viewPrefs.panelWidth != null) this.panelWidth.set(viewPrefs.panelWidth);
+    if (viewPrefs.selectedItemProps) this.selectedItemProps.set(viewPrefs.selectedItemProps);
+    if (viewPrefs.isTextAndPlaceToggled != null) this.isTextAndPlaceToggled.set(viewPrefs.isTextAndPlaceToggled);
+    if (viewPrefs.showBookings != null) this.showBookings.set(viewPrefs.showBookings);
+
+    effect(() => {
+      const selectedItemProps = this.selectedItemProps();
+      const isTextAndPlaceToggled = this.isTextAndPlaceToggled();
+      const showBookings = this.showBookings();
+      untracked(() => this.utilsService.saveTripViewPrefs({ selectedItemProps, isTextAndPlaceToggled, showBookings }));
+    });
   }
 
   ngAfterViewInit() {
@@ -1271,7 +1278,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   resetPlansWidth() {
     this.panelWidth.set(null);
-    localStorage.removeItem('plansPanelWidth');
+    this.utilsService.saveTripViewPrefs({ panelWidth: null });
   }
 
   onPlansResizeStart(event: PointerEvent): void {
@@ -1291,7 +1298,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
     const onUp = (e: PointerEvent) => {
       handle.releasePointerCapture(e.pointerId);
-      localStorage.setItem('plansPanelWidth', this.panelWidth()!.toString());
+      this.utilsService.saveTripViewPrefs({ panelWidth: this.panelWidth() });
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
     };
@@ -1503,14 +1510,27 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     modal.onClose.pipe(take(1)).subscribe((newItem: (TripItem & { day_id: number[] }) | null) => {
       if (!newItem) return;
 
+      // Each day is its own creation request, so one failing must not discard the
+      // others' already-created items from local state: catch per-item and reconcile
+      // only what actually succeeded instead of letting forkJoin discard everything on
+      // one error.
       const obs$ = newItem.day_id.map((day_id) =>
-        this.apiService.postTripDayItem({ ...newItem, day_id }, this.trip()!.id, day_id),
+        this.apiService.postTripDayItem({ ...newItem, day_id }, this.trip()!.id, day_id).pipe(
+          map((created) => ({ ok: true as const, item: created })),
+          catchError((err) => {
+            console.error(`Multi-day item creation failed for day ${day_id}:`, err);
+            return of({ ok: false as const, item: null as TripItem | null });
+          }),
+        ),
       );
 
       forkJoin(obs$)
         .pipe(take(1))
-        .subscribe({
-          next: (items: TripItem[]) => {
+        .subscribe((results) => {
+          const items = results.filter((r) => r.ok).map((r) => r.item as TripItem);
+          const failedCount = results.length - items.length;
+
+          if (items.length) {
             this.trip.update((currentTrip) => {
               if (!currentTrip) return null;
 
@@ -1528,7 +1548,30 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
               return { ...currentTrip, days: updatedDays };
             });
-          },
+          }
+
+          if (failedCount === 0) {
+            this.utilsService.toast(
+              'success',
+              this.translocoService.translate('common.status.success'),
+              this.translocoService.translate('messages.count_plans_added', { count: items.length }),
+            );
+          } else if (items.length === 0) {
+            this.utilsService.toast(
+              'error',
+              this.translocoService.translate('common.status.error'),
+              this.translocoService.translate('messages.bulk_add_item_failed'),
+            );
+          } else {
+            this.utilsService.toast(
+              'error',
+              this.translocoService.translate('common.status.error'),
+              this.translocoService.translate('messages.bulk_add_item_partial_failed', {
+                success: items.length,
+                failed: failedCount,
+              }),
+            );
+          }
         });
     });
   }
@@ -1638,18 +1681,56 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
       if ('daterange' in data && data.daterange && data.daterange.length === 2) {
         const tripDays = daterangeToTripDays(data.daterange);
+        // Each day is its own creation request, so one failing must not discard the
+        // others' already-created days from local state: catch per-item and reconcile
+        // only what actually succeeded instead of letting forkJoin discard everything on
+        // one error.
         const obs$ = tripDays.map((td) =>
-          this.apiService.postTripDay({ id: -1, label: td.label!, dt: td.dt, items: [] }, this.trip()!.id),
+          this.apiService.postTripDay({ id: -1, label: td.label!, dt: td.dt, items: [] }, this.trip()!.id).pipe(
+            map((created) => ({ ok: true as const, day: created })),
+            catchError((err) => {
+              console.error(`Bulk day creation failed for ${td.label}:`, err);
+              return of({ ok: false as const, day: null as TripDay | null });
+            }),
+          ),
         );
 
         forkJoin(obs$)
           .pipe(take(1))
-          .subscribe((newDays: TripDay[]) => {
-            this.trip.update((t) => {
-              if (!t) return null;
-              const days = [...t.days, ...newDays].sort((a, b) => (a.dt || '').localeCompare(b.dt || ''));
-              return { ...t, days };
-            });
+          .subscribe((results) => {
+            const newDays = results.filter((r) => r.ok).map((r) => r.day as TripDay);
+            const failedCount = results.length - newDays.length;
+
+            if (newDays.length) {
+              this.trip.update((t) => {
+                if (!t) return null;
+                const days = [...t.days, ...newDays].sort((a, b) => (a.dt || '').localeCompare(b.dt || ''));
+                return { ...t, days };
+              });
+            }
+
+            if (failedCount === 0) {
+              this.utilsService.toast(
+                'success',
+                this.translocoService.translate('common.status.success'),
+                this.translocoService.translate('messages.count_days_added', { count: newDays.length }),
+              );
+            } else if (newDays.length === 0) {
+              this.utilsService.toast(
+                'error',
+                this.translocoService.translate('common.status.error'),
+                this.translocoService.translate('messages.bulk_add_day_failed'),
+              );
+            } else {
+              this.utilsService.toast(
+                'error',
+                this.translocoService.translate('common.status.error'),
+                this.translocoService.translate('messages.bulk_add_day_partial_failed', {
+                  success: newDays.length,
+                  failed: failedCount,
+                }),
+              );
+            }
           });
       } else {
         const newDay = data as TripDay;
@@ -2364,6 +2445,27 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       });
   }
 
+  downloadAllAttachments() {
+    this.apiService
+      .downloadAllTripAttachments(this.trip()!.id)
+      .pipe(take(1))
+      .subscribe({
+        next: (data) => {
+          const blob = new Blob([data], { type: 'application/zip' });
+          const url = window.URL.createObjectURL(blob);
+          const anchor = document.createElement('a');
+          anchor.download = `TRIP_${this.trip()!.name}_attachments.zip`;
+          anchor.href = url;
+
+          document.body.appendChild(anchor);
+          anchor.click();
+
+          document.body.removeChild(anchor);
+          window.URL.revokeObjectURL(url);
+        },
+      });
+  }
+
   deleteAttachment(attachmentId: number) {
     const modal = this.dialogService.open(YesNoModalComponent, {
       header: this.translocoService.translate('entities.attachment.delete'),
@@ -2690,12 +2792,27 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     modal.onClose.pipe(take(1)).subscribe((bool) => {
       if (!bool) return;
 
-      const obs$ = items.map((item) => this.apiService.deleteTripDayItem(this.trip()!.id, item.day_id, item.id));
+      // Each deletion is its own request, so one failing must not stop the others'
+      // already-committed deletions from being reflected in local state: catch per-item
+      // and reconcile only what actually succeeded instead of letting forkJoin discard
+      // everything on one error (and letting a retry re-attempt already-deleted items).
+      const obs$ = items.map((item) =>
+        this.apiService.deleteTripDayItem(this.trip()!.id, item.day_id, item.id).pipe(
+          map(() => ({ ok: true as const, item })),
+          catchError((err) => {
+            console.error(`Bulk delete failed for item ${item.id}:`, err);
+            return of({ ok: false as const, item });
+          }),
+        ),
+      );
       forkJoin(obs$)
         .pipe(take(1))
-        .subscribe({
-          next: () => {
-            const idsToDelete = new Set(items.map((i) => i.id));
+        .subscribe((results) => {
+          const deletedItems = results.filter((r) => r.ok).map((r) => r.item);
+          const failedCount = results.length - deletedItems.length;
+
+          if (deletedItems.length) {
+            const idsToDelete = new Set(deletedItems.map((i) => i.id));
             this.trip.update((current) => {
               if (!current) return null;
               const days = current.days.map((day) => ({
@@ -2705,7 +2822,30 @@ export class TripComponent implements AfterViewInit, OnDestroy {
               return { ...current, days };
             });
             this.toggleMultiSelectMode();
-          },
+          }
+
+          if (failedCount === 0) {
+            this.utilsService.toast(
+              'success',
+              this.translocoService.translate('common.status.success'),
+              this.translocoService.translate('messages.count_deleted', { count: deletedItems.length }),
+            );
+          } else if (deletedItems.length === 0) {
+            this.utilsService.toast(
+              'error',
+              this.translocoService.translate('common.status.error'),
+              this.translocoService.translate('messages.bulk_delete_failed'),
+            );
+          } else {
+            this.utilsService.toast(
+              'error',
+              this.translocoService.translate('common.status.error'),
+              this.translocoService.translate('messages.bulk_delete_partial_failed', {
+                success: deletedItems.length,
+                failed: failedCount,
+              }),
+            );
+          }
         });
     });
   }
@@ -2727,6 +2867,10 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
     modal.onClose.pipe(take(1)).subscribe((bool) => {
       if (!bool) return;
+      // Each duplicate is its own creation request, so one failing must not discard the
+      // others' already-created duplicates from local state: catch per-item and reconcile
+      // only what actually succeeded instead of letting forkJoin discard everything on
+      // one error.
       const obs$ = items.map((item) => {
         const data: any = {
           ...item,
@@ -2734,17 +2878,26 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           attachments: item.attachments ? item.attachments.map((a) => a.id) : [],
           place: item.place ? item.place.id : null,
         };
-        return this.apiService.postTripDayItem(data, this.trip()!.id, item.day_id);
+        return this.apiService.postTripDayItem(data, this.trip()!.id, item.day_id).pipe(
+          map((created) => ({ ok: true as const, item: created })),
+          catchError((err) => {
+            console.error(`Bulk duplicate failed for item ${item.id}:`, err);
+            return of({ ok: false as const, item });
+          }),
+        );
       });
 
       forkJoin(obs$)
         .pipe(take(1))
-        .subscribe({
-          next: (items: TripItem[]) => {
+        .subscribe((results) => {
+          const createdItems = results.filter((r) => r.ok).map((r) => r.item as TripItem);
+          const failedCount = results.length - createdItems.length;
+
+          if (createdItems.length) {
             this.trip.update((currentTrip) => {
               if (!currentTrip) return null;
 
-              const newItemsByDay = items.reduce(
+              const newItemsByDay = createdItems.reduce(
                 (acc, item) => {
                   (acc[item.day_id] ??= []).push(item);
                   return acc;
@@ -2759,7 +2912,30 @@ export class TripComponent implements AfterViewInit, OnDestroy {
               return { ...currentTrip, days: updatedDays };
             });
             this.toggleMultiSelectMode();
-          },
+          }
+
+          if (failedCount === 0) {
+            this.utilsService.toast(
+              'success',
+              this.translocoService.translate('common.status.success'),
+              this.translocoService.translate('messages.count_duplicated', { count: createdItems.length }),
+            );
+          } else if (createdItems.length === 0) {
+            this.utilsService.toast(
+              'error',
+              this.translocoService.translate('common.status.error'),
+              this.translocoService.translate('messages.bulk_duplicate_failed'),
+            );
+          } else {
+            this.utilsService.toast(
+              'error',
+              this.translocoService.translate('common.status.error'),
+              this.translocoService.translate('messages.bulk_duplicate_partial_failed', {
+                success: createdItems.length,
+                failed: failedCount,
+              }),
+            );
+          }
         });
     });
   }
@@ -2785,13 +2961,25 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
     modal.onClose.pipe(take(1)).subscribe((editData) => {
       if (!editData) return;
+      // Each item is its own PUT/transaction, so one failing must not silently drop the
+      // others' already-committed writes from local state: catch per-item and reconcile
+      // whatever succeeded instead of letting forkJoin discard everything on one error.
       const obs$ = items.map((item) =>
-        this.apiService.putTripDayItem({ ...editData }, this.trip()!.id, item.day_id, item.id),
+        this.apiService.putTripDayItem({ ...editData }, this.trip()!.id, item.day_id, item.id).pipe(
+          map((updated) => ({ ok: true as const, item: updated })),
+          catchError((err) => {
+            console.error(`Bulk edit failed for item ${item.id}:`, err);
+            return of({ ok: false as const, item });
+          }),
+        ),
       );
       forkJoin(obs$)
         .pipe(take(1))
-        .subscribe({
-          next: (updatedItems: TripItem[]) => {
+        .subscribe((results) => {
+          const updatedItems = results.filter((r) => r.ok).map((r) => r.item as TripItem);
+          const failedCount = results.length - updatedItems.length;
+
+          if (updatedItems.length) {
             this.trip.update((currentTrip) => {
               if (!currentTrip) return null;
               const itemsById = Object.fromEntries(updatedItems.map((item) => [item.id, item]));
@@ -2806,20 +2994,30 @@ export class TripComponent implements AfterViewInit, OnDestroy {
               return { ...currentTrip, days: updatedDays };
             });
             this.toggleMultiSelectMode();
+          }
+
+          if (failedCount === 0) {
             this.utilsService.toast(
               'success',
               this.translocoService.translate('common.status.success'),
               this.translocoService.translate('messages.count_updated', { count: updatedItems.length }),
             );
-          },
-          error: (err) => {
+          } else if (updatedItems.length === 0) {
             this.utilsService.toast(
               'error',
               this.translocoService.translate('common.status.error'),
               this.translocoService.translate('messages.bulk_failed'),
             );
-            console.error('Bulk edit failed:', err);
-          },
+          } else {
+            this.utilsService.toast(
+              'error',
+              this.translocoService.translate('common.status.error'),
+              this.translocoService.translate('messages.bulk_partial_failed', {
+                success: updatedItems.length,
+                failed: failedCount,
+              }),
+            );
+          }
         });
     });
   }

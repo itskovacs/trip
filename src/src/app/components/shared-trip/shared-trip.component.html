@@ -1133,6 +1133,11 @@
   <p-dialog [header]="t('common.fields.attachments')" [draggable]="false" [dismissableMask]="true" [modal]="true"
     [(visible)]="isAttachmentsDialogVisible" styleClass="w-[95%] md:w-[70%] lg:w-[50%]">
     <section class="md:max-w-3/4 md:mx-auto max-h-[80%] md:max-h-[600px]">
+      <div class="flex items-center justify-center gap-4">
+        <p-button (click)="downloadAllAttachments()" [disabled]="!trip()?.attachments?.length" icon="pi pi-download"
+          [label]="t('entities.attachment.download_all')" text />
+      </div>
+
       <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-2 mt-2 pb-4">
         @for (attachment of trip()?.attachments; track attachment.id) {
         <div (click)="downloadAttachment(attachment)"

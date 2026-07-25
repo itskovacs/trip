@@ -6,7 +6,7 @@ import { TripBase, TripInvitation, TripBaseWithDates } from '../../types/trip';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { TripCreateModalComponent } from '../../modals/trip-create-modal/trip-create-modal.component';
 import { Router } from '@angular/router';
-import { forkJoin, take } from 'rxjs';
+import { catchError, forkJoin, map, of, take } from 'rxjs';
 import { DatePipe } from '@angular/common';
 import { DialogModule } from 'primeng/dialog';
 import { daterangeToTripDays } from '../../shared/utils';
@@ -78,18 +78,34 @@ export class TripsComponent implements OnInit {
 
       this.apiService.postTrip(trip).subscribe({
         next: (new_trip: TripBase) => {
-          let dayCount = 0;
-
-          if (trip.daterange && trip.daterange.length === 2) {
-            const obs$ = daterangeToTripDays(trip.daterange).map((td) =>
-              this.apiService.postTripDay({ id: -1, label: td.label!, dt: td.dt, items: [] }, new_trip.id),
-            );
-            dayCount = obs$.length;
-            forkJoin(obs$).pipe(take(1)).subscribe();
+          if (!trip.daterange || trip.daterange.length !== 2) {
+            this.trips.push({ ...new_trip, days: 0 });
+            this.sortTrips();
+            return;
           }
 
-          this.trips.push({ ...new_trip, days: dayCount });
-          this.sortTrips();
+          // Each day is its own POST, so one failing must not silently drop the
+          // others' already-created days from local state: catch per-item and
+          // reconcile whatever succeeded instead of letting forkJoin discard
+          // everything on one error. Only push the trip once we know the real
+          // day count, instead of assuming every day was created.
+          const obs$ = daterangeToTripDays(trip.daterange).map((td) =>
+            this.apiService.postTripDay({ id: -1, label: td.label!, dt: td.dt, items: [] }, new_trip.id).pipe(
+              map((day) => ({ ok: true as const, day })),
+              catchError((err) => {
+                console.error(`Failed to create trip day for trip ${new_trip.id}:`, err);
+                return of({ ok: false as const });
+              }),
+            ),
+          );
+
+          forkJoin(obs$)
+            .pipe(take(1))
+            .subscribe((results) => {
+              const dayCount = results.filter((r) => r.ok).length;
+              this.trips.push({ ...new_trip, days: dayCount });
+              this.sortTrips();
+            });
         },
       });
     });

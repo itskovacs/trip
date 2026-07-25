@@ -132,17 +132,35 @@
           autoResize fluid></textarea>
       </p-inputgroup>
 
+      <div>
+        <p-inputgroup>
+          <p-inputgroup-addon>
+            <p-checkbox [binary]="true" formControlName="enable_attachment_ids" />
+          </p-inputgroup-addon>
+          <p-floatlabel variant="in">
+            <p-multiselect [options]="trip?.attachments ?? []" optionValue="id" optionLabel="filename" id="attachment_ids"
+              formControlName="attachment_ids" [showToggleAll]="false" display="chip" scrollHeight="320px" appendTo="body"
+              fluid />
+            <label for="attachment_ids">{{ t('common.fields.attachments') }}</label>
+          </p-floatlabel>
+        </p-inputgroup>
+        @if (editForm.get('enable_attachment_ids')?.value) {
+        <p class="text-xs text-primary-500 mt-1 ml-10">{{ t('modals.bulk.attachments_replace_hint') }}</p>
+        }
+      </div>
+
+      @if (hasMultipleMembers) {
       <p-inputgroup>
         <p-inputgroup-addon>
-          <p-checkbox [binary]="true" formControlName="enable_attachment_ids" />
+          <p-checkbox [binary]="true" formControlName="enable_paid_by" />
         </p-inputgroup-addon>
         <p-floatlabel variant="in">
-          <p-multiselect [options]="trip?.attachments ?? []" optionValue="id" optionLabel="filename" id="attachment_ids"
-            formControlName="attachment_ids" [showToggleAll]="false" display="chip" scrollHeight="320px" appendTo="body"
-            fluid />
-          <label for="attachment_ids">{{ t('common.fields.attachments') }}</label>
+          <p-select [options]="members" optionLabel="user" optionValue="user" formControlName="paid_by"
+            inputId="paid_by" [showClear]="true" appendTo="body" fluid />
+          <label for="paid_by">{{ t('modals.item.paid_by') }}</label>
         </p-floatlabel>
       </p-inputgroup>
+      }
     </div>
 
     <div class="flex justify-center pt-4 border-t border-primary-200 dark:border-primary-700">

@@ -331,6 +331,18 @@ export class ApiService {
     });
   }
 
+  downloadAllTripAttachments(tripId: number): Observable<Blob> {
+    return this.httpClient.get(`${this.apiBaseUrl}/trips/${tripId}/attachments/download-all`, {
+      responseType: 'blob',
+    });
+  }
+
+  downloadAllSharedTripAttachments(token: string): Observable<Blob> {
+    return this.httpClient.get(`${this.apiBaseUrl}/trips/shared/${token}/attachments/download-all`, {
+      responseType: 'blob',
+    });
+  }
+
   getBackups(): Observable<Backup[]> {
     return this.httpClient.get<Backup[]>(`${this.apiBaseUrl}/settings/backups`);
   }

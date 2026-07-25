@@ -588,11 +588,16 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
       });
     });
 
-    const plansPanelWidth = localStorage.getItem('plansPanelWidth');
-    if (plansPanelWidth) {
-      const width = parseInt(plansPanelWidth, 10);
-      if (!isNaN(width)) this.panelWidth.set(width);
-    }
+    const viewPrefs = this.utilsService.getTripViewPrefs();
+    if (viewPrefs.panelWidth != null) this.panelWidth.set(viewPrefs.panelWidth);
+    if (viewPrefs.selectedItemProps) this.selectedItemProps.set(viewPrefs.selectedItemProps);
+    if (viewPrefs.isTextAndPlaceToggled != null) this.isTextAndPlaceToggled.set(viewPrefs.isTextAndPlaceToggled);
+
+    effect(() => {
+      const selectedItemProps = this.selectedItemProps();
+      const isTextAndPlaceToggled = this.isTextAndPlaceToggled();
+      untracked(() => this.utilsService.saveTripViewPrefs({ selectedItemProps, isTextAndPlaceToggled }));
+    });
 
     effect(() => {
       const currentTrip = this.trip();
@@ -995,7 +1000,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
 
   resetPlansWidth() {
     this.panelWidth.set(null);
-    localStorage.removeItem('plansPanelWidth');
+    this.utilsService.saveTripViewPrefs({ panelWidth: null });
   }
 
   onPlansResizeStart(event: PointerEvent): void {
@@ -1015,7 +1020,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
 
     const onUp = (e: PointerEvent) => {
       handle.releasePointerCapture(e.pointerId);
-      localStorage.setItem('plansPanelWidth', this.panelWidth()!.toString());
+      this.utilsService.saveTripViewPrefs({ panelWidth: this.panelWidth() });
       window.removeEventListener('pointermove', onMove);
       window.removeEventListener('pointerup', onUp);
     };
@@ -1314,6 +1319,28 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
           const url = window.URL.createObjectURL(blob);
           const anchor = document.createElement('a');
           anchor.download = attachment.filename;
+          anchor.href = url;
+
+          document.body.appendChild(anchor);
+          anchor.click();
+
+          document.body.removeChild(anchor);
+          window.URL.revokeObjectURL(url);
+        },
+      });
+  }
+
+  downloadAllAttachments() {
+    if (!this.token) return;
+    this.apiService
+      .downloadAllSharedTripAttachments(this.token)
+      .pipe(take(1))
+      .subscribe({
+        next: (data) => {
+          const blob = new Blob([data], { type: 'application/zip' });
+          const url = window.URL.createObjectURL(blob);
+          const anchor = document.createElement('a');
+          anchor.download = `TRIP_${this.trip()!.name}_attachments.zip`;
           anchor.href = url;
 
           document.body.appendChild(anchor);
