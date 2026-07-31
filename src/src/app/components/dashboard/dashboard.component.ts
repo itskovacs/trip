@@ -29,6 +29,7 @@ import {
   toArray,
 } from 'rxjs';
 import { Place, Category, ProviderBoundaries } from '../../types/poi';
+import { saveBlobAs } from '../../shared/utils';
 import { ProviderPlaceResult } from '../../types/provider';
 import { ApiService } from '../../services/api.service';
 import { PlaceBoxComponent } from '../../shared/place-box/place-box.component';
@@ -1060,16 +1061,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .subscribe({
         next: (data) => {
           const blob = new Blob([data], { type: 'application/zip' });
-          const url = window.URL.createObjectURL(blob);
-          const anchor = document.createElement('a');
-          anchor.download = backup.filename!;
-          anchor.href = url;
-
-          document.body.appendChild(anchor);
-          anchor.click();
-
-          document.body.removeChild(anchor);
-          window.URL.revokeObjectURL(url);
+          saveBlobAs(blob, backup.filename!);
         },
       });
   }
@@ -1274,13 +1266,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     if (!selected?.gpx) return;
 
     const dataBlob = new Blob([selected.gpx]);
-    const downloadURL = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = downloadURL;
-    link.download = `TRIP_${selected.name}.gpx`;
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(downloadURL);
+    saveBlobAs(dataBlob, `TRIP_${selected.name}.gpx`);
   }
 
   removePlaceGPX() {
@@ -2356,16 +2342,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .subscribe({
         next: (data) => {
           const blob = new Blob([data], { type: 'application/zip' });
-          const url = window.URL.createObjectURL(blob);
-          const anchor = document.createElement('a');
-          anchor.download = backup.filename!;
-          anchor.href = url;
-
-          document.body.appendChild(anchor);
-          anchor.click();
-
-          document.body.removeChild(anchor);
-          window.URL.revokeObjectURL(url);
+          saveBlobAs(blob, backup.filename!);
         },
       });
   }

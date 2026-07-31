@@ -82,7 +82,9 @@ import {
   bookingTypeIcon as sharedBookingTypeIcon,
   computeDistLatLng,
   daterangeToTripDays,
+  saveBlobAs,
   sortBookings as sharedSortBookings,
+  tripFilename,
 } from '../../shared/utils';
 import { TabList, TabsModule } from 'primeng/tabs';
 import { PlaceBoxContentComponent } from '../../shared/place-box-content/place-box-content.component';
@@ -2429,16 +2431,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       .subscribe({
         next: (data) => {
           const blob = new Blob([data], { type: 'application/pdf' });
-          const url = window.URL.createObjectURL(blob);
-          const anchor = document.createElement('a');
-          anchor.download = attachment.filename;
-          anchor.href = url;
-
-          document.body.appendChild(anchor);
-          anchor.click();
-
-          document.body.removeChild(anchor);
-          window.URL.revokeObjectURL(url);
+          saveBlobAs(blob, attachment.filename);
         },
       });
   }
@@ -2450,16 +2443,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       .subscribe({
         next: (data) => {
           const blob = new Blob([data], { type: 'application/zip' });
-          const url = window.URL.createObjectURL(blob);
-          const anchor = document.createElement('a');
-          anchor.download = `TRIP_${this.trip()!.name}_attachments.zip`;
-          anchor.href = url;
-
-          document.body.appendChild(anchor);
-          anchor.click();
-
-          document.body.removeChild(anchor);
-          window.URL.revokeObjectURL(url);
+          saveBlobAs(blob, `${tripFilename(this.trip()!.name)}_attachments.zip`);
         },
       });
   }
@@ -2572,13 +2556,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
     const itemName = item?.text || placeItems[this.selectedPlaceActiveTabIndex()]?.text || 'item';
     const dataBlob = new Blob([gpx]);
-    const downloadURL = URL.createObjectURL(dataBlob);
-    const link = document.createElement('a');
-    link.href = downloadURL;
-    link.download = `TRIP_${this.trip()!.name}_${itemName}.gpx`;
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(downloadURL);
+    saveBlobAs(dataBlob, `${tripFilename(this.trip()!.name)}_${itemName}.gpx`);
   }
 
   itemToNavigation() {

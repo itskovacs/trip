@@ -1,4 +1,5 @@
 import { Trip, TripStatus } from '../../types/trip';
+import { saveBlobAs, tripFilename } from '../utils';
 
 export function generateTripCSVFile(trip: Trip): void {
   const headers = ['Date', 'Day', 'Time', 'Activity', 'Comment', 'Place', 'Latitude', 'Longitude', 'Price', 'Status'];
@@ -36,17 +37,7 @@ export function generateTripCSVFile(trip: Trip): void {
 
   const csvContent = rows.join('\n');
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement('a');
-
-  const safeName = trip.name.replace(/[^a-z0-9]/gi, '_');
-  link.href = url;
-  link.download = `${safeName}.csv`;
-
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+  saveBlobAs(blob, tripFilename(trip.name, 'csv'));
 }
 
 function escape_rfc4180(field: string): string {

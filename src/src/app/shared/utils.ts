@@ -52,6 +52,25 @@ export function sortBookings<T extends Pick<TripBooking, 'type'>>(bookings: T[])
   });
 }
 
+export function saveBlobAs(data: Blob, filename: string): void {
+  const url = window.URL.createObjectURL(data);
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = filename;
+
+  document.body.appendChild(anchor);
+  anchor.click();
+
+  document.body.removeChild(anchor);
+  window.URL.revokeObjectURL(url);
+}
+
+export function tripFilename(name: string, extension: string | null = null): string {
+  let resp = (name || 'trip').replace(/[^a-z0-9]/gi, '_');
+  if (extension) resp += `.${extension}`;
+  return resp;
+}
+
 export function daterangeToTripDays(daterange: Date[], locale?: string): Partial<TripDay>[] {
   const [from, to] = daterange;
 
