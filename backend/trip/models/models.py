@@ -739,11 +739,13 @@ class TripBookingCreate(TripBookingBase):
 
 
 class TripBookingUpdate(TripBookingBase):
+    day_id: int | None = None
     attachment_ids: list[int] = []
 
 
 class TripBookingRead(TripBookingBase):
     id: int
+    day_id: int
     attachments: list["TripAttachmentRead"]
 
     @classmethod
@@ -754,6 +756,7 @@ class TripBookingRead(TripBookingBase):
             label=obj.label,
             reference=obj.reference,
             notes=obj.notes,
+            day_id=obj.day_id,
             attachments=[TripAttachmentRead.serialize(att) for att in obj.attachments],
         )
 

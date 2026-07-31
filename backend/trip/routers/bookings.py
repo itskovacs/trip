@@ -79,6 +79,15 @@ def update_booking(
 
     booking_data = booking.model_dump(exclude_unset=True)
 
+    if "day_id" in booking_data:
+        new_day_id = booking_data.pop("day_id")
+        if new_day_id is None:
+            raise HTTPException(status_code=400, detail="Bad request")
+        new_day = session.get(TripDay, new_day_id)
+        if not new_day or new_day.trip_id != db_booking.trip_id:
+            raise HTTPException(status_code=400, detail="Bad request")
+        db_booking.day_id = new_day_id
+
     attachment_ids = booking_data.pop("attachment_ids", None)
     if attachment_ids is not None:  # Could be empty [], so 'in'
         if attachment_ids:

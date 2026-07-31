@@ -4,9 +4,7 @@
   <div class="space-y-4 py-2">
     <div class="flex items-center gap-2">
       <span class="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-medium rounded-md"
-        [class]="bookingTypeClass(bookingForm.value.type)">
-        {{ bookingTypeIcon(bookingForm.value.type) }} {{ t('types.' + bookingForm.value.type) }}
-      </span>
+        [class]="bookingTypeClass(bookingForm.value.type)">{{ t('types.' + bookingForm.value.type) }}</span>
     </div>
 
     <div>
@@ -103,7 +101,21 @@
       <label for="booking-attachments">{{ t('attachments') }}</label>
     </p-floatlabel>
 
-    @if (!isExisting()) {
+    @if (isExisting()) {
+    <p-floatlabel variant="on">
+      <p-select inputId="booking-day" [options]="days" optionValue="id" optionLabel="label" formControlName="day_id"
+        scrollHeight="320px" appendTo="body" [filter]="true" [checkmark]="true" fluid>
+        <ng-template let-day #item>
+          <div class="whitespace-normal">{{ day.label }}
+            @if (day.dt) {
+            <span class="text-xs text-gray-400 dark:text-gray-500">{{ day.dt }}</span>
+            }
+          </div>
+        </ng-template>
+      </p-select>
+      <label for="booking-day">{{ t('day') }}</label>
+    </p-floatlabel>
+    } @else {
     <p-floatlabel variant="on">
       <p-multiselect inputId="booking-days" [options]="days" optionValue="id" optionLabel="label"
         formControlName="day_id" [showToggleAll]="false" scrollHeight="320px" appendTo="body"
@@ -128,8 +140,8 @@
       <div class="flex items-center gap-2">
         <p-button [label]="t('cancel')" severity="secondary" [outlined]="true" size="small"
           (click)="isExisting() ? cancelEditing() : cancel()" />
-        <p-button [label]="t('save')" icon="pi pi-check" severity="success" size="small"
-          [disabled]="!bookingForm.valid" (click)="save()" />
+        <p-button [label]="t('save')" icon="pi pi-check" severity="success" size="small" [disabled]="!bookingForm.valid"
+          (click)="save()" />
       </div>
     </div>
 

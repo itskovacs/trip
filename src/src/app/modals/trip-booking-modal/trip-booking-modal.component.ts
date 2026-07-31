@@ -11,7 +11,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { ApiService } from '../../services/api.service';
 import { FileSizePipe } from '../../shared/pipes/filesize.pipe';
-import { bookingTypeClass, bookingTypeIcon } from '../../shared/utils';
+import { bookingTypeClass, bookingTypeIcon, saveBlobAs } from '../../shared/utils';
 import { BookingType, Trip, TripAttachment, TripBooking, TripDay } from '../../types/trip';
 
 @Component({
@@ -82,6 +82,9 @@ export class TripBookingModalComponent {
     this.trip = this.config.data?.trip;
     const booking: TripBooking | undefined = this.config.data?.booking;
 
+    this.bookingForm.get('day_id')?.setValidators(Validators.required);
+    this.bookingForm.get('day_id')?.updateValueAndValidity();
+
     if (booking) {
       this.originalBooking = booking;
       this.isExisting.set(true);
@@ -91,12 +94,10 @@ export class TripBookingModalComponent {
         label: booking.label,
         reference: booking.reference,
         notes: booking.notes,
+        day_id: booking.day_id,
         attachment_ids: booking.attachments?.map((a) => a.id) ?? [],
       });
     } else {
-      // Day selection only makes sense for a fresh booking: an existing one stays on its day.
-      this.bookingForm.get('day_id')?.setValidators(Validators.required);
-      this.bookingForm.get('day_id')?.updateValueAndValidity();
       const dayId = this.config.data?.day?.id;
       if (dayId) this.bookingForm.get('day_id')?.setValue([dayId]);
     }
@@ -113,6 +114,7 @@ export class TripBookingModalComponent {
       label: this.originalBooking.label,
       reference: this.originalBooking.reference,
       notes: this.originalBooking.notes,
+      day_id: this.originalBooking.day_id,
       attachment_ids: this.originalBooking.attachments?.map((a) => a.id) ?? [],
     });
     this.bookingForm.markAsPristine();
@@ -148,16 +150,7 @@ export class TripBookingModalComponent {
       .subscribe({
         next: (data) => {
           const blob = new Blob([data], { type: 'application/pdf' });
-          const url = window.URL.createObjectURL(blob);
-          const anchor = document.createElement('a');
-          anchor.download = attachment.filename;
-          anchor.href = url;
-
-          document.body.appendChild(anchor);
-          anchor.click();
-
-          document.body.removeChild(anchor);
-          window.URL.revokeObjectURL(url);
+          saveBlobAs(blob, attachment.filename);
         },
       });
   }
@@ -166,7 +159,7 @@ export class TripBookingModalComponent {
     if (!this.bookingForm.valid) return;
     const { day_id, ...booking } = this.bookingForm.value;
     if (this.isExisting()) {
-      this.ref.close({ action: 'save', booking });
+      this.ref.close({ action: 'save', booking: { ...booking, day_id } });
     } else {
       this.ref.close({ action: 'save', booking, dayIds: day_id as number[] });
     }

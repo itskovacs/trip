@@ -1841,11 +1841,26 @@ export class TripComponent implements AfterViewInit, OnDestroy {
               .subscribe((updated) => {
                 this.trip.update((t) => {
                   if (!t) return null;
-                  const days = t.days.map((d) =>
-                    d.id === day.id
-                      ? { ...d, bookings: (d.bookings ?? []).map((b) => (b.id === updated.id ? updated : b)) }
-                      : d,
-                  );
+
+                  let days = [...t.days];
+                  if (updated.day_id !== day.id) {
+                    days = days.map((d) =>
+                      d.id === day.id ? { ...d, bookings: (d.bookings ?? []).filter((b) => b.id !== updated.id) } : d,
+                    );
+                  }
+
+                  days = days.map((d) => {
+                    if (d.id !== updated.day_id) return d;
+                    const bookings = d.bookings ?? [];
+                    const exists = bookings.some((b) => b.id === updated.id);
+                    return {
+                      ...d,
+                      bookings: exists
+                        ? bookings.map((b) => (b.id === updated.id ? updated : b))
+                        : [...bookings, updated],
+                    };
+                  });
+
                   return { ...t, days };
                 });
               });
