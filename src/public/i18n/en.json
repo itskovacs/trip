@@ -20,6 +20,7 @@
     "add_booking": "booking",
     "attachments": "Attachments",
     "cancel": "Cancel",
+    "day": "Day",
     "days": "Days",
     "days_selected": "{0} days selected",
     "delete": "Delete",
@@ -41,6 +42,16 @@
     },
     "upload_new": "Upload New",
     "view_booking": "View booking"
+  },
+  "calendar": {
+    "disable": "Disable calendar sync",
+    "enable": "Enable",
+    "enable_desc": "Create a private link your calendar app can subscribe to and keep in sync.",
+    "not_enabled": "Calendar sync is not enabled for this trip.",
+    "refresh_notice": "Your calendar app decides how often it refreshes. Google Calendar may take up to a day.",
+    "stop_syncing": "Stop calendar sync for {{name}}? Existing subscriptions will stop updating.",
+    "subscribe_on_link": "Subscribe to this trip in your calendar app with this link:",
+    "title": "Calendar sync"
   },
   "clipboard": {
     "confirm_paste": "Confirm Paste",
@@ -94,14 +105,17 @@
       "update": "Update"
     },
     "fields": {
+      "actions": "Actions",
       "attachments": "Attachments",
       "categories": "Categories",
       "category": "Category",
       "checklist": "Checklist",
+      "collaboration": "Collaboration",
       "color": "Color",
       "cols": "Cols",
       "comment": "Comment",
       "coordinates": "Coordinates",
+      "csv": "CSV",
       "currency": "Currency",
       "date": "Date",
       "date_range": "Date Range",
@@ -110,11 +124,13 @@
       "description": "Description",
       "distance": "Distance",
       "gpx": "GPX",
+      "ics": "Calendar (.ics)",
       "image": "Image",
       "itinerary": "Itinerary",
       "label": "Label",
       "latitude": "Latitude",
       "links": "Links",
+      "lists": "Lists",
       "longitude": "Longitude",
       "map": "Map",
       "markdown_hint": "Markdown supported",
@@ -124,6 +140,7 @@
       "notes": "Notes",
       "packing_list": "Packing List",
       "password": "Password",
+      "pdf": "PDF",
       "place": "Place",
       "places": "Places",
       "plan": "Plan",
@@ -447,6 +464,11 @@
         "description": "Include day bookings",
         "title": "Bookings"
       },
+      "days": {
+        "description": "Select which days to include",
+        "selected": "{0} days selected",
+        "title": "Days"
+      },
       "images": {
         "description": "Include item images"
       },
@@ -520,7 +542,7 @@
     "allow_registration": "Allow users to self-register",
     "always_display_visited": "Show Visited Places",
     "always_display_visited_desc": "Always display visited places as small dots",
-    "api_key": "API Key",
+    "api_key": "TRIP API Key",
     "api_key_desc": "Use it to authenticate in scripts",
     "attachments_max_size": "Attachments max size (MB)",
     "authentication": "Authentication",
@@ -638,6 +660,8 @@
     "include_everything": "Include everything (documents, descriptions, etc.)",
     "is": "is",
     "is_not_shared": "is not currently shared.",
+    "not_found": "Trip not found",
+    "not_found_desc": "The requested trip does not exist",
     "partially": "partially",
     "shared_on_link": "shared on this link:",
     "stop_sharing": "Stop sharing {{name}}?"
@@ -674,8 +698,10 @@
     "distance_km": "{{distance}} km",
     "drag_resize": "Drag to resize. Double click to reset.",
     "off_show_bookings": "Bookings Hidden",
+    "off_show_day_notes": "Day Notes Hidden",
     "off_show_text": "Show Place",
     "on_show_bookings": "Bookings Shown",
+    "on_show_day_notes": "Day Notes Shown",
     "on_show_text": "Show Text + Place",
     "open_navigation": "Open Navigation",
     "places_count": "Places ({{count}})",

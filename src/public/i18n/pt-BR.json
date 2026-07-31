@@ -55,14 +55,17 @@
       "update": "Atualizar"
     },
     "fields": {
+      "actions": "Ações",
       "attachments": "Anexos",
       "categories": "Categorias",
       "category": "Categoria",
       "checklist": "Checklist",
+      "collaboration": "Colaboração",
       "color": "Cor",
       "cols": "Cols",
       "comment": "Comentário",
       "coordinates": "Coordenadas",
+      "csv": "CSV",
       "currency": "Moeda",
       "date": "Data",
       "date_range": "Intervalo de Data",
@@ -71,11 +74,13 @@
       "description": "Descrição",
       "distance": "Distância",
       "gpx": "GPX",
+      "ics": "Calendário (.ics)",
       "image": "Imagem",
       "itinerary": "Roteiro",
       "label": "Etiqueta",
       "latitude": "Latitude",
       "links": "Links",
+      "lists": "Listas",
       "longitude": "Longitude",
       "map": "Mapa",
       "markdown_hint": "Markdown suportado",
@@ -85,6 +90,7 @@
       "notes": "Notas",
       "packing_list": "Lista de Bagagem",
       "password": "Senha",
+      "pdf": "PDF",
       "place": "Lugar",
       "places": "Lugares",
       "plan": "Plano",
@@ -157,7 +163,7 @@
     "verify_totp": "Verificar TOTP",
     "totp_message": "Adicione esse segredo ao seu app the autenticação.\nColoque o código gerado abaixo para garantir que está correto",
     "disable_totp": "Tem certeza que deseja desabilitar TOTP?",
-    "api_key": "Chave da API",
+    "api_key": "Chave da API TRIP",
     "api_key_desc": "Use para autenticar em scripts",
     "trip_api_key": "Chave de API TRIP",
     "remove_token": "Remover seu token da API?",
@@ -289,6 +295,16 @@
       "boat": "⛴️ Barco",
       "generic": "📋 Geral"
     }
+  },
+  "calendar": {
+    "disable": "Desativar sincronização de calendário",
+    "enable": "Ativar",
+    "enable_desc": "Crie um link privado que seu aplicativo de calendário pode assinar para manter tudo sincronizado.",
+    "not_enabled": "A sincronização de calendário não está ativada para esta viagem.",
+    "refresh_notice": "Seu aplicativo de calendário decide com que frequência atualiza. O Google Agenda pode levar até um dia.",
+    "stop_syncing": "Parar a sincronização de calendário de {{name}}? As assinaturas existentes deixarão de ser atualizadas.",
+    "subscribe_on_link": "Assine esta viagem no seu aplicativo de calendário com este link:",
+    "title": "Sincronização de calendário"
   },
   "support": {
     "support": "Apoie o TRIP",
@@ -474,16 +490,18 @@
     "base": "Compartilhamento básico",
     "complete": "Compartilhamento completo",
     "disable": "Desativar compartilhamento",
+    "error_map_render": "Erro ao renderizar o mapa",
     "full": "Compartilhamento total",
     "fully": "totalmente",
     "include_basic": "Incluir detalhes básicos: dias, locais, horários, textos...",
     "include_everything": "Incluir tudo (documentos, descrições, etc.)",
     "is": "está",
     "is_not_shared": "não está compartilhado no momento.",
+    "not_found": "Viagem não encontrada",
+    "not_found_desc": "A viagem solicitada não existe",
     "partially": "parcialmente",
     "shared_on_link": "compartilhado neste link:",
-    "stop_sharing": "Parar de compartilhar {{name}}?",
-    "error_map_render": "Erro ao renderizar o mapa"
+    "stop_sharing": "Parar de compartilhar {{name}}?"
   },
   "view": {
     "archival_notes": "Notas de arquivamento",
@@ -493,8 +511,10 @@
     "distance_km": "{{distance}} km",
     "drag_resize": "Arraste para redimensionar. Clique duas vezes para redefinir.",
     "off_show_bookings": "Reservas ocultas",
+    "off_show_day_notes": "Notas do dia ocultas",
     "off_show_text": "Mostrar local",
     "on_show_bookings": "Reservas exibidas",
+    "on_show_day_notes": "Notas do dia exibidas",
     "on_show_text": "Mostrar texto + local",
     "open_navigation": "Abrir navegação",
     "places_count": "Locais ({{count}})",
@@ -627,6 +647,11 @@
       }
     },
     "print": {
+      "days": {
+        "description": "Selecione quais dias incluir",
+        "selected": "{0} dias selecionados",
+        "title": "Dias"
+      },
       "metadata": {
         "description": "Incluir metadados (preço, dias)",
         "title": "Metadados"

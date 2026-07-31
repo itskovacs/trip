@@ -20,6 +20,7 @@
     "add_booking": "réservation",
     "attachments": "Pièces jointes",
     "cancel": "Annuler",
+    "day": "Jour",
     "days": "Jours",
     "days_selected": "{0} jours sélectionnés",
     "delete": "Supprimer",
@@ -41,6 +42,16 @@
     },
     "upload_new": "Télécharger un nouveau",
     "view_booking": "Voir la réservation"
+  },
+  "calendar": {
+    "disable": "Désactiver la synchronisation",
+    "enable": "Activer",
+    "enable_desc": "Créer un lien privé auquel votre application de calendrier peut s'abonner pour rester synchronisée.",
+    "not_enabled": "La synchronisation du calendrier n'est pas activée pour ce voyage.",
+    "refresh_notice": "Votre application de calendrier décide de la fréquence d'actualisation. Google Agenda peut prendre jusqu'à un jour.",
+    "stop_syncing": "Arrêter la synchronisation du calendrier de {{name}} ? Les abonnements existants ne seront plus mis à jour.",
+    "subscribe_on_link": "Abonnez-vous à ce voyage dans votre application de calendrier avec ce lien :",
+    "title": "Synchronisation calendrier"
   },
   "clipboard": {
     "confirm_paste": "Confirmer le collage",
@@ -94,14 +105,17 @@
       "update": "Mettre à jour"
     },
     "fields": {
+      "actions": "Actions",
       "attachments": "Pièces jointes",
       "categories": "Catégories",
       "category": "Catégorie",
       "checklist": "Checklist",
+      "collaboration": "Collaboration",
       "color": "Couleur",
       "cols": "Colonnes",
       "comment": "Commentaire",
       "coordinates": "Coordonnées",
+      "csv": "CSV",
       "currency": "Devise",
       "date": "Date",
       "date_range": "Période",
@@ -110,11 +124,13 @@
       "description": "Description",
       "distance": "Distance",
       "gpx": "GPX",
+      "ics": "Calendrier (.ics)",
       "image": "Image",
       "itinerary": "Itinéraire",
       "label": "Libellé",
       "latitude": "Latitude",
       "links": "Liens",
+      "lists": "Listes",
       "longitude": "Longitude",
       "map": "Carte",
       "markdown_hint": "Markdown pris en charge",
@@ -124,6 +140,7 @@
       "notes": "Notes",
       "packing_list": "Liste de bagages",
       "password": "Mot de passe",
+      "pdf": "PDF",
       "place": "Place",
       "places": "Places",
       "plan": "Plan",
@@ -447,6 +464,11 @@
         "description": "Inclure les réservations des jours",
         "title": "Réservations"
       },
+      "days": {
+        "description": "Sélectionnez les jours à inclure",
+        "selected": "{0} jours sélectionnés",
+        "title": "Jours"
+      },
       "images": {
         "description": "Inclure les images des étapes"
       },
@@ -520,7 +542,7 @@
     "allow_registration": "Autoriser les utilisateurs à s'inscrire eux-mêmes",
     "always_display_visited": "Afficher les places visitées",
     "always_display_visited_desc": "Toujours afficher les places visitées sous forme de petits points",
-    "api_key": "Clé API",
+    "api_key": "Clé API TRIP",
     "api_key_desc": "Utilisez-la pour vous authentifier dans vos scripts",
     "attachments_max_size": "Taille max des pièces jointes (Mo)",
     "authentication": "Authentification",
@@ -638,6 +660,8 @@
     "include_everything": "Tout inclure (documents, descriptions, etc.)",
     "is": "est",
     "is_not_shared": "n'est pas actuellement partagé.",
+    "not_found": "Voyage introuvable",
+    "not_found_desc": "Le voyage demandé n'existe pas",
     "partially": "partiellement",
     "shared_on_link": "partagé sur ce lien :",
     "stop_sharing": "Arrêter le partage de {{name}} ?"
@@ -674,8 +698,10 @@
     "distance_km": "{{distance}} km",
     "drag_resize": "Faites glisser pour redimensionner. Double-cliquez pour réinitialiser.",
     "off_show_bookings": "Réservations masquées",
+    "off_show_day_notes": "Notes du jour masquées",
     "off_show_text": "Afficher la Place",
     "on_show_bookings": "Réservations affichées",
+    "on_show_day_notes": "Notes du jour affichées",
     "on_show_text": "Afficher le Texte + Place",
     "open_navigation": "Ouvrir la Navigation",
     "places_count": "Places ({{count}})",

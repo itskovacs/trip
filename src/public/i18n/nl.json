@@ -55,14 +55,17 @@
       "update": "Bijwerken"
     },
     "fields": {
+      "actions": "Acties",
       "attachments": "Bijlagen",
       "categories": "Categorieën",
       "category": "Categorie",
       "checklist": "Checklist",
+      "collaboration": "Samenwerking",
       "color": "Kleur",
       "cols": "Kol.",
       "comment": "Opmerking",
       "coordinates": "Coördinaten",
+      "csv": "CSV",
       "currency": "Valuta",
       "date": "Datum",
       "date_range": "Datumbereik",
@@ -71,11 +74,13 @@
       "description": "Beschrijving",
       "distance": "Afstand",
       "gpx": "GPX",
+      "ics": "Agenda (.ics)",
       "image": "Afbeelding",
       "itinerary": "Reisplan",
       "label": "Label",
       "latitude": "Breedtegraad",
       "links": "Links",
+      "lists": "Lijsten",
       "longitude": "Lengtegraad",
       "map": "Kaart",
       "markdown_hint": "Markdown ondersteund",
@@ -85,6 +90,7 @@
       "notes": "Notities",
       "packing_list": "Paklijst",
       "password": "Wachtwoord",
+      "pdf": "PDF",
       "place": "Locatie",
       "places": "Locaties",
       "plan": "Plan",
@@ -157,7 +163,7 @@
     "verify_totp": "TOTP verifiëren",
     "totp_message": "Voeg dit geheim toe aan je authenticator-app.\nVoer de gegenereerde code hieronder in om te verifiëren",
     "disable_totp": "Weet je zeker dat je TOTP wilt uitschakelen?",
-    "api_key": "API-sleutel",
+    "api_key": "TRIP API-sleutel",
     "api_key_desc": "Gebruik deze om te authenticeren in scripts",
     "trip_api_key": "TRIP API-sleutel",
     "remove_token": "Je API-token verwijderen?",
@@ -289,6 +295,16 @@
       "boat": "⛴️ Boot",
       "generic": "📋 Algemeen"
     }
+  },
+  "calendar": {
+    "disable": "Agendasynchronisatie uitschakelen",
+    "enable": "Inschakelen",
+    "enable_desc": "Maak een privélink waarop je agenda-app zich kan abonneren om gesynchroniseerd te blijven.",
+    "not_enabled": "Agendasynchronisatie is niet ingeschakeld voor deze reis.",
+    "refresh_notice": "Je agenda-app bepaalt hoe vaak er wordt ververst. Google Agenda kan tot een dag duren.",
+    "stop_syncing": "Agendasynchronisatie van {{name}} stoppen? Bestaande abonnementen worden niet meer bijgewerkt.",
+    "subscribe_on_link": "Abonneer je op deze reis in je agenda-app met deze link:",
+    "title": "Agendasynchronisatie"
   },
   "support": {
     "support": "Steun TRIP",
@@ -474,16 +490,18 @@
     "base": "Basis delen",
     "complete": "Volledig delen",
     "disable": "Delen uitschakelen",
+    "error_map_render": "Fout tijdens weergeven van kaart",
     "full": "Volledig delen",
     "fully": "volledig",
     "include_basic": "Basisgegevens opnemen: dagen, locaties, tijd, tekst...",
     "include_everything": "Alles opnemen (documenten, beschrijvingen, enz.)",
     "is": "is",
     "is_not_shared": "wordt momenteel niet gedeeld.",
+    "not_found": "Reis niet gevonden",
+    "not_found_desc": "De opgevraagde reis bestaat niet",
     "partially": "gedeeltelijk",
     "shared_on_link": "gedeeld via deze link:",
-    "stop_sharing": "Delen van {{name}} stoppen?",
-    "error_map_render": "Fout tijdens weergeven van kaart"
+    "stop_sharing": "Delen van {{name}} stoppen?"
   },
   "view": {
     "archival_notes": "Archiveringsnotities",
@@ -493,8 +511,10 @@
     "distance_km": "{{distance}} km",
     "drag_resize": "Sleep om grootte aan te passen. Dubbelklik om te resetten.",
     "off_show_bookings": "Boekingen verborgen",
+    "off_show_day_notes": "Dagnotities verborgen",
     "off_show_text": "Locatie tonen",
     "on_show_bookings": "Boekingen zichtbaar",
+    "on_show_day_notes": "Dagnotities zichtbaar",
     "on_show_text": "Tekst + locatie tonen",
     "open_navigation": "Navigatie openen",
     "places_count": "Locaties ({{count}})",
@@ -627,6 +647,11 @@
       }
     },
     "print": {
+      "days": {
+        "description": "Selecteer welke dagen op te nemen",
+        "selected": "{0} dagen geselecteerd",
+        "title": "Dagen"
+      },
       "metadata": {
         "description": "Metadata opnemen (prijs, dagen)",
         "title": "Metadata"
