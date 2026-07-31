@@ -68,14 +68,27 @@ def verify_exists_and_owns(username: str, obj) -> None:
     return None
 
 
-def api_token_to_user(session: Session, api_token: str) -> User | None:
+def hash_api_token(api_token: str) -> str:
+    return ph.hash(api_token)
+
+
+def api_token_to_user(session: Session, api_token: str) -> User:
     if not api_token:
         raise HTTPException(status_code=400, detail="Bad Request")
 
-    user = session.exec(select(User).where(User.api_token == api_token)).first()
-    if not user:
-        raise HTTPException(status_code=401, detail="Invalid Token")
-    return user
+    candidates = session.exec(select(User).where(User.api_token.is_not(None))).all()
+    for user in candidates:
+        try:
+            ph.verify(user.api_token, api_token)
+            return user
+        except (
+            argon_exceptions.VerifyMismatchError,
+            argon_exceptions.VerificationError,
+            argon_exceptions.InvalidHashError,
+        ):
+            continue
+
+    raise HTTPException(status_code=401, detail="Invalid Token")
 
 
 def get_oidc_client():

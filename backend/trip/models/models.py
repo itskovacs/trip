@@ -126,11 +126,6 @@ class PendingTOTP(BaseModel):
     username: str
 
 
-class TokenGoogleSearch(BaseModel):
-    q: str
-    category: str | None = None
-
-
 class ProviderPlaceResult(BaseModel):
     name: str | None = None
     place: str | None = None
@@ -523,11 +518,6 @@ class Place(PlaceBase, table=True):
 class PlaceCreate(PlaceBase):
     image: str | None = None
     category_id: int
-
-
-class TokenPlaceCreate(PlaceBase):
-    image: str | None = None
-    category: str
 
 
 class PlaceUpdate(PlaceBase):

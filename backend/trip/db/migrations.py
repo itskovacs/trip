@@ -7,9 +7,25 @@ from sqlmodel import Session, select
 from ..config import get_settings
 from ..models.models import (Backup, BackupStatus, DataMigration, Image,
                              TripItem, TripItemImageLink, User)
+from ..security import hash_api_token
 from ..utils.utils import backup_file
 
 logger = logging.getLogger(__name__)
+
+
+def _007_hash_legacy_api_tokens(session: Session):
+    users = session.exec(select(User).where(User.api_token.is_not(None))).all()
+    legacy = [user for user in users if not user.api_token.startswith("$argon2")]
+    if not legacy:
+        return
+
+    for user in legacy:
+        user.api_token = hash_api_token(user.api_token)
+        session.add(user)
+    session.commit()
+    logger.warning(
+        f"[Migration 007_hash_legacy_api_tokens] Hashed {len(legacy)} legacy plaintext api_token(s)"
+    )
 
 
 def _005_reap_stuck_backups(session: Session):
@@ -159,3 +175,4 @@ def run_migrations(session: Session):
     _003_set_admin_for_single_user(session)
     _004_bootstrap_admin_from_env(session)
     _005_reap_stuck_backups(session)
+    _007_hash_legacy_api_tokens(session)

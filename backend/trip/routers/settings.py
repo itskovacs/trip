@@ -10,7 +10,7 @@ from ..config import get_settings
 from ..deps import SessionDep, get_current_username
 from ..models.models import (Backup, BackupRead, BackupStatus, User, UserRead,
                              UserUpdate)
-from ..security import generate_totp_secret, verify_totp_code
+from ..security import generate_totp_secret, hash_api_token, verify_totp_code
 from ..utils.utils import check_update, generate_urlsafe
 from ..utils.zip import (process_backup_export, process_backup_import,
                          process_legacy_import)
@@ -215,7 +215,7 @@ def generate_user_api_token(
         raise HTTPException(status_code=400, detail="Bad request")
 
     token = generate_urlsafe()
-    setattr(db_user, "api_token", token)
+    setattr(db_user, "api_token", hash_api_token(token))
     session.add(db_user)
     session.commit()
     return token
