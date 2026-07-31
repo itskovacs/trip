@@ -7,6 +7,7 @@ Create Date: 2026-07-22 21:34:24.026996
 """
 
 import sqlalchemy as sa
+
 from alembic import op
 
 # revision identifiers, used by Alembic.
@@ -26,7 +27,10 @@ def upgrade():
             ["image_id"], ["image.id"], name=op.f("fk_tripitemimagelink_image_id_image"), ondelete="CASCADE"
         ),
         sa.ForeignKeyConstraint(
-            ["item_id"], ["tripitem.id"], name=op.f("fk_tripitemimagelink_item_id_tripitem"), ondelete="CASCADE"
+            ["item_id"],
+            ["tripitem.id"],
+            name=op.f("fk_tripitemimagelink_item_id_tripitem"),
+            ondelete="CASCADE",
         ),
         sa.PrimaryKeyConstraint("item_id", "image_id", name=op.f("pk_tripitemimagelink")),
     )

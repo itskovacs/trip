@@ -154,7 +154,7 @@ class OpenStreetMapProvider(BaseMapProvider):
             description="\n".join(description_parts),
             category=self._categorize(place_types),
             image=None,
-            links=links
+            links=links,
         )
 
     async def text_search(self, query: str, location: dict[str, Any] | None = None) -> list[dict[str, Any]]:

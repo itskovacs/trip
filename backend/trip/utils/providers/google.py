@@ -89,7 +89,7 @@ class GoogleMapsProvider(BaseMapProvider):
             allowdog=place.get("allowsDogs"),
             restroom=place.get("restroom"),
             description="\n".join(description_parts),
-            links=links
+            links=links,
         )
 
         if photos := place.get("photos"):
