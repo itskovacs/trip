@@ -73,7 +73,6 @@ import { TripCreateChecklistModalComponent } from '../../modals/trip-create-chec
 import { TripInviteMemberModalComponent } from '../../modals/trip-invite-member-modal/trip-invite-member-modal.component';
 import { TripNotesModalComponent } from '../../modals/trip-notes-modal/trip-notes-modal.component';
 import { TripArchiveModalComponent } from '../../modals/trip-archive-modal/trip-archive-modal.component';
-import { generateTripICSFile } from '../../shared/trip-base/ics';
 import { generateTripCSVFile } from '../../shared/trip-base/csv';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FileSizePipe } from '../../shared/pipes/filesize.pipe';
@@ -203,8 +202,10 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   isMembersDialogVisible = false;
   isAttachmentsDialogVisible = false;
   isChecklistDialogVisible = false;
+  isCalendarDialogVisible = false;
   selectedItemProps = signal<string[]>(['place', 'comment', 'price']);
 
+  tripCalendarUrl = signal<string | null>(null);
   tripSharedDetails$?: Observable<SharedTripDetails>;
   username: string;
 
@@ -469,28 +470,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   selectedItemPropsSet = computed(() => new Set(this.selectedItemProps()));
   canToggleTextAndPlace = computed(() => this.selectedItemPropsSet().has('place'));
 
-  menuTripExportItems: MenuItem[] = [
-    {
-      label: 'Export',
-      items: [
-        {
-          label: 'Calendar (.ics)',
-          icon: 'pi pi-calendar',
-          command: () => generateTripICSFile(this.trip()!, this.utilsService),
-        },
-        {
-          label: 'CSV',
-          icon: 'pi pi-file',
-          command: () => generateTripCSVFile(this.trip()!),
-        },
-        {
-          label: 'PDF',
-          icon: 'pi pi-print',
-          command: () => this.togglePrint(),
-        },
-      ],
-    },
-  ];
+  menuTripExportItems: MenuItem[] = [];
   menuTripActionsItems: MenuItem[] = [];
   menuTripPackingItems: MenuItem[] = [];
   menuTripDayActionsItems: MenuItem[] = [];
@@ -524,6 +504,34 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
     this.statuses = this.utilsService.statuses;
     this.username = this.utilsService.loggedUser;
+
+    this.menuTripExportItems = [
+      {
+        label: this.translocoService.translate('common.actions.export'),
+        items: [
+          {
+            label: this.translocoService.translate('common.fields.ics'),
+            icon: 'pi pi-calendar',
+            command: () => this.downloadIcs(),
+          },
+          {
+            label: this.translocoService.translate('calendar.title'),
+            icon: 'pi pi-sync',
+            command: () => this.openCalendarDialog(),
+          },
+          {
+            label: this.translocoService.translate('common.fields.csv'),
+            icon: 'pi pi-file',
+            command: () => generateTripCSVFile(this.trip()!),
+          },
+          {
+            label: this.translocoService.translate('common.fields.pdf'),
+            icon: 'pi pi-print',
+            command: () => this.togglePrint(),
+          },
+        ],
+      },
+    ];
 
     this.plansSearchInput.valueChanges
       .pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed())
@@ -2587,6 +2595,64 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   getSharedTripDetails() {
     this.apiService.getSharedTripDetails(this.trip()!.id).pipe(take(1)).subscribe();
+  }
+
+  downloadIcs() {
+    this.apiService
+      .downloadTripIcs(this.trip()!.id)
+      .pipe(take(1))
+      .subscribe({
+        next: (data) => saveBlobAs(data, tripFilename(this.trip()!.name, 'ics')),
+      });
+  }
+
+  openCalendarDialog() {
+    this.isCalendarDialogVisible = true;
+    this.tripCalendarUrl.set(null);
+    this.apiService
+      .getTripCalendar(this.trip()!.id)
+      .pipe(take(1))
+      .subscribe({
+        next: (resp) => this.tripCalendarUrl.set(resp.url),
+        // 404 just means sync was never enabled for this trip
+        error: () => this.tripCalendarUrl.set(null),
+      });
+  }
+
+  enableCalendarSync() {
+    this.apiService
+      .createTripCalendar(this.trip()!.id)
+      .pipe(take(1))
+      .subscribe({
+        next: (resp) => this.tripCalendarUrl.set(resp.url),
+      });
+  }
+
+  disableCalendarSync() {
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: this.translocoService.translate('calendar.disable'),
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      draggable: false,
+      resizable: false,
+      breakpoints: {
+        '640px': '90vw',
+      },
+      data: this.translocoService.translate('calendar.stop_syncing', { name: this.trip()!.name }),
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (bool) => {
+        if (!bool) return;
+        this.apiService
+          .deleteTripCalendar(this.trip()!.id)
+          .pipe(take(1))
+          .subscribe({
+            next: () => this.tripCalendarUrl.set(null),
+          });
+      },
+    });
   }
 
   shareTrip(is_full_access = true) {

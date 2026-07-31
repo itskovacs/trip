@@ -58,7 +58,6 @@ import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
 import { TooltipModule } from 'primeng/tooltip';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { CheckboxModule } from 'primeng/checkbox';
-import { generateTripICSFile } from '../../shared/trip-base/ics';
 import { generateTripCSVFile } from '../../shared/trip-base/csv';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FileSizePipe } from '../../shared/pipes/filesize.pipe';
@@ -448,17 +447,17 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
         label: this.translocoService.translate('common.actions.export'),
         items: [
           {
-            label: 'Calendar (.ics)',
+            label: this.translocoService.translate('common.fields.ics'),
             icon: 'pi pi-calendar',
-            command: () => generateTripICSFile(this.trip()!, this.utilsService),
+            command: () => this.downloadIcs(),
           },
           {
-            label: 'CSV',
+            label: this.translocoService.translate('common.fields.csv'),
             icon: 'pi pi-file',
             command: () => generateTripCSVFile(this.trip()!),
           },
           {
-            label: 'PDF',
+            label: this.translocoService.translate('common.fields.pdf'),
             icon: 'pi pi-print',
             command: () => this.togglePrint(),
           },
@@ -1300,6 +1299,16 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
       .filter((item) => item.lat && item.lng);
     if (!items.length) return;
     openNavigation(items.map((item) => ({ lat: item.lat!, lng: item.lng! })));
+  }
+
+  downloadIcs() {
+    if (!this.token) return;
+    this.apiService
+      .downloadSharedTripIcs(this.token)
+      .pipe(take(1))
+      .subscribe({
+        next: (data) => saveBlobAs(data, tripFilename(this.trip()!.name, 'ics')),
+      });
   }
 
   downloadAttachment(attachment: TripAttachment) {

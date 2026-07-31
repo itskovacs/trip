@@ -15,6 +15,7 @@ import {
   TripBase,
   TripBooking,
   TripDay,
+  TripCalendarDetails,
   TripInvitation,
   TripItem,
   TripMember,
@@ -208,6 +209,35 @@ export class ApiService {
 
   deleteSharedTrip(tripId: number): Observable<null> {
     return this.httpClient.delete<null>(`${this.apiBaseUrl}/trips/${tripId}/share`);
+  }
+
+  downloadTripIcs(tripId: number): Observable<Blob> {
+    return this.httpClient.get(`${this.apiBaseUrl}/trips/${tripId}/ics`, { responseType: 'blob' });
+  }
+
+  downloadSharedTripIcs(token: string): Observable<Blob> {
+    return this.httpClient.get(`${this.apiBaseUrl}/trips/shared/${token}/ics`, {
+      responseType: 'blob',
+      headers: NO_AUTH_HEADER,
+    });
+  }
+
+  getTripCalendar(tripId: number): Observable<TripCalendarDetails> {
+    return this.httpClient
+      .get<TripCalendarDetails>(`${this.apiBaseUrl}/trips/${tripId}/calendar`, {
+        headers: { ignore_not_found: 'true' },
+      })
+      .pipe(map((resp) => ({ ...resp, url: window.location.origin + resp.url })));
+  }
+
+  createTripCalendar(tripId: number): Observable<TripCalendarDetails> {
+    return this.httpClient
+      .post<TripCalendarDetails>(`${this.apiBaseUrl}/trips/${tripId}/calendar`, {})
+      .pipe(map((resp) => ({ ...resp, url: window.location.origin + resp.url })));
+  }
+
+  deleteTripCalendar(tripId: number): Observable<null> {
+    return this.httpClient.delete<null>(`${this.apiBaseUrl}/trips/${tripId}/calendar`);
   }
 
   getPackingList(tripId: number): Observable<PackingItem[]> {

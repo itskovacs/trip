@@ -143,6 +143,10 @@ export interface SharedTripDetails {
   is_full_access?: boolean;
 }
 
+export interface TripCalendarDetails {
+  url: string;
+}
+
 export interface PackingItem {
   id: number;
   text: string;

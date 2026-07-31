@@ -1532,6 +1532,44 @@
     </ng-container>
   </p-dialog>
 
+  <p-dialog [header]="t('calendar.title')" [draggable]="false" [dismissableMask]="true" [modal]="true"
+    [(visible)]="isCalendarDialogVisible" styleClass="w-[95%] md:w-[70%] lg:w-[50%] xl:w-[30%]">
+    @let calendar_url = tripCalendarUrl();
+    <ng-container>
+      @if (calendar_url) {
+      <div class="flex items-center flex-col gap-2">
+        <div class="text-center">{{ t('calendar.subscribe_on_link') }}</div>
+        <div
+          class="flex justify-between items-center w-full rounded-xl border border-primary-300 bg-white dark:bg-black p-2 pl-3 pr-2 shadow-sm">
+          <p-button text icon="pi pi-trash" severity="danger" (click)="disableCalendarSync()" />
+          <span class="text-sm font-semibold text-primary-800 dark:text-primary-300 truncate">
+            {{ calendar_url }}
+          </span>
+          <p-button text icon="pi pi-copy" [cdkCopyToClipboard]="calendar_url" />
+        </div>
+        <p class="text-xs text-primary-500 dark:text-primary-400 text-center">{{ t('calendar.refresh_notice') }}</p>
+      </div>
+      } @else {
+      <div class="space-y-4">
+        <div class="text-center">{{ t('calendar.not_enabled') }}</div>
+
+        <div
+          class="flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700">
+          <div class="flex items-center gap-3 min-w-0 flex-1">
+            <i class="pi pi-sync text-primary-600 dark:text-primary-400 shrink-0"></i>
+            <div class="min-w-0 flex-1">
+              <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">{{ t('calendar.enable')
+                }}</span>
+              <p class="text-xs text-primary-500 dark:text-primary-400 block">{{ t('calendar.enable_desc') }}</p>
+            </div>
+          </div>
+          <p-button (click)="enableCalendarSync()" [outlined]="true" [label]="t('calendar.enable')" />
+        </div>
+      </div>
+      }
+    </ng-container>
+  </p-dialog>
+
   @if (printOptions()) {
   @let options = printOptions();
   <section class="hidden print:block">

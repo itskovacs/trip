@@ -576,6 +576,7 @@ class Trip(TripBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     user: str = Field(foreign_key="user.username", ondelete="CASCADE", index=True)
     image_id: int | None = Field(default=None, foreign_key="image.id", ondelete="CASCADE")
+    ics_token: str | None = Field(default=None, index=True, unique=True)
 
     image: Image | None = Relationship(back_populates="trips")
     places: list["Place"] = Relationship(
@@ -908,6 +909,10 @@ class TripShareDetails(BaseModel):
 
 class TripShareCreate(BaseModel):
     is_full_access: bool | None
+
+
+class TripCalendarDetails(BaseModel):
+    url: str
 
 
 class TripShare(SQLModel, table=True):

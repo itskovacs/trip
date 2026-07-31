@@ -1,8 +1,9 @@
+from hashlib import md5
 from io import BytesIO
 from typing import Annotated
 
-from fastapi import (APIRouter, Depends, File, HTTPException, Response,
-                     UploadFile)
+from fastapi import (APIRouter, Depends, File, HTTPException, Request,
+                     Response, UploadFile)
 from fastapi.responses import FileResponse
 from sqlalchemy import update
 from sqlalchemy.orm import selectinload
@@ -12,7 +13,8 @@ from ..config import get_settings
 from ..deps import SessionDep, get_current_username
 from ..models.models import (Image, ItemImageInput, Place, Trip,
                              TripAttachment, TripAttachmentRead,
-                             TripBalanceEntry, TripBooking, TripChecklistItem,
+                             TripBalanceEntry, TripBooking,
+                             TripCalendarDetails, TripChecklistItem,
                              TripChecklistItemCreate, TripChecklistItemRead,
                              TripChecklistItemUpdate, TripCreate, TripDay,
                              TripDayBase, TripDayRead, TripInvitationRead,
@@ -25,6 +27,7 @@ from ..models.models import (Image, ItemImageInput, Place, Trip,
                              TripShare, TripShareCreate, TripShareDetails,
                              TripShareRead, TripUpdate, User)
 from ..utils.date import dt_utc
+from ..utils.ical import build_trip_ics, ics_filename
 from ..utils.utils import (attachments_trip_folder_path, b64img_decode,
                            generate_urlsafe, remove_image, save_attachment,
                            save_image_to_file)
@@ -62,6 +65,27 @@ def _get_verified_trip(session, trip_id: int, username: str) -> Trip:
     if not trip:
         raise HTTPException(status_code=404, detail="Not found")
     return trip
+
+
+def _trip_for_ics(session, *where) -> Trip:
+    # Eager-loads exactly what build_trip_ics touches, so rendering a feed stays
+    # a single round trip no matter how many days/items the trip has.
+    trip = session.exec(
+        select(Trip)
+        .options(selectinload(Trip.days).selectinload(TripDay.items).selectinload(TripItem.place))
+        .where(*where)
+    ).first()
+    if not trip:
+        raise HTTPException(status_code=404, detail="Not found")
+    return trip
+
+
+def _ics_download(trip: Trip) -> Response:
+    return Response(
+        content=build_trip_ics(trip),
+        media_type="text/calendar; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{ics_filename(trip)}"'},
+    )
 
 
 @router.get("", response_model=list[TripReadBase])
@@ -709,6 +733,64 @@ def delete_shared_trip(
     return {}
 
 
+def _calendar_url(token: str) -> str:
+    return f"/api/trips/calendar/{token}.ics"
+
+
+@router.get("/{trip_id}/ics")
+def download_trip_ics(
+    session: SessionDep,
+    trip_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+):
+    _get_verified_trip(session, trip_id, current_user)
+    return _ics_download(_trip_for_ics(session, Trip.id == trip_id))
+
+
+@router.get("/{trip_id}/calendar", response_model=TripCalendarDetails)
+def get_trip_calendar(
+    session: SessionDep,
+    trip_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+) -> TripCalendarDetails:
+    db_trip = _get_verified_trip(session, trip_id, current_user)
+    if not db_trip.ics_token:
+        raise HTTPException(status_code=404, detail="Not found")
+    return {"url": _calendar_url(db_trip.ics_token)}
+
+
+@router.post("/{trip_id}/calendar", response_model=TripCalendarDetails)
+def create_trip_calendar(
+    session: SessionDep,
+    trip_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+) -> TripCalendarDetails:
+    db_trip = _get_verified_trip(session, trip_id, current_user)
+    if db_trip.ics_token:
+        raise HTTPException(status_code=409, detail="The resource already exists")
+
+    db_trip.ics_token = generate_urlsafe()
+    session.add(db_trip)
+    session.commit()
+    return {"url": _calendar_url(db_trip.ics_token)}
+
+
+@router.delete("/{trip_id}/calendar")
+def delete_trip_calendar(
+    session: SessionDep,
+    trip_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+):
+    db_trip = _get_verified_trip(session, trip_id, current_user)
+    if not db_trip.ics_token:
+        raise HTTPException(status_code=404, detail="Not found")
+
+    db_trip.ics_token = None
+    session.add(db_trip)
+    session.commit()
+    return {}
+
+
 @router.get("/{trip_id}/packing", response_model=list[TripPackingListItemRead])
 def read_packing_list(
     session: SessionDep,
@@ -1068,6 +1150,34 @@ def read_shared_trip(
         raise HTTPException(status_code=404, detail="Not found")
 
     return TripRead.serialize(db_trip) if share.is_full_access else TripShareRead.serialize(db_trip)
+
+
+@router.get("/shared/{token}/ics")
+def download_shared_trip_ics(session: SessionDep, token: str):
+    share = _trip_from_token_or_404(session, token)
+    return _ics_download(_trip_for_ics(session, Trip.id == share.trip_id))
+
+
+@router.get("/calendar/{token}.ics")
+def read_trip_calendar_feed(session: SessionDep, token: str, request: Request):
+    # Subscription feed. Calendar clients can't send an Authorization header, so
+    # the token in the URL is the whole credential - hence a dedicated,
+    # revocable, read-only one rather than the user's api_token.
+    trip = _trip_for_ics(session, Trip.ics_token == token)
+    body = build_trip_ics(trip)
+
+    # Feeds get polled forever by every subscribed device; DTSTAMP is coarse
+    # enough (see utils/ical.py) that the body is byte-stable within a day, so
+    # this actually collapses to a 304 instead of resending the whole calendar.
+    etag = f'"{md5(body.encode()).hexdigest()}"'
+    if request.headers.get("if-none-match") == etag:
+        return Response(status_code=304, headers={"ETag": etag})
+
+    return Response(
+        content=body,
+        media_type="text/calendar; charset=utf-8",
+        headers={"ETag": etag, "Cache-Control": "private, max-age=3600"},
+    )
 
 
 @router.get("/shared/{token}/packing", response_model=list[TripPackingListItemRead])
