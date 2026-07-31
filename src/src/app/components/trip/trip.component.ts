@@ -863,7 +863,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   openMenuTripDayActions(event: any, day: TripDay) {
     this.menuTripDayActionsItems = [
       {
-        label: 'Actions',
+        label: this.translocoService.translate('common.fields.actions'),
         items: [
           {
             label: this.translocoService.translate('common.fields.plan'),
@@ -890,7 +890,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   openMenuSelectedItemActions(event: any, item: any) {
     this.menuSelectedItemActionsItems = [
       {
-        label: 'Actions',
+        label: this.translocoService.translate('common.fields.actions'),
         items: [
           {
             label: this.translocoService.translate('view.open_navigation'),
@@ -918,7 +918,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   openMenuSelectedPlaceActions(event: any, place: Place) {
     this.menuSelectedPlaceActionsItems = [
       {
-        label: 'Actions',
+        label: this.translocoService.translate('common.fields.actions'),
         items: [
           {
             label: this.translocoService.translate('entities.plan.add'),
@@ -952,7 +952,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   openMenuPlanDayActionsItems(event: any, d: TripDay) {
     this.menuPlanDayActionsItems = [
       {
-        label: 'Actions',
+        label: this.translocoService.translate('common.fields.actions'),
         items: [
           {
             label: this.translocoService.translate('common.fields.summary'),
@@ -988,7 +988,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   openMenuTripActionsItems(event: any) {
     const lists = {
-      label: 'Lists',
+      label: this.translocoService.translate('common.fields.lists'),
       items: [
         {
           label: this.translocoService.translate('common.fields.attachments'),
@@ -1014,7 +1014,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       ],
     };
     const collaboration = {
-      label: 'Collaboration',
+      label: this.translocoService.translate('common.fields.collaboration'),
       items: [
         {
           label: this.translocoService.translate('common.fields.members'),
@@ -1033,17 +1033,17 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       ],
     };
     const actions = {
-      label: 'Trip',
+      label: this.translocoService.translate('common.fields.trip'),
       items: [
         {
-          label: 'PDF',
+          label: this.translocoService.translate('common.fields.pdf'),
           icon: 'pi pi-print',
           command: () => {
             this.togglePrint();
           },
         },
         {
-          label: 'Notes',
+          label: this.translocoService.translate('common.fields.notes'),
           icon: 'pi pi-info-circle',
           command: () => {
             this.openTripNotesModal();
@@ -1084,7 +1084,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   openMenuSelectedDayActions(event: any, d: TripDay) {
     this.menuSelectedDayActionsItems = [
       {
-        label: 'Actions',
+        label: this.translocoService.translate('common.fields.actions'),
         items: [
           {
             label: this.translocoService.translate('view.open_navigation'),
@@ -2156,7 +2156,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   computeMenuTripPackingItems() {
     this.menuTripPackingItems = [
       {
-        label: 'Actions',
+        label: this.translocoService.translate('common.fields.actions'),
         items: [
           {
             label: this.translocoService.translate('clipboard.copy_to_clipboard'),

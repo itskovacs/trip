@@ -799,7 +799,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   openMenuSelectedItemActions(event: any, item: any) {
     this.menuSelectedItemActionsItems = [
       {
-        label: 'Actions',
+        label: this.translocoService.translate('common.fields.actions'),
         items: [
           {
             label: this.translocoService.translate('view.open_navigation'),
@@ -815,7 +815,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   openMenuPlanDayActionsItems(event: any, d: TripDay) {
     this.menuPlanDayActionsItems = [
       {
-        label: 'Actions',
+        label: this.translocoService.translate('common.fields.actions'),
         items: [
           {
             label: this.translocoService.translate('common.fields.summary'),
@@ -840,7 +840,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
 
   openMenuTripActionsItems(event: any) {
     const lists = {
-      label: 'Lists',
+      label: this.translocoService.translate('common.fields.lists'),
       items: [
         {
           label: this.translocoService.translate('common.fields.attachments'),
@@ -868,7 +868,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
       label: this.translocoService.translate('common.fields.trip'),
       items: [
         {
-          label: 'PDF',
+          label: this.translocoService.translate('common.fields.pdf'),
           icon: 'pi pi-print',
           command: () => {
             this.togglePrint();
@@ -884,7 +884,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   openMenuSelectedDayActions(event: any, d: TripDay) {
     this.menuSelectedDayActionsItems = [
       {
-        label: 'Actions',
+        label: this.translocoService.translate('common.fields.actions'),
         items: [
           {
             label: this.translocoService.translate('view.open_navigation'),
@@ -1212,7 +1212,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   computeMenuTripPackingItems() {
     this.menuTripPackingItems = [
       {
-        label: 'Actions',
+        label: this.translocoService.translate('common.fields.actions'),
         items: [
           {
             label: this.translocoService.translate('clipboard.copy_to_clipboard'),

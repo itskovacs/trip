@@ -1260,8 +1260,7 @@
                         (click)="resetUserPassword(user)" />
                       @if (user.totp_enabled) {
                       <p-button icon="pi pi-shield" severity="warn" size="small" text
-                        [pTooltip]="t('settings.reset_totp')" tooltipPosition="left"
-                        (click)="resetUserTotp(user)" />
+                        [pTooltip]="t('settings.reset_totp')" tooltipPosition="left" (click)="resetUserTotp(user)" />
                       }
                       <p-button icon="pi pi-trash" severity="danger" size="small" text pTooltip="Delete"
                         tooltipPosition="left" (click)="deleteUser(user)" />

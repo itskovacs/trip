@@ -361,7 +361,7 @@
                           ? 'border-l-4'
                           : 'border-l-0'
                       ">
-                    <div class="relative shrink-0 flex items-center">
+                    <div class="relative shrink-0 flex items-center" [class.pl-4]="!item.time">
                       @if (item.status) {
                       <span class="absolute -top-1 -right-1 w-3 h-3 rounded-full"
                         [style.background]="item.status.color"></span>
@@ -449,7 +449,7 @@
 
                       @if (item.status && visibleProps.has('status')) {
                       <div
-                        class="color-bg-opacity flex items-center px-2 py-1 text-xs font-medium rounded-md max-w-[80px] min-w-0"
+                        class="color-bg-opacity flex items-center px-2 py-1 text-xs font-medium rounded-md max-w-20 min-w-0"
                         [style.--color-bg-opacity]="item.status.color" [title]="item.status.label">
                         <span class="truncate">{{ item.status.label }}</span>
                       </div>
@@ -653,7 +653,7 @@
                 <span
                   class="hidden md:flex items-center gap-1 px-2 py-1 text-xs font-medium rounded bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300">
                   <i class="pi pi-calendar text-[9px]"></i>
-                  {{ selection.count }} {{ t('common.fields.plan') }}{{ selection.count > 1 ? 's' : '' }}
+                  {{ selection.count }} {{ t(selection.count > 1 ? 'common.fields.plans' : 'common.fields.plan') }}
                 </span>
                 }
               </div>
@@ -678,7 +678,7 @@
             } @else {
             @let item = selection.items[selectedPlaceActiveTabIndex()];
             @if (item.status) {
-            <span class="px-2 py-1 color-bg-opacity text-xs font-medium rounded-md max-w-[80px]"
+            <span class="px-2 py-1 color-bg-opacity text-xs font-medium rounded-md max-w-20"
               [style.--color-bg-opacity]="item.status.color" [title]="item.status.label">
               {{ item.status.label }}
             </span>
@@ -725,7 +725,7 @@
             @for (item of selection.items; track item.id) {
             <p-tab [value]="$index">
               <div class="flex items-center gap-2 px-1">
-                <span class="text-sm font-medium truncate max-w-[120px]">
+                <span class="text-sm font-medium truncate max-w-30">
                   {{ getItemDayLabel(item) }}
                 </span>
                 @if (item.time) {
@@ -780,7 +780,7 @@
                     <div class="min-w-0">
                       <span
                         class="block text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">
-                        Price
+                        {{ t('common.fields.price') }}
                       </span>
                       <div
                         class="w-fit h-8 flex items-center gap-1.5 px-3 py-1.5 text-sm rounded bg-green-50 dark:bg-green-900/30 border border-green-200 dark:border-green-700">
@@ -903,7 +903,7 @@
           <div class="flex items-center gap-3">
             <div class="flex flex-1 gap-4 items-center min-w-0">
               @if (item.status) {
-              <span class="px-2 py-1 color-bg-opacity text-xs font-medium rounded-md max-w-[80px]"
+              <span class="px-2 py-1 color-bg-opacity text-xs font-medium rounded-md max-w-20"
                 [style.--color-bg-opacity]="item.status.color" [title]="item.status.label">
                 {{ item.status.label }}
               </span>
@@ -1123,20 +1123,21 @@
         <div class="p-4 space-y-4">
           <div class="flex flex-col md:flex-row gap-4 min-w-0">
             <div class="flex-1 flex flex-col min-w-0">
-              <span
-                class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">Label</span>
+              <span class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">{{
+                t('common.fields.label') }}</span>
               <div class="line-clamp-2 text-primary-900 dark:text-primary-100 wrap-break-word">{{ day.label }}</div>
             </div>
 
             <div class="flex gap-4 min-w-0">
               <div class="min-w-0">
                 <span
-                  class="block text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">Places</span>
+                  class="block text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">{{
+                  t('common.fields.places') }}</span>
                 <div
                   class="w-fit h-8 flex items-center gap-1.5 px-3 py-1.5 text-sm rounded bg-purple-50 dark:bg-purple-900/30 border border-purple-200 dark:border-purple-700">
                   <i class="pi pi-map-marker text-purple-600 dark:text-purple-400 text-xs"></i>
-                  <span class="text-xs font-medium text-purple-700 dark:text-purple-300">{{ places.length }} Place{{
-                    places.length > 1 ? 's' : '' }}</span>
+                  <span class="text-xs font-medium text-purple-700 dark:text-purple-300">{{ places.length }}
+                    {{ t(places.length > 1 ? 'common.fields.places' : 'common.fields.place') }}</span>
                 </div>
               </div>
 
@@ -1149,7 +1150,7 @@
                   class="h-8 flex items-center gap-1.5 px-3 py-1.5 text-sm rounded bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-700">
                   <i class="pi pi-list text-blue-600 dark:text-blue-400 text-xs"></i>
                   <span class="text-xs font-medium text-blue-700 dark:text-blue-300 truncate">{{ day.items.length }}
-                    {{ t('common.fields.plan') }}{{ day.items.length > 1 ? 's' : '' }}</span>
+                    {{ t(day.items.length > 1 ? 'common.fields.plans' : 'common.fields.plan') }}</span>
                 </div>
               </div>
             </div>
@@ -1157,8 +1158,8 @@
 
           @if (day.notes) {
           <div class="flex flex-col min-w-0">
-            <span
-              class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">Notes</span>
+            <span class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1">{{
+              t('common.fields.notes') }}</span>
             <div
               class="border-l-3 border-primary-300 dark:border-primary-700 pl-3 py-1 text-sm text-primary-700 dark:text-primary-300 markdown-content leading-relaxed"
               [innerHTML]="day.notes | markdown"></div>
@@ -1324,18 +1325,20 @@
 
               <div class="hidden shrink-0 sm:flex sm:flex-col sm:items-end">
                 @if (!m.invited_at) {
-                <span
-                  class="text-center bg-red-100 text-red-800 text-xs px-2.5 py-0.5 rounded-md dark:bg-red-100/85">{{ t('trips.roles.owner') }}</span>
+                <span class="text-center bg-red-100 text-red-800 text-xs px-2.5 py-0.5 rounded-md dark:bg-red-100/85">{{
+                  t('trips.roles.owner') }}</span>
                 }
 
                 @if (m.invited_at && !m.joined_at) {
                 <span
-                  class="text-center bg-primary-100 text-primary-800 text-xs px-2.5 py-0.5 rounded-md dark:bg-primary-100/85">{{ t('trips.roles.invited') }}</span>
+                  class="text-center bg-primary-100 text-primary-800 text-xs px-2.5 py-0.5 rounded-md dark:bg-primary-100/85">{{
+                  t('trips.roles.invited') }}</span>
                 }
 
                 @if (m.joined_at) {
                 <span
-                  class="text-center bg-blue-100 text-blue-800 text-xs px-2.5 py-0.5 rounded-md dark:bg-blue-100/85">{{ t('trips.roles.member') }}</span>
+                  class="text-center bg-blue-100 text-blue-800 text-xs px-2.5 py-0.5 rounded-md dark:bg-blue-100/85">{{
+                  t('trips.roles.member') }}</span>
                 }
               </div>
             </div>
@@ -1428,20 +1431,38 @@
       </div>
 
       @if (availableSuggestions().length > 0 && !trip()?.archived) {
-      <div class="mb-4">
-        <p class="text-xs font-semibold text-primary-400 uppercase tracking-wider mb-2">{{
-          t('modals.packing.suggestions') }}</p>
+      <section
+        class="mb-5 rounded-2xl border border-primary-100 bg-primary-50/50 p-4 shadow-sm dark:border-primary-900/70 dark:bg-primary-950/25">
+        <div class="mb-3 flex items-center gap-2">
+          <span
+            class="flex size-7 items-center justify-center rounded-lg bg-primary-100 text-primary-600 dark:bg-primary-900/70 dark:text-primary-300">
+            <i class="pi pi-sparkles text-xs!"></i>
+          </span>
+
+          <h4 class="text-xs font-bold uppercase tracking-[0.16em] text-primary-700 dark:text-primary-300">
+            {{ t('modals.packing.suggestions') }}
+          </h4>
+        </div>
+
         <div class="flex flex-wrap gap-2">
           @for (s of availableSuggestions(); track s.text) {
-          <button type="button"
-            class="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm border border-primary-200 dark:border-primary-700 bg-primary-50 dark:bg-primary-900 text-primary-700 dark:text-primary-300 hover:bg-primary-100 dark:hover:bg-primary-800 transition-colors cursor-pointer"
+          <button type="button" class="group inline-flex min-h-9 items-center gap-2 rounded-xl border border-primary-200/80 bg-white px-3 py-1.5 text-sm font-medium
+            text-primary-700 shadow-sm transition-all duration-200 hover:border-primary-300 hover:bg-primary-600 hover:text-white
+            hover:shadow-md active:translate-y-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500
+            focus-visible:ring-offset-2 dark:border-primary-800 dark:bg-primary-950/70 dark:text-primary-200 dark:hover:border-primary-600
+            dark:hover:bg-primary-700 dark:focus-visible:ring-primary-400 dark:focus-visible:ring-offset-slate-950"
             (click)="addSuggestedPackingItem(s)">
-            <i class="pi pi-plus text-xs"></i>
-            {{ t(s.text) }}
+            <span
+              class="flex size-5 items-center justify-center rounded-md bg-primary-100
+                   text-primary-600 transition-colors group-hover:bg-white/20 group-hover:text-white dark:bg-primary-900 dark:text-primary-300">
+              <i class="pi pi-plus text-[10px]!"></i>
+            </span>
+
+            <span>{{ t(s.text) }}</span>
           </button>
           }
         </div>
-      </div>
+      </section>
       }
 
       <div class="overflow-y-auto px-2 pb-4">
@@ -1604,7 +1625,7 @@
           <span
             class="bg-primary-100 text-primary-800 text-xs font-medium me-2 px-2.5 py-1 rounded min-w-fit flex items-center gap-2"><i
               class="pi pi-calendar text-xs"></i> {{ trip()?.days?.length }}
-            {{ trip()?.days!.length > 1 ? 'days' : 'day' }}</span>
+            {{ t(trip()!.days!.length > 1 ? 'common.fields.days' : 'common.fields.day') }}</span>
           <span
             class="bg-primary-100 text-primary-800 text-xs font-medium me-2 px-2.5 py-1 rounded min-w-fit flex items-center gap-2"><i
               class="pi pi-wallet text-xs"></i> {{ (totalPrice() | number: '1.0-2') || '-' }}
@@ -1616,7 +1637,7 @@
 
     @if (options?.notes) {
     <div class="mt-4">
-      <div class="text-2xl font-semibold">Notes</div>
+      <div class="text-2xl font-semibold">{{ t('common.fields.notes') }}</div>
 
       <div class="mt-4 border-l-3 border-primary-900 pl-6 py-2">
         <span class="text-sm leading-relaxed text-primary-800 whitespace-pre-wrap">{{
