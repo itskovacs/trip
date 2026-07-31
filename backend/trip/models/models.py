@@ -1010,10 +1010,32 @@ class TripPackingListItem(TripPackingListItemBase, table=True):
 
 
 class TripPackingListItemCreate(TripPackingListItemBase):
+    text: str
+    category: PackingListCategoryEnum
     packed: bool = False
 
+    @field_validator("text", mode="before")
+    @classmethod
+    def text_must_not_be_blank(cls, value):
+        if value is None or not str(value).strip():
+            raise ValueError("text must not be empty")
+        return value
 
-class TripPackingListItemUpdate(TripPackingListItemBase): ...
+
+class TripPackingListItemUpdate(TripPackingListItemBase):
+    @field_validator("text", "category", mode="before")
+    @classmethod
+    def reject_null(cls, value):
+        if value is None:
+            raise ValueError("must not be null")
+        return value
+
+    @field_validator("text")
+    @classmethod
+    def text_must_not_be_blank(cls, value):
+        if value is not None and not value.strip():
+            raise ValueError("text must not be empty")
+        return value
 
 
 class TripPackingListItemRead(TripPackingListItemBase):
@@ -1043,10 +1065,31 @@ class TripChecklistItem(TripChecklistItemBase, table=True):
 
 
 class TripChecklistItemCreate(TripChecklistItemBase):
+    text: str
     checked: bool = False
 
+    @field_validator("text", mode="before")
+    @classmethod
+    def text_must_not_be_blank(cls, value):
+        if value is None or not str(value).strip():
+            raise ValueError("text must not be empty")
+        return value
 
-class TripChecklistItemUpdate(TripChecklistItemBase): ...
+
+class TripChecklistItemUpdate(TripChecklistItemBase):
+    @field_validator("text", mode="before")
+    @classmethod
+    def reject_null(cls, value):
+        if value is None:
+            raise ValueError("must not be null")
+        return value
+
+    @field_validator("text")
+    @classmethod
+    def text_must_not_be_blank(cls, value):
+        if value is not None and not value.strip():
+            raise ValueError("text must not be empty")
+        return value
 
 
 class TripChecklistItemRead(TripChecklistItemBase):
