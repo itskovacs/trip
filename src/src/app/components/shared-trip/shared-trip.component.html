@@ -242,6 +242,22 @@
                 </div>
               </div>
 
+              @if (group.day.notes) {
+              <div class="pl-4 md:pr-4">
+                <div
+                  class="rounded-lg bg-gradient-to-br from-primary-50 to-primary-100/60 dark:from-primary-800/40 dark:to-primary-900/60 border border-primary-200/80 dark:border-primary-700/80 px-3.5 py-3 shadow-sm">
+                  <div class="flex items-center gap-1.5 mb-1.5">
+                    <i class="pi pi-align-left text-xs text-primary-500 dark:text-primary-400"></i>
+                    <span
+                      class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400">{{
+                      t('modals.day.day_notes') }}</span>
+                  </div>
+                  <div class="markdown-content text-sm text-primary-800 dark:text-primary-200 leading-relaxed"
+                    [innerHTML]="group.day.notes | markdown"></div>
+                </div>
+              </div>
+              }
+
               <div class="space-y-2 pl-4 md:pr-4">
                 @for (item of group.items; track item.id) {
                 <div

@@ -184,6 +184,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   isDaysPanelVisible = signal<boolean>(false);
   showOnlyUnplannedPlaces = signal<boolean>(false);
   showBookings = signal<boolean>(true);
+  showDayNotes = signal<boolean>(true);
   printOptions = signal<PrintOptions | null>(null);
   isArchivalReviewDisplayed = signal<boolean>(false);
   isArchiveWarningVisible = signal<boolean>(true);
@@ -661,12 +662,16 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     if (viewPrefs.selectedItemProps) this.selectedItemProps.set(viewPrefs.selectedItemProps);
     if (viewPrefs.isTextAndPlaceToggled != null) this.isTextAndPlaceToggled.set(viewPrefs.isTextAndPlaceToggled);
     if (viewPrefs.showBookings != null) this.showBookings.set(viewPrefs.showBookings);
+    if (viewPrefs.showDayNotes != null) this.showDayNotes.set(viewPrefs.showDayNotes);
 
     effect(() => {
       const selectedItemProps = this.selectedItemProps();
       const isTextAndPlaceToggled = this.isTextAndPlaceToggled();
       const showBookings = this.showBookings();
-      untracked(() => this.utilsService.saveTripViewPrefs({ selectedItemProps, isTextAndPlaceToggled, showBookings }));
+      const showDayNotes = this.showDayNotes();
+      untracked(() =>
+        this.utilsService.saveTripViewPrefs({ selectedItemProps, isTextAndPlaceToggled, showBookings, showDayNotes }),
+      );
     });
   }
 
@@ -1165,6 +1170,10 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   toggleBookingsVisibility() {
     this.showBookings.update((v) => !v);
+  }
+
+  toggleDayNotesVisibility() {
+    this.showDayNotes.update((v) => !v);
   }
 
   togglePlansPanel() {

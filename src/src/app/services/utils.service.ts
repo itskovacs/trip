@@ -14,6 +14,7 @@ export interface TripViewPrefs {
   selectedItemProps: string[];
   isTextAndPlaceToggled: boolean;
   showBookings: boolean;
+  showDayNotes: boolean;
 }
 
 @Injectable({
