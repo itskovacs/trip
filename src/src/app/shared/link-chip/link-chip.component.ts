@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, Input } from '@angular/core';
-import { LinkDisplay, parseLinkDisplay } from '../link-display';
+import { groupLinksByDomain, LinkGroup } from '../link-display';
 
 @Component({
   selector: 'app-link-chip',
@@ -10,9 +10,9 @@ import { LinkDisplay, parseLinkDisplay } from '../link-display';
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LinkChipComponent {
-  @Input({ required: true }) url!: string;
+  @Input({ required: true }) links!: string[];
 
-  get display(): LinkDisplay {
-    return parseLinkDisplay(this.url);
+  get groups(): LinkGroup[] {
+    return groupLinksByDomain(this.links);
   }
 }

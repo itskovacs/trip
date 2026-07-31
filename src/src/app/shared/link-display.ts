@@ -46,3 +46,24 @@ function truncate(text: string): string {
   if (text.length <= MAX_SEGMENT_LENGTH) return text;
   return `${text.slice(0, MAX_SEGMENT_LENGTH - 1).trimEnd()}…`;
 }
+
+export interface LinkGroup {
+  domain: string;
+  links: { url: string; display: LinkDisplay }[];
+}
+
+export function groupLinksByDomain(links: string[]): LinkGroup[] {
+  const domainOrder: string[] = [];
+  const byDomain = new Map<string, { url: string; display: LinkDisplay }[]>();
+
+  for (const url of links) {
+    const display = parseLinkDisplay(url);
+    if (!byDomain.has(display.domain)) {
+      byDomain.set(display.domain, []);
+      domainOrder.push(display.domain);
+    }
+    byDomain.get(display.domain)!.push({ url, display });
+  }
+
+  return domainOrder.map((domain) => ({ domain, links: byDomain.get(domain)! }));
+}

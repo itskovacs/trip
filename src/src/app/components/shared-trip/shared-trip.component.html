@@ -694,11 +694,7 @@
                   <span
                     class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1.5">{{
                     t('common.fields.links') }}</span>
-                  <div class="flex flex-wrap gap-1.5">
-                    @for (link of item.links; track link) {
-                    <app-link-chip [url]="link" />
-                    }
-                  </div>
+                  <app-link-chip [links]="item.links ?? []" />
                 </div>
                 }
 
@@ -883,11 +879,7 @@
           <div class="flex flex-col mt-4">
             <span class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400 mb-1.5">{{
               t('common.fields.links') }}</span>
-            <div class="flex flex-wrap gap-1.5">
-              @for (link of item.links; track link) {
-              <app-link-chip [url]="link" />
-              }
-            </div>
+            <app-link-chip [links]="item.links ?? []" />
           </div>
           }
 
