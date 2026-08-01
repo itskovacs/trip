@@ -1,6 +1,8 @@
 """JWT auth handler with token caching for TRIP API."""
+
 import os
 import time
+
 import httpx
 import jwt
 
@@ -14,6 +16,25 @@ _EXPIRY_MARGIN_SECONDS = 30
 
 def get_api_url():
     return os.environ.get("TRIP_API_URL", "http://localhost:8080")
+
+
+async def _auth_headers():
+    """Pick the auth header for this request.
+
+    TRIP_USERNAME/TRIP_PASSWORD take priority when both are set (existing JWT
+    login/refresh flow); TRIP_TOKEN is the fallback, sent as-is with no login
+    step since API tokens don't expire.
+    """
+    username = os.environ.get("TRIP_USERNAME", "")
+    password = os.environ.get("TRIP_PASSWORD", "")
+    if username and password:
+        return {"Authorization": f"Bearer {await get_token()}"}
+
+    api_token = os.environ.get("TRIP_TOKEN", "")
+    if api_token:
+        return {"X-Api-Token": api_token}
+
+    raise RuntimeError("TRIP_USERNAME/TRIP_PASSWORD or TRIP_TOKEN env vars required")
 
 
 def _compute_expiry(access_token):
@@ -105,9 +126,9 @@ def _handle_response(response):
 
 
 async def api_get(path):
-    token = await get_token()
+    headers = await _auth_headers()
     async with httpx.AsyncClient(base_url=get_api_url(), timeout=30) as client:
-        r = await client.get(path, headers={"Authorization": f"Bearer {token}"})
+        r = await client.get(path, headers=headers)
         if r.status_code == 404:
             return {}
         _handle_response(r)
@@ -115,24 +136,24 @@ async def api_get(path):
 
 
 async def api_post(path, data):
-    token = await get_token()
+    headers = await _auth_headers()
     async with httpx.AsyncClient(base_url=get_api_url(), timeout=30) as client:
-        r = await client.post(path, json=data, headers={"Authorization": f"Bearer {token}"})
+        r = await client.post(path, json=data, headers=headers)
         _handle_response(r)
         return r.json()
 
 
 async def api_put(path, data):
-    token = await get_token()
+    headers = await _auth_headers()
     async with httpx.AsyncClient(base_url=get_api_url(), timeout=30) as client:
-        r = await client.put(path, json=data, headers={"Authorization": f"Bearer {token}"})
+        r = await client.put(path, json=data, headers=headers)
         _handle_response(r)
         return r.json()
 
 
 async def api_delete(path):
-    token = await get_token()
+    headers = await _auth_headers()
     async with httpx.AsyncClient(base_url=get_api_url(), timeout=30) as client:
-        r = await client.delete(path, headers={"Authorization": f"Bearer {token}"})
+        r = await client.delete(path, headers=headers)
         _handle_response(r)
         return {"deleted": True}

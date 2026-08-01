@@ -1,0 +1,13 @@
+services:
+  trip-mcp-server:
+    build: .
+    container_name: trip-mcp-server
+    restart: unless-stopped
+    ports:
+      - "3001:3001"
+    network_mode: host
+    environment:
+      TRIP_API_URL: ${TRIP_API_URL:-http://127.0.0.1:8080}
+      TRIP_USERNAME: ${TRIP_USERNAME:-}
+      TRIP_PASSWORD: ${TRIP_PASSWORD:-}
+      TRIP_TOKEN: ${TRIP_TOKEN:-}
