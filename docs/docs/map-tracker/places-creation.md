@@ -14,7 +14,7 @@ Creating a place is done through the place creation modal.
 <img src="/trip/img/place_creation_modal.png" alt="Place creation modal" />
 <div style={{textAlign: 'center'}}><sup>Place creation modal</sup></div>
 
-A place contains the following informations:
+A place contains the following information:
 
 - `name`: the place's name
 - `latitude`: latitude coordinates ([supports multiple formats](places-creation#latitude-longitude-parser))
@@ -26,21 +26,17 @@ A place contains the following informations:
 - `price`: optional price
 - `description`: optional description (links will be auto-clickable)
 - `dog-friendly`: optional boolean indicating if dogs are allowed
-- `toilets`: optional boolean indicating if dogs are allowed
+- `toilets`: optional boolean indicating if restrooms are available
 - `visited`: status indicating if the place has been visited (controls default visibility)
 - `gpx`: optional GPX file to display trace on the map
 - `links`: optional links dedicated section
-
-:::tip
-You can script [places creation](/docs/trip-api/place-creation) and [import](places-import) various exports to automatically create them.
-:::
 
 ### Provider API Autocompletion
 
 The selected provider can be modified in your [settings](settings). If you use Google Maps, you must add your _Google API Key_ .
 
 :::tip
-You can use the shortcuts <kbd>Enter</kbd> to run the completion and <kbd>Ctrl</kbd>+<kbd>Enter</kbd> to confirm the modal (if there is no missing field). Works for every modals.
+You can use the shortcuts <kbd>Enter</kbd> to run the completion and <kbd>Ctrl</kbd>+<kbd>Enter</kbd> to confirm the modal (if there is no missing field). Works for every modal.
 :::
 
 After entering a name, you can autocomplete the other fields by clicking the button inside the input area. Google is the most complete provider, providing opening hours, image and more.

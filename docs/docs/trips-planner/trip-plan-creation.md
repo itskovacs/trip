@@ -19,11 +19,11 @@ A plan has the following fields:
 - `status`: optional label to tag the plan (_pending_, _booked_, _constraint_, _optional_)
 - `latitude`: latitude coordinates (support multiple formats, see [Place - Creation](../map-tracker/places-creation#latitude-longitude-parser))
 - `longitude`: longitude coordinates
-- `price`: optional price
+- `price`: optional price (and optionally who paid it if there are multiple members in the trip, see [Trip - Collaboration](trip-collaboration))
 - `attachments`: optional files linked to the plan, based on the trip [attachments](trip-attachments-lists#attachments)
 - `comment`: optional notes (links will be auto-clickable)
 - `gpx`: optional GPX file to display trace on the map
-- `image`: optional image for this plan
+- `images`: optional images for this plan
 - `links`: optional links dedicated section
 
 :::tip

@@ -1,5 +1,5 @@
 ---
-sidebar_position: 11
+sidebar_position: 12
 description: Collaborate on a trip with other members
 ---
 
@@ -15,7 +15,7 @@ If you're looking for read-only or anonymous sharing, see [Anonymous share](trip
 
 Invite multiple members to your trip for seamless collaboration. Everyone can contribute by adding new places, which become visible to the whole group but remain editable only by the person who created them.
 
-To invite someone, enter his username in the members modal to send them an invitation notification. Once accepted, members gain full access to interact with the trip (plans, places, attachments, lists, ...).
+To invite someone, enter their username in the members modal to send them an invitation notification. Once accepted, members gain full access to interact with the trip (plans, places, attachments, lists, ...).
 
 <img src="/trip/img/trip_members.png" alt="Trip - Members with balance" />
 <div style={{textAlign: 'center'}}><sup>Trip - Members with balance</sup></div>

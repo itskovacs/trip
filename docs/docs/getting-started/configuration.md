@@ -65,6 +65,22 @@ You might need to change your webserver maximum body size as well (e.g. _Nginx_:
 ATTACHMENT_MAX_SIZE=10485760 # 10 MB
 ```
 
+### Import max sizes
+
+Uploads are bounded to prevent excessive disk/memory usage during import. You can tune these limits:
+
+- `BACKUP_IMPORT_MAX_ENTRY_SIZE`: max size of a single file inside an uploaded backup archive (default _100 MB_)
+- `BACKUP_IMPORT_MAX_TOTAL_SIZE`: max total (declared) size of an uploaded backup archive (default _500 MB_)
+- `KML_MAX_ENTRY_SIZE`: max size of the KML file inside an uploaded KMZ archive (default _50 MB_)
+- `PROVIDER_IMPORT_MAX_SIZE`: max size of a provider import file (default _20 MB_)
+
+```yaml title="storage/config.env"
+BACKUP_IMPORT_MAX_ENTRY_SIZE=104857600 # 100 MB
+BACKUP_IMPORT_MAX_TOTAL_SIZE=524288000 # 500 MB
+KML_MAX_ENTRY_SIZE=52428800 # 50 MB
+PROVIDER_IMPORT_MAX_SIZE=20971520 # 20 MB
+```
+
 ### Files and folders
 
 Inside your `storage` directory, TRIP uses 4 folders: `attachments`, `backups`, `assets`, `frontend` and one file `trip.sqlite`. Their path can be changed if needed:
@@ -75,6 +91,12 @@ BACKUPS_FOLDER="storage/backups"
 ASSETS_FOLDER="storage/assets"
 FRONTEND_FOLDER="frontend"
 SQLITE_FILE="storage/trip.sqlite"
+```
+
+The URL path assets are served from can also be changed:
+
+```yaml title="storage/config.env"
+ASSETS_URL="/api/assets"
 ```
 
 ## Authentication
@@ -99,12 +121,28 @@ OIDC_REDIRECT_URI="https://trip.yourdomain.lan/auth"
 ```
 
 :::warning
+`OIDC_CLIENT_SECRET` cannot contain `#`, `$`, `\` or `"`. If your secret contains any of these characters, wrap the value in single quotes, e.g. `OIDC_CLIENT_SECRET='your_secret_here'`.
+:::
+
+:::warning
 If you have an error, please check the [Troubleshooting](#troubleshooting) section
 :::
 
 ### Disable registration
 
 The key `REGISTER_ENABLE` can be configured to `false` to disable registration.
+
+### Bootstrap an admin user
+
+If your instance has no admin yet, you can promote an existing user to admin on the next restart by setting `BOOTSTRAP_ADMIN_USERNAME` to their username.
+
+```yaml title="storage/config.env"
+BOOTSTRAP_ADMIN_USERNAME="your-username"
+```
+
+:::tip
+This only takes effect if the instance has no admin user yet, and the username must match an existing user.
+:::
 
 ## Troubleshooting
 
@@ -119,7 +157,7 @@ $ python3
 >>> httpx.get("https://sso.yourdomain.lan/")
 ```
 
-In case you're facing this issue, it's likely due to the fact that the container does not trust you custom certificate.
+In case you're facing this issue, it's likely due to the fact that the container does not trust your custom certificate.
 
 To fix this, I recommend you to build your own image with the certificate, based on the latest package.
 

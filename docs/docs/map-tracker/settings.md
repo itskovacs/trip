@@ -31,10 +31,10 @@ When toggling dark mode, if the map tile provider wasn't changed manually, it wi
 
 <img src="/trip/img/settings_account.png" alt="Account tab" style={{ width: '400px', float: 'right', marginLeft: '1rem', marginTop: '-2rem' }} />
 
-The **Account** section handle two topics: **Security** and **Integrations**.
+The **Account** section handles two topics: **Security** and **Integrations**.
 
 - Update your password, enable Two-Factor Authentication (TOTP) for enhanced security.
-- Select your default provider, set your Google API Key to access Google API features within the app, and generate your [TRIP API Key](/docs/trip-api/generating-api-key) to script some tasks.
+- Select your default provider, set your Google API Key to access Google API features within the app, and generate your [TRIP API Key](/docs/trip-api/generating-trip-api-key) for scripting.
 
 <br />
 
@@ -56,11 +56,11 @@ In **Preferences**, you can set your default map parameters, such as the initia
 - **Store Map Position**:
   Disabled by default, encode map position in the URL to restore the same view on refresh.
 
-- **Filter Default Categories**:  
-   By default, no categories are hidden. You can customize this to automatically hide certain categories and reduce map clutter.
+- **Dog-Friendly tag**:
+  By default, `dog-friendly` tags are showed. Disable to hide them.
 
-- **Dog-Friendly tag**:  
-   By default, `dog-friendly` tags are showed. Disable to hide them.
+- **Filter Default Categories**:
+  By default, no categories are hidden. You can customize this to automatically hide certain categories and reduce map clutter.
 
 ### Categories
 

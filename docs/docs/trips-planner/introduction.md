@@ -1,6 +1,6 @@
 ---
 sidebar_position: 1
-description: Introduction to Map
+description: Introduction to Trip Planner
 ---
 
 # Introduction

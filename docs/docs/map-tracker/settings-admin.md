@@ -13,7 +13,7 @@ Admin UI allows you to manage users, update the app configuration, make full bac
 First user registered will be set admin.
 :::
 
-The admin UI is accessible through the [Settings - About](settings#about)
+The admin UI is accessible through the [Settings - About](settings#about).
 
 ### Users
 

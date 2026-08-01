@@ -12,7 +12,7 @@ Your trip is a list of plans, ordered by day and time. Filter, group, and custom
 The plans have different levels of information (see [Trip - Plan creation](trip-plan-creation)).
 
 <img src="/trip/img/plan.png" alt="A plan" />
-<div style={{textAlign: 'center'}}><sup>A plan with a place, a status and an attachments</sup></div>
+<div style={{textAlign: 'center'}}><sup>A plan with a place, a status and an attachment</sup></div>
 
 The plans panel support various interactions; actions bar at the top, clicking a day or a plan.
 
@@ -21,6 +21,9 @@ The plans panel can be resized by sliding your mouse on its right edge
 :::
 
 ### Actions bar
+
+<img src="/trip/img/trip_action_bar.png" alt="Trip - Header" />
+<div style={{textAlign: 'center'}}><sup>Trip - Header</sup></div>
 
 - **Bulk** actions, to edit, duplicate or delete multiple plans
 - **Filter** plans and **select columns** to show (defaults pre-selected)
@@ -48,10 +51,10 @@ This helps you:
 
 ### Day click
 
-Click on a day to highlight a point-to-point route on the map and show its summary.
+Click on a day to show its summary.
 
 :::tip
-You can display point-to-point route, the summary or the computed itinerary individually through the day's three dots button.
+You can display a point-to-point route or point-to-point highlight on the map
 :::
 
 ### Plan click

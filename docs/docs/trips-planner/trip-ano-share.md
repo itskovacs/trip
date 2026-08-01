@@ -1,5 +1,5 @@
 ---
-sidebar_position: 12
+sidebar_position: 13
 description: Share your trip publicly via a unique read-only link
 ---
 

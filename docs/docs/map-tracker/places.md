@@ -36,3 +36,6 @@ Click on any place bubble to view its details. The action bar provides the follo
 :::important
 You can compute the route between two places by clicking on the first (departure) and right-clicking on any other (destination)
 :::
+
+<img src="/trip/img/places_route_places.png" alt="Route computed between places" />
+<div style={{textAlign: 'center'}}><sup>Route computed between places</sup></div>

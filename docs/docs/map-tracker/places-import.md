@@ -14,7 +14,7 @@ A Google API Key is required. See [Setup Google Maps API Key](../misc/gmaps-api.
 :::
 
 :::tip[JSON IMPORT]
-To import places from a JSON file, you must script the import. See [TRIP Api - place creation](/docs/trip-api/place-creation)
+To import places from a JSON file, you must script the import. See [TRIP Api - place creation](/docs/trip-api/trip-api-usage)
 :::
 
 When migrating to TRIP, several import options are available:
@@ -28,9 +28,7 @@ When migrating to TRIP, several import options are available:
 
 ## Google Takeout - Saved
 
-:::tip
-In Google Takeout, select the option options called _Saved_, reference [https://takeout.google.com/takeout/custom/saved](https://takeout.google.com/takeout/custom/saved).
-:::
+In Google Takeout, select the option called _Saved_, reference [https://takeout.google.com/takeout/custom/saved](https://takeout.google.com/takeout/custom/saved).
 
 Export your saved lists from Google as CSV files, then import them into TRIP to automatically add your places.
 
@@ -40,9 +38,7 @@ Most fields are mapped and inferred automatically, but some categories will need
 
 ## Google Takeout - MyMaps KMZ
 
-:::tip
-In Google Takeout, select the option options called _MyMaps_, reference [https://takeout.google.com/takeout/custom/mymaps](https://takeout.google.com/takeout/custom/mymaps).
-:::
+In Google Takeout, select the option called _MyMaps_, reference [https://takeout.google.com/takeout/custom/mymaps](https://takeout.google.com/takeout/custom/mymaps).
 
 Export your MyMaps maps into KMZ files, then import them into TRIP to automatically add your POIs.
 
@@ -53,8 +49,6 @@ Most fields are mapped and inferred automatically, but some categories will need
 ## Batch Creation
 
 To create multiple places, use the _batch creation_ feature, add content line by line.
-
-It supports plain text
 
 :::tip
 If your selected provider is Google API and _Google API Key_ is set, it supports Google Maps place link (*https://www.google.com/maps/place/XXX*) and Google Maps short link (*https://maps.app.goo.gl/XXX*).

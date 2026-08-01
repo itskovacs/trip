@@ -1,5 +1,5 @@
 ---
-sidebar_position: 9
+sidebar_position: 10
 description: Your trip can hold attachments, a checklist, a packing list
 ---
 
@@ -9,14 +9,14 @@ description: Your trip can hold attachments, a checklist, a packing list
 Your trip can hold attachments, a checklist, and a packing list that you can copy to other trips.
 :::
 
-Within a trip, you can access attachments, the checklist, and the packing list through the menu
+Within a trip, you can access attachments, the checklist, and the packing list through the menu.
 
 <img src="/trip/img/trip_lists_menu.png" alt="Trip - Menu" />
 <div style={{textAlign: 'center'}}><sup>Trip - Menu</sup></div>
 
 ### Attachments
 
-Your trip can hold attachments such as documents and receipts (_pdf_), keeping all trip-related files in one place: inside your trip.
+Your trip can hold attachments such as documents and receipts (_pdf_), keeping all trip-related files in one place: inside your trip. You can download all your attachments inside a _zip_ archive.
 
 <img src="/trip/img/trip_attachments.png" alt="Trip - Attachments" />
 <div style={{textAlign: 'center'}}><sup>Trip - Attachments</sup></div>

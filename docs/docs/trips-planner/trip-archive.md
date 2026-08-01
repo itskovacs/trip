@@ -1,5 +1,5 @@
 ---
-sidebar_position: 13
+sidebar_position: 14
 description: Archive a Trip once it's complete, leave feedback
 ---
 

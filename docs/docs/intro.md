@@ -4,9 +4,9 @@ sidebar_position: 1
 
 # Introduction
 
-TRIP is a self-hostable **minimalist [Map Tracker](/docs/map-tracker/introduction)** and [**Trip planner**](/docs/trips-planner/introduction) to visualize your points of interest (POI) and organize your next adventure details.
+TRIP is a self-hostable **minimalist [Map Tracker](/docs/map-tracker/introduction)** and [**Trip Planner**](/docs/trips-planner/introduction) to visualize your points of interest (POI) and organize your next adventure details.
 
-No telemetry. No tracking. No ads. Completely open-source.
+No telemetry. No tracking. No ads. Completely [open-source](https://github.com/itskovacs/trip).
 
 <div style={{display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '0.5rem'}}>
   <img src="/trip/img/sc_map.jpg" alt="Map Overview" />

@@ -6,7 +6,7 @@ description: Displaying the Places panel
 # Map - Panel
 
 :::note[TL;DR]
-Place panel your POI. You can restrict to in-bounds visibles places. Clicking opens details. Hovering highlights it on the map and reveals and edit button.
+Place panel listing your POI. You can restrict to in-bounds visible places. Clicking opens details. Hovering highlights it on the map and reveals an edit button.
 :::
 
 <img src="/trip/img/map_places_panel.png" alt="Places panel in the map" />
@@ -16,4 +16,4 @@ Place panel your POI. You can restrict to in-bounds visibles places. Clicking op
 The place panel can display either every places or only the places within your current map boundaries (zoom level and position).
 :::
 
-Hovering over a place highlights it on the map with a red circle and reveals an edit button for direct editing.
+Hovering a place in the panel highlights it on the map and reveals an edit button in the panel.
