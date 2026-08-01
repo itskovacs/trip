@@ -1476,6 +1476,49 @@
                           [placeholder]="t('common.fields.trips')" pSize="small" fluid [showButtons]="false" />
                       </div>
                     </div>
+
+                    <div
+                      class="flex flex-col gap-2 md:flex-row md:items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/30 border border-primary-100 dark:border-primary-700">
+                      <div class="flex items-center gap-3 min-w-0 flex-1">
+                        <i class="pi pi-database text-primary-600 dark:text-primary-400 shrink-0"></i>
+                        <div class="min-w-0">
+                          <span class="text-sm font-medium text-primary-900 dark:text-primary-100 block">{{
+                            t('settings.backup_import_limits') }}</span>
+                          <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">{{
+                            t('settings.backup_entry_size') }}
+                            &middot; {{ t('settings.backup_total_size') }}
+                          </p>
+                        </div>
+                      </div>
+                      <div class="w-full md:w-68 grid grid-cols-2 gap-2">
+                        <p-inputnumber formControlName="BACKUP_IMPORT_MAX_ENTRY_SIZE" [min]="1"
+                          [placeholder]="t('settings.backup_entry_size')" pSize="small" fluid [showButtons]="false" />
+                        <p-inputnumber formControlName="BACKUP_IMPORT_MAX_TOTAL_SIZE" [min]="1"
+                          [placeholder]="t('settings.backup_total_size')" pSize="small" fluid [showButtons]="false" />
+                      </div>
+                    </div>
+
+                    <div
+                      class="flex flex-col gap-2 md:flex-row md:items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/30 border border-primary-100 dark:border-primary-700">
+                      <div class="flex items-center gap-3 min-w-0 flex-1">
+                        <i class="pi pi-file-import text-primary-600 dark:text-primary-400 shrink-0"></i>
+                        <div class="min-w-0">
+                          <span class="text-sm font-medium text-primary-900 dark:text-primary-100 block">{{
+                            t('settings.import_limits') }}</span>
+                          <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">{{
+                            t('settings.kml_max_size') }}
+                            &middot; {{ t('settings.provider_import_size') }}
+                          </p>
+                        </div>
+                      </div>
+                      <div class="w-full md:w-68 grid grid-cols-2 gap-2">
+                        <p-inputnumber formControlName="KML_MAX_ENTRY_SIZE" [min]="1"
+                          [placeholder]="t('settings.kml_max_size')" pSize="small" fluid [showButtons]="false" />
+                        <p-inputnumber formControlName="PROVIDER_IMPORT_MAX_SIZE" [min]="1"
+                          [placeholder]="t('settings.provider_import_size')" pSize="small" fluid
+                          [showButtons]="false" />
+                      </div>
+                    </div>
                   </div>
                 </div>
 

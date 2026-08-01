@@ -20,12 +20,20 @@ import {
   TripItem,
   TripMember,
 } from '../types/trip';
-import { AdminUser, AppConfig, MagicLink } from '../types/admin';
+import { AdminUser, APP_CONFIG_MB_FIELDS, AppConfig, MagicLink } from '../types/admin';
 import { TranslocoService } from '@jsverse/transloco';
 
 const NO_AUTH_HEADER = {
   no_auth: '1',
 };
+
+function bytesToMb(config: AppConfig): AppConfig {
+  const converted = { ...config };
+  for (const field of APP_CONFIG_MB_FIELDS) {
+    (converted as any)[field] = (config[field] as number) / (1024 * 1024);
+  }
+  return converted;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -484,15 +492,13 @@ export class ApiService {
   }
 
   adminGetConfig(): Observable<AppConfig> {
-    return this.httpClient
-      .get<AppConfig>(this.apiBaseUrl + '/admin/config')
-      .pipe(map((config) => ({ ...config, ATTACHMENT_MAX_SIZE: config.ATTACHMENT_MAX_SIZE / (1024 * 1024) })));
+    return this.httpClient.get<AppConfig>(this.apiBaseUrl + '/admin/config').pipe(map((config) => bytesToMb(config)));
   }
 
   adminPutConfig(config: Partial<AppConfig>): Observable<AppConfig> {
     return this.httpClient
       .put<AppConfig>(this.apiBaseUrl + '/admin/config', { ...config })
-      .pipe(map((config) => ({ ...config, ATTACHMENT_MAX_SIZE: config.ATTACHMENT_MAX_SIZE / (1024 * 1024) })));
+      .pipe(map((config) => bytesToMb(config)));
   }
 
   adminGetBackups(): Observable<Backup[]> {

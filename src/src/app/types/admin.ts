@@ -12,6 +12,10 @@ export interface AppConfig {
   PLACE_IMAGE_SIZE: number;
   TRIP_IMAGE_SIZE: number;
   ATTACHMENT_MAX_SIZE: number;
+  BACKUP_IMPORT_MAX_ENTRY_SIZE: number;
+  BACKUP_IMPORT_MAX_TOTAL_SIZE: number;
+  KML_MAX_ENTRY_SIZE: number;
+  PROVIDER_IMPORT_MAX_SIZE: number;
   ACCESS_TOKEN_EXPIRE_MINUTES: number;
   REFRESH_TOKEN_EXPIRE_MINUTES: number;
   REGISTER_ENABLE: boolean;
@@ -24,6 +28,15 @@ export interface AppConfig {
   DEFAULT_MAP_LAT: number;
   DEFAULT_MAP_LNG: number;
 }
+
+// AppConfig fields stored as bytes on the backend but edited as MB in the admin UI.
+export const APP_CONFIG_MB_FIELDS: (keyof AppConfig)[] = [
+  'ATTACHMENT_MAX_SIZE',
+  'BACKUP_IMPORT_MAX_ENTRY_SIZE',
+  'BACKUP_IMPORT_MAX_TOTAL_SIZE',
+  'KML_MAX_ENTRY_SIZE',
+  'PROVIDER_IMPORT_MAX_SIZE',
+];
 
 export interface MagicLink {
   token: string;

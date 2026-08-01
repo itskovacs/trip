@@ -161,6 +161,10 @@ class ConfigRead(BaseModel):
     PLACE_IMAGE_SIZE: int
     TRIP_IMAGE_SIZE: int
     ATTACHMENT_MAX_SIZE: int
+    BACKUP_IMPORT_MAX_ENTRY_SIZE: int
+    BACKUP_IMPORT_MAX_TOTAL_SIZE: int
+    KML_MAX_ENTRY_SIZE: int
+    PROVIDER_IMPORT_MAX_SIZE: int
     ACCESS_TOKEN_EXPIRE_MINUTES: int
     REFRESH_TOKEN_EXPIRE_MINUTES: int
     REGISTER_ENABLE: bool
@@ -178,6 +182,10 @@ class ConfigUpdate(BaseModel):
     PLACE_IMAGE_SIZE: int | None = None
     TRIP_IMAGE_SIZE: int | None = None
     ATTACHMENT_MAX_SIZE: int | None = None
+    BACKUP_IMPORT_MAX_ENTRY_SIZE: int | None = None
+    BACKUP_IMPORT_MAX_TOTAL_SIZE: int | None = None
+    KML_MAX_ENTRY_SIZE: int | None = None
+    PROVIDER_IMPORT_MAX_SIZE: int | None = None
     ACCESS_TOKEN_EXPIRE_MINUTES: int | None = None
     REFRESH_TOKEN_EXPIRE_MINUTES: int | None = None
     REGISTER_ENABLE: bool | None = None
