@@ -165,7 +165,6 @@
       "success": "Succès",
       "unplanned": "Non planifié",
       "wait": "Cela peut prendre un moment. Veuillez patienter.",
-      "wip": "En cours - Bientôt disponible !",
       "with_status": "Avec le statut"
     }
   },
@@ -229,6 +228,11 @@
       "add_poi": "Ajouter un Point d'Intérêt",
       "delete": "Supprimer l'Élément",
       "edit": "Modifier l'Élément"
+    },
+    "link": {
+      "delete": "Supprimer le Lien",
+      "delete_desc": "Supprimer ce lien ?",
+      "edit": "Modifier le Lien"
     },
     "member": {
       "delete_desc": "Supprimer {{name}} du Voyage ?",

@@ -9,7 +9,8 @@
   @if (selectedPlace()) {
   <app-place-box [selectedPlace]="selectedPlace()" (deleteEmitter)="deletePlace()" (editEmitter)="editPlace()"
     (favoriteEmitter)="favoritePlace()" (gpxEmitter)="getPlaceGPX()" (visitEmitter)="visitPlace()"
-    (closeEmitter)="closePlaceBox()" (openNavigationEmitter)="toNavigation()" (flyToEmitter)="flyTo()"></app-place-box>
+    (closeEmitter)="closePlaceBox()" (openNavigationEmitter)="toNavigation()" (flyToEmitter)="flyTo()"
+    (linksUpdated)="onPlaceLinksUpdated($event)"></app-place-box>
   }
 
   @if (selectedPlaceGPX()) {

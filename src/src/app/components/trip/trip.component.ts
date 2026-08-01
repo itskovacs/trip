@@ -1613,37 +1613,46 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     modal.onClose.pipe(take(1)).subscribe((updated: TripItem | null) => {
       if (!updated) return;
 
-      this.apiService.putTripDayItem(updated, this.trip()!.id, item.day_id, item.id).subscribe((newItem) => {
-        this.trip.update((current) => {
-          if (!current) return null;
-
-          let days = [...current.days];
-
-          if (item.day_id !== newItem.day_id) {
-            days = days.map((d) =>
-              d.id === item.day_id ? { ...d, items: d.items.filter((i) => i.id !== item.id) } : d,
-            );
-          }
-
-          days = days.map((d) => {
-            if (d.id === newItem.day_id) {
-              const exists = d.items.some((i) => i.id === newItem.id);
-              const newItems = exists ? d.items.map((i) => (i.id === newItem.id ? newItem : i)) : [...d.items, newItem];
-              return { ...d, items: newItems };
-            }
-            return d;
-          });
-
-          return { ...current, days };
-        });
-        const normalizedItem = this.normalizeItem(newItem);
-        if (this.selectedItem()?.id === item.id) this.selectedItem.set(normalizedItem);
-        if (this.selectedPlace()?.id === item.place?.id || this.selectedPlace()?.id === newItem.place?.id) {
-          const currentPlace = this.selectedPlace();
-          if (currentPlace) this.selectedPlace.set({ ...currentPlace });
-        }
-      });
+      this.apiService
+        .putTripDayItem(updated, this.trip()!.id, item.day_id, item.id)
+        .subscribe((newItem) => this.applyUpdatedItem(item, newItem));
     });
+  }
+
+  onItemLinksChange(item: TripItem, links: string[]) {
+    const newLinks = links.length ? links : undefined;
+    this.apiService
+      .putTripDayItem({ links: newLinks }, this.trip()!.id, item.day_id, item.id)
+      .subscribe((newItem) => this.applyUpdatedItem(item, newItem));
+  }
+
+  private applyUpdatedItem(item: TripItem, newItem: TripItem) {
+    this.trip.update((current) => {
+      if (!current) return null;
+
+      let days = [...current.days];
+
+      if (item.day_id !== newItem.day_id) {
+        days = days.map((d) => (d.id === item.day_id ? { ...d, items: d.items.filter((i) => i.id !== item.id) } : d));
+      }
+
+      days = days.map((d) => {
+        if (d.id === newItem.day_id) {
+          const exists = d.items.some((i) => i.id === newItem.id);
+          const newItems = exists ? d.items.map((i) => (i.id === newItem.id ? newItem : i)) : [...d.items, newItem];
+          return { ...d, items: newItems };
+        }
+        return d;
+      });
+
+      return { ...current, days };
+    });
+    const normalizedItem = this.normalizeItem(newItem);
+    if (this.selectedItem()?.id === item.id) this.selectedItem.set(normalizedItem);
+    if (this.selectedPlace()?.id === item.place?.id || this.selectedPlace()?.id === newItem.place?.id) {
+      const currentPlace = this.selectedPlace();
+      if (currentPlace) this.selectedPlace.set({ ...currentPlace });
+    }
   }
 
   deleteItem(item: TripItem) {
@@ -2035,26 +2044,33 @@ export class TripComponent implements AfterViewInit, OnDestroy {
         this.apiService
           .putPlace(updatedPlace.id, updatedPlace)
           .pipe(take(1))
-          .subscribe({
-            next: (place: Place) => {
-              this.trip.update((t) => {
-                if (!t) return null;
-                const places = t.places.map((p) => (p.id === place.id ? place : p));
-                const days = t.days.map((d) => ({
-                  ...d,
-                  items: d.items.map((i) => (i.place?.id === place.id ? { ...i, place: place } : i)),
-                }));
-
-                return { ...t, places, days };
-              });
-              if (this.selectedPlace()?.id === place.id) this.selectedPlace.set(place);
-              const selItem = this.selectedItem();
-              if (selItem?.place?.id === place.id)
-                this.selectedItem.update((curr) => (curr ? { ...curr, place } : null));
-            },
-          });
+          .subscribe((place: Place) => this.applyUpdatedPlace(place));
       },
     });
+  }
+
+  onSelectedPlaceLinksUpdated(place: Place, links: string[]) {
+    const newLinks = links.length ? links : undefined;
+    this.apiService
+      .putPlace(place.id, { links: newLinks })
+      .pipe(take(1))
+      .subscribe((updated: Place) => this.applyUpdatedPlace(updated));
+  }
+
+  private applyUpdatedPlace(place: Place) {
+    this.trip.update((t) => {
+      if (!t) return null;
+      const places = t.places.map((p) => (p.id === place.id ? place : p));
+      const days = t.days.map((d) => ({
+        ...d,
+        items: d.items.map((i) => (i.place?.id === place.id ? { ...i, place: place } : i)),
+      }));
+
+      return { ...t, places, days };
+    });
+    if (this.selectedPlace()?.id === place.id) this.selectedPlace.set(place);
+    const selItem = this.selectedItem();
+    if (selItem?.place?.id === place.id) this.selectedItem.update((curr) => (curr ? { ...curr, place } : null));
   }
 
   manageTripPlaces() {

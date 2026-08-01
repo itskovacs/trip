@@ -115,7 +115,6 @@
       "success": "Sucesso",
       "unplanned": "Não planejado",
       "wait": "Isso pode levar um momento. Por favor espere.",
-      "wip": "Em desenvolvimento - Disponível em breve!",
       "with_status": "Com status"
     }
   },
@@ -281,6 +280,7 @@
     "attachments": "Anexos",
     "new_booking": "Nova reserva",
     "view_booking": "Ver reserva",
+    "day": "Dia",
     "days": "Dias",
     "days_selected": "{0} dias selecionados",
     "edit": "Editar",
@@ -447,6 +447,11 @@
       "add_poi": "Adicionar ponto de interesse",
       "delete": "Excluir item",
       "edit": "Editar item"
+    },
+    "link": {
+      "delete": "Excluir link",
+      "delete_desc": "Excluir este link?",
+      "edit": "Editar link"
     },
     "member": {
       "delete_desc": "Remover {{name}} da viagem?",

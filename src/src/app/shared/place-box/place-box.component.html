@@ -2,10 +2,10 @@
 <div animate.enter="slide-y-centered-x" animate.leave="a-slide-y-centered-x"
   class="place-box-dialog bg-white/70 backdrop-blur-xl dark:bg-black/70">
   <div class="place-box-dialog-content">
-    <app-place-box-content [selectedPlace]="selectedPlace" (deleteEmitter)="deletePlace()" (editEmitter)="editPlace()"
-      (favoriteEmitter)="favoritePlace()" (gpxEmitter)="displayGPX()" (visitEmitter)="visitPlace()"
-      (closeEmitter)="close()" (openNavigationEmitter)="openNavigationToPlace()"
-      (flyToEmitter)="flyToPlace()"></app-place-box-content>
+    <app-place-box-content [selectedPlace]="selectedPlace" [editableLinks]="true" (deleteEmitter)="deletePlace()"
+      (editEmitter)="editPlace()" (favoriteEmitter)="favoritePlace()" (gpxEmitter)="displayGPX()"
+      (visitEmitter)="visitPlace()" (closeEmitter)="close()" (openNavigationEmitter)="openNavigationToPlace()"
+      (flyToEmitter)="flyToPlace()" (linksUpdated)="updateLinks($event)"></app-place-box-content>
   </div>
 </div>
 }

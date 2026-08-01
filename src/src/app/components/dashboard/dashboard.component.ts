@@ -796,6 +796,21 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     this.places.update((places) => places.map((p) => (p.id === id ? { ...p, ...updates } : p)));
   }
 
+  onPlaceLinksUpdated(links: string[]) {
+    const selected = this.selectedPlace();
+    if (!selected) return;
+
+    const previousLinks = selected.links;
+    const newLinks = links.length ? links : undefined;
+    this.apiService
+      .putPlace(selected.id, { links: newLinks })
+      .pipe(take(1))
+      .subscribe({
+        next: () => this.updatePlaceInList(selected.id, { links: newLinks }),
+        error: () => this.updatePlaceInList(selected.id, { links: previousLinks }),
+      });
+  }
+
   deletePlace() {
     const selected = this.selectedPlace();
     if (!selected) return;

@@ -21,6 +21,7 @@ export class PlaceBoxComponent {
   @Output() closeEmitter = new EventEmitter<void>();
   @Output() openNavigationEmitter = new EventEmitter<void>();
   @Output() flyToEmitter = new EventEmitter<void>();
+  @Output() linksUpdated = new EventEmitter<string[]>();
 
   visitPlace() {
     this.visitEmitter.emit();
@@ -52,5 +53,9 @@ export class PlaceBoxComponent {
 
   close() {
     this.closeEmitter.emit();
+  }
+
+  updateLinks(links: string[]) {
+    this.linksUpdated.emit(links);
   }
 }

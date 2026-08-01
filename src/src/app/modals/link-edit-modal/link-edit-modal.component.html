@@ -1,0 +1,16 @@
+<ng-container *transloco="let t">
+  <div pFocusTrap class="grid items-center gap-4" [formGroup]="linkForm">
+    <p-floatlabel variant="in">
+      <input id="url" type="url" formControlName="url" (keydown.enter)="closeDialog()" pInputText fluid
+        [placeholder]="t('modals.place.link_placeholder')" />
+      <label for="url">{{ t('common.fields.url') }}</label>
+    </p-floatlabel>
+
+    <div class="flex justify-between items-center mt-4">
+      <p-button (click)="deleteLink()" [label]="t('common.actions.delete')" icon="pi pi-trash" text
+        severity="danger" />
+      <p-button (click)="closeDialog()" [label]="t('common.actions.save')"
+        [disabled]="!linkForm.dirty || !isValidUrl(linkForm.value.url)" />
+    </div>
+  </div>
+</ng-container>

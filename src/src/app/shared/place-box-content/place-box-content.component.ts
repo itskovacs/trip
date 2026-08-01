@@ -40,6 +40,7 @@ export class PlaceBoxContentComponent {
   @Input() selectedPlace: Place | null = null;
   @Input() showButtons: boolean = true;
   @Input() showMeta: boolean = true;
+  @Input() editableLinks: boolean = false;
   tooltipCopied = signal(false);
 
   @Output() editEmitter = new EventEmitter<void>();
@@ -50,6 +51,7 @@ export class PlaceBoxContentComponent {
   @Output() closeEmitter = new EventEmitter<void>();
   @Output() openNavigationEmitter = new EventEmitter<void>();
   @Output() flyToEmitter = new EventEmitter<void>();
+  @Output() linksUpdated = new EventEmitter<string[]>();
 
   menuItems: MenuItem[] = [];
   readonly currency$: Observable<string>;

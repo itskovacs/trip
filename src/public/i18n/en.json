@@ -165,7 +165,6 @@
       "success": "Success",
       "unplanned": "Unplanned",
       "wait": "This may take a moment. Please wait.",
-      "wip": "WIP - Coming soon!",
       "with_status": "With status"
     }
   },
@@ -229,6 +228,11 @@
       "add_poi": "Add Point of Interest",
       "delete": "Delete Item",
       "edit": "Edit Item"
+    },
+    "link": {
+      "delete": "Delete Link",
+      "delete_desc": "Delete this link?",
+      "edit": "Edit Link"
     },
     "member": {
       "delete_desc": "Delete {{name}} from Trip ?",

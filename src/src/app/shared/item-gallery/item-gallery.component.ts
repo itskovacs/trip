@@ -96,7 +96,6 @@ import { TripItemImage } from '../../types/trip';
           <button
             type="button"
             (click)="prev(); $event.stopPropagation()"
-            [attr.aria-label]="'common.actions.previous' | transloco"
             class="cursor-pointer absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 size-10 sm:size-12
                    flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition">
             <i class="pi pi-chevron-left"></i>
@@ -104,7 +103,6 @@ import { TripItemImage } from '../../types/trip';
           <button
             type="button"
             (click)="next(); $event.stopPropagation()"
-            [attr.aria-label]="'common.actions.next' | transloco"
             class="cursor-pointer absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 size-10 sm:size-12
                    flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 text-white transition">
             <i class="pi pi-chevron-right"></i>
@@ -114,7 +112,6 @@ import { TripItemImage } from '../../types/trip';
         <button
           type="button"
           (click)="close(); $event.stopPropagation()"
-          [attr.aria-label]="'common.actions.close' | transloco"
           class="cursor-pointer absolute top-4 right-4 size-10 flex items-center justify-center
                  rounded-full bg-white/10 hover:bg-white/20 text-white transition">
           <i class="pi pi-times"></i>

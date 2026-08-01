@@ -49,21 +49,30 @@ function truncate(text: string): string {
 
 export interface LinkGroup {
   domain: string;
-  links: { url: string; display: LinkDisplay }[];
+  links: { url: string; display: LinkDisplay; index: number }[];
 }
 
 export function groupLinksByDomain(links: string[]): LinkGroup[] {
   const domainOrder: string[] = [];
-  const byDomain = new Map<string, { url: string; display: LinkDisplay }[]>();
+  const byDomain = new Map<string, { url: string; display: LinkDisplay; index: number }[]>();
 
-  for (const url of links) {
+  links.forEach((url, index) => {
     const display = parseLinkDisplay(url);
     if (!byDomain.has(display.domain)) {
       byDomain.set(display.domain, []);
       domainOrder.push(display.domain);
     }
-    byDomain.get(display.domain)!.push({ url, display });
-  }
+    byDomain.get(display.domain)!.push({ url, display, index });
+  });
 
   return domainOrder.map((domain) => ({ domain, links: byDomain.get(domain)! }));
+}
+
+export function isValidUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
 }

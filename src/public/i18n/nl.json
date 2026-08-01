@@ -115,7 +115,6 @@
       "success": "Gelukt",
       "unplanned": "Niet gepland",
       "wait": "Dit kan even duren. Een ogenblik geduld.",
-      "wip": "WIP - Binnenkort beschikbaar!",
       "with_status": "Met status"
     }
   },
@@ -281,6 +280,7 @@
     "attachments": "Bijlagen",
     "new_booking": "Nieuwe boeking",
     "view_booking": "Boeking bekijken",
+    "day": "Dag",
     "days": "Dagen",
     "days_selected": "{0} dagen geselecteerd",
     "edit": "Bewerken",
@@ -447,6 +447,11 @@
       "add_poi": "Interessepunt toevoegen",
       "delete": "Item verwijderen",
       "edit": "Item bewerken"
+    },
+    "link": {
+      "delete": "Link verwijderen",
+      "delete_desc": "Deze link verwijderen?",
+      "edit": "Link bewerken"
     },
     "member": {
       "delete_desc": "{{name}} uit Trip verwijderen?",
