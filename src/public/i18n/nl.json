@@ -71,6 +71,7 @@
       "date_range": "Datumbereik",
       "day": "Dag",
       "days": "Dagen",
+      "default": "Standaard",
       "description": "Beschrijving",
       "distance": "Afstand",
       "gpx": "GPX",
@@ -414,6 +415,7 @@
     "ready_to_paste": "Klaar om te plakken"
   },
   "empty_states": {
+    "checklist_empty": "Je checklist is leeg",
     "every_place_used": "Elke locatie is in gebruik",
     "no_attachments": "Geen bijlagen",
     "no_days": "Geen dagen",
@@ -433,6 +435,11 @@
       "delete": "Bijlage verwijderen",
       "delete_desc": "Bijlage verwijderen? Dit kan niet ongedaan worden gemaakt.",
       "download_all": "Alles downloaden"
+    },
+    "checklist": {
+      "add": "Nieuwe Checklist",
+      "delete": "Checklist verwijderen",
+      "rename": "Checklist hernoemen"
     },
     "day": {
       "add": "Dag(en) toevoegen",
@@ -457,6 +464,11 @@
       "delete_desc": "{{name}} uit Trip verwijderen?",
       "invite": "Lid uitnodigen",
       "remove": "Lid verwijderen"
+    },
+    "packing_list": {
+      "add": "Nieuwe Paklijst",
+      "delete": "Paklijst verwijderen",
+      "rename": "Paklijst hernoemen"
     },
     "place": {
       "attached": "Gekoppelde locaties",

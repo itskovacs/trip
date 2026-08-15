@@ -71,6 +71,7 @@
       "date_range": "Intervalo de Data",
       "day": "Dia",
       "days": "Dias",
+      "default": "Padrão",
       "description": "Descrição",
       "distance": "Distância",
       "gpx": "GPX",
@@ -414,6 +415,7 @@
     "ready_to_paste": "Pronto para colar"
   },
   "empty_states": {
+    "checklist_empty": "Sua lista de verificação está vazia",
     "every_place_used": "Todos os locais estão em uso",
     "no_attachments": "Nenhum anexo",
     "no_days": "Nenhum dia",
@@ -433,6 +435,11 @@
       "delete": "Excluir anexo",
       "delete_desc": "Excluir anexo? Esta ação não pode ser desfeita.",
       "download_all": "Baixar tudo"
+    },
+    "checklist": {
+      "add": "Nova Checklist",
+      "delete": "Excluir Checklist",
+      "rename": "Renomear Checklist"
     },
     "day": {
       "add": "Adicionar dia(s)",
@@ -457,6 +464,11 @@
       "delete_desc": "Remover {{name}} da viagem?",
       "invite": "Convidar membro",
       "remove": "Remover membro"
+    },
+    "packing_list": {
+      "add": "Nova Lista de Bagagem",
+      "delete": "Excluir Lista de Bagagem",
+      "rename": "Renomear Lista de Bagagem"
     },
     "place": {
       "attached": "Locais vinculados",

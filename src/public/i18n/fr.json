@@ -121,6 +121,7 @@
       "date_range": "Période",
       "day": "Jour",
       "days": "Jours",
+      "default": "Par défaut",
       "description": "Description",
       "distance": "Distance",
       "gpx": "GPX",
@@ -195,6 +196,7 @@
     "mins": "{{count}} mins"
   },
   "empty_states": {
+    "checklist_empty": "Votre liste est vide",
     "every_place_used": "Toutes les places sont utilisées",
     "no_attachments": "Aucune pièce jointe",
     "no_days": "Aucun jour",
@@ -214,6 +216,11 @@
       "delete": "Supprimer la pièce jointe",
       "delete_desc": "Supprimer la pièce jointe ? Cette action est irréversible.",
       "download_all": "Tout télécharger"
+    },
+    "checklist": {
+      "add": "Nouvelle Checklist",
+      "delete": "Supprimer la Checklist",
+      "rename": "Renommer la Checklist"
     },
     "day": {
       "add": "Ajouter un(des) Jour(s)",
@@ -238,6 +245,11 @@
       "delete_desc": "Supprimer {{name}} du Voyage ?",
       "invite": "Inviter un Membre",
       "remove": "Retirer le Membre"
+    },
+    "packing_list": {
+      "add": "Nouvelle Liste de Bagages",
+      "delete": "Supprimer la Liste de Bagages",
+      "rename": "Renommer la Liste de Bagages"
     },
     "place": {
       "attached": "Places attachées",

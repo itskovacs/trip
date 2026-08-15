@@ -7,7 +7,9 @@ import { Info } from '../types/info';
 import { Backup, ImportResponse, Settings } from '../types/settings';
 import {
   ChecklistItem,
+  ChecklistList,
   PackingItem,
+  PackingList,
   SharedTripDetails,
   Trip,
   TripAttachment,
@@ -286,6 +288,90 @@ export class ApiService {
 
   deleteChecklistItem(tripId: number, id: number): Observable<null> {
     return this.httpClient.delete<null>(`${this.apiBaseUrl}/trips/${tripId}/checklist/${id}`);
+  }
+
+  getPackingLists(tripId: number): Observable<PackingList[]> {
+    return this.httpClient.get<PackingList[]>(`${this.apiBaseUrl}/trips/${tripId}/packing-lists`);
+  }
+
+  getSharedTripPackingLists(token: string): Observable<PackingList[]> {
+    return this.httpClient.get<PackingList[]>(`${this.apiBaseUrl}/trips/shared/${token}/packing-lists`);
+  }
+
+  postPackingList(tripId: number, name: string): Observable<PackingList> {
+    return this.httpClient.post<PackingList>(`${this.apiBaseUrl}/trips/${tripId}/packing-lists`, { name });
+  }
+
+  putPackingList(tripId: number, listId: number, name: string): Observable<PackingList> {
+    return this.httpClient.put<PackingList>(`${this.apiBaseUrl}/trips/${tripId}/packing-lists/${listId}`, {
+      name,
+    });
+  }
+
+  deletePackingList(tripId: number, listId: number): Observable<null> {
+    return this.httpClient.delete<null>(`${this.apiBaseUrl}/trips/${tripId}/packing-lists/${listId}`);
+  }
+
+  postPackingListItem(tripId: number, listId: number, item: PackingItem): Observable<PackingItem> {
+    return this.httpClient.post<PackingItem>(`${this.apiBaseUrl}/trips/${tripId}/packing-lists/${listId}/items`, item);
+  }
+
+  putPackingListItem(
+    tripId: number,
+    listId: number,
+    itemId: number,
+    item: Partial<PackingItem>,
+  ): Observable<PackingItem> {
+    return this.httpClient.put<PackingItem>(
+      `${this.apiBaseUrl}/trips/${tripId}/packing-lists/${listId}/items/${itemId}`,
+      item,
+    );
+  }
+
+  deletePackingListItem(tripId: number, listId: number, itemId: number): Observable<null> {
+    return this.httpClient.delete<null>(`${this.apiBaseUrl}/trips/${tripId}/packing-lists/${listId}/items/${itemId}`);
+  }
+
+  getChecklists(tripId: number): Observable<ChecklistList[]> {
+    return this.httpClient.get<ChecklistList[]>(`${this.apiBaseUrl}/trips/${tripId}/checklists`);
+  }
+
+  getSharedTripChecklists(token: string): Observable<ChecklistList[]> {
+    return this.httpClient.get<ChecklistList[]>(`${this.apiBaseUrl}/trips/shared/${token}/checklists`);
+  }
+
+  postChecklist(tripId: number, name: string): Observable<ChecklistList> {
+    return this.httpClient.post<ChecklistList>(`${this.apiBaseUrl}/trips/${tripId}/checklists`, { name });
+  }
+
+  putChecklist(tripId: number, listId: number, name: string): Observable<ChecklistList> {
+    return this.httpClient.put<ChecklistList>(`${this.apiBaseUrl}/trips/${tripId}/checklists/${listId}`, {
+      name,
+    });
+  }
+
+  deleteChecklist(tripId: number, listId: number): Observable<null> {
+    return this.httpClient.delete<null>(`${this.apiBaseUrl}/trips/${tripId}/checklists/${listId}`);
+  }
+
+  postChecklistListItem(tripId: number, listId: number, item: ChecklistItem): Observable<ChecklistItem> {
+    return this.httpClient.post<ChecklistItem>(`${this.apiBaseUrl}/trips/${tripId}/checklists/${listId}/items`, item);
+  }
+
+  putChecklistListItem(
+    tripId: number,
+    listId: number,
+    itemId: number,
+    item: Partial<ChecklistItem>,
+  ): Observable<ChecklistItem> {
+    return this.httpClient.put<ChecklistItem>(
+      `${this.apiBaseUrl}/trips/${tripId}/checklists/${listId}/items/${itemId}`,
+      item,
+    );
+  }
+
+  deleteChecklistListItem(tripId: number, listId: number, itemId: number): Observable<null> {
+    return this.httpClient.delete<null>(`${this.apiBaseUrl}/trips/${tripId}/checklists/${listId}/items/${itemId}`);
   }
 
   getHasTripsInvitations(): Observable<boolean> {

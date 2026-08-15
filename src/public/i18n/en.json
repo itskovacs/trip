@@ -121,6 +121,7 @@
       "date_range": "Date Range",
       "day": "Day",
       "days": "Days",
+      "default": "Default",
       "description": "Description",
       "distance": "Distance",
       "gpx": "GPX",
@@ -195,6 +196,7 @@
     "mins": "{{count}} mins"
   },
   "empty_states": {
+    "checklist_empty": "Your checklist is empty",
     "every_place_used": "Every place is used",
     "no_attachments": "No attachments",
     "no_days": "No days",
@@ -214,6 +216,11 @@
       "delete": "Delete Attachment",
       "delete_desc": "Delete attachment? This cannot be undone.",
       "download_all": "Download all"
+    },
+    "checklist": {
+      "add": "New Checklist",
+      "delete": "Delete Checklist",
+      "rename": "Rename Checklist"
     },
     "day": {
       "add": "Add Day(s)",
@@ -238,6 +245,11 @@
       "delete_desc": "Delete {{name}} from Trip ?",
       "invite": "Invite Member",
       "remove": "Remove Member"
+    },
+    "packing_list": {
+      "add": "New Packing List",
+      "delete": "Delete Packing List",
+      "rename": "Rename Packing List"
     },
     "place": {
       "attached": "Attached Places",

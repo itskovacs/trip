@@ -1079,65 +1079,120 @@
   <p-dialog [header]="t('common.fields.checklist')" [draggable]="false" [dismissableMask]="true" [modal]="true"
     [(visible)]="isChecklistDialogVisible" styleClass="w-[95%] md:w-[80%] max-w-5xl">
     <section class="p-4 max-w-full max-h-[80%] md:max-h-[600px]">
-      <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-2 mt-2 pb-4">
-        @for (item of dispChecklist(); track item.id) {
-        <div
-          class="relative flex items-center gap-3 rounded-md py-1 min-w-0 hover:bg-primary-100 dark:hover:bg-white/5">
-          <label [for]="item.id" [pTooltip]="item.text" [class.line-through]="item.checked"
-            class="flex items-center gap-2 w-full cursor-pointer">
-            <p-checkbox [binary]="true" [disabled]="true" [inputId]="item.id.toString()" [(ngModel)]="item.checked" />
-            <div class="truncate select-none">
-              <span>{{ item.text }}</span>
-            </div>
-          </label>
-        </div>
-        } @empty {
-        <div class="col-span-full flex flex-col items-center justify-center mt-4 text-center select-none">
-          <i style="font-size: 3rem" class="pi pi-inbox mb-2 text-primary-300 dark:text-primary-700"></i>
-          <p class="text-sm text-primary-500 dark:text-primary-400">{{ t('empty_states.nothing_there') }}</p>
-        </div>
-        }
-      </div>
+      <p-tabs [(value)]="activeChecklistTab" scrollable>
+        <p-tablist>
+          <p-tab value="default">{{ t('common.fields.default') }}</p-tab>
+          @for (list of checklists(); track list.id) {
+          <p-tab [value]="list.id">
+            <span class="truncate max-w-32">{{ list.name }}</span>
+          </p-tab>
+          }
+        </p-tablist>
 
-      <div class="mt-4 grid grid-cols-2">
-        <div class="font-semibold tracking-tight text-md">{{ t('common.status.with_status') }}</div>
-        <div class="flex justify-center md:justify-end gap-1">
-          @for (status of statuses; track status.label) {
-          @if (['pending', 'constraint'].includes(status.label)) {
-          <div class="relative">
-            <span [style.--color-bg-opacity]="status.color"
-              class="text-xs color-bg-opacity md:text-sm font-medium me-2 px-2.5 py-1 rounded">{{ status.label }}</span>
-          </div>
-          }
-          }
-        </div>
-      </div>
-      <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-2 mt-2 pb-4">
-        @for (item of watchlistItems(); track item.id) {
-        <div class="rounded-md py-1 min-w-0 hover:bg-primary-100 dark:hover:bg-white/5">
-          <label [for]="item.id" [pTooltip]="item.text" class="flex items-center gap-2 w-full">
-            <div class="relative">
-              @if (item.status) {
-              <div class="z-50 block absolute top-0 left-3 size-2.5 rounded-full"
-                [style.background]="item.status.color">
+        <p-tabpanels>
+          <p-tabpanel value="default">
+            @let progress = checklistProgress(dispChecklist());
+            @if (progress.total > 0) {
+            <div
+              class="flex items-center justify-end gap-2 text-xs font-medium text-primary-500 dark:text-primary-400 mt-4 mb-1">
+              <span class="tabular-nums">{{ progress.done }}/{{ progress.total }}</span>
+              <div class="w-16 h-1.5 rounded-full bg-primary-100 dark:bg-primary-900 overflow-hidden">
+                <div class="h-full rounded-full bg-primary-500 transition-all duration-300"
+                  [style.width.%]="progress.pct"></div>
               </div>
-              }
-              <p-checkbox disabled />
             </div>
-            <div class="truncate select-none">
-              <span>{{ item.text }}</span>
+            }
+
+            <ng-container
+              *ngTemplateOutlet="checklistRows; context: $any({ $implicit: dispChecklist(), listId: null })" />
+
+            <div class="mt-6 pt-4 border-t border-primary-100 dark:border-primary-900">
+              <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <h4 class="text-xs font-medium tracking-wide text-primary-400 dark:text-primary-500">
+                  {{ t('common.status.with_status') }}
+                </h4>
+                <div class="flex items-center gap-1">
+                  @for (status of statuses; track status.label) {
+                  @if (['pending', 'constraint'].includes(status.label)) {
+                  <span [style.--color-bg-opacity]="status.color"
+                    class="text-xs color-bg-opacity font-medium px-2.5 py-1 rounded">{{ status.label }}</span>
+                  }
+                  }
+                </div>
+              </div>
+              <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-2">
+                @for (item of watchlistItems(); track item.id) {
+                <div class="rounded-lg py-1 px-2 min-w-0 hover:bg-primary-50 dark:hover:bg-white/5 transition-colors">
+                  <label [for]="item.id" [pTooltip]="item.text" class="flex items-center gap-2 w-full">
+                    <div class="relative">
+                      @if (item.status) {
+                      <div class="z-50 block absolute top-0 left-3 size-2.5 rounded-full"
+                        [style.background]="item.status.color">
+                      </div>
+                      }
+                      <p-checkbox disabled />
+                    </div>
+                    <div class="truncate select-none">
+                      <span>{{ item.text }}</span>
+                    </div>
+                  </label>
+                </div>
+                } @empty {
+                <div class="col-span-full flex flex-col items-center justify-center py-6 text-center select-none">
+                  <i class="pi pi-check-circle text-2xl mb-2 text-primary-300 dark:text-primary-700"></i>
+                  <p class="text-sm text-primary-500 dark:text-primary-400">{{ t('empty_states.nothing_there') }}</p>
+                </div>
+                }
+              </div>
             </div>
-          </label>
-        </div>
-        } @empty {
-        <div class="col-span-full flex flex-col items-center justify-center mt-4 text-center select-none">
-          <i style="font-size: 3rem" class="pi pi-inbox mb-2 text-primary-300 dark:text-primary-700"></i>
-          <p class="text-sm text-primary-500 dark:text-primary-400">{{ t('empty_states.nothing_there') }}</p>
-        </div>
-        }
-      </div>
+          </p-tabpanel>
+
+          @for (list of checklists(); track list.id) {
+          <p-tabpanel [value]="list.id">
+            @let listProgress = checklistProgress(dispChecklistFor(list.items));
+            @if (listProgress.total > 0) {
+            <div
+              class="flex items-center justify-end gap-2 text-xs font-medium text-primary-500 dark:text-primary-400 mt-4 mb-1">
+              <span class="tabular-nums">{{ listProgress.done }}/{{ listProgress.total }}</span>
+              <div class="w-16 h-1.5 rounded-full bg-primary-100 dark:bg-primary-900 overflow-hidden">
+                <div class="h-full rounded-full bg-primary-500 transition-all duration-300"
+                  [style.width.%]="listProgress.pct"></div>
+              </div>
+            </div>
+            }
+
+            <ng-container
+              *ngTemplateOutlet="checklistRows; context: $any({ $implicit: dispChecklistFor(list.items), listId: list.id })" />
+          </p-tabpanel>
+          }
+        </p-tabpanels>
+      </p-tabs>
     </section>
   </p-dialog>
+
+  <ng-template #checklistRows let-items let-listId="listId">
+    <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-2 mt-2 pb-4">
+      @for (item of items; track item.id) {
+      <div
+        class="flex items-center gap-3 rounded-lg p-2 min-w-0 border border-transparent transition-colors hover:bg-primary-50 hover:border-primary-100 dark:hover:bg-white/5 dark:hover:border-primary-800">
+        <label [for]="'chk-' + ($any(listId) ?? 'd') + '-' + item.id" [pTooltip]="item.text"
+          class="flex items-center gap-3 w-full cursor-pointer min-w-0">
+          <p-checkbox [binary]="true" [disabled]="true" [inputId]="'chk-' + ($any(listId) ?? 'd') + '-' + item.id"
+            [(ngModel)]="item.checked" />
+          <div class="truncate select-none flex items-center gap-1 min-w-0" [class.line-through]="item.checked"
+            [class.text-primary-400]="item.checked">
+            <span class="truncate">{{ item.text }}</span>
+          </div>
+        </label>
+      </div>
+      } @empty {
+      <div class="col-span-full flex flex-col items-center justify-center py-10 text-center select-none">
+        <i style="font-size: 3rem" class="pi pi-list-check mb-2 text-primary-300 dark:text-primary-700"></i>
+        <p class="text-sm text-primary-500 dark:text-primary-400">{{ t('empty_states.checklist_empty') }}</p>
+      </div>
+      }
+    </div>
+  </ng-template>
   <p-dialog [header]="t('common.fields.attachments')" [draggable]="false" [dismissableMask]="true" [modal]="true"
     [(visible)]="isAttachmentsDialogVisible" styleClass="w-[95%] md:w-[70%] lg:w-[50%]">
     <section class="md:max-w-3/4 md:mx-auto max-h-[80%] md:max-h-[600px]">
@@ -1181,52 +1236,81 @@
   <p-menu #menuTripPacking [model]="menuTripPackingItems" attachTo="body" [popup]="true" />
   <p-dialog [header]="t('common.fields.packing_list')" [draggable]="false" [dismissableMask]="true" [modal]="true"
     [(visible)]="isPackingDialogVisible" styleClass="w-[95%] md:w-[80%] max-w-5xl">
-    <section class="p-4 max-h-[80vh] overflow-hidden flex flex-col">
-      <div class="flex flex-wrap items-center justify-center gap-3 mb-6">
-        <p-button (click)="menuTripPacking.toggle($event)" icon="pi pi-ellipsis-h" text />
-      </div>
+    <section class="p-4 max-h-[80vh]">
+      <p-tabs [(value)]="activePackingTab" scrollable>
+        <p-tablist>
+          <p-tab value="default">{{ t('common.fields.default') }}</p-tab>
+          @for (list of packingLists(); track list.id) {
+          <p-tab [value]="list.id">
+            <span class="truncate max-w-32">{{ list.name }}</span>
+          </p-tab>
+          }
+        </p-tablist>
 
-      <div class="overflow-y-auto px-2 pb-4">
-        @for (category of dispPackingList() | keyvalue; track category) {
-        <div class="mb-6 break-inside-avoid">
-          <h3
-            class="text-sm font-bold text-primary-500 dark:text-primary-400 uppercase tracking-wider mb-3 px-1 sticky top-0 bg-white dark:bg-primary-900 z-10 py-2">
-            {{ category.key }}
-          </h3>
-
-          <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-3">
-            @for (item of category.value; track item.id) {
-            <div
-              class="relative flex items-center gap-3 p-2 rounded-lg transition-colors hover:bg-primary-50 dark:hover:bg-white/5 border border-transparent hover:border-primary-100 dark:hover:border-primary-800">
-              <label [for]="'pack-' + item.id" class="flex flex-1 items-center gap-3 cursor-pointer min-w-0">
-                <p-checkbox [binary]="true" [inputId]="'pack-' + item.id" [(ngModel)]="item.packed" [disabled]="true" />
-
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-baseline gap-2">
-                    @if (item.qt && item.qt > 1) {
-                    <span class="text-xs font-bold bg-primary-100 text-primary-700 px-1.5 rounded">{{ item.qt }}x</span>
-                    }
-                    <span class="truncate select-none" [class.line-through]="item.packed"
-                      [class.text-primary-400]="item.packed">
-                      {{ item.text }}
-                    </span>
-                  </div>
-                </div>
-              </label>
+        <p-tabpanels>
+          <p-tabpanel value="default">
+            <div class="flex flex-wrap items-center justify-center gap-3 mb-6 mt-4">
+              <p-button (click)="menuTripPacking.toggle($event)" icon="pi pi-ellipsis-h" text />
             </div>
-            }
-          </div>
-        </div>
-        } @empty {
-        <div class="flex flex-col items-center justify-center py-12 text-center opacity-60">
-          <i class="pi pi-briefcase text-4xl mb-3 text-primary-300"></i>
-          <p class="text-sm font-medium">{{ t('empty_states.packing_list_empty') }}</p>
-          <p class="text-xs text-primary-500 mt-1">{{ t('empty_states.start_adding') }}</p>
-        </div>
-        }
-      </div>
+
+            <ng-container
+              *ngTemplateOutlet="packingRows; context: $any({ $implicit: dispPackingList(), listId: null })" />
+          </p-tabpanel>
+
+          @for (list of packingLists(); track list.id) {
+          <p-tabpanel [value]="list.id">
+            <ng-container
+              *ngTemplateOutlet="packingRows; context: $any({ $implicit: dispPackingListFor(list.items), listId: list.id })" />
+          </p-tabpanel>
+          }
+        </p-tabpanels>
+      </p-tabs>
     </section>
   </p-dialog>
+
+  <ng-template #packingRows let-groupedItems let-listId="listId">
+    <div class="overflow-y-auto px-2 pb-4">
+      @for (category of groupedItems | keyvalue; track category.key) {
+      <div class="mb-6 break-inside-avoid">
+        <h3
+          class="text-sm font-bold text-primary-500 dark:text-primary-400 uppercase tracking-wider mb-3 px-1 sticky top-0 bg-white dark:bg-primary-900 z-10 py-2">
+          {{ category.key }}
+        </h3>
+
+        <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-3">
+          @for (item of category.value; track item.id) {
+          <div
+            class="relative flex items-center gap-3 p-2 rounded-lg transition-colors hover:bg-primary-50 dark:hover:bg-white/5 border border-transparent hover:border-primary-100 dark:hover:border-primary-800">
+            <label [for]="'pack-' + ($any(listId) ?? 'd') + '-' + item.id"
+              class="flex flex-1 items-center gap-3 cursor-pointer min-w-0">
+              <p-checkbox [binary]="true" [inputId]="'pack-' + ($any(listId) ?? 'd') + '-' + item.id"
+                [(ngModel)]="item.packed" [disabled]="true" />
+
+              <div class="flex-1 min-w-0">
+                <div class="flex items-baseline gap-2">
+                  @if (item.qt && item.qt > 1) {
+                  <span class="text-xs font-bold bg-primary-100 text-primary-700 px-1.5 rounded">{{ item.qt }}x</span>
+                  }
+                  <span class="truncate select-none" [class.line-through]="item.packed"
+                    [class.text-primary-400]="item.packed">
+                    {{ item.text }}
+                  </span>
+                </div>
+              </div>
+            </label>
+          </div>
+          }
+        </div>
+      </div>
+      } @empty {
+      <div class="flex flex-col items-center justify-center py-12 text-center opacity-60">
+        <i class="pi pi-briefcase text-4xl mb-3 text-primary-300"></i>
+        <p class="text-sm font-medium">{{ t('empty_states.packing_list_empty') }}</p>
+        <p class="text-xs text-primary-500 mt-1">{{ t('empty_states.start_adding') }}</p>
+      </div>
+      }
+    </div>
+  </ng-template>
 
   @if (printOptions()) {
   @let options = printOptions();

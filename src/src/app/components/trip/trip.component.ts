@@ -27,7 +27,9 @@ import {
   TripItem,
   TripStatus,
   PackingItem,
+  PackingList,
   ChecklistItem,
+  ChecklistList,
   TripMember,
   TripAttachment,
   PrintOptions,
@@ -70,6 +72,7 @@ import { MultiSelectModule } from 'primeng/multiselect';
 import { CheckboxChangeEvent, CheckboxModule } from 'primeng/checkbox';
 import { TripCreatePackingModalComponent } from '../../modals/trip-create-packing-modal/trip-create-packing-modal.component';
 import { TripCreateChecklistModalComponent } from '../../modals/trip-create-checklist-modal/trip-create-checklist-modal.component';
+import { TripListNameModalComponent } from '../../modals/trip-list-name-modal/trip-list-name-modal.component';
 import { TripInviteMemberModalComponent } from '../../modals/trip-invite-member-modal/trip-invite-member-modal.component';
 import { TripNotesModalComponent } from '../../modals/trip-notes-modal/trip-notes-modal.component';
 import { TripArchiveModalComponent } from '../../modals/trip-archive-modal/trip-archive-modal.component';
@@ -172,6 +175,10 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   tripMembers = signal<TripMember[]>([]);
   packingList = signal<PackingItem[]>([]);
   checklistItems = signal<ChecklistItem[]>([]);
+  packingLists = signal<PackingList[]>([]);
+  checklists = signal<ChecklistList[]>([]);
+  activePackingTab = signal<number | 'default'>('default');
+  activeChecklistTab = signal<number | 'default'>('default');
 
   searchQuery = signal<string>('');
   isPlansPanelCollapsed = signal<boolean>(false);
@@ -364,21 +371,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     const usedIds = this.usedPlaceIds();
     return allPlaces.filter((place) => !usedIds.has(place.id));
   });
-  dispPackingList = computed(() => {
-    const list = this.packingList();
-    const sorted = [...list].sort((a, b) =>
-      a.packed !== b.packed ? (a.packed ? 1 : -1) : a.text.localeCompare(b.text),
-    );
-
-    return sorted.reduce<Record<string, PackingItem[]>>((acc, item) => {
-      (acc[item.category] ??= []).push(item);
-      return acc;
-    }, {});
-  });
-  dispChecklist = computed(() => {
-    const items = this.checklistItems();
-    return [...items].sort((a, b) => (a.checked !== b.checked ? (a.checked ? 1 : -1) : b.id - a.id));
-  });
+  dispPackingList = computed(() => this.sortPackingItems(this.packingList()));
+  dispChecklist = computed(() => this.dispChecklistFor(this.checklistItems()));
   watchlistItems = computed(() => {
     return this.tripViewModel()
       .flatMap((day) => day.items)
@@ -2162,14 +2156,126 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   }
 
   openPackingList() {
-    this.apiService.getPackingList(this.trip()!.id).subscribe((items) => {
-      this.packingList.set(items);
-      this.isPackingDialogVisible = !this.isPackingDialogVisible;
-      this.computeMenuTripPackingItems();
+    const tripId = this.trip()!.id;
+    forkJoin([this.apiService.getPackingList(tripId), this.apiService.getPackingLists(tripId)]).subscribe(
+      ([items, lists]) => {
+        this.packingList.set(items);
+        this.packingLists.set(lists);
+        this.activePackingTab.set('default');
+        this.isPackingDialogVisible = !this.isPackingDialogVisible;
+        this.computeMenuTripPackingItems();
+      },
+    );
+  }
+
+  private sortPackingItems(items: PackingItem[]): Record<string, PackingItem[]> {
+    const sorted = [...items].sort((a, b) =>
+      a.packed !== b.packed ? (a.packed ? 1 : -1) : a.text.localeCompare(b.text),
+    );
+    return sorted.reduce<Record<string, PackingItem[]>>((acc, item) => {
+      (acc[item.category] ??= []).push(item);
+      return acc;
+    }, {});
+  }
+
+  dispPackingListFor(items: PackingItem[]): Record<string, PackingItem[]> {
+    return this.sortPackingItems(items);
+  }
+
+  private updatePackingItems(listId: number | null, updater: (items: PackingItem[]) => PackingItem[]) {
+    if (listId == null) this.packingList.update(updater);
+    else
+      this.packingLists.update((lists) => lists.map((l) => (l.id === listId ? { ...l, items: updater(l.items) } : l)));
+  }
+
+  private updateChecklistItems(listId: number | null, updater: (items: ChecklistItem[]) => ChecklistItem[]) {
+    if (listId == null) this.checklistItems.update(updater);
+    else this.checklists.update((lists) => lists.map((l) => (l.id === listId ? { ...l, items: updater(l.items) } : l)));
+  }
+
+  addPackingList() {
+    const modal: DynamicDialogRef = this.dialogService.open(TripListNameModalComponent, {
+      header: this.translocoService.translate('entities.packing_list.add'),
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      draggable: false,
+      resizable: false,
+      breakpoints: { '640px': '90vw' },
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (name: string | null) => {
+        if (!name) return;
+        this.apiService
+          .postPackingList(this.trip()!.id, name)
+          .pipe(take(1))
+          .subscribe({
+            next: (list) => {
+              this.packingLists.update((l) => [...l, list]);
+              this.activePackingTab.set(list.id);
+            },
+          });
+      },
     });
   }
 
-  computeMenuTripPackingItems() {
+  renamePackingList(list: PackingList) {
+    const modal: DynamicDialogRef = this.dialogService.open(TripListNameModalComponent, {
+      header: this.translocoService.translate('entities.packing_list.rename'),
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      draggable: false,
+      resizable: false,
+      breakpoints: { '640px': '90vw' },
+      data: { name: list.name },
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (name: string | null) => {
+        if (!name) return;
+        this.apiService
+          .putPackingList(this.trip()!.id, list.id, name)
+          .pipe(take(1))
+          .subscribe({
+            next: (updated) => this.packingLists.update((l) => l.map((pl) => (pl.id === list.id ? updated : pl))),
+          });
+      },
+    });
+  }
+
+  deletePackingList(list: PackingList) {
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: this.translocoService.translate('entities.packing_list.delete'),
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      draggable: false,
+      resizable: false,
+      breakpoints: { '640px': '90vw' },
+      data: this.translocoService.translate('messages.delete_count', { count: list.name }),
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (bool) => {
+        if (!bool) return;
+        this.apiService
+          .deletePackingList(this.trip()!.id, list.id)
+          .pipe(take(1))
+          .subscribe({
+            next: () => {
+              this.packingLists.update((l) => l.filter((pl) => pl.id !== list.id));
+              if (this.activePackingTab() === list.id) this.activePackingTab.set('default');
+            },
+          });
+      },
+    });
+  }
+
+  computeMenuTripPackingItems(listId: number | null = null) {
     this.menuTripPackingItems = [
       {
         label: this.translocoService.translate('common.fields.actions'),
@@ -2177,19 +2283,19 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           {
             label: this.translocoService.translate('clipboard.copy_to_clipboard'),
             icon: 'pi pi-clipboard',
-            command: () => this.copyPackingListToClipboard(),
+            command: () => this.copyPackingListToClipboard(listId),
           },
           {
             label: this.translocoService.translate('clipboard.quick_copy'),
             icon: 'pi pi-copy',
-            command: () => this.copyPackingListToService(),
+            command: () => this.copyPackingListToService(listId),
           },
           {
             label: this.translocoService.translate('clipboard.quick_paste', {
               count: this.utilsService.packingListToCopy.length,
             }),
             icon: 'pi pi-copy',
-            command: () => this.pastePackingList(),
+            command: () => this.pastePackingList(listId),
             disabled: this.trip()?.archived || !this.utilsService.packingListToCopy.length,
           },
         ],
@@ -2197,7 +2303,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     ];
   }
 
-  addPackingItem() {
+  addPackingItem(listId: number | null = null) {
     const modal: DynamicDialogRef = this.dialogService.open(TripCreatePackingModalComponent, {
       header: this.translocoService.translate('entities.item.add_packing'),
       modal: true,
@@ -2215,17 +2321,19 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       next: (item: PackingItem | null) => {
         if (!item) return;
 
-        this.apiService
-          .postPackingItem(this.trip()!.id, item)
-          .pipe(take(1))
-          .subscribe({
-            next: (item) => this.packingList.update((l) => [...l, item]),
-          });
+        const req$ =
+          listId == null
+            ? this.apiService.postPackingItem(this.trip()!.id, item)
+            : this.apiService.postPackingListItem(this.trip()!.id, listId, item);
+
+        req$.pipe(take(1)).subscribe({
+          next: (created) => this.updatePackingItems(listId, (items) => [...items, created]),
+        });
       },
     });
   }
 
-  editPackingItem(item: PackingItem) {
+  editPackingItem(item: PackingItem, listId: number | null = null) {
     const modal: DynamicDialogRef = this.dialogService.open(TripCreatePackingModalComponent, {
       header: this.translocoService.translate('entities.item.edit'),
       modal: true,
@@ -2241,12 +2349,15 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     modal.onClose.pipe(take(1)).subscribe({
       next: (updated: Partial<PackingItem> | null) => {
         if (!updated) return;
-        this.apiService
-          .putPackingItem(this.trip()!.id, item.id, updated)
-          .pipe(take(1))
-          .subscribe({
-            next: (saved) => this.packingList.update((l) => l.map((i) => (i.id === item.id ? saved : i))),
-          });
+
+        const req$ =
+          listId == null
+            ? this.apiService.putPackingItem(this.trip()!.id, item.id, updated)
+            : this.apiService.putPackingListItem(this.trip()!.id, listId, item.id, updated);
+
+        req$.pipe(take(1)).subscribe({
+          next: (saved) => this.updatePackingItems(listId, (items) => items.map((i) => (i.id === item.id ? saved : i))),
+        });
       },
     });
   }
@@ -2263,16 +2374,18 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       });
   }
 
-  onCheckPackingItem(e: CheckboxChangeEvent, id: number) {
-    this.apiService
-      .putPackingItem(this.trip()!.id, id, { packed: e.checked })
-      .pipe(take(1))
-      .subscribe({
-        next: (updated) => this.packingList.update((l) => l.map((i) => (i.id === id ? updated : i))),
-      });
+  onCheckPackingItem(e: CheckboxChangeEvent, id: number, listId: number | null = null) {
+    const req$ =
+      listId == null
+        ? this.apiService.putPackingItem(this.trip()!.id, id, { packed: e.checked })
+        : this.apiService.putPackingListItem(this.trip()!.id, listId, id, { packed: e.checked });
+
+    req$.pipe(take(1)).subscribe({
+      next: (updated) => this.updatePackingItems(listId, (items) => items.map((i) => (i.id === id ? updated : i))),
+    });
   }
 
-  deletePackingItem(item: PackingItem) {
+  deletePackingItem(item: PackingItem, listId: number | null = null) {
     const modal = this.dialogService.open(YesNoModalComponent, {
       header: this.translocoService.translate('entities.item.delete'),
       modal: true,
@@ -2289,18 +2402,25 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     modal.onClose.pipe(take(1)).subscribe({
       next: (bool) => {
         if (!bool) return;
-        this.apiService
-          .deletePackingItem(this.trip()!.id, item.id)
-          .pipe(take(1))
-          .subscribe({
-            next: () => this.packingList.update((l) => l.filter((i) => i.id !== item.id)),
-          });
+
+        const req$ =
+          listId == null
+            ? this.apiService.deletePackingItem(this.trip()!.id, item.id)
+            : this.apiService.deletePackingListItem(this.trip()!.id, listId, item.id);
+
+        req$.pipe(take(1)).subscribe({
+          next: () => this.updatePackingItems(listId, (items) => items.filter((i) => i.id !== item.id)),
+        });
       },
     });
   }
 
-  copyPackingListToClipboard() {
-    const content = this.packingList()
+  private getPackingItemsFor(listId: number | null): PackingItem[] {
+    return listId == null ? this.packingList() : (this.packingLists().find((l) => l.id === listId)?.items ?? []);
+  }
+
+  copyPackingListToClipboard(listId: number | null = null) {
+    const content = this.getPackingItemsFor(listId)
       .sort((a, b) =>
         a.category !== b.category
           ? a.category.localeCompare(b.category)
@@ -2327,8 +2447,8 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       );
   }
 
-  copyPackingListToService() {
-    const content: Partial<PackingItem>[] = this.packingList().map((item) => ({
+  copyPackingListToService(listId: number | null = null) {
+    const content: Partial<PackingItem>[] = this.getPackingItemsFor(listId).map((item) => ({
       qt: item.qt,
       text: item.text,
       category: item.category,
@@ -2341,7 +2461,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     );
   }
 
-  pastePackingList() {
+  pastePackingList(listId: number | null = null) {
     const content: Partial<PackingItem>[] = this.utilsService.packingListToCopy;
     const modal = this.dialogService.open(YesNoModalComponent, {
       header: this.translocoService.translate('clipboard.confirm_paste'),
@@ -2361,14 +2481,16 @@ export class TripComponent implements AfterViewInit, OnDestroy {
         if (!bool) return;
 
         const obs$ = content.map((packingItem) =>
-          this.apiService.postPackingItem(this.trip()!.id, packingItem as PackingItem),
+          listId == null
+            ? this.apiService.postPackingItem(this.trip()!.id, packingItem as PackingItem)
+            : this.apiService.postPackingListItem(this.trip()!.id, listId, packingItem as PackingItem),
         );
 
         forkJoin(obs$)
           .pipe(take(1))
           .subscribe({
             next: (newItems: PackingItem[]) => {
-              this.packingList.update((l) => [...l, ...newItems]);
+              this.updatePackingItems(listId, (items) => [...items, ...newItems]);
               this.utilsService.packingListToCopy = [];
               this.utilsService.toast(
                 'success',
@@ -2382,13 +2504,110 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   }
 
   openChecklist() {
-    this.apiService.getChecklist(this.trip()!.id).subscribe((items) => {
-      this.checklistItems.set(items);
-      this.isChecklistDialogVisible = !this.isChecklistDialogVisible;
+    const tripId = this.trip()!.id;
+    forkJoin([this.apiService.getChecklist(tripId), this.apiService.getChecklists(tripId)]).subscribe(
+      ([items, checklists]) => {
+        this.checklistItems.set(items);
+        this.checklists.set(checklists);
+        this.activeChecklistTab.set('default');
+        this.isChecklistDialogVisible = !this.isChecklistDialogVisible;
+      },
+    );
+  }
+
+  dispChecklistFor(items: ChecklistItem[]): ChecklistItem[] {
+    return [...items].sort((a, b) => (a.checked !== b.checked ? (a.checked ? 1 : -1) : b.id - a.id));
+  }
+
+  checklistProgress(items: ChecklistItem[]): { done: number; total: number; pct: number } {
+    const total = items.length;
+    const done = items.filter((i) => i.checked).length;
+    return { done, total, pct: total === 0 ? 0 : Math.round((done / total) * 100) };
+  }
+
+  addChecklist() {
+    const modal: DynamicDialogRef = this.dialogService.open(TripListNameModalComponent, {
+      header: this.translocoService.translate('entities.checklist.add'),
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      draggable: false,
+      resizable: false,
+      breakpoints: { '640px': '90vw' },
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (name: string | null) => {
+        if (!name) return;
+        this.apiService
+          .postChecklist(this.trip()!.id, name)
+          .pipe(take(1))
+          .subscribe({
+            next: (checklist) => {
+              this.checklists.update((l) => [...l, checklist]);
+              this.activeChecklistTab.set(checklist.id);
+            },
+          });
+      },
     });
   }
 
-  addChecklistItem() {
+  renameChecklist(checklist: ChecklistList) {
+    const modal: DynamicDialogRef = this.dialogService.open(TripListNameModalComponent, {
+      header: this.translocoService.translate('entities.checklist.rename'),
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      draggable: false,
+      resizable: false,
+      breakpoints: { '640px': '90vw' },
+      data: { name: checklist.name },
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (name: string | null) => {
+        if (!name) return;
+        this.apiService
+          .putChecklist(this.trip()!.id, checklist.id, name)
+          .pipe(take(1))
+          .subscribe({
+            next: (updated) => this.checklists.update((l) => l.map((cl) => (cl.id === checklist.id ? updated : cl))),
+          });
+      },
+    });
+  }
+
+  deleteChecklist(checklist: ChecklistList) {
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: this.translocoService.translate('entities.checklist.delete'),
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      draggable: false,
+      resizable: false,
+      breakpoints: { '640px': '90vw' },
+      data: this.translocoService.translate('messages.delete_count', { count: checklist.name }),
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (bool) => {
+        if (!bool) return;
+        this.apiService
+          .deleteChecklist(this.trip()!.id, checklist.id)
+          .pipe(take(1))
+          .subscribe({
+            next: () => {
+              this.checklists.update((l) => l.filter((cl) => cl.id !== checklist.id));
+              if (this.activeChecklistTab() === checklist.id) this.activeChecklistTab.set('default');
+            },
+          });
+      },
+    });
+  }
+
+  addChecklistItem(listId: number | null = null) {
     const modal: DynamicDialogRef = this.dialogService.open(TripCreateChecklistModalComponent, {
       header: this.translocoService.translate('entities.item.add_checklist'),
       modal: true,
@@ -2406,26 +2625,30 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       next: (item: ChecklistItem | null) => {
         if (!item) return;
 
-        this.apiService
-          .postChecklistItem(this.trip()!.id, item)
-          .pipe(take(1))
-          .subscribe({
-            next: (created) => this.checklistItems.update((l) => [...l, created]),
-          });
+        const req$ =
+          listId == null
+            ? this.apiService.postChecklistItem(this.trip()!.id, item)
+            : this.apiService.postChecklistListItem(this.trip()!.id, listId, item);
+
+        req$.pipe(take(1)).subscribe({
+          next: (created) => this.updateChecklistItems(listId, (items) => [...items, created]),
+        });
       },
     });
   }
 
-  onCheckChecklistItem(e: CheckboxChangeEvent, id: number) {
-    this.apiService
-      .putChecklistItem(this.trip()!.id, id, { checked: e.checked })
-      .pipe(take(1))
-      .subscribe({
-        next: (updated) => this.checklistItems.update((l) => l.map((i) => (i.id === id ? updated : i))),
-      });
+  onCheckChecklistItem(e: CheckboxChangeEvent, id: number, listId: number | null = null) {
+    const req$ =
+      listId == null
+        ? this.apiService.putChecklistItem(this.trip()!.id, id, { checked: e.checked })
+        : this.apiService.putChecklistListItem(this.trip()!.id, listId, id, { checked: e.checked });
+
+    req$.pipe(take(1)).subscribe({
+      next: (updated) => this.updateChecklistItems(listId, (items) => items.map((i) => (i.id === id ? updated : i))),
+    });
   }
 
-  deleteChecklistItem(item: ChecklistItem) {
+  deleteChecklistItem(item: ChecklistItem, listId: number | null = null) {
     const modal = this.dialogService.open(YesNoModalComponent, {
       header: this.translocoService.translate('entities.item.delete'),
       modal: true,
@@ -2442,12 +2665,15 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     modal.onClose.pipe(take(1)).subscribe({
       next: (bool) => {
         if (!bool) return;
-        this.apiService
-          .deleteChecklistItem(this.trip()!.id, item.id)
-          .pipe(take(1))
-          .subscribe({
-            next: () => this.checklistItems.update((l) => l.filter((i) => i.id !== item.id)),
-          });
+
+        const req$ =
+          listId == null
+            ? this.apiService.deleteChecklistItem(this.trip()!.id, item.id)
+            : this.apiService.deleteChecklistListItem(this.trip()!.id, listId, item.id);
+
+        req$.pipe(take(1)).subscribe({
+          next: () => this.updateChecklistItems(listId, (items) => items.filter((i) => i.id !== item.id)),
+        });
       },
     });
   }

@@ -27,7 +27,9 @@ import {
   TripItem,
   TripStatus,
   PackingItem,
+  PackingList,
   ChecklistItem,
+  ChecklistList,
   TripAttachment,
   PrintOptions,
   ViewTripItem,
@@ -47,7 +49,7 @@ import {
 } from '../../shared/map';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DialogService } from 'primeng/dynamicdialog';
-import { debounceTime, distinctUntilChanged, Observable, take } from 'rxjs';
+import { debounceTime, distinctUntilChanged, forkJoin, Observable, take } from 'rxjs';
 import { UtilsService } from '../../services/utils.service';
 import { CommonModule, DecimalPipe } from '@angular/common';
 import { MenuItem } from 'primeng/api';
@@ -155,6 +157,10 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   hasError = signal(false);
   packingList = signal<PackingItem[]>([]);
   checklistItems = signal<ChecklistItem[]>([]);
+  packingLists = signal<PackingList[]>([]);
+  checklists = signal<ChecklistList[]>([]);
+  activePackingTab = signal<number | 'default'>('default');
+  activeChecklistTab = signal<number | 'default'>('default');
 
   searchQuery = signal('');
   isPlansPanelCollapsed = signal(false);
@@ -1202,11 +1208,27 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
 
   openPackingList() {
     if (!this.token) return;
-    this.apiService.getSharedTripPackingList(this.token).subscribe((items) => {
+    const token = this.token;
+    forkJoin([
+      this.apiService.getSharedTripPackingList(token),
+      this.apiService.getSharedTripPackingLists(token),
+    ]).subscribe(([items, lists]) => {
       this.packingList.set(items);
+      this.packingLists.set(lists);
+      this.activePackingTab.set('default');
       this.isPackingDialogVisible = !this.isPackingDialogVisible;
       this.computeMenuTripPackingItems();
     });
+  }
+
+  dispPackingListFor(items: PackingItem[]): Record<string, PackingItem[]> {
+    const sorted = [...items].sort((a, b) =>
+      a.packed !== b.packed ? (a.packed ? 1 : -1) : a.text.localeCompare(b.text),
+    );
+    return sorted.reduce<Record<string, PackingItem[]>>((acc, item) => {
+      (acc[item.category] ??= []).push(item);
+      return acc;
+    }, {});
   }
 
   computeMenuTripPackingItems() {
@@ -1254,10 +1276,25 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
 
   openChecklist() {
     if (!this.token) return;
-    this.apiService.getSharedTripChecklist(this.token).subscribe((items) => {
-      this.checklistItems.set(items);
-      this.isChecklistDialogVisible = !this.isChecklistDialogVisible;
-    });
+    const token = this.token;
+    forkJoin([this.apiService.getSharedTripChecklist(token), this.apiService.getSharedTripChecklists(token)]).subscribe(
+      ([items, checklists]) => {
+        this.checklistItems.set(items);
+        this.checklists.set(checklists);
+        this.activeChecklistTab.set('default');
+        this.isChecklistDialogVisible = !this.isChecklistDialogVisible;
+      },
+    );
+  }
+
+  dispChecklistFor(items: ChecklistItem[]): ChecklistItem[] {
+    return [...items].sort((a, b) => (a.checked !== b.checked ? (a.checked ? 1 : -1) : b.id - a.id));
+  }
+
+  checklistProgress(items: ChecklistItem[]): { done: number; total: number; pct: number } {
+    const total = items.length;
+    const done = items.filter((i) => i.checked).length;
+    return { done, total, pct: total === 0 ? 0 : Math.round((done / total) * 100) };
   }
 
   openAttachmentsModal() {

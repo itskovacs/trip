@@ -1,0 +1,14 @@
+<ng-container *transloco="let t">
+  <div pFocusTrap class="grid items-center gap-4" [formGroup]="listForm">
+    <p-floatlabel variant="in">
+      <input class="col-span-2" id="name" formControlName="name" (keydown.enter)="closeDialog()" pInputText fluid />
+      <label for="name">{{ t('common.fields.name') }}</label>
+    </p-floatlabel>
+
+    <div class="mt-4 text-right">
+      <p-button (click)="closeDialog()" [disabled]="!listForm.dirty || !listForm.valid">{{
+        isEditMode ? t('common.actions.update') : t('common.actions.create')
+        }}</p-button>
+    </div>
+  </div>
+</ng-container>

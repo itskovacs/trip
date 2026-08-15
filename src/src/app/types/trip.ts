@@ -161,6 +161,18 @@ export interface ChecklistItem {
   checked?: boolean;
 }
 
+export interface PackingList {
+  id: number;
+  name: string;
+  items: PackingItem[];
+}
+
+export interface ChecklistList {
+  id: number;
+  name: string;
+  items: ChecklistItem[];
+}
+
 export interface PrintOptions {
   days: Set<number>;
   props: Set<string>;

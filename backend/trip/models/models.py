@@ -598,6 +598,8 @@ class Trip(TripBase, table=True):
     shares: list["TripShare"] = Relationship(back_populates="trip", cascade_delete=True)
     packing_items: list["TripPackingListItem"] = Relationship(back_populates="trip", cascade_delete=True)
     checklist_items: list["TripChecklistItem"] = Relationship(back_populates="trip", cascade_delete=True)
+    packing_lists: list["TripPackingList"] = Relationship(back_populates="trip", cascade_delete=True)
+    checklists: list["TripChecklist"] = Relationship(back_populates="trip", cascade_delete=True)
     memberships: list["TripMember"] = Relationship(back_populates="trip", cascade_delete=True)
     attachments: list["TripAttachment"] = Relationship(back_populates="trip", cascade_delete=True)
 
@@ -1109,6 +1111,211 @@ class TripChecklistItemRead(TripChecklistItemBase):
             id=obj.id,
             text=obj.text,
             checked=obj.checked,
+        )
+
+
+class TripPackingListEntryBase(SQLModel):
+    text: str | None = None
+    qt: int | None = None
+    category: PackingListCategoryEnum | None = None
+    packed: bool | None = None
+
+
+class TripPackingListEntry(TripPackingListEntryBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+
+    packing_list_id: int = Field(foreign_key="trippackinglist.id", ondelete="CASCADE", index=True)
+    packing_list: "TripPackingList" = Relationship(back_populates="items")
+
+
+class TripPackingListEntryCreate(TripPackingListEntryBase):
+    text: str
+    category: PackingListCategoryEnum
+    packed: bool = False
+
+    @field_validator("text", mode="before")
+    @classmethod
+    def text_must_not_be_blank(cls, value):
+        if value is None or not str(value).strip():
+            raise ValueError("text must not be empty")
+        return value
+
+
+class TripPackingListEntryUpdate(TripPackingListEntryBase):
+    @field_validator("text", "category", mode="before")
+    @classmethod
+    def reject_null(cls, value):
+        if value is None:
+            raise ValueError("must not be null")
+        return value
+
+    @field_validator("text")
+    @classmethod
+    def text_must_not_be_blank(cls, value):
+        if value is not None and not value.strip():
+            raise ValueError("text must not be empty")
+        return value
+
+
+class TripPackingListEntryRead(TripPackingListEntryBase):
+    id: int
+
+    @classmethod
+    def serialize(cls, obj: "TripPackingListEntry") -> "TripPackingListEntryRead":
+        return cls(
+            id=obj.id,
+            text=obj.text,
+            qt=obj.qt,
+            category=obj.category,
+            packed=obj.packed,
+        )
+
+
+class TripPackingListBase(SQLModel):
+    name: str | None = None
+
+
+class TripPackingList(TripPackingListBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+
+    trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE", index=True)
+    trip: Trip | None = Relationship(back_populates="packing_lists")
+    items: list[TripPackingListEntry] = Relationship(back_populates="packing_list", cascade_delete=True)
+
+
+class TripPackingListCreate(TripPackingListBase):
+    name: str
+
+    @field_validator("name", mode="before")
+    @classmethod
+    def name_must_not_be_blank(cls, value):
+        if value is None or not str(value).strip():
+            raise ValueError("name must not be empty")
+        return value
+
+
+class TripPackingListUpdate(TripPackingListBase):
+    name: str
+
+    @field_validator("name", mode="before")
+    @classmethod
+    def name_must_not_be_blank(cls, value):
+        if value is None or not str(value).strip():
+            raise ValueError("name must not be empty")
+        return value
+
+
+class TripPackingListRead(TripPackingListBase):
+    id: int
+    name: str
+    items: list[TripPackingListEntryRead]
+
+    @classmethod
+    def serialize(cls, obj: "TripPackingList") -> "TripPackingListRead":
+        return cls(
+            id=obj.id,
+            name=obj.name,
+            items=[TripPackingListEntryRead.serialize(i) for i in obj.items],
+        )
+
+
+class TripChecklistEntryBase(SQLModel):
+    text: str | None = None
+    checked: bool | None = None
+
+
+class TripChecklistEntry(TripChecklistEntryBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+
+    checklist_id: int = Field(foreign_key="tripchecklist.id", ondelete="CASCADE", index=True)
+    checklist: "TripChecklist" = Relationship(back_populates="items")
+
+
+class TripChecklistEntryCreate(TripChecklistEntryBase):
+    text: str
+    checked: bool = False
+
+    @field_validator("text", mode="before")
+    @classmethod
+    def text_must_not_be_blank(cls, value):
+        if value is None or not str(value).strip():
+            raise ValueError("text must not be empty")
+        return value
+
+
+class TripChecklistEntryUpdate(TripChecklistEntryBase):
+    @field_validator("text", mode="before")
+    @classmethod
+    def reject_null(cls, value):
+        if value is None:
+            raise ValueError("must not be null")
+        return value
+
+    @field_validator("text")
+    @classmethod
+    def text_must_not_be_blank(cls, value):
+        if value is not None and not value.strip():
+            raise ValueError("text must not be empty")
+        return value
+
+
+class TripChecklistEntryRead(TripChecklistEntryBase):
+    id: int
+
+    @classmethod
+    def serialize(cls, obj: "TripChecklistEntry") -> "TripChecklistEntryRead":
+        return cls(
+            id=obj.id,
+            text=obj.text,
+            checked=obj.checked,
+        )
+
+
+class TripChecklistBase(SQLModel):
+    name: str | None = None
+
+
+class TripChecklist(TripChecklistBase, table=True):
+    id: int | None = Field(default=None, primary_key=True)
+
+    trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE", index=True)
+    trip: Trip | None = Relationship(back_populates="checklists")
+    items: list[TripChecklistEntry] = Relationship(back_populates="checklist", cascade_delete=True)
+
+
+class TripChecklistCreate(TripChecklistBase):
+    name: str
+
+    @field_validator("name", mode="before")
+    @classmethod
+    def name_must_not_be_blank(cls, value):
+        if value is None or not str(value).strip():
+            raise ValueError("name must not be empty")
+        return value
+
+
+class TripChecklistUpdate(TripChecklistBase):
+    name: str
+
+    @field_validator("name", mode="before")
+    @classmethod
+    def name_must_not_be_blank(cls, value):
+        if value is None or not str(value).strip():
+            raise ValueError("name must not be empty")
+        return value
+
+
+class TripChecklistRead(TripChecklistBase):
+    id: int
+    name: str
+    items: list[TripChecklistEntryRead]
+
+    @classmethod
+    def serialize(cls, obj: "TripChecklist") -> "TripChecklistRead":
+        return cls(
+            id=obj.id,
+            name=obj.name,
+            items=[TripChecklistEntryRead.serialize(i) for i in obj.items],
         )
 
 

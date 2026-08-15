@@ -14,16 +14,25 @@ from ..deps import SessionDep, get_current_username
 from ..models.models import (Image, ItemImageInput, Place, Trip,
                              TripAttachment, TripAttachmentRead,
                              TripBalanceEntry, TripBooking,
-                             TripCalendarDetails, TripChecklistItem,
+                             TripCalendarDetails, TripChecklist,
+                             TripChecklistCreate, TripChecklistEntry,
+                             TripChecklistEntryCreate, TripChecklistEntryRead,
+                             TripChecklistEntryUpdate, TripChecklistItem,
                              TripChecklistItemCreate, TripChecklistItemRead,
-                             TripChecklistItemUpdate, TripCreate, TripDay,
+                             TripChecklistItemUpdate, TripChecklistRead,
+                             TripChecklistUpdate, TripCreate, TripDay,
                              TripDayBase, TripDayRead, TripInvitationRead,
                              TripItem, TripItemCreate, TripItemRead,
                              TripItemUpdate, TripMember, TripMemberCreate,
-                             TripMemberRead, TripPackingListItem,
+                             TripMemberRead, TripPackingList,
+                             TripPackingListCreate, TripPackingListEntry,
+                             TripPackingListEntryCreate,
+                             TripPackingListEntryRead,
+                             TripPackingListEntryUpdate, TripPackingListItem,
                              TripPackingListItemCreate,
                              TripPackingListItemRead,
-                             TripPackingListItemUpdate, TripRead, TripReadBase,
+                             TripPackingListItemUpdate, TripPackingListRead,
+                             TripPackingListUpdate, TripRead, TripReadBase,
                              TripShare, TripShareCreate, TripShareDetails,
                              TripShareRead, TripUpdate, User)
 from ..utils.date import dt_utc
@@ -65,6 +74,28 @@ def _get_verified_trip(session, trip_id: int, username: str) -> Trip:
     if not trip:
         raise HTTPException(status_code=404, detail="Not found")
     return trip
+
+
+def _get_own_list_or_404(session, model: type, list_id: int, trip_id: int):
+    # Fetches a TripPackingList/TripChecklist row scoped to the given trip, or 404s.
+    obj = session.exec(select(model).where(model.id == list_id, model.trip_id == trip_id)).one_or_none()
+    if not obj:
+        raise HTTPException(status_code=404, detail="Not found")
+    return obj
+
+
+def _get_own_entry_or_404(
+    session, entry_model: type, parent_model: type, fk_column, item_id: int, list_id: int, trip_id: int
+):
+    # Fetches a TripPackingListEntry/TripChecklistEntry row scoped to the given list+trip, or 404s.
+    obj = session.exec(
+        select(entry_model)
+        .join(parent_model)
+        .where(entry_model.id == item_id, fk_column == list_id, parent_model.trip_id == trip_id)
+    ).one_or_none()
+    if not obj:
+        raise HTTPException(status_code=404, detail="Not found")
+    return obj
 
 
 def _trip_for_ics(session, *where) -> Trip:
@@ -961,6 +992,312 @@ def delete_checklist_item(
     return {}
 
 
+@router.get("/{trip_id}/packing-lists", response_model=list[TripPackingListRead])
+def read_packing_lists(
+    session: SessionDep,
+    trip_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+) -> list[TripPackingListRead]:
+    _get_verified_trip(session, trip_id, current_user)
+    lists = session.exec(
+        select(TripPackingList)
+        .where(TripPackingList.trip_id == trip_id)
+        .options(selectinload(TripPackingList.items))
+    )
+    return [TripPackingListRead.serialize(pl) for pl in lists]
+
+
+@router.post("/{trip_id}/packing-lists", response_model=TripPackingListRead)
+def create_packing_list(
+    session: SessionDep,
+    trip_id: int,
+    data: TripPackingListCreate,
+    current_user: Annotated[str, Depends(get_current_username)],
+) -> TripPackingListRead:
+    db_trip = _get_verified_trip(session, trip_id, current_user)
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
+
+    packing_list = TripPackingList(**data.model_dump(), trip_id=trip_id)
+    session.add(packing_list)
+    session.commit()
+    session.refresh(packing_list)
+    return TripPackingListRead.serialize(packing_list)
+
+
+@router.put("/{trip_id}/packing-lists/{list_id}", response_model=TripPackingListRead)
+def update_packing_list(
+    session: SessionDep,
+    data: TripPackingListUpdate,
+    trip_id: int,
+    list_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+) -> TripPackingListRead:
+    db_trip = _get_verified_trip(session, trip_id, current_user)
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
+
+    db_list = _get_own_list_or_404(session, TripPackingList, list_id, trip_id)
+
+    db_list.name = data.name
+    session.add(db_list)
+    session.commit()
+    session.refresh(db_list)
+    return TripPackingListRead.serialize(db_list)
+
+
+@router.delete("/{trip_id}/packing-lists/{list_id}")
+def delete_packing_list(
+    session: SessionDep,
+    trip_id: int,
+    list_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+):
+    db_trip = _get_verified_trip(session, trip_id, current_user)
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
+
+    db_list = _get_own_list_or_404(session, TripPackingList, list_id, trip_id)
+
+    session.delete(db_list)
+    session.commit()
+    return {}
+
+
+@router.post("/{trip_id}/packing-lists/{list_id}/items", response_model=TripPackingListEntryRead)
+def create_packing_list_entry(
+    session: SessionDep,
+    trip_id: int,
+    list_id: int,
+    data: TripPackingListEntryCreate,
+    current_user: Annotated[str, Depends(get_current_username)],
+) -> TripPackingListEntryRead:
+    db_trip = _get_verified_trip(session, trip_id, current_user)
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
+
+    _get_own_list_or_404(session, TripPackingList, list_id, trip_id)
+
+    item = TripPackingListEntry(**data.model_dump(), packing_list_id=list_id)
+    session.add(item)
+    session.commit()
+    session.refresh(item)
+    return TripPackingListEntryRead.serialize(item)
+
+
+@router.put("/{trip_id}/packing-lists/{list_id}/items/{item_id}", response_model=TripPackingListEntryRead)
+def update_packing_list_entry(
+    session: SessionDep,
+    data: TripPackingListEntryUpdate,
+    trip_id: int,
+    list_id: int,
+    item_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+) -> TripPackingListEntryRead:
+    db_trip = _get_verified_trip(session, trip_id, current_user)
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
+
+    db_item = _get_own_entry_or_404(
+        session,
+        TripPackingListEntry,
+        TripPackingList,
+        TripPackingListEntry.packing_list_id,
+        item_id,
+        list_id,
+        trip_id,
+    )
+
+    item_data = data.model_dump(exclude_unset=True)
+    for key, value in item_data.items():
+        setattr(db_item, key, value)
+
+    session.add(db_item)
+    session.commit()
+    session.refresh(db_item)
+    return TripPackingListEntryRead.serialize(db_item)
+
+
+@router.delete("/{trip_id}/packing-lists/{list_id}/items/{item_id}")
+def delete_packing_list_entry(
+    session: SessionDep,
+    trip_id: int,
+    list_id: int,
+    item_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+):
+    db_trip = _get_verified_trip(session, trip_id, current_user)
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
+
+    db_item = _get_own_entry_or_404(
+        session,
+        TripPackingListEntry,
+        TripPackingList,
+        TripPackingListEntry.packing_list_id,
+        item_id,
+        list_id,
+        trip_id,
+    )
+
+    session.delete(db_item)
+    session.commit()
+    return {}
+
+
+@router.get("/{trip_id}/checklists", response_model=list[TripChecklistRead])
+def read_checklists(
+    session: SessionDep,
+    trip_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+) -> list[TripChecklistRead]:
+    _get_verified_trip(session, trip_id, current_user)
+    checklists = session.exec(
+        select(TripChecklist)
+        .where(TripChecklist.trip_id == trip_id)
+        .options(selectinload(TripChecklist.items))
+    )
+    return [TripChecklistRead.serialize(cl) for cl in checklists]
+
+
+@router.post("/{trip_id}/checklists", response_model=TripChecklistRead)
+def create_checklist(
+    session: SessionDep,
+    trip_id: int,
+    data: TripChecklistCreate,
+    current_user: Annotated[str, Depends(get_current_username)],
+) -> TripChecklistRead:
+    db_trip = _get_verified_trip(session, trip_id, current_user)
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
+
+    checklist = TripChecklist(**data.model_dump(), trip_id=trip_id)
+    session.add(checklist)
+    session.commit()
+    session.refresh(checklist)
+    return TripChecklistRead.serialize(checklist)
+
+
+@router.put("/{trip_id}/checklists/{list_id}", response_model=TripChecklistRead)
+def update_checklist(
+    session: SessionDep,
+    data: TripChecklistUpdate,
+    trip_id: int,
+    list_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+) -> TripChecklistRead:
+    db_trip = _get_verified_trip(session, trip_id, current_user)
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
+
+    db_checklist = _get_own_list_or_404(session, TripChecklist, list_id, trip_id)
+
+    db_checklist.name = data.name
+    session.add(db_checklist)
+    session.commit()
+    session.refresh(db_checklist)
+    return TripChecklistRead.serialize(db_checklist)
+
+
+@router.delete("/{trip_id}/checklists/{list_id}")
+def delete_checklist(
+    session: SessionDep,
+    trip_id: int,
+    list_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+):
+    db_trip = _get_verified_trip(session, trip_id, current_user)
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
+
+    db_checklist = _get_own_list_or_404(session, TripChecklist, list_id, trip_id)
+
+    session.delete(db_checklist)
+    session.commit()
+    return {}
+
+
+@router.post("/{trip_id}/checklists/{list_id}/items", response_model=TripChecklistEntryRead)
+def create_checklist_entry(
+    session: SessionDep,
+    trip_id: int,
+    list_id: int,
+    data: TripChecklistEntryCreate,
+    current_user: Annotated[str, Depends(get_current_username)],
+) -> TripChecklistEntryRead:
+    db_trip = _get_verified_trip(session, trip_id, current_user)
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
+
+    _get_own_list_or_404(session, TripChecklist, list_id, trip_id)
+
+    item = TripChecklistEntry(**data.model_dump(), checklist_id=list_id)
+    session.add(item)
+    session.commit()
+    session.refresh(item)
+    return TripChecklistEntryRead.serialize(item)
+
+
+@router.put("/{trip_id}/checklists/{list_id}/items/{item_id}", response_model=TripChecklistEntryRead)
+def update_checklist_entry(
+    session: SessionDep,
+    data: TripChecklistEntryUpdate,
+    trip_id: int,
+    list_id: int,
+    item_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+) -> TripChecklistEntryRead:
+    db_trip = _get_verified_trip(session, trip_id, current_user)
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
+
+    db_item = _get_own_entry_or_404(
+        session,
+        TripChecklistEntry,
+        TripChecklist,
+        TripChecklistEntry.checklist_id,
+        item_id,
+        list_id,
+        trip_id,
+    )
+
+    item_data = data.model_dump(exclude_unset=True)
+    for key, value in item_data.items():
+        setattr(db_item, key, value)
+
+    session.add(db_item)
+    session.commit()
+    session.refresh(db_item)
+    return TripChecklistEntryRead.serialize(db_item)
+
+
+@router.delete("/{trip_id}/checklists/{list_id}/items/{item_id}")
+def delete_checklist_entry(
+    session: SessionDep,
+    trip_id: int,
+    list_id: int,
+    item_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
+):
+    db_trip = _get_verified_trip(session, trip_id, current_user)
+    if db_trip.archived:
+        raise HTTPException(status_code=400, detail="Bad request")
+
+    db_item = _get_own_entry_or_404(
+        session,
+        TripChecklistEntry,
+        TripChecklist,
+        TripChecklistEntry.checklist_id,
+        item_id,
+        list_id,
+        trip_id,
+    )
+
+    session.delete(db_item)
+    session.commit()
+    return {}
+
+
 @router.get("/{trip_id}/members", response_model=list[TripMemberRead])
 def read_trip_members(
     session: SessionDep, trip_id: int, current_user: Annotated[str, Depends(get_current_username)]
@@ -1204,6 +1541,32 @@ def read_shared_trip_checklist(
         )
     )
     return [TripChecklistItemRead.serialize(i) for i in items]
+
+
+@router.get("/shared/{token}/packing-lists", response_model=list[TripPackingListRead])
+def read_shared_trip_packing_lists(
+    session: SessionDep,
+    token: str,
+) -> list[TripPackingListRead]:
+    lists = session.exec(
+        select(TripPackingList)
+        .where(TripPackingList.trip_id == _trip_from_token_or_404(session, token).trip_id)
+        .options(selectinload(TripPackingList.items))
+    )
+    return [TripPackingListRead.serialize(pl) for pl in lists]
+
+
+@router.get("/shared/{token}/checklists", response_model=list[TripChecklistRead])
+def read_shared_trip_checklists(
+    session: SessionDep,
+    token: str,
+) -> list[TripChecklistRead]:
+    checklists = session.exec(
+        select(TripChecklist)
+        .where(TripChecklist.trip_id == _trip_from_token_or_404(session, token).trip_id)
+        .options(selectinload(TripChecklist.items))
+    )
+    return [TripChecklistRead.serialize(cl) for cl in checklists]
 
 
 @router.get("/shared/{token}/attachments/{attachment_id}/download")

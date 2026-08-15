@@ -18,10 +18,13 @@ from ..deps import SessionDep, get_current_username
 from ..models.models import (Backup, BackupStatus, Category, CategoryRead,
                              Image, Place, PlaceRead, Trip, TripAttachment,
                              TripBooking, TripBookingAttachmentLink,
-                             TripChecklistItem, TripChecklistItemRead, TripDay,
-                             TripItem, TripItemAttachmentLink,
-                             TripItemImageLink, TripPackingListItem,
-                             TripPackingListItemRead, TripRead, User, UserRead)
+                             TripChecklist, TripChecklistEntry,
+                             TripChecklistItem, TripChecklistItemRead,
+                             TripChecklistRead, TripDay, TripItem,
+                             TripItemAttachmentLink, TripItemImageLink,
+                             TripPackingList, TripPackingListEntry,
+                             TripPackingListItem, TripPackingListItemRead,
+                             TripPackingListRead, TripRead, User, UserRead)
 from .date import dt_utc, iso_to_dt
 from .utils import (assets_folder_path, attachments_folder_path,
                     attachments_trip_folder_path, b64img_decode,
@@ -121,6 +124,8 @@ def _user_backup_export(user: str, backup_dt, zip_fp: Path, session: Session):
                 selectinload(Trip.shares),
                 selectinload(Trip.packing_items),
                 selectinload(Trip.checklist_items),
+                selectinload(Trip.packing_lists).selectinload(TripPackingList.items),
+                selectinload(Trip.checklists).selectinload(TripChecklist.items),
                 selectinload(Trip.attachments),
             )
             .execution_options(yield_per=10)
@@ -134,6 +139,12 @@ def _user_backup_export(user: str, backup_dt, zip_fp: Path, session: Session):
                 ],
                 "checklist_items": [
                     TripChecklistItemRead.serialize(i).model_dump(mode="json") for i in t.checklist_items
+                ],
+                "packing_lists": [
+                    TripPackingListRead.serialize(pl).model_dump(mode="json") for pl in t.packing_lists
+                ],
+                "checklists": [
+                    TripChecklistRead.serialize(cl).model_dump(mode="json") for cl in t.checklists
                 ],
             }
             for t in session.exec(trips_query)
@@ -417,6 +428,8 @@ def process_backup_import(
             trip_place_id_map = {old_id: new_p.id for old_id, new_p in zip(place_old_ids, places)}
             packing_to_add = []
             checklist_to_add = []
+            packing_lists_to_add = []
+            checklists_to_add = []
             attachment_links_to_add = []
             for trip in data.get("trips", []):
                 new_trip = {
@@ -434,6 +447,8 @@ def process_backup_import(
                         "attachments",
                         "packing_items",
                         "checklist_items",
+                        "packing_lists",
+                        "checklists",
                     }
                 }
                 new_trip["user"] = current_user
@@ -620,6 +635,28 @@ def process_backup_import(
                     new_checklist["trip_id"] = new_trip.id
                     checklist_to_add.append(TripChecklistItem(**new_checklist))
 
+                for packing_list in trip.get("packing_lists", []):
+                    new_list = TripPackingList(name=packing_list["name"], trip_id=new_trip.id)
+                    session.add(new_list)
+                    session.flush()
+                    for item in packing_list.get("items", []):
+                        new_item = {
+                            key: item[key] for key in item.keys() if key not in {"id", "packing_list_id"}
+                        }
+                        new_item["packing_list_id"] = new_list.id
+                        packing_lists_to_add.append(TripPackingListEntry(**new_item))
+
+                for checklist in trip.get("checklists", []):
+                    new_checklist_list = TripChecklist(name=checklist["name"], trip_id=new_trip.id)
+                    session.add(new_checklist_list)
+                    session.flush()
+                    for item in checklist.get("items", []):
+                        new_item = {
+                            key: item[key] for key in item.keys() if key not in {"id", "checklist_id"}
+                        }
+                        new_item["checklist_id"] = new_checklist_list.id
+                        checklists_to_add.append(TripChecklistEntry(**new_item))
+
             if attachment_links_to_add:
                 session.add_all(attachment_links_to_add)
 
@@ -628,6 +665,12 @@ def process_backup_import(
 
             if checklist_to_add:
                 session.add_all(checklist_to_add)
+
+            if packing_lists_to_add:
+                session.add_all(packing_lists_to_add)
+
+            if checklists_to_add:
+                session.add_all(checklists_to_add)
 
             # BOOM!
             session.commit()
