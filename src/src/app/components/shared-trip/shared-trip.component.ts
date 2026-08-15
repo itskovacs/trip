@@ -55,6 +55,7 @@ import { CommonModule, DecimalPipe } from '@angular/common';
 import { MenuItem } from 'primeng/api';
 import { Menu, MenuModule } from 'primeng/menu';
 import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
+import { NaturalDurationPipe } from '../../shared/pipes/naturalduration.pipe';
 import { DialogModule } from 'primeng/dialog';
 import { Clipboard, ClipboardModule } from '@angular/cdk/clipboard';
 import { TooltipModule } from 'primeng/tooltip';
@@ -110,6 +111,7 @@ const MAX_MAP_INIT_RETRIES = 5;
     MenuModule,
     InputTextModule,
     MarkdownPipe,
+    NaturalDurationPipe,
     FloatLabelModule,
     TableModule,
     ButtonModule,

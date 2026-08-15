@@ -691,6 +691,11 @@
         "description": "Locatieoverzicht opnemen",
         "title": "Locatieoverzicht"
       },
+      "places_detailed": {
+        "description": "Toon volledige locatiedetails (adres, coördinaten, prijs, beschrijving, links...). Kan het aantal afgedrukte pagina's aanzienlijk verhogen.",
+        "gpx_attached": "GPX-track bijgevoegd",
+        "title": "Gedetailleerd locatieoverzicht"
+      },
       "properties": {
         "description": "Velden om op te nemen",
         "selected": "{0} eigenschappen geselecteerd",

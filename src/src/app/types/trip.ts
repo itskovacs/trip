@@ -178,6 +178,7 @@ export interface PrintOptions {
   days: Set<number>;
   props: Set<string>;
   places: boolean;
+  placesDetailed?: boolean;
   notes: boolean;
   metadata: boolean;
   showBookings?: boolean;

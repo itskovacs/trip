@@ -51,6 +51,7 @@ export class TripPrettyPrintModalComponent {
       days: [Validators.required],
       props: [Validators.required],
       places: true,
+      placesDetailed: false,
       notes: true,
       metadata: true,
       showBookings: true,
@@ -71,6 +72,7 @@ export class TripPrettyPrintModalComponent {
     if (!ret) return;
     ret['days'] = new Set<number>(ret['days']);
     ret['props'] = new Set<string>(ret['props']);
+    if (!ret['places']) ret['placesDetailed'] = false;
     this.ref.close(ret);
   }
 }

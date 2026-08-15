@@ -501,6 +501,11 @@
         "description": "Include places recap",
         "title": "Places recap"
       },
+      "places_detailed": {
+        "description": "Show full place details (address, coordinates, price, description, links...). May significantly increase the number of printed pages.",
+        "gpx_attached": "GPX track attached",
+        "title": "Detailed places recap"
+      },
       "properties": {
         "description": "Fields to include",
         "selected": "{0} properties selected",

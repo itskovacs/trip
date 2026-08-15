@@ -1851,8 +1851,12 @@
       <div class="text-2xl font-semibold">{{ t('common.fields.notes') }}</div>
 
       <div class="mt-4 border-l-3 border-primary-900 pl-6 py-2">
-        <span class="text-sm leading-relaxed text-primary-800 whitespace-pre-wrap">{{
-          trip()?.notes || t('empty_states.nothing_there') }}</span>
+        @if (trip()?.notes) {
+        <div class="markdown-content text-sm leading-relaxed text-primary-800" [innerHTML]="trip()?.notes | markdown">
+        </div>
+        } @else {
+        <span class="text-sm leading-relaxed text-primary-800">{{ t('empty_states.nothing_there') }}</span>
+        }
       </div>
     </div>
     }
@@ -1877,9 +1881,8 @@
 
           @if (options?.notes && group.day.notes) {
           <div class="border-l-3 border-primary-900 pl-6 py-2 mb-4">
-            <span class="text-sm leading-relaxed text-primary-800 whitespace-pre-wrap">{{
-              group.day.notes }}
-            </span>
+            <div class="markdown-content text-sm leading-relaxed text-primary-800"
+              [innerHTML]="group.day.notes | markdown"></div>
           </div>
           }
 
@@ -1892,7 +1895,7 @@
               <span class="opacity-60">&middot; {{ booking.reference }}</span>
               }
               @if (booking.notes) {
-              <span class="text-primary-400 italic truncate">{{ booking.notes }}</span>
+              <span class="ml-2 text-primary-400 italic truncate">{{ booking.notes }}</span>
               }
             </span>
             }
@@ -1924,7 +1927,7 @@
               </div>
 
               @if (options?.props?.has('comment') && item.comment) {
-              <p class="text-sm text-primary-500 whitespace-pre-wrap italic">{{ item.comment }}</p>
+              <div class="markdown-content text-sm text-primary-500 italic" [innerHTML]="item.comment | markdown"></div>
               }
 
               @if (options?.images && item.images?.length) {
@@ -1967,6 +1970,45 @@
     <div class="mt-8 break-inside-avoid">
       <div class="text-2xl font-semibold">{{ t('entities.place.pin') }}</div>
       <div class="mt-4">
+        @if (options?.placesDetailed) {
+        <div class="grid grid-cols-2 gap-3">
+          @for (place of printOptionsPlaces(); track place.id) {
+          <div class="flex gap-3 p-3 rounded-lg border border-primary-200 break-inside-avoid">
+            <img [src]="place.image || place.category.image" class="size-14 rounded-md object-cover shrink-0" />
+            <div class="min-w-0 flex-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span class="font-semibold text-sm text-primary-900">{{ place.name }}</span>
+                <span [style.--color-bg-opacity]="place.category.color"
+                  class="color-bg-opacity text-xs font-medium px-2 py-0.5 rounded">{{ place.category.name }}</span>
+              </div>
+              <div class="text-xs text-primary-700 mt-0.5">{{ place.place }}</div>
+              <div class="text-xs text-primary-500 mt-0.5">
+                {{ place.lat }}, {{ place.lng }}
+                @if (place.price) { &middot; {{ place.price }} {{ trip()?.currency || '€' }} }
+                @if (place.duration) { &middot; {{ place.duration | naturalDuration }} }
+              </div>
+              @if (place.description) {
+              <div class="text-xs mt-1 markdown-content text-primary-900" [innerHTML]="place.description | markdown">
+              </div>
+              }
+              @if (place.links?.length) {
+              <div class="mt-1">
+                <app-link-chip [links]="place.links ?? []" />
+              </div>
+              }
+              @if (place.gpx) {
+              <div class="text-xs mt-1 text-primary-400 italic">{{ t('modals.print.places_detailed.gpx_attached') }}
+              </div>
+              }
+            </div>
+          </div>
+          } @empty {
+          <div class="mt-4 border-l-3 border-primary-900 pl-6 py-2">
+            <p class="text-primary-800 text-lg leading-loose font-light">{{ t('empty_states.nothing_there') }}</p>
+          </div>
+          }
+        </div>
+        } @else {
         @for (place of printOptionsPlaces(); track place.id) {
         <div [style.--color-bg-opacity]="place.category.color"
           class="inline-flex color-bg-opacity items-center gap-2 font-medium p-1 pr-3 m-1 rounded-lg">
@@ -1979,6 +2021,7 @@
         <div class="mt-4 border-l-3 border-primary-900 pl-6 py-2">
           <p class="text-primary-800 text-lg leading-loose font-light">{{ t('empty_states.nothing_there') }}</p>
         </div>
+        }
         }
       </div>
 

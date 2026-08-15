@@ -501,6 +501,11 @@
         "description": "Inclure le récapitulatif des places",
         "title": "Récapitulatif des places"
       },
+      "places_detailed": {
+        "description": "Afficher tous les détails des places (adresse, coordonnées, prix, description, liens...). Peut considérablement augmenter le nombre de pages imprimées.",
+        "gpx_attached": "Trace GPX associée",
+        "title": "Récapitulatif détaillé des places"
+      },
       "properties": {
         "description": "Champs à inclure",
         "selected": "{0} propriétés sélectionnées",

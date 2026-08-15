@@ -62,6 +62,7 @@ import { CommonModule, DecimalPipe } from '@angular/common';
 import { MenuItem } from 'primeng/api';
 import { Menu, MenuModule } from 'primeng/menu';
 import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
+import { NaturalDurationPipe } from '../../shared/pipes/naturalduration.pipe';
 import { PlaceCreateModalComponent } from '../../modals/place-create-modal/place-create-modal.component';
 import { Settings } from '../../types/settings';
 import { DialogModule } from 'primeng/dialog';
@@ -127,6 +128,7 @@ const HIGHLIGHT_COLORS = [
     MenuModule,
     InputTextModule,
     MarkdownPipe,
+    NaturalDurationPipe,
     FloatLabelModule,
     TableModule,
     ButtonModule,

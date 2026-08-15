@@ -691,6 +691,11 @@
         "description": "Incluir recaptulação dos lugares",
         "title": "Recapitulação dos Lugares"
       },
+      "places_detailed": {
+        "description": "Mostrar detalhes completos dos lugares (endereço, coordenadas, preço, descrição, links...). Pode aumentar significativamente o número de páginas impressas.",
+        "gpx_attached": "Trilha GPX anexada",
+        "title": "Recapitulação detalhada dos lugares"
+      },
       "properties": {
         "description": "Propriedades a incluir",
         "selected": "{0} propriedades selecionadas",

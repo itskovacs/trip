@@ -7,7 +7,8 @@
         <div class="min-w-0">
           <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">{{ t('modals.print.days.title')
             }}</span>
-          <p class="text-xs text-primary-500 dark:text-primary-400 truncate">{{ t('modals.print.days.description') }}</p>
+          <p class="text-xs text-primary-500 dark:text-primary-400 truncate">{{ t('modals.print.days.description') }}
+          </p>
         </div>
       </div>
 
@@ -15,7 +16,8 @@
         display="chip" scrollHeight="320px" appendTo="body" [selectedItemsLabel]="t('modals.print.days.selected')"
         [showClear]="true" [pt]="preventMobileKeyboard" fluid class="max-w-40 md:max-w-48 shrink-0 ml-4">
         <ng-template let-day #item>
-          <div class="whitespace-normal">{{ day.label }} @if (day.dt) {<span class="text-xs text-gray-400 dark:text-gray-500">{{ day.dt }}</span>}</div>
+          <div class="whitespace-normal">{{ day.label }} @if (day.dt) {<span
+              class="text-xs text-gray-400 dark:text-gray-500">{{ day.dt }}</span>}</div>
         </ng-template>
       </p-multiselect>
     </div>
@@ -25,9 +27,11 @@
       <div class="flex items-center gap-3 min-w-0 flex-1">
         <i class="pi pi-calendar text-primary-600 dark:text-primary-400 shrink-0"></i>
         <div class="min-w-0">
-          <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">{{ t('modals.print.properties.title')
+          <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">{{
+            t('modals.print.properties.title')
             }}</span>
-          <p class="text-xs text-primary-500 dark:text-primary-400 truncate">{{ t('modals.print.properties.description') }}</p>
+          <p class="text-xs text-primary-500 dark:text-primary-400 truncate">{{ t('modals.print.properties.description')
+            }}</p>
         </div>
       </div>
 
@@ -41,9 +45,11 @@
       <div class="flex items-center gap-3 min-w-0 flex-1">
         <i class="pi pi-info-circle text-primary-600 dark:text-primary-400 shrink-0"></i>
         <div class="min-w-0">
-          <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">{{ t('modals.print.metadata.title')
+          <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">{{
+            t('modals.print.metadata.title')
             }}</span>
-          <p class="text-xs text-primary-500 dark:text-primary-400 block">{{ t('modals.print.metadata.description') }}</p>
+          <p class="text-xs text-primary-500 dark:text-primary-400 block">{{ t('modals.print.metadata.description') }}
+          </p>
         </div>
       </div>
       <p-toggleswitch formControlName="metadata" class="shrink-0 ml-4" />
@@ -63,16 +69,34 @@
     </div>
 
     <div
-      class="flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700">
-      <div class="flex items-center gap-3 min-w-0 flex-1">
-        <i class="pi pi-map-marker text-primary-600 dark:text-primary-400 shrink-0"></i>
-        <div class="min-w-0">
-          <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">{{ t('modals.print.places.title')
-            }}</span>
-          <p class="text-xs text-primary-500 dark:text-primary-400 block">{{ t('modals.print.places.description') }}</p>
+      class="rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700 overflow-hidden">
+      <div class="flex items-center justify-between py-3 px-4">
+        <div class="flex items-center gap-3 min-w-0 flex-1">
+          <i class="pi pi-map-marker text-primary-600 dark:text-primary-400 shrink-0"></i>
+          <div class="min-w-0">
+            <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">{{
+              t('modals.print.places.title')
+              }}</span>
+            <p class="text-xs text-primary-500 dark:text-primary-400 block">{{ t('modals.print.places.description') }}
+            </p>
+          </div>
         </div>
+        <p-toggleswitch formControlName="places" class="shrink-0 ml-4" />
       </div>
-      <p-toggleswitch formControlName="places" class="shrink-0 ml-4" />
+
+      @if (printForm.get('places')?.value) {
+      <div
+        class="flex items-center justify-between py-3 px-4 border-t border-primary-100 dark:border-primary-700 bg-primary-100/40 dark:bg-white/5">
+        <div class="min-w-0 flex-1">
+          <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">{{
+            t('modals.print.places_detailed.title') }}</span>
+          <p class="text-xs text-primary-500 dark:text-primary-400 block">{{
+            t('modals.print.places_detailed.description')
+            }}</p>
+        </div>
+        <p-toggleswitch formControlName="placesDetailed" class="shrink-0 ml-4" />
+      </div>
+      }
     </div>
 
     <div
@@ -80,8 +104,10 @@
       <div class="flex items-center gap-3 min-w-0 flex-1">
         <i class="pi pi-ticket text-primary-600 dark:text-primary-400 shrink-0"></i>
         <div class="min-w-0">
-          <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">{{ t('modals.print.bookings.title') }}</span>
-          <p class="text-xs text-primary-500 dark:text-primary-400 block">{{ t('modals.print.bookings.description') }}</p>
+          <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">{{
+            t('modals.print.bookings.title') }}</span>
+          <p class="text-xs text-primary-500 dark:text-primary-400 block">{{ t('modals.print.bookings.description') }}
+          </p>
         </div>
       </div>
       <p-toggleswitch formControlName="showBookings" class="shrink-0 ml-4" />
