@@ -159,6 +159,7 @@ export interface ChecklistItem {
   id: number;
   text: string;
   checked?: boolean;
+  notify_dt?: string | null;
 }
 
 export interface PackingList {

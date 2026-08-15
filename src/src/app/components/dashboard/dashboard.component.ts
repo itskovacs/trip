@@ -370,6 +370,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       do_not_display: [],
       tile_layer: ['', Validators.required],
       _google_apikey: [null, { validators: [Validators.pattern('AIza[0-9A-Za-z\\-_]{35}')] }],
+      _apprise_webhook_url: [null],
       map_provider: [],
       duplicate_dist: [null, { validators: [Validators.min(0)] }],
     });
@@ -1102,9 +1103,13 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const data = put || { ...this.settingsForm.value };
     if (!put) {
       delete data['_google_apikey'];
+      delete data['_apprise_webhook_url'];
       if (!this.settingsForm.get('duplicate_dist')?.value) data['duplicate_dist'] = 0;
       if (!this.settings()?.google_apikey && this.settingsForm.get('_google_apikey')?.value) {
         data['google_apikey'] = this.settingsForm.get('_google_apikey')?.value;
+      }
+      if (!this.settings()?.apprise_webhook_url && this.settingsForm.get('_apprise_webhook_url')?.value) {
+        data['apprise_webhook_url'] = this.settingsForm.get('_apprise_webhook_url')?.value;
       }
     }
 
@@ -1637,6 +1642,38 @@ export class DashboardComponent implements OnInit, AfterViewInit {
               'error',
               this.translocoService.translate('common.status.error'),
               this.translocoService.translate('messages.error_deleting_gapi'),
+            ),
+        });
+      },
+    });
+  }
+
+  deleteAppriseWebhook() {
+    const modal = this.dialogService.open(YesNoModalComponent, {
+      header: this.translocoService.translate('common.actions.confirm'),
+      modal: true,
+      closable: true,
+      dismissableMask: true,
+      draggable: false,
+      resizable: false,
+      breakpoints: {
+        '640px': '90vw',
+      },
+      data: this.translocoService.translate('settings.delete_apprise_webhook'),
+    })!;
+
+    modal.onClose.subscribe({
+      next: (bool: boolean) => {
+        if (!bool) return;
+
+        this.apiService.putSettings({ apprise_webhook_url: null }).subscribe({
+          next: () =>
+            this.settings.update((settings) => (settings ? { ...settings, apprise_webhook_url: false } : settings)),
+          error: () =>
+            this.utilsService.toast(
+              'error',
+              this.translocoService.translate('common.status.error'),
+              this.translocoService.translate('messages.error_deleting_apprise_webhook'),
             ),
         });
       },

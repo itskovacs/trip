@@ -326,6 +326,7 @@ class User(UserBase, table=True):
     totp_enabled: bool = False
     totp_secret: str | None = None
     google_apikey: str | None = None
+    apprise_webhook_url: str | None = None
     map_provider: MapProvider = Field(default=MapProvider.OPENSTREETMAP)
     is_admin: bool = False
 
@@ -382,6 +383,7 @@ class UserUpdate(UserBase):
     currency: str | None = None
     do_not_display: list[str] | None = None
     google_apikey: str | None = None
+    apprise_webhook_url: str | None = None
     map_provider: MapProvider | None = None
 
 
@@ -390,6 +392,7 @@ class UserRead(UserBase):
     do_not_display: list[str]
     totp_enabled: bool
     google_apikey: bool
+    apprise_webhook_url: bool
     api_token: bool
     map_provider: str
     is_admin: bool
@@ -411,6 +414,7 @@ class UserRead(UserBase):
             show_dog_tag=obj.show_dog_tag,
             totp_enabled=obj.totp_enabled,
             google_apikey=True if obj.google_apikey else False,
+            apprise_webhook_url=True if obj.apprise_webhook_url else False,
             api_token=True if obj.api_token else False,
             map_provider=obj.map_provider.value,
             duplicate_dist=obj.duplicate_dist,
@@ -1065,6 +1069,7 @@ class TripPackingListItemRead(TripPackingListItemBase):
 class TripChecklistItemBase(SQLModel):
     text: str | None = None
     checked: bool | None = None
+    notify_dt: datetime | None = None
 
 
 class TripChecklistItem(TripChecklistItemBase, table=True):
@@ -1111,6 +1116,7 @@ class TripChecklistItemRead(TripChecklistItemBase):
             id=obj.id,
             text=obj.text,
             checked=obj.checked,
+            notify_dt=obj.notify_dt,
         )
 
 
@@ -1222,6 +1228,7 @@ class TripPackingListRead(TripPackingListBase):
 class TripChecklistEntryBase(SQLModel):
     text: str | None = None
     checked: bool | None = None
+    notify_dt: datetime | None = None
 
 
 class TripChecklistEntry(TripChecklistEntryBase, table=True):
@@ -1268,6 +1275,7 @@ class TripChecklistEntryRead(TripChecklistEntryBase):
             id=obj.id,
             text=obj.text,
             checked=obj.checked,
+            notify_dt=obj.notify_dt,
         )
 
 

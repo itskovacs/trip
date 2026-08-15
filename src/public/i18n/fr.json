@@ -234,7 +234,8 @@
       "add_packing": "Ajouter un Bagage",
       "add_poi": "Ajouter un Point d'Intérêt",
       "delete": "Supprimer l'Élément",
-      "edit": "Modifier l'Élément"
+      "edit": "Modifier l'Élément",
+      "notify_dt": "Notifier à"
     },
     "link": {
       "delete": "Supprimer le Lien",
@@ -313,6 +314,7 @@
     "delete_plans_count": "Supprimer {{count}} plan(s) ? Cette action est irréversible.",
     "delete_user_failed": "Échec de la suppression de l'utilisateur",
     "duplicate_count": "Dupliquer {{count}} plan(s) ?",
+    "error_deleting_apprise_webhook": "Erreur lors de la suppression du webhook Apprise",
     "error_deleting_gapi": "Erreur lors de la suppression de la clé API GMaps",
     "error_disabling": "Erreur lors de la désactivation du TOTP",
     "error_totp": "Erreur lors de l'activation du TOTP",
@@ -560,6 +562,8 @@
     "always_display_visited_desc": "Toujours afficher les places visitées sous forme de petits points",
     "api_key": "Clé API TRIP",
     "api_key_desc": "Utilisez-la pour vous authentifier dans vos scripts",
+    "apprise_webhook": "Webhook Apprise",
+    "apprise_webhook_desc": "Recevez des notifications pour les éléments de checklist planifiés via une URL Apprise",
     "attachments_max_size": "Taille max des pièces jointes (Mo)",
     "authentication": "Authentification",
     "backup_entry_size": "Par fichier",
@@ -583,6 +587,7 @@
     "default_lng": "Longitude par défaut",
     "default_map_tile": "Calque de carte par défaut",
     "defaults": "Valeurs par défaut",
+    "delete_apprise_webhook": "Êtes-vous sûr de vouloir supprimer le webhook Apprise ?",
     "delete_gapi_key": "Êtes-vous sûr de vouloir supprimer la clé API GMaps ?",
     "delete_user": "Supprimer l'utilisateur",
     "delete_user_message": "Supprimer définitivement {{name}} et toutes ses données ? Cette action est irréversible.",

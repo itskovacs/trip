@@ -1366,11 +1366,17 @@
             [(ngModel)]="item.checked" />
           <div class="truncate select-none flex items-center gap-1 min-w-0" [class.line-through]="item.checked"
             [class.text-primary-400]="item.checked">
+            @if (item.notify_dt) {
+            <i class="pi pi-bell text-xs text-amber-500 shrink-0"
+              [pTooltip]="((item.notify_dt + 'Z') | date: 'medium') ?? undefined"></i>
+            }
             <span class="truncate">{{ item.text }}</span>
           </div>
         </label>
         <div
           class="md:opacity-0 absolute right-1 top-1/2 -translate-y-1/2 md:group-hover:opacity-100 bg-white dark:bg-primary-900 md:bg-transparent md:dark:bg-transparent rounded-md transition-opacity">
+          <p-button size="small" text icon="pi pi-pencil" [disabled]="trip()?.archived"
+            (click)="editChecklistItem(item, $any(listId))" severity="secondary" />
           <p-button size="small" text icon="pi pi-trash" [disabled]="trip()?.archived"
             (click)="deleteChecklistItem(item, $any(listId))" severity="danger" />
         </div>

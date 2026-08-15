@@ -234,7 +234,8 @@
       "add_packing": "Add Packing",
       "add_poi": "Add Point of Interest",
       "delete": "Delete Item",
-      "edit": "Edit Item"
+      "edit": "Edit Item",
+      "notify_dt": "Notify at"
     },
     "link": {
       "delete": "Delete Link",
@@ -313,6 +314,7 @@
     "delete_plans_count": "Delete {{count}} plan(s)? This cannot be undone.",
     "delete_user_failed": "Failed to delete user",
     "duplicate_count": "Duplicate {{count}} plan(s)?",
+    "error_deleting_apprise_webhook": "Error deleting Apprise webhook",
     "error_deleting_gapi": "Error deleting GMaps API key",
     "error_disabling": "Error disabling TOTP",
     "error_totp": "Error enabling TOTP",
@@ -560,6 +562,8 @@
     "always_display_visited_desc": "Always display visited places as small dots",
     "api_key": "TRIP API Key",
     "api_key_desc": "Use it to authenticate in scripts",
+    "apprise_webhook": "Apprise Webhook",
+    "apprise_webhook_desc": "Get notified on scheduled checklist items via an Apprise URL",
     "attachments_max_size": "Attachments max size (MB)",
     "authentication": "Authentication",
     "backup_entry_size": "Per-file",
@@ -583,6 +587,7 @@
     "default_lng": "Default Longitude",
     "default_map_tile": "Default map tile layer",
     "defaults": "Defaults",
+    "delete_apprise_webhook": "Are you sure you want to delete the Apprise Webhook ?",
     "delete_gapi_key": "Are you sure you want to delete GMaps API Key ?",
     "delete_user": "Delete user",
     "delete_user_message": "Permanently delete {{name}} and all their data? This cannot be undone.",

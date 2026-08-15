@@ -38,6 +38,14 @@ def put_user_settings(
             ",".join(user_data["do_not_display"]) if user_data["do_not_display"] else ""
         )
 
+    apprise_webhook_url = user_data.get("apprise_webhook_url")
+    if (
+        apprise_webhook_url
+        and not db_user.apprise_webhook_url
+        and not apprise_webhook_url.endswith("/?avatar=No")
+    ):
+        user_data["apprise_webhook_url"] = apprise_webhook_url + "/?avatar=No"
+
     for key, value in user_data.items():
         setattr(db_user, key, value)
 

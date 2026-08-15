@@ -12,6 +12,7 @@ export interface Settings {
   mode_gpx_in_place?: boolean;
   totp_enabled?: boolean;
   google_apikey?: boolean | null;
+  apprise_webhook_url?: boolean | null;
   mode_display_visited?: boolean;
   mode_map_position?: boolean;
   show_dog_tag?: boolean;

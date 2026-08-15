@@ -5,6 +5,12 @@
       <label for="text">{{ t('common.fields.text') }}</label>
     </p-floatlabel>
 
+    <p-floatlabel variant="in">
+      <p-datepicker id="notify_dt" formControlName="notify_dt" [showTime]="true" [showIcon]="true"
+        [iconDisplay]="'input'" appendTo="body" fluid />
+      <label for="notify_dt">{{ t('entities.item.notify_dt') }}</label>
+    </p-floatlabel>
+
     <div class="mt-4 text-right">
       <p-button (click)="closeDialog()" [disabled]="!checklistForm.dirty || !checklistForm.valid">{{
         checklistForm.get('id')?.value !== -1 ? t('common.actions.update') : t('common.actions.create')

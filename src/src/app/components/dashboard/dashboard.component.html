@@ -662,6 +662,33 @@
                           (click)="toggleTripApiToken()" [severity]="settings()?.api_token ? 'danger' : 'success'"
                           size="small" [label]="settings()?.api_token ? 'Disable' : 'Enable'" text />
                       </div>
+
+                      <div
+                        class="flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700">
+                        <div class="flex items-center gap-3 min-w-0 flex-1">
+                          <i class="pi pi-bell shrink-0" [class]="
+                                settings()?.apprise_webhook_url
+                                  ? 'text-green-600 dark:text-green-400'
+                                  : 'text-red-600 dark:text-red-400'
+                              "></i>
+                          <div class="min-w-0">
+                            <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">{{
+                              t('settings.apprise_webhook') }}</span>
+                            <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">{{
+                              t('settings.apprise_webhook_desc') }}</p>
+                          </div>
+                        </div>
+
+                        @if (settings()?.apprise_webhook_url) {
+                        <p-button (click)="deleteAppriseWebhook()" icon="pi pi-trash"
+                          [label]="t('common.actions.remove')" severity="danger" text size="small" />
+                        } @else {
+                        <div [formGroup]="settingsForm" class="w-40">
+                          <input id="_apprise_webhook_url" type="text" formControlName="_apprise_webhook_url" pInputText
+                            fluid pSize="small" placeholder="discord://..." />
+                        </div>
+                        }
+                      </div>
                     </div>
                     }
                   </section>

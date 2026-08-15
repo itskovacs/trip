@@ -2678,6 +2678,44 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  editChecklistItem(item: ChecklistItem, listId: number | null = null) {
+    const modal: DynamicDialogRef = this.dialogService.open(TripCreateChecklistModalComponent, {
+      header: this.translocoService.translate('entities.item.edit'),
+      modal: true,
+      appendTo: 'body',
+      closable: true,
+      dismissableMask: true,
+      draggable: false,
+      resizable: false,
+      breakpoints: {
+        '640px': '90vw',
+      },
+      data: { packing: item },
+    })!;
+
+    modal.onClose.pipe(take(1)).subscribe({
+      next: (updated: ChecklistItem | null) => {
+        if (!updated) return;
+
+        const req$ =
+          listId == null
+            ? this.apiService.putChecklistItem(this.trip()!.id, item.id, {
+                text: updated.text,
+                notify_dt: updated.notify_dt,
+              })
+            : this.apiService.putChecklistListItem(this.trip()!.id, listId, item.id, {
+                text: updated.text,
+                notify_dt: updated.notify_dt,
+              });
+
+        req$.pipe(take(1)).subscribe({
+          next: (result) =>
+            this.updateChecklistItems(listId, (items) => items.map((i) => (i.id === item.id ? result : i))),
+        });
+      },
+    });
+  }
+
   openAttachmentsModal() {
     this.isAttachmentsDialogVisible = !this.isAttachmentsDialogVisible;
   }
