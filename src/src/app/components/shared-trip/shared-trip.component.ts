@@ -79,6 +79,7 @@ import { ToggleButtonModule } from 'primeng/togglebutton';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { LinkChipComponent } from '../../shared/link-chip/link-chip.component';
 import { ItemGalleryComponent } from '../../shared/item-gallery/item-gallery.component';
+import { TripSkeletonComponent } from '../../shared/trip-skeleton/trip-skeleton.component';
 
 const HIGHLIGHT_COLORS = [
   '#e6194b',
@@ -126,6 +127,7 @@ const MAX_MAP_INIT_RETRIES = 5;
     TranslocoDirective,
     LinkChipComponent,
     ItemGalleryComponent,
+    TripSkeletonComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './shared-trip.component.html',
@@ -427,6 +429,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   availableItemProps = ['place', 'comment', 'latlng', 'price', 'status', 'distance'];
 
   map?: L.Map;
+  mapReady = signal(false);
   markerClusterGroup?: L.MarkerClusterGroup;
   tripMapAntLayer?: L.FeatureGroup;
   markers = new Map<number, L.Marker>();
@@ -649,6 +652,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
       this.map.remove();
       this.map = undefined;
     }
+    this.mapReady.set(false);
   }
 
   getItemDayLabel(item: ViewTripItem): string {
@@ -706,7 +710,7 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
       },
     ];
 
-    this.map = createMap(contextMenuItems);
+    this.map = createMap(contextMenuItems, undefined, () => this.mapReady.set(true));
     this.markerClusterGroup = createClusterGroup().addTo(this.map);
     this.updateMapVisualization(this.tripViewModel());
     this.resetMapBounds();

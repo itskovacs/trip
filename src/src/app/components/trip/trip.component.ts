@@ -98,6 +98,7 @@ import { TripPrettyPrintModalComponent } from '../../modals/trip-pretty-print-mo
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { LinkChipComponent } from '../../shared/link-chip/link-chip.component';
 import { ItemGalleryComponent } from '../../shared/item-gallery/item-gallery.component';
+import { TripSkeletonComponent } from '../../shared/trip-skeleton/trip-skeleton.component';
 
 const HIGHLIGHT_COLORS = [
   '#e6194b',
@@ -143,6 +144,7 @@ const HIGHLIGHT_COLORS = [
     TranslocoDirective,
     LinkChipComponent,
     ItemGalleryComponent,
+    TripSkeletonComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './trip.component.html',
@@ -478,6 +480,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   availableItemProps = ['place', 'comment', 'latlng', 'price', 'status', 'distance'];
 
   map?: L.Map;
+  mapReady = signal(false);
   markerClusterGroup?: L.MarkerClusterGroup;
   tripMapAntLayer?: L.FeatureGroup;
   markers = new Map<number, L.Marker>();
@@ -709,6 +712,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       this.map.remove();
       this.map = undefined;
     }
+    this.mapReady.set(false);
   }
 
   getItemDayLabel(item: ViewTripItem): string {
@@ -761,7 +765,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       },
     ];
 
-    this.map = createMap(contextMenuItems, settings.tile_layer);
+    this.map = createMap(contextMenuItems, settings.tile_layer, () => this.mapReady.set(true));
     this.markerClusterGroup = createClusterGroup().addTo(this.map);
     this.map.setView([settings.map_lat, settings.map_lng]);
     this.updateMapVisualization(this.tripViewModel());

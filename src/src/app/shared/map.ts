@@ -20,7 +20,11 @@ export interface MarkerOptions extends L.MarkerOptions {
   contextmenuItems: ContextMenuItem[];
 }
 
-export function createMap(contextMenuItems: ContextMenuItem[] = [], tilelayer: string = DEFAULT_TILE_URL): L.Map {
+export function createMap(
+  contextMenuItems: ContextMenuItem[] = [],
+  tilelayer: string = DEFAULT_TILE_URL,
+  onTilesLoaded?: () => void,
+): L.Map {
   const southWest = L.latLng(-89.99, -180);
   const northEast = L.latLng(89.99, 180);
   const bounds = L.latLngBounds(southWest, northEast);
@@ -35,12 +39,14 @@ export function createMap(contextMenuItems: ContextMenuItem[] = [], tilelayer: s
     .setView(center, 10)
     .setMaxBounds(bounds);
 
-  L.tileLayer(tilelayer, {
+  const tiles = L.tileLayer(tilelayer, {
     maxZoom: 18,
     minZoom: 3,
     attribution:
       '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>',
   }).addTo(map);
+
+  if (onTilesLoaded) tiles.once('load', onTilesLoaded);
 
   return map;
 }

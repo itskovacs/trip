@@ -1,0 +1,53 @@
+<div class="fixed top-4 left-4 right-4 bottom-4 md:h-auto! md:bottom-4! md:w-sm lg:w-md xl:w-lg md:max-w-1/3 z-40"
+  animate.leave="a-fade-scale">
+  <div
+    class="relative flex h-full flex-col overflow-hidden shadow rounded-lg ring-1 ring-black/5 dark:ring-white/10 bg-white/70 dark:bg-black/70 backdrop-blur-xl">
+    <div
+      class="shrink-0 relative overflow-hidden min-h-28 bg-linear-to-br from-primary-700 to-primary-950 dark:from-primary-800 dark:to-black">
+      <div class="relative flex items-center gap-3 p-4 min-h-28">
+        @if (showBackButton()) {
+        <p-button icon="pi pi-arrow-left" text (click)="back.emit()" severity="secondary"
+          styleClass="text-white/90! hover:bg-white/15! hover:text-white!" />
+        }
+        <div class="flex flex-1 min-w-0 flex-col gap-2">
+          <p-skeleton width="9rem" height="1rem" styleClass="bg-white/15!" />
+          <div class="flex gap-1.5">
+            <p-skeleton width="3.5rem" height="1.35rem" borderRadius="0.375rem" styleClass="bg-white/15!" />
+            <p-skeleton width="4.5rem" height="1.35rem" borderRadius="0.375rem" styleClass="bg-white/15!" />
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div
+      class="shrink-0 bg-white/50 dark:bg-primary-900/50 border-b border-primary-200/50 dark:border-primary-700/50 backdrop-blur-xl">
+      <div class="px-4 sm:px-5 py-3 flex flex-col gap-1.5">
+        <p-skeleton width="4.5rem" height="0.95rem" />
+        <p-skeleton width="7rem" height="0.7rem" />
+      </div>
+    </div>
+
+    <div class="flex-1 overflow-hidden min-h-0 space-y-4 pt-1 pb-4">
+      @for (_ of [1, 2, 3]; track _) {
+      <div>
+        <div class="flex items-center gap-3 p-4">
+          <p-skeleton shape="circle" size="2.5rem" />
+          <div class="flex-1 min-w-0 flex flex-col gap-1.5">
+            <p-skeleton width="7rem" height="0.9rem" />
+            <p-skeleton width="5rem" height="0.7rem" />
+          </div>
+        </div>
+
+        <div class="space-y-2 px-4">
+          @for (__ of [1, 2]; track __) {
+          <div class="flex items-center gap-3 p-3 rounded-lg border border-primary-100 dark:border-primary-800">
+            <p-skeleton width="3.25rem" height="1.5rem" borderRadius="0.375rem" />
+            <p-skeleton height="1rem" styleClass="flex-1 max-w-[55%]" />
+          </div>
+          }
+        </div>
+      </div>
+      }
+    </div>
+  </div>
+</div>
