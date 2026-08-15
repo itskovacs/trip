@@ -117,7 +117,7 @@
         @if (isArchivalReviewDisplayed() && trip()?.archival_review) {
         <div
           class="mt-3 max-h-64 overflow-y-auto rounded-xl border border-orange-100/40 bg-orange-50/95 px-3 py-2.5 text-xs leading-relaxed text-orange-900 shadow-sm dark:border-orange-100/15 dark:bg-orange-950/60 dark:text-orange-50">
-          <p class="mb-1 text-[11px] font-semibold uppercase tracking-wide text-orange-700/90 dark:text-orange-200/90">
+          <p class="mb-1 text-xs font-semibold uppercase tracking-wide text-orange-700/90 dark:text-orange-200/90">
             {{ t('view.archival_notes') }}</p>
           <p class="whitespace-pre-wrap">{{ trip()!.archival_review }}</p>
         </div>
@@ -523,7 +523,7 @@
         </div>
 
         <div (pointerdown)="onPlansResizeStart($event)" (dblclick)="resetPlansWidth()"
-          class="hidden md:flex w-1 cursor-ew-resize hover:bg-primary-500/20 active:bg-primary-500/30 transition-colors"
+          class="hidden md:flex absolute top-0 right-0 z-10 w-2 h-full cursor-ew-resize hover:bg-primary-500/20 active:bg-primary-500/30 transition-colors"
           [pTooltip]="t('view.drag_resize')" tooltipPosition="right"></div>
       </div>
 
@@ -1563,7 +1563,7 @@
       </div>
     </section>
   </p-dialog>
-  <p-menu #menuTripPacking [model]="menuTripPackingItems" attachTo="body" [popup]="true" />
+  <p-menu #menuTripPacking [model]="menuTripPackingItems" appendTo="body" [popup]="true" />
 
   <p-dialog [header]="t('common.fields.packing_list')" [draggable]="false" [dismissableMask]="true" [modal]="true"
     [(visible)]="isPackingDialogVisible" styleClass="w-[95%] md:w-[80%] max-w-5xl">

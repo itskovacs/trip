@@ -201,7 +201,7 @@ export class TripCreateDayItemModalComponent {
     if (!p) return;
     this.itemForm.get('lat')?.setValue(p.lat);
     this.itemForm.get('lng')?.setValue(p.lng);
-    this.itemForm.get('price')?.setValue(p.price || 0);
+    if (p.price) this.itemForm.get('price')?.setValue(p.price);
     if (!this.itemForm.get('text')?.value) this.itemForm.get('text')?.setValue(p.name);
     if (p.description && !this.itemForm.get('comment')?.value) this.itemForm.get('comment')?.setValue(p.description);
 

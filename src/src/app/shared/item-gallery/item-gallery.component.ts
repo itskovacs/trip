@@ -77,7 +77,6 @@ import { TripItemImage } from '../../types/trip';
         animate.enter="fade-scale"
         animate.leave="a-fade-scale"
         role="dialog"
-        [attr.aria-label]="'common.fields.image' | transloco"
         (click)="close()"
         class="fixed inset-0 flex items-center justify-center bg-black/90 backdrop-blur-md">
         <img

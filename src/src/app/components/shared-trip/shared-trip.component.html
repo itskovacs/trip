@@ -444,7 +444,7 @@
         </div>
 
         <div (pointerdown)="onPlansResizeStart($event)" (dblclick)="resetPlansWidth()"
-          class="hidden md:flex w-1 cursor-ew-resize hover:bg-primary-500/20 active:bg-primary-500/30 transition-colors"
+          class="hidden md:flex absolute top-0 right-0 z-10 w-2 h-full cursor-ew-resize hover:bg-primary-500/20 active:bg-primary-500/30 transition-colors"
           [pTooltip]="t('view.drag_resize')" tooltipPosition="right"></div>
       </div>
 
@@ -1280,7 +1280,7 @@
       </div>
     </section>
   </p-dialog>
-  <p-menu #menuTripPacking [model]="menuTripPackingItems" attachTo="body" [popup]="true" />
+  <p-menu #menuTripPacking [model]="menuTripPackingItems" appendTo="body" [popup]="true" />
   <p-dialog [header]="t('common.fields.packing_list')" [draggable]="false" [dismissableMask]="true" [modal]="true"
     [(visible)]="isPackingDialogVisible" styleClass="w-[95%] md:w-[80%] max-w-5xl">
     <section class="p-4 max-h-[80vh]">

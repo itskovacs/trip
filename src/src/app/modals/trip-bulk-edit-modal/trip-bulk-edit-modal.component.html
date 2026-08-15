@@ -14,7 +14,8 @@
           <p-select [options]="trip?.days" optionLabel="label" optionValue="id" formControlName="day_id" inputId="day"
             [showClear]="true" appendTo="body" fluid class="capitalize">
             <ng-template let-day #item>
-              <div>{{ day.label }} @if (day.dt) {<span class="text-xs text-gray-400 dark:text-gray-500">{{ day.dt }}</span>}</div>
+              <div>{{ day.label }} @if (day.dt) {<span class="text-xs text-gray-400 dark:text-gray-500">{{ day.dt
+                  }}</span>}</div>
             </ng-template>
           </p-select>
           <label for="day">{{ t('common.fields.day') }}</label>
@@ -138,9 +139,9 @@
             <p-checkbox [binary]="true" formControlName="enable_attachment_ids" />
           </p-inputgroup-addon>
           <p-floatlabel variant="in">
-            <p-multiselect [options]="trip?.attachments ?? []" optionValue="id" optionLabel="filename" id="attachment_ids"
-              formControlName="attachment_ids" [showToggleAll]="false" display="chip" scrollHeight="320px" appendTo="body"
-              fluid />
+            <p-multiselect [options]="trip?.attachments ?? []" optionValue="id" optionLabel="filename"
+              id="attachment_ids" formControlName="attachment_ids" [showToggleAll]="false" display="chip"
+              scrollHeight="320px" appendTo="body" fluid />
             <label for="attachment_ids">{{ t('common.fields.attachments') }}</label>
           </p-floatlabel>
         </p-inputgroup>
@@ -163,7 +164,7 @@
       }
     </div>
 
-    <div class="flex justify-center pt-4 border-t border-primary-200 dark:border-primary-700">
+    <div class="flex justify-center pt-4 pb-4 sm:pb-0 border-t border-primary-200 dark:border-primary-700">
       <p-button [label]="t('common.actions.confirm')" text (click)="closeDialog()"
         [disabled]="!editForm.dirty || !editForm.valid" />
     </div>
