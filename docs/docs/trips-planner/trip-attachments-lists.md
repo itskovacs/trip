@@ -26,7 +26,7 @@ Your trip can hold attachments such as documents and receipts (_pdf_), keeping a
 Organize your pre-trip tasks and reminders within the trip's checklist(s) to ensure nothing is overlooked.
 
 :::important[Notifications]
-Set a notification date to receive a reminder. To enable notifications, configure your Apprise URL in [Settings (Account)](settings#account)
+Set a notification date to receive a reminder. To enable notifications, configure your Apprise URL in [Settings (Account)](../map-tracker/settings#account)
 :::
 
 <img src="/trip/img/trip_checklist.png" alt="Trip - Checklist" />
