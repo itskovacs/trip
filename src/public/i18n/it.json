@@ -121,6 +121,7 @@
       "date_range": "Intervallo date",
       "day": "Giorno",
       "days": "Giorni",
+      "default": "Predefinito",
       "description": "Descrizione",
       "distance": "Distanza",
       "gpx": "GPX",
@@ -162,7 +163,7 @@
     },
     "status": {
       "error": "Errore",
-      "success": "Operazione riuscita",
+      "success": "Successo",
       "unplanned": "Non pianificato",
       "wait": "Potrebbe richiedere un momento. Attendere prego.",
       "with_status": "Con stato"
@@ -195,6 +196,7 @@
     "mins": "{{count}} min"
   },
   "empty_states": {
+    "checklist_empty": "La tua lista di controllo è vuota",
     "every_place_used": "Tutti i luoghi sono occupati",
     "no_attachments": "Nessun allegato",
     "no_days": "Nessun giorno",
@@ -215,6 +217,11 @@
       "delete_desc": "Eliminare l'allegato? L'azione non può essere annullata.",
       "download_all": "Scarica tutti"
     },
+    "checklist": {
+      "add": "Nuova lista di controllo",
+      "delete": "Elimina lista di controllo",
+      "rename": "Rinomina lista di controllo"
+    },
     "day": {
       "add": "Aggiungi giorno/i",
       "delete": "Elimina giorno",
@@ -227,7 +234,8 @@
       "add_packing": "Aggiungi bagaglio",
       "add_poi": "Aggiungi punto di interesse",
       "delete": "Elimina elemento",
-      "edit": "Modifica elemento"
+      "edit": "Modifica elemento",
+      "notify_dt": "Notifica il"
     },
     "link": {
       "delete": "Elimina link",
@@ -239,6 +247,11 @@
       "invite": "Invita membro",
       "remove": "Rimuovi membro"
     },
+    "packing_list": {
+      "add": "Nuova lista dei bagagli",
+      "delete": "Elimina lista dei bagagli",
+      "rename": "Rinomina lista dei bagagli"
+    },
     "place": {
       "attached": "Luoghi collegati",
       "create": "Crea luogo",
@@ -247,7 +260,7 @@
       "in_use": "Luogo in uso",
       "link_to_trip": "Collega luoghi al viaggio",
       "pin": "📍 Luoghi",
-      "referenced": "Questo luogo è richiamato da almeno un programma",
+      "referenced": "Questo luogo è utilizzato in almeno un programma",
       "remove_from_trip": "Rimuovere il luogo da questo viaggio?",
       "unlink": "Scollega luogo"
     },
@@ -261,8 +274,8 @@
       "update": "Aggiorna programma"
     },
     "trip": {
-      "create": "Crea viaggio"
-            "delete": "Elimina viaggio",
+      "create": "Crea viaggio",
+      "delete": "Elimina viaggio",
       "delete_desc": "Eliminare {{name}}?",
       "highlight": "Evidenzia viaggio",
       "update": "Aggiorna viaggio"
@@ -301,6 +314,7 @@
     "delete_plans_count": "Eliminare {{count}} programma/i? L'azione non può essere annullata.",
     "delete_user_failed": "Impossibile eliminare l'utente",
     "duplicate_count": "Duplicare {{count}} programma/i?",
+    "error_deleting_apprise_webhook": "Errore durante l'eliminazione del webhook Apprise",
     "error_deleting_gapi": "Errore durante l'eliminazione della chiave API di GMaps",
     "error_disabling": "Errore durante la disattivazione della verifica TOTP",
     "error_totp": "Errore durante l'attivazione della verifica TOTP",
@@ -487,6 +501,11 @@
         "description": "Includi il riepilogo dei luoghi",
         "title": "Riepilogo luoghi"
       },
+      "places_detailed": {
+        "description": "Mostra tutti i dettagli del luogo (indirizzo, coordinate, prezzo, descrizione, link...). Potrebbe aumentare significativamente il numero di pagine stampate.",
+        "gpx_attached": "Traccia GPX allegata",
+        "title": "Riepilogo dettagliato dei luoghi"
+      },
       "properties": {
         "description": "Campi da includere",
         "selected": "{0} proprietà selezionate",
@@ -548,6 +567,8 @@
     "always_display_visited_desc": "Mostra sempre i luoghi visitati come piccoli punti",
     "api_key": "Chiave API di TRIP",
     "api_key_desc": "Utilizzala per autenticarti negli script",
+    "apprise_webhook": "Apprise Webhook",
+    "apprise_webhook_desc": "Ricevi notifiche per gli elementi della lista di controllo programmati tramite un URL Apprise",
     "attachments_max_size": "Dimensione massima allegati (MB)",
     "authentication": "Autenticazione",
     "backup_entry_size": "Per singolo file",
@@ -571,6 +592,7 @@
     "default_lng": "Longitudine predefinita",
     "default_map_tile": "Livello mappa predefinito",
     "defaults": "Impostazioni predefinite",
+    "delete_apprise_webhook": "Sei sicuro di voler eliminare il Webhook Apprise?",
     "delete_gapi_key": "Sei sicuro di voler eliminare la chiave API di GMaps?",
     "delete_user": "Elimina utente",
     "delete_user_message": "Eliminare definitivamente {{name}} e tutti i suoi dati? L'azione non può essere annullata.",
@@ -611,7 +633,7 @@
     "map_center_desc": "Latitudine e longitudine predefinite",
     "map_parameters": "Parametri mappa",
     "map_parameters_desc": "Configura la visualizzazione predefinita della mappa e i livelli della mappa",
-    "mode_low_net": "Modalità rete lenta",
+    "mode_low_net": "Modalità risparmio dati",
     "mode_low_net_desc": "Usa le immagini delle categorie per ridurre la larghezza di banda",
     "new_version": "Nuova versione disponibile!",
     "no_backups": "Ancora nessun backup",
@@ -621,7 +643,7 @@
     "oidc_client_secret": "Client Secret",
     "oidc_desc": "Configurazione OpenID Connect",
     "oidc_discovery_url": "Discovery URL",
-    "oidc_redirect_uri": "URI di reindirizzamento",
+    "oidc_redirect_uri": "Redirect URI",
     "open_registration": "Registrazione aperta",
     "preferences": "Preferenze",
     "processing": "Elaborazione in corso...",
