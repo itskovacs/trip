@@ -1361,7 +1361,7 @@
 
   @if (printOptions()) {
   @let options = printOptions();
-  <section class="hidden print:block">
+  <section id="print-section" class="hidden print:block">
     <div class="flex items-center justify-center">
       <div class="flex flex-col items-center max-w-[55vw] md:max-w-full">
         <div class="flex flex-col items-center">
@@ -1513,7 +1513,7 @@
       <div class="mt-4">
         @if (options?.placesDetailed) {
         <div class="grid grid-cols-2 gap-3">
-          @for (place of printOptionsPlaces(); track place.id) {
+          @for (place of places(); track place.id) {
           <div class="flex gap-3 p-3 rounded-lg border border-primary-200 break-inside-avoid">
             <img [src]="place.image || place.category.image" class="size-14 rounded-md object-cover shrink-0" />
             <div class="min-w-0 flex-1">

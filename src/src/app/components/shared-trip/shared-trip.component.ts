@@ -202,10 +202,12 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
   printOptionsPlaces = computed(() => {
     const options = this.printOptions();
     const places: Set<Place> = new Set();
+    const seenIds = new Set<number>();
     this.trip()?.days.forEach((d) => {
       if (!options?.days.has(d.id)) return;
       d.items.forEach((i) => {
-        if (!i.place) return;
+        if (!i.place || seenIds.has(i.place.id)) return;
+        seenIds.add(i.place.id);
         places.add(i.place);
       });
     });
@@ -955,9 +957,31 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
       if (!data) return;
       this.printOptions.set(data);
       this.changeDetectionRef.detectChanges();
-      window.print();
-      this.printOptions.set(null);
+      this.waitForPrintImages().then(() => {
+        window.print();
+        this.printOptions.set(null);
+      });
     });
+  }
+
+  waitForPrintImages(timeoutMs = 3000): Promise<void> {
+    const pending = Array.from(document.querySelectorAll<HTMLImageElement>('#print-section img')).filter(
+      (img) => !img.complete,
+    );
+    if (!pending.length) return Promise.resolve();
+
+    const loaded = Promise.all(
+      pending.map(
+        (img) =>
+          new Promise<void>((resolve) => {
+            img.addEventListener('load', () => resolve(), { once: true });
+            img.addEventListener('error', () => resolve(), { once: true });
+          }),
+      ),
+    ).then(() => undefined);
+
+    const timeout = new Promise<void>((resolve) => setTimeout(resolve, timeoutMs));
+    return Promise.race([loaded, timeout]);
   }
 
   toggleFiltering() {
