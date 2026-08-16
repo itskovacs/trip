@@ -34,7 +34,7 @@ When toggling dark mode, if the map tile provider wasn't changed manually, it wi
 The **Account** section handles two topics: **Security** and **Integrations**.
 
 - Update your password, enable Two-Factor Authentication (TOTP) for enhanced security.
-- Select your default provider, set your Google API Key to access Google API features within the app, and generate your [TRIP API Key](/docs/trip-api/generating-trip-api-key) for scripting.
+- Select your default provider, set your Google API Key to access Google API features within the app, and generate your [TRIP API Key](/docs/trip-api/generating-trip-api-key) for scripting. To receive notifications from checklist items, you can set an Apprise URL ([see Apprise documentation for supported services](https://appriseit.com/services/)).
 
 <br />
 
