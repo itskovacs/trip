@@ -6,7 +6,7 @@
 [![Support](https://img.shields.io/badge/Support-30363D?style=for-the-badge&logo=GitHub-Sponsors)](https://ko-fi.com/itskovacs)
 ![Status](https://img.shields.io/badge/status-active-success?style=for-the-badge)
 [![GitHub Issues](https://img.shields.io/github/issues/itskovacs/trip?style=for-the-badge&color=ededed)](https://github.com/itskovacs/trip/issues)
-![Pulls](https://img.shields.io/badge/pulls-300k+-2596be?style=for-the-badge)
+![Pulls](https://img.shields.io/badge/pulls-350k+-2596be?style=for-the-badge)
 
 </div>
 
@@ -15,12 +15,6 @@
 ![TRIP Planning](./.github/screenshot.jpg)
 
 </div>
-
-## 📝 Table of Contents
-
-- 📦 [About](#about)
-- 🌱 [Getting Started](#getting_started)
-- 📸 [Demo](#demo)
 
 ## 📦 About <a name = "about"></a>
 
@@ -31,7 +25,7 @@ TRIP (*Tourism and Recreational Interest Points*) is a self-hostable **minimalis
 - Plan multi-day trips with detailed itineraries
 - Collaborate and share with travel companions
 
-No telemetry. No tracking. No ads. Free, forever.
+No telemetry. No tracking. No ads. Free, forever. [☕ Donations](https://ko-fi.com/itskovacs) help keep it that way.
 
 See the [📸 demo](#demo) to explore TRIP in action.
 
