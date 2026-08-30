@@ -308,7 +308,7 @@
                     <div class="min-w-0 flex-1">
                       <h3 class="font-medium text-primary-900 dark:text-white truncate">{{ group.day.label }}</h3>
                       <p class="text-xs text-primary-500 dark:text-primary-400 truncate">{{
-                        group.day.dt | date: 'd MMM, y' }}</p>
+                        group.day.dt | date: 'd MMM, y (EEEE)' }}</p>
                     </div>
                   </div>
 
@@ -1281,7 +1281,7 @@
               <div [style.--color-bg-opacity]="place.category.color"
                 class="inline-flex color-bg-opacity items-center gap-2 font-medium p-2 rounded-lg">
                 <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden shrink-0">
-                  <img [src]="place.image" class="size-full object-cover" loading="lazy" />
+                  <img [src]="place.image || place.category.image" class="size-full object-cover" loading="lazy" />
                 </div>
                 <span class="text-sm truncate">{{ place.name }}</span>
               </div>
@@ -1908,15 +1908,16 @@
           }
 
           @if (options?.showBookings && group.day.bookings?.length) {
-          <div class="mb-2 flex gap-1">
+          <div class="mb-2 flex flex-wrap gap-1">
             @for (booking of sortBookings(group.day.bookings ?? []); track booking.id) {
-            <span class="flex items-center w-fit px-2.5 py-1 text-xs font-mono font-medium rounded"
-              [class]="bookingTypeClass(booking.type)">{{ bookingTypeIcon(booking.type) }} {{ booking.label }}
+            <span class="flex items-center max-w-full px-2.5 py-1 text-xs font-mono font-medium rounded"
+              [class]="bookingTypeClass(booking.type)">
+              <span class="shrink-0">{{ bookingTypeIcon(booking.type) }} {{ booking.label }}</span>
               @if (booking.reference) {
-              <span class="opacity-60">&middot; {{ booking.reference }}</span>
+              <span class="opacity-60 shrink-0">&middot; {{ booking.reference }}</span>
               }
               @if (booking.notes) {
-              <span class="ml-2 text-primary-400 italic truncate">{{ booking.notes }}</span>
+              <span class="ml-2 text-primary-400 italic truncate min-w-0">{{ booking.notes }}</span>
               }
             </span>
             }
@@ -2034,7 +2035,7 @@
         <div [style.--color-bg-opacity]="place.category.color"
           class="inline-flex color-bg-opacity items-center gap-2 font-medium p-1 pr-3 m-1 rounded-lg">
           <div class="size-6 flex items-center justify-center bg-white rounded-full overflow-hidden shrink-0">
-            <img [src]="place.image" class="size-full object-cover" />
+            <img [src]="place.image || place.category.image" class="size-full object-cover" />
           </div>
           <span class="text-sm text-primary-900">{{ place.name }}</span>
         </div>

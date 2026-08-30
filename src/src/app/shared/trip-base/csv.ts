@@ -35,7 +35,7 @@ export function generateTripCSVFile(trip: Trip): void {
     });
   });
 
-  const csvContent = rows.join('\n');
+  const csvContent = rows.join('\r\n');
   const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
   saveBlobAs(blob, tripFilename(trip.name, 'csv'));
 }
