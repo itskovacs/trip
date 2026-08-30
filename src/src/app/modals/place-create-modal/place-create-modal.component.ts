@@ -220,8 +220,8 @@ export class PlaceCreateModalComponent {
 
   storePreviousImageAndClear() {
     if (!this.placeForm.get('image_id')?.value) return;
-    this.previous_image_id = this.placeForm.get('image_id')?.value;
-    this.previous_image = this.placeForm.get('image')?.value;
+    this.previous_image_id = this.placeForm.get('image_id')?.value ?? null;
+    this.previous_image = this.placeForm.get('image')?.value ?? null;
     this.placeForm.get('image_id')?.setValue(null);
   }
 
@@ -248,7 +248,11 @@ export class PlaceCreateModalComponent {
     if (this.previous_image && this.previous_image_id) {
       this.placeForm.get('image_id')?.setValue(this.previous_image_id);
       this.placeForm.get('image')?.setValue(this.previous_image);
+      this.previous_image = null;
+      this.previous_image_id = null;
     }
+
+    this.placeForm.get('image')?.markAsDirty();
   }
 
   onGPXSelected(event: Event) {

@@ -143,6 +143,11 @@ async def update_place(
                         remove_image(filename)
                     raise HTTPException(status_code=400, detail="Bad request")
             db_place.image_id = image.id
+    elif image_provided and db_place.image_id:
+        old_image = session.get(Image, db_place.image_id)
+        if old_image:
+            session.delete(old_image)
+        db_place.image_id = None
 
     for key, value in place_data.items():
         setattr(db_place, key, value)

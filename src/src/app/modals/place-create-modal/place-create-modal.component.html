@@ -66,13 +66,11 @@
               (click)="imageInput.click()">
               <i class="pi pi-camera text-white text-2xl"></i>
             </div>
-            @if (!placeForm.get('image_id')?.value) {
             <button type="button"
               class="cursor-pointer absolute -top-2 -right-2 size-7 flex items-center justify-center bg-red-500 hover:bg-red-600 text-white rounded-full shadow transition"
               (click)="clearImage(); $event.stopPropagation()">
               <i class="pi pi-times text-xs"></i>
             </button>
-            }
             } @else {
             <div
               class="size-24 flex items-center justify-center bg-primary-100 dark:bg-primary-900 rounded-lg border-2 border-dashed border-primary-300 dark:border-primary-600 cursor-pointer transition hover:border-primary-400"
