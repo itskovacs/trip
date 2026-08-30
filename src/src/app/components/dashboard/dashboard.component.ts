@@ -188,6 +188,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   providers: { disp: string; value: string }[] = [
     { disp: 'OpenStreetMap API', value: 'osm' },
     { disp: 'Google API', value: 'google' },
+    { disp: 'Photon API', value: 'photon' },
   ];
   geocodeFilterInput = new FormControl('');
   searchInput = new FormControl('');
@@ -397,6 +398,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       OIDC_CLIENT_SECRET: [''],
       OIDC_REDIRECT_URI: [''],
       DEFAULT_TILE: ['', [Validators.required]],
+      PHOTON_URL: ['', [Validators.required]],
       DEFAULT_CURRENCY: ['€', [Validators.required]],
       DEFAULT_MAP_LAT: [0, [Validators.required, Validators.pattern('-?(90(\\.0+)?|[1-8]?\\d(\\.\\d+)?)')]],
       DEFAULT_MAP_LNG: [
@@ -501,12 +503,22 @@ export class DashboardComponent implements OnInit, AfterViewInit {
         },
       },
       {
+        text: this.translocoService.translate('clipboard.copy_coords'),
+        callback: (e: any) => {
+          const { lat, lng } = e.latlng;
+          navigator.clipboard.writeText(`${parseFloat(lat).toFixed(5)}, ${parseFloat(lng).toFixed(5)}`);
+        },
+      },
+    ];
+
+    if (settings.map_provider === 'google' && settings.google_apikey) {
+      contentMenuItems.push({
         text: this.translocoService.translate('dashboard.find_nearby'),
         callback: (e: any) => {
           this.googleNearbyPlaces(e);
         },
-      },
-    ];
+      });
+    }
     this.map = createMap(isTouch ? [] : contentMenuItems, settings.tile_layer);
     if (isTouch) this.map.on('contextmenu', (e: any) => this.addPlaceModal(e));
 
@@ -1124,7 +1136,10 @@ export class DashboardComponent implements OnInit, AfterViewInit {
       .pipe(take(1))
       .subscribe({
         next: (settings) => {
-          const refreshMap = this.settings()?.tile_layer !== settings.tile_layer;
+          const refreshMap =
+            this.settings()?.tile_layer !== settings.tile_layer ||
+            this.settings()?.map_provider !== settings.map_provider ||
+            !!this.settings()?.google_apikey !== !!settings.google_apikey;
           this.settings.set(settings);
 
           if (refreshMap) {
@@ -1347,19 +1362,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     if (!settings) return;
 
     let data: Partial<Settings> = { mode_dark: !settings.mode_dark };
-
-    // If user uses default tile, we also update tile_layer to dark/voyager
-    if (
-      !settings.mode_dark &&
-      settings.tile_layer === 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png'
-    ) {
-      data.tile_layer = 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-    } else if (
-      settings.mode_dark &&
-      settings.tile_layer === 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png'
-    ) {
-      data.tile_layer = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
-    }
 
     this.apiService
       .putSettings(data)

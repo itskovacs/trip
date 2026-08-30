@@ -227,6 +227,8 @@
     "registration": "Registratie",
     "open_registration": "Open registratie",
     "tile": "Tegel-URL",
+    "photon_url": "Photon-URL",
+    "photon_url_desc": "Standaard Photon geocoding-eindpunt",
     "allow_registration": "Sta gebruikers toe zichzelf te registreren",
     "map_center": "Kaartcentrum",
     "map_center_desc": "Standaard breedte- & lengtegraad",

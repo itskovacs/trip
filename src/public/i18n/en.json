@@ -645,6 +645,8 @@
     "oidc_discovery_url": "Discovery URL",
     "oidc_redirect_uri": "Redirect URI",
     "open_registration": "Open Registration",
+    "photon_url": "Photon URL",
+    "photon_url_desc": "Default Photon geocoding endpoint",
     "preferences": "Preferences",
     "processing": "Processing...",
     "provider": "Map Provider",

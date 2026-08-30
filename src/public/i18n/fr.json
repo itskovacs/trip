@@ -645,6 +645,8 @@
     "oidc_discovery_url": "Discovery URL",
     "oidc_redirect_uri": "Redirect URI",
     "open_registration": "Inscription ouverte",
+    "photon_url": "URL Photon",
+    "photon_url_desc": "Point de terminaison Photon par défaut",
     "preferences": "Préférences",
     "processing": "Traitement en cours...",
     "provider": "Fournisseur de carte",

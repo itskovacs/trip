@@ -227,6 +227,8 @@
     "registration": "Registro",
     "open_registration": "Registro aberto",
     "tile": "URL do tile",
+    "photon_url": "URL do Photon",
+    "photon_url_desc": "Endpoint padrão de geocodificação Photon",
     "allow_registration": "Permitir que usuários se registrem",
     "map_center": "Centro do mapa",
     "map_center_desc": "Latitude e longitude padrão",

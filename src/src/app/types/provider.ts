@@ -10,7 +10,7 @@ export interface ProviderPlaceResult {
   types: string[];
   allowdog?: boolean;
   description: string;
-  image: string;
+  image?: string;
   restroom?: boolean;
 }
 

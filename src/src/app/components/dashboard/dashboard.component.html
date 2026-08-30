@@ -1430,6 +1430,22 @@
                     <div
                       class="flex flex-col gap-2 md:flex-row md:items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/30 border border-primary-100 dark:border-primary-700">
                       <div class="flex items-center gap-3 min-w-0 flex-1">
+                        <i class="pi pi-map text-amber-600 dark:text-amber-400 shrink-0"></i>
+                        <div class="min-w-0">
+                          <span class="text-sm font-medium text-primary-900 dark:text-primary-100 block">{{
+                            t('settings.photon_url') }}</span>
+                          <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">{{
+                            t('settings.photon_url_desc') }}</p>
+                        </div>
+                      </div>
+                      <div class="w-full md:w-68">
+                        <input pInputText formControlName="PHOTON_URL" pSize="small" fluid />
+                      </div>
+                    </div>
+
+                    <div
+                      class="flex flex-col gap-2 md:flex-row md:items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/30 border border-primary-100 dark:border-primary-700">
+                      <div class="flex items-center gap-3 min-w-0 flex-1">
                         <i class="pi pi-map text-blue-600 dark:text-blue-400 shrink-0"></i>
                         <div class="min-w-0">
                           <span class="text-sm font-medium text-primary-900 dark:text-primary-100 block">{{

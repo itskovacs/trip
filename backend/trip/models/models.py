@@ -84,6 +84,7 @@ class BackupStatus(str, Enum):
 class MapProvider(str, Enum):
     OPENSTREETMAP = "osm"
     GOOGLE = "google"
+    PHOTON = "photon"
 
 
 class AuthParams(BaseModel):
@@ -173,6 +174,7 @@ class ConfigRead(BaseModel):
     OIDC_CLIENT_SECRET: str
     OIDC_REDIRECT_URI: str
     DEFAULT_TILE: str
+    PHOTON_URL: str
     DEFAULT_CURRENCY: str
     DEFAULT_MAP_LAT: float
     DEFAULT_MAP_LNG: float
@@ -194,6 +196,7 @@ class ConfigUpdate(BaseModel):
     OIDC_CLIENT_SECRET: str | None = None
     OIDC_REDIRECT_URI: str | None = None
     DEFAULT_TILE: str | None = None
+    PHOTON_URL: str | None = None
     DEFAULT_CURRENCY: str | None = None
     DEFAULT_MAP_LAT: float | None = None
     DEFAULT_MAP_LNG: float | None = None

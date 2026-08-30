@@ -24,6 +24,7 @@ export interface AppConfig {
   OIDC_CLIENT_SECRET: string;
   OIDC_REDIRECT_URI: string;
   DEFAULT_TILE: string;
+  PHOTON_URL: string;
   DEFAULT_CURRENCY: string;
   DEFAULT_MAP_LAT: number;
   DEFAULT_MAP_LNG: number;

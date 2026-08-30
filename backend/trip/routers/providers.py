@@ -11,7 +11,7 @@ from ..models.models import (LatitudeLongitude, ProviderBoundaries,
                              RoutingResponse, User)
 from ..utils.csv import extract_takeout_urls
 from ..utils.providers import (BaseMapProvider, GoogleMapsProvider,
-                               OpenStreetMapProvider)
+                               OpenStreetMapProvider, PhotonProvider)
 from ..utils.utils import enforce_upload_size
 from ..utils.zip import parse_mymaps_kmz
 
@@ -41,6 +41,8 @@ def _get_map_provider(session: SessionDep, current_user: str) -> BaseMapProvider
     if provider_type == "google":
         _raise_missing_apikey(db_user)
         return GoogleMapsProvider(api_key=db_user.google_apikey)
+    if provider_type == "photon":
+        return PhotonProvider()
 
     return OpenStreetMapProvider()
 

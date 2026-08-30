@@ -4,7 +4,7 @@ import 'leaflet-contextmenu';
 import { ProviderBoundaries, Place } from '../types/poi';
 import { TripItem } from '../types/trip';
 
-export const DEFAULT_TILE_URL = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+export const DEFAULT_TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 export interface ContextMenuItem {
   text: string;
   index?: number;
@@ -42,8 +42,7 @@ export function createMap(
   const tiles = L.tileLayer(tilelayer, {
     maxZoom: 18,
     minZoom: 3,
-    attribution:
-      '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>, &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>',
   }).addTo(map);
 
   if (onTilesLoaded) tiles.once('load', onTilesLoaded);

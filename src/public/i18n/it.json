@@ -645,6 +645,8 @@
     "oidc_discovery_url": "Discovery URL",
     "oidc_redirect_uri": "Redirect URI",
     "open_registration": "Registrazione aperta",
+    "photon_url": "URL Photon",
+    "photon_url_desc": "Endpoint di geocodifica Photon predefinito",
     "preferences": "Preferenze",
     "processing": "Elaborazione in corso...",
     "provider": "Fornitore mappa",
