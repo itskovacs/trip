@@ -566,21 +566,39 @@ async def list_checklist_items(trip_id: int) -> list:
 
 
 @mcp.tool()
-async def add_checklist_item(trip_id: int, text: str) -> dict:
-    """Add pre-trip checklist item."""
-    return await api_post(f"/api/trips/{trip_id}/checklist", {"text": text})
+async def add_checklist_item(trip_id: int, text: str, notify_dt: str | None = None) -> dict:
+    """Add pre-trip checklist item. notify_dt (optional) schedules a reminder notification to the
+    trip owner and members with a configured webhook: naive UTC ISO-8601 datetime string with NO
+    timezone offset, e.g. '2026-09-01T08:00:00' (the backend compares this against a naive-UTC
+    clock, so including an offset/'Z' suffix can cause it to fire at the wrong time or not at
+    all). Ignored once the item is checked."""
+    data = {"text": text}
+    if notify_dt is not None:
+        data["notify_dt"] = notify_dt
+    return await api_post(f"/api/trips/{trip_id}/checklist", data)
 
 
 @mcp.tool()
 async def update_checklist_item(
-    trip_id: int, item_id: int, text: str | None = None, checked: bool | None = None
+    trip_id: int,
+    item_id: int,
+    text: str | None = None,
+    checked: bool | None = None,
+    notify_dt: str | None = None,
+    clear_notify_dt: bool = False,
 ) -> dict:
-    """Update a checklist item. Only the fields you pass are changed."""
+    """Update a checklist item. Only the fields you pass are changed. notify_dt: naive UTC
+    ISO-8601 datetime string with NO timezone offset (see add_checklist_item). Pass notify_dt to
+    set/replace the reminder, or clear_notify_dt=True to remove it."""
     data = {}
     if text is not None:
         data["text"] = text
     if checked is not None:
         data["checked"] = checked
+    if clear_notify_dt:
+        data["notify_dt"] = None
+    elif notify_dt is not None:
+        data["notify_dt"] = notify_dt
     return await api_put(f"/api/trips/{trip_id}/checklist/{item_id}", data)
 
 
@@ -594,6 +612,186 @@ async def delete_checklist_item(trip_id: int, item_id: int, confirm: bool = Fals
             "Re-invoke with confirm=True to proceed."
         }
     return await api_delete(f"/api/trips/{trip_id}/checklist/{item_id}")
+
+
+# ── Packing lists (named, multiple per trip) ──
+# Independent from the single default packing list above — a trip can have any number of these,
+# each with its own name and items. list_packing_lists returns each list's items nested inline
+# (there is no separate "list items in a list" endpoint).
+
+
+@mcp.tool()
+async def list_packing_lists(trip_id: int) -> list:
+    """List a trip's named packing lists, each with its items nested inline."""
+    return await api_get(f"/api/trips/{trip_id}/packing-lists")
+
+
+@mcp.tool()
+async def create_packing_list(trip_id: int, name: str) -> dict:
+    """Create a new named packing list on a trip (starts empty; add items with
+    add_packing_list_entry)."""
+    return await api_post(f"/api/trips/{trip_id}/packing-lists", {"name": name})
+
+
+@mcp.tool()
+async def update_packing_list(trip_id: int, list_id: int, name: str) -> dict:
+    """Rename a packing list. name is required (the backend replaces it wholesale, not a partial
+    update)."""
+    return await api_put(f"/api/trips/{trip_id}/packing-lists/{list_id}", {"name": name})
+
+
+@mcp.tool()
+async def delete_packing_list(trip_id: int, list_id: int, confirm: bool = False) -> dict:
+    """Delete a packing list. Destructive and irreversible — also deletes all of its items.
+    Requires confirm=True to actually execute: call once without confirm to review, then call
+    again with confirm=True to proceed."""
+    if not confirm:
+        return {
+            "error": "Confirmation required: this permanently deletes the packing list and all "
+            "its items. Re-invoke with confirm=True to proceed."
+        }
+    return await api_delete(f"/api/trips/{trip_id}/packing-lists/{list_id}")
+
+
+@mcp.tool()
+async def add_packing_list_entry(
+    trip_id: int, list_id: int, text: str, category: str = "other", quantity: int = 1
+) -> dict:
+    """Add an item to a named packing list. Categories: clothes, toiletries, tech, documents,
+    other."""
+    return await api_post(
+        f"/api/trips/{trip_id}/packing-lists/{list_id}/items",
+        {"text": text, "category": category, "qt": quantity},
+    )
+
+
+@mcp.tool()
+async def update_packing_list_entry(
+    trip_id: int,
+    list_id: int,
+    item_id: int,
+    text: str | None = None,
+    category: str | None = None,
+    quantity: int | None = None,
+    packed: bool | None = None,
+) -> dict:
+    """Update an item in a named packing list. Only the fields you pass are changed. Categories:
+    clothes, toiletries, tech, documents, other."""
+    data = {}
+    if text is not None:
+        data["text"] = text
+    if category is not None:
+        data["category"] = category
+    if quantity is not None:
+        data["qt"] = quantity
+    if packed is not None:
+        data["packed"] = packed
+    return await api_put(f"/api/trips/{trip_id}/packing-lists/{list_id}/items/{item_id}", data)
+
+
+@mcp.tool()
+async def delete_packing_list_entry(
+    trip_id: int, list_id: int, item_id: int, confirm: bool = False
+) -> dict:
+    """Delete an item from a named packing list. Requires confirm=True to actually execute: call
+    once without confirm to review, then call again with confirm=True to proceed."""
+    if not confirm:
+        return {
+            "error": "Confirmation required: this permanently deletes the packing list item. "
+            "Re-invoke with confirm=True to proceed."
+        }
+    return await api_delete(f"/api/trips/{trip_id}/packing-lists/{list_id}/items/{item_id}")
+
+
+# ── Checklists (named, multiple per trip) ──
+# Independent from the single default checklist above — a trip can have any number of these, each
+# with its own name and items. list_checklists returns each checklist's items nested inline
+# (there is no separate "list items in a checklist" endpoint).
+
+
+@mcp.tool()
+async def list_checklists(trip_id: int) -> list:
+    """List a trip's named checklists, each with its items nested inline."""
+    return await api_get(f"/api/trips/{trip_id}/checklists")
+
+
+@mcp.tool()
+async def create_checklist(trip_id: int, name: str) -> dict:
+    """Create a new named checklist on a trip (starts empty; add items with
+    add_checklist_entry)."""
+    return await api_post(f"/api/trips/{trip_id}/checklists", {"name": name})
+
+
+@mcp.tool()
+async def update_checklist(trip_id: int, list_id: int, name: str) -> dict:
+    """Rename a checklist. name is required (the backend replaces it wholesale, not a partial
+    update)."""
+    return await api_put(f"/api/trips/{trip_id}/checklists/{list_id}", {"name": name})
+
+
+@mcp.tool()
+async def delete_checklist(trip_id: int, list_id: int, confirm: bool = False) -> dict:
+    """Delete a checklist. Destructive and irreversible — also deletes all of its items. Requires
+    confirm=True to actually execute: call once without confirm to review, then call again with
+    confirm=True to proceed."""
+    if not confirm:
+        return {
+            "error": "Confirmation required: this permanently deletes the checklist and all its "
+            "items. Re-invoke with confirm=True to proceed."
+        }
+    return await api_delete(f"/api/trips/{trip_id}/checklists/{list_id}")
+
+
+@mcp.tool()
+async def add_checklist_entry(
+    trip_id: int, list_id: int, text: str, notify_dt: str | None = None
+) -> dict:
+    """Add an item to a named checklist. notify_dt (optional): naive UTC ISO-8601 datetime string
+    with NO timezone offset, e.g. '2026-09-01T08:00:00' (see add_checklist_item for why the
+    offset matters). Ignored once the item is checked."""
+    data = {"text": text}
+    if notify_dt is not None:
+        data["notify_dt"] = notify_dt
+    return await api_post(f"/api/trips/{trip_id}/checklists/{list_id}/items", data)
+
+
+@mcp.tool()
+async def update_checklist_entry(
+    trip_id: int,
+    list_id: int,
+    item_id: int,
+    text: str | None = None,
+    checked: bool | None = None,
+    notify_dt: str | None = None,
+    clear_notify_dt: bool = False,
+) -> dict:
+    """Update an item in a named checklist. Only the fields you pass are changed. notify_dt:
+    naive UTC ISO-8601 datetime string with NO timezone offset (see add_checklist_item). Pass
+    notify_dt to set/replace the reminder, or clear_notify_dt=True to remove it."""
+    data = {}
+    if text is not None:
+        data["text"] = text
+    if checked is not None:
+        data["checked"] = checked
+    if clear_notify_dt:
+        data["notify_dt"] = None
+    elif notify_dt is not None:
+        data["notify_dt"] = notify_dt
+    return await api_put(f"/api/trips/{trip_id}/checklists/{list_id}/items/{item_id}", data)
+
+
+@mcp.tool()
+async def delete_checklist_entry(
+    trip_id: int, list_id: int, item_id: int, confirm: bool = False
+) -> dict:
+    """Delete an item from a named checklist. Requires confirm=True to actually execute: call
+    once without confirm to review, then call again with confirm=True to proceed."""
+    if not confirm:
+        return {
+            "error": "Confirmation required: this permanently deletes the checklist item. "
+            "Re-invoke with confirm=True to proceed."
+        }
+    return await api_delete(f"/api/trips/{trip_id}/checklists/{list_id}/items/{item_id}")
 
 
 # ── Sharing & members ──
