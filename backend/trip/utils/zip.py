@@ -557,7 +557,15 @@ def process_backup_import(
                             key: item[key]
                             for key in item
                             if key
-                            not in {"id", "place", "place_id", "image", "image_id", "images", "attachments"}
+                            not in {
+                                "id",
+                                "place",
+                                "place_id",
+                                "image",
+                                "image_id",
+                                "images",
+                                "attachments",
+                            }
                         }
                         item_data["day_id"] = new_day.id
 

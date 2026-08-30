@@ -85,13 +85,23 @@ def _get_own_list_or_404(session, model: type, list_id: int, trip_id: int):
 
 
 def _get_own_entry_or_404(
-    session, entry_model: type, parent_model: type, fk_column, item_id: int, list_id: int, trip_id: int
+    session,
+    entry_model: type,
+    parent_model: type,
+    fk_column,
+    item_id: int,
+    list_id: int,
+    trip_id: int,
 ):
     # Fetches a TripPackingListEntry/TripChecklistEntry row scoped to the given list+trip, or 404s.
     obj = session.exec(
         select(entry_model)
         .join(parent_model)
-        .where(entry_model.id == item_id, fk_column == list_id, parent_model.trip_id == trip_id)
+        .where(
+            entry_model.id == item_id,
+            fk_column == list_id,
+            parent_model.trip_id == trip_id,
+        )
     ).one_or_none()
     if not obj:
         raise HTTPException(status_code=404, detail="Not found")
@@ -202,7 +212,9 @@ def read_trip(
 
 @router.post("", response_model=TripReadBase)
 def create_trip(
-    trip: TripCreate, session: SessionDep, current_user: Annotated[str, Depends(get_current_username)]
+    trip: TripCreate,
+    session: SessionDep,
+    current_user: Annotated[str, Depends(get_current_username)],
 ) -> TripReadBase:
     new_trip = Trip(name=trip.name, currency=trip.currency, user=current_user)
 
@@ -296,7 +308,9 @@ def update_trip(
 
 @router.delete("/{trip_id}")
 def delete_trip(
-    session: SessionDep, trip_id: int, current_user: Annotated[str, Depends(get_current_username)]
+    session: SessionDep,
+    trip_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
 ):
     db_trip = _get_verified_trip(session, trip_id, current_user)
     if db_trip.user != current_user:
@@ -337,7 +351,11 @@ def get_trip_balance(
     trip_items = session.exec(
         select(TripItem.price, TripItem.paid_by)
         .join(TripDay)
-        .where(TripDay.trip_id == trip_id, TripItem.price.is_not(None), TripItem.paid_by.is_not(None))
+        .where(
+            TripDay.trip_id == trip_id,
+            TripItem.price.is_not(None),
+            TripItem.paid_by.is_not(None),
+        )
     ).all()
 
     paid_by_map = {m: 0 for m in members}
@@ -1085,7 +1103,10 @@ def create_packing_list_entry(
     return TripPackingListEntryRead.serialize(item)
 
 
-@router.put("/{trip_id}/packing-lists/{list_id}/items/{item_id}", response_model=TripPackingListEntryRead)
+@router.put(
+    "/{trip_id}/packing-lists/{list_id}/items/{item_id}",
+    response_model=TripPackingListEntryRead,
+)
 def update_packing_list_entry(
     session: SessionDep,
     data: TripPackingListEntryUpdate,
@@ -1238,7 +1259,10 @@ def create_checklist_entry(
     return TripChecklistEntryRead.serialize(item)
 
 
-@router.put("/{trip_id}/checklists/{list_id}/items/{item_id}", response_model=TripChecklistEntryRead)
+@router.put(
+    "/{trip_id}/checklists/{list_id}/items/{item_id}",
+    response_model=TripChecklistEntryRead,
+)
 def update_checklist_entry(
     session: SessionDep,
     data: TripChecklistEntryUpdate,
@@ -1300,7 +1324,9 @@ def delete_checklist_entry(
 
 @router.get("/{trip_id}/members", response_model=list[TripMemberRead])
 def read_trip_members(
-    session: SessionDep, trip_id: int, current_user: Annotated[str, Depends(get_current_username)]
+    session: SessionDep,
+    trip_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
 ) -> list[TripMemberRead]:
     _get_verified_trip(session, trip_id, current_user)
     members: list[TripMemberRead] = []

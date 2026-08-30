@@ -1686,13 +1686,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     });
   }
 
-  /**
-   * Quote-aware CSV record splitter. A naive `text.split('\n')` treats every
-   * literal newline as a row boundary, which corrupts rows whose quoted
-   * fields (e.g. multi-line notes) contain embedded newlines. This does a
-   * single pass, toggling an "inside quotes" flag on `"` and only treating
-   * `\n` / `\r\n` as a record boundary while outside quotes.
-   */
   private splitCsvRecords(text: string): string[] {
     const records: string[] = [];
     let current = '';

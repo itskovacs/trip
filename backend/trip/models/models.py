@@ -592,7 +592,9 @@ class Trip(TripBase, table=True):
 
     image: Image | None = Relationship(back_populates="trips")
     places: list["Place"] = Relationship(
-        back_populates="trips", sa_relationship_kwargs={"order_by": "Place.name"}, link_model=TripPlaceLink
+        back_populates="trips",
+        sa_relationship_kwargs={"order_by": "Place.name"},
+        link_model=TripPlaceLink,
     )
     days: list["TripDay"] = Relationship(
         back_populates="trip",
@@ -698,7 +700,10 @@ class TripMemberRead(BaseModel):
     @classmethod
     def serialize(cls, obj: TripMember) -> "TripMemberRead":
         return cls(
-            user=obj.user, invited_by=obj.invited_by, invited_at=obj.invited_at, joined_at=obj.joined_at
+            user=obj.user,
+            invited_by=obj.invited_by,
+            invited_at=obj.invited_at,
+            joined_at=obj.joined_at,
         )
 
 
@@ -720,7 +725,9 @@ class TripDay(TripDayBase, table=True):
     trip: Trip | None = Relationship(back_populates="days")
 
     items: list["TripItem"] = Relationship(
-        back_populates="day", sa_relationship_kwargs={"order_by": "TripItem.time"}, cascade_delete=True
+        back_populates="day",
+        sa_relationship_kwargs={"order_by": "TripItem.time"},
+        cascade_delete=True,
     )
     bookings: list["TripBooking"] = Relationship(back_populates="day", cascade_delete=True)
 

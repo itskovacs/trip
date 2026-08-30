@@ -21,7 +21,6 @@ import { ApiService } from '../../services/api.service';
 import { take } from 'rxjs';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 
-/** One gallery slot while editing: an existing image (`id`) or a freshly picked one (`data`). */
 interface EditImage {
   id?: number;
   data?: string;

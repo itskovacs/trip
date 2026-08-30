@@ -216,7 +216,6 @@ export class AuthService {
       throw new Error("'atob' failed: The string to be decoded is not correctly encoded.");
     }
 
-    /* eslint-disable */
     for (
       let bc = 0, bs: any, buffer: any, idx = 0;
       (buffer = str.charAt(idx++));
@@ -226,7 +225,6 @@ export class AuthService {
     ) {
       buffer = chars.indexOf(buffer);
     }
-    /* eslint-enable */
 
     return output;
   }
