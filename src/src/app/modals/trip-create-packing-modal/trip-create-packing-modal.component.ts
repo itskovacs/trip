@@ -6,7 +6,7 @@ import { FloatLabelModule } from 'primeng/floatlabel';
 import { InputTextModule } from 'primeng/inputtext';
 import { FocusTrapModule } from 'primeng/focustrap';
 import { SelectModule } from 'primeng/select';
-import { InputNumberModule } from 'primeng/inputnumber';
+import { NumberInputDirective } from '../../shared/number-input.directive';
 import { TranslocoDirective } from '@jsverse/transloco';
 import { PackingItem } from '../../types/trip';
 
@@ -19,7 +19,7 @@ import { PackingItem } from '../../types/trip';
     ReactiveFormsModule,
     FocusTrapModule,
     SelectModule,
-    InputNumberModule,
+    NumberInputDirective,
     TranslocoDirective,
   ],
   standalone: true,

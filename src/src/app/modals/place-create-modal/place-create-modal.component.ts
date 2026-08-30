@@ -31,7 +31,7 @@ import { TranslocoDirective } from '@jsverse/transloco';
   imports: [
     FloatLabelModule,
     InputTextModule,
-    InputNumberModule,
+    NumberInputDirective,
     ButtonModule,
     SelectModule,
     ReactiveFormsModule,

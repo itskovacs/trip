@@ -6,7 +6,7 @@ import { FloatLabelModule } from 'primeng/floatlabel';
 import { InputTextModule } from 'primeng/inputtext';
 import { SelectModule } from 'primeng/select';
 import { TextareaModule } from 'primeng/textarea';
-import { InputNumberModule } from 'primeng/inputnumber';
+import { NumberInputDirective } from '../../shared/number-input.directive';
 import { CheckboxModule } from 'primeng/checkbox';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
@@ -27,7 +27,7 @@ import { take } from 'rxjs';
     SelectModule,
     MultiSelectModule,
     InputTextModule,
-    InputNumberModule,
+    NumberInputDirective,
     FloatLabelModule,
     CheckboxModule,
     InputGroupModule,

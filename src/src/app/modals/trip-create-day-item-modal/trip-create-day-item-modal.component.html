@@ -110,8 +110,7 @@
 
         <p-inputgroup class="h-full">
           <p-floatlabel variant="in">
-            <p-inputnumber id="price" formControlName="price" mode="decimal" [minFractionDigits]="0"
-              [maxFractionDigits]="2" currency="EUR" locale="fr-FR" fluid />
+            <input id="price" formControlName="price" pInputText appNumber [maxDecimals]="2" fluid />
             <label for="price">{{ t('common.fields.price') }}</label>
           </p-floatlabel>
           @if (members.length > 1) {

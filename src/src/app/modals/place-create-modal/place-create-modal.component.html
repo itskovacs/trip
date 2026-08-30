@@ -150,13 +150,12 @@
           </div>
           <div class="grid grid-cols-2 gap-4">
             <p-floatlabel variant="in">
-              <p-inputnumber id="duration" formControlName="duration" mode="decimal" fluid />
+              <input id="duration" formControlName="duration" pInputText appNumber fluid />
               <label for="duration">{{ t('modals.place.duration') }}</label>
             </p-floatlabel>
 
             <p-floatlabel variant="in">
-              <p-inputnumber id="price" formControlName="price" mode="decimal" [minFractionDigits]="0"
-                [maxFractionDigits]="2" fluid />
+              <input id="price" formControlName="price" pInputText appNumber [maxDecimals]="2" fluid />
               <label for="price">{{ t('common.fields.price') }}</label>
             </p-floatlabel>
           </div>

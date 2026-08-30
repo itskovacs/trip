@@ -82,7 +82,7 @@ import { PlaceListItemComponent } from '../../shared/place-list-item/place-list-
 import { PopoverModule } from 'primeng/popover';
 import { RouteManagerService } from '../../services/route-manager.service';
 import { AdminUser, APP_CONFIG_MB_FIELDS, AppConfig, MagicLink } from '../../types/admin';
-import { InputNumberModule } from 'primeng/inputnumber';
+import { NumberInputDirective } from '../../shared/number-input.directive';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 
@@ -123,7 +123,7 @@ export interface MarkerOptions extends L.MarkerOptions {
     MenuModule,
     PlaceListItemComponent,
     PopoverModule,
-    InputNumberModule,
+    NumberInputDirective,
     ClipboardModule,
     TranslocoDirective,
   ],

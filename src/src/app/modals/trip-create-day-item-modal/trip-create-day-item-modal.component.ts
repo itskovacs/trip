@@ -33,7 +33,7 @@ interface EditImage {
   imports: [
     FloatLabelModule,
     InputTextModule,
-    InputNumberModule,
+    NumberInputDirective,
     ButtonModule,
     SelectModule,
     ReactiveFormsModule,

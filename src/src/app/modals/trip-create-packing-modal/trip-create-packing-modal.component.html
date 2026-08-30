@@ -1,7 +1,7 @@
 <ng-container *transloco="let t">
   <div pFocusTrap class="grid items-center gap-4" [formGroup]="packingForm">
     <p-floatlabel variant="in">
-      <p-inputnumber id="qt" formControlName="qt" mode="decimal" [maxFractionDigits]="0" [min]="0" fluid />
+      <input id="qt" formControlName="qt" pInputText appNumber [min]="0" fluid />
       <label for="qt">{{ t('modals.packing.qt') }}</label>
     </p-floatlabel>
 

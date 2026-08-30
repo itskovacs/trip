@@ -1510,8 +1510,8 @@
                         </div>
                       </div>
                       <div class="w-full md:w-68">
-                        <p-inputnumber formControlName="ATTACHMENT_MAX_SIZE" [min]="1" [max]="500" pSize="small" fluid
-                          [showButtons]="false" />
+                        <input formControlName="ATTACHMENT_MAX_SIZE" pInputText appNumber [min]="1" [max]="500"
+                          pSize="small" fluid />
                       </div>
                     </div>
 
@@ -1529,10 +1529,10 @@
                         </div>
                       </div>
                       <div class="w-full md:w-68 grid grid-cols-2 gap-2">
-                        <p-inputnumber formControlName="PLACE_IMAGE_SIZE" [min]="100" [max]="4096"
-                          [placeholder]="t('common.fields.places')" pSize="small" fluid [showButtons]="false" />
-                        <p-inputnumber formControlName="TRIP_IMAGE_SIZE" [min]="100" [max]="4096"
-                          [placeholder]="t('common.fields.trips')" pSize="small" fluid [showButtons]="false" />
+                        <input formControlName="PLACE_IMAGE_SIZE" pInputText appNumber [min]="100" [max]="4096"
+                          [placeholder]="t('common.fields.places')" pSize="small" fluid />
+                        <input formControlName="TRIP_IMAGE_SIZE" pInputText appNumber [min]="100" [max]="4096"
+                          [placeholder]="t('common.fields.trips')" pSize="small" fluid />
                       </div>
                     </div>
 
@@ -1550,10 +1550,10 @@
                         </div>
                       </div>
                       <div class="w-full md:w-68 grid grid-cols-2 gap-2">
-                        <p-inputnumber formControlName="BACKUP_IMPORT_MAX_ENTRY_SIZE" [min]="1"
-                          [placeholder]="t('settings.backup_entry_size')" pSize="small" fluid [showButtons]="false" />
-                        <p-inputnumber formControlName="BACKUP_IMPORT_MAX_TOTAL_SIZE" [min]="1"
-                          [placeholder]="t('settings.backup_total_size')" pSize="small" fluid [showButtons]="false" />
+                        <input formControlName="BACKUP_IMPORT_MAX_ENTRY_SIZE" pInputText appNumber [min]="1"
+                          [placeholder]="t('settings.backup_entry_size')" pSize="small" fluid />
+                        <input formControlName="BACKUP_IMPORT_MAX_TOTAL_SIZE" pInputText appNumber [min]="1"
+                          [placeholder]="t('settings.backup_total_size')" pSize="small" fluid />
                       </div>
                     </div>
 
@@ -1571,11 +1571,10 @@
                         </div>
                       </div>
                       <div class="w-full md:w-68 grid grid-cols-2 gap-2">
-                        <p-inputnumber formControlName="KML_MAX_ENTRY_SIZE" [min]="1"
-                          [placeholder]="t('settings.kml_max_size')" pSize="small" fluid [showButtons]="false" />
-                        <p-inputnumber formControlName="PROVIDER_IMPORT_MAX_SIZE" [min]="1"
-                          [placeholder]="t('settings.provider_import_size')" pSize="small" fluid
-                          [showButtons]="false" />
+                        <input formControlName="KML_MAX_ENTRY_SIZE" pInputText appNumber [min]="1"
+                          [placeholder]="t('settings.kml_max_size')" pSize="small" fluid />
+                        <input formControlName="PROVIDER_IMPORT_MAX_SIZE" pInputText appNumber [min]="1"
+                          [placeholder]="t('settings.provider_import_size')" pSize="small" fluid />
                       </div>
                     </div>
                   </div>
@@ -1597,10 +1596,10 @@
                         </div>
                       </div>
                       <div class="w-full md:w-68 grid grid-cols-2 gap-2">
-                        <p-inputnumber formControlName="ACCESS_TOKEN_EXPIRE_MINUTES" [min]="1"
-                          [placeholder]="t('settings.access')" pSize="small" fluid [showButtons]="false" />
-                        <p-inputnumber formControlName="REFRESH_TOKEN_EXPIRE_MINUTES" [min]="1"
-                          [placeholder]="t('settings.refresh')" pSize="small" fluid [showButtons]="false" />
+                        <input formControlName="ACCESS_TOKEN_EXPIRE_MINUTES" pInputText appNumber [min]="1"
+                          [placeholder]="t('settings.access')" pSize="small" fluid />
+                        <input formControlName="REFRESH_TOKEN_EXPIRE_MINUTES" pInputText appNumber [min]="1"
+                          [placeholder]="t('settings.refresh')" pSize="small" fluid />
                       </div>
                     </div>
 
