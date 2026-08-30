@@ -713,11 +713,17 @@
   "trips": {
     "day": "giorno",
     "days": "giorni",
-    "invitations": {
-      "empty": "Nessun invito in sospeso.",
-      "invited_you": "ti ha invitato a collaborare.",
-      "on": "Il",
-      "title": "Inviti"
+    "notifications": {
+      "checklist": {
+        "title": "Promemoria checklist",
+        "triggered": "Attivati"
+      },
+      "empty": "Sei aggiornato.",
+      "invitations": {
+        "invited_you": "ti ha invitato a collaborare.",
+        "on": "Il"
+      },
+      "title": "Notifiche"
     },
     "roles": {
       "invited": "Invitato",

@@ -271,11 +271,17 @@
     "title": "Trips",
     "day": "dag",
     "days": "dagen",
-    "invitations": {
-      "title": "Uitnodigingen",
-      "on": "Op",
-      "invited_you": "heeft je uitgenodigd om samen te werken.",
-      "empty": "Geen openstaande uitnodigingen."
+    "notifications": {
+      "title": "Meldingen",
+      "invitations": {
+        "on": "Op",
+        "invited_you": "heeft je uitgenodigd om samen te werken."
+      },
+      "checklist": {
+        "title": "Checklistherinneringen",
+        "triggered": "Geactiveerd"
+      },
+      "empty": "Je bent helemaal bij."
     },
     "roles": {
       "owner": "Eigenaar",

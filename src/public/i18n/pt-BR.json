@@ -271,11 +271,17 @@
     "title": "Viagens",
     "day": "dia",
     "days": "dias",
-    "invitations": {
-      "title": "Convites",
-      "on": "Em",
-      "invited_you": "convidou você para colaborar.",
-      "empty": "Nenhum convite pendente."
+    "notifications": {
+      "title": "Notificações",
+      "invitations": {
+        "on": "Em",
+        "invited_you": "convidou você para colaborar."
+      },
+      "checklist": {
+        "title": "Lembretes de checklist",
+        "triggered": "Disparados"
+      },
+      "empty": "Você está em dia."
     },
     "roles": {
       "owner": "Proprietário",

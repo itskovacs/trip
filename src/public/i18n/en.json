@@ -713,11 +713,17 @@
   "trips": {
     "day": "day",
     "days": "days",
-    "invitations": {
-      "empty": "No pending invitations.",
-      "invited_you": "invited you to collaborate.",
-      "on": "On",
-      "title": "Invitations"
+    "notifications": {
+      "checklist": {
+        "title": "Checklist reminders",
+        "triggered": "Triggered"
+      },
+      "empty": "You're all caught up.",
+      "invitations": {
+        "invited_you": "invited you to collaborate.",
+        "on": "On"
+      },
+      "title": "Notifications"
     },
     "roles": {
       "invited": "Invited",

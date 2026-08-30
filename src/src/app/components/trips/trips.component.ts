@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ApiService } from '../../services/api.service';
 import { ButtonModule } from 'primeng/button';
 import { SkeletonModule } from 'primeng/skeleton';
-import { TripBase, TripInvitation, TripBaseWithDates } from '../../types/trip';
+import { TripBase, TripInvitation, TripBaseWithDates, NotificationChecklistItem } from '../../types/trip';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { TripCreateModalComponent } from '../../modals/trip-create-modal/trip-create-modal.component';
 import { Router } from '@angular/router';
@@ -21,9 +21,9 @@ import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 })
 export class TripsComponent implements OnInit {
   trips: TripBase[] = [];
-  hasPendingInvitations = false;
   invitations: TripInvitation[] = [];
-  invitationsDialogVisible = false;
+  checklistNotifications: NotificationChecklistItem[] = [];
+  notificationsDialogVisible = false;
 
   constructor(
     private apiService: ApiService,
@@ -42,12 +42,41 @@ export class TripsComponent implements OnInit {
           this.sortTrips();
         },
       });
+    this.refreshNotifications();
+  }
+
+  private refreshNotifications() {
     this.apiService
-      .getHasTripsInvitations()
+      .getTripsInvitations()
       .pipe(take(1))
       .subscribe({
-        next: (bool) => (this.hasPendingInvitations = bool),
+        next: (items) => (this.invitations = items),
       });
+    this.apiService
+      .getNotificationChecklistItems()
+      .pipe(take(1))
+      .subscribe({
+        next: (items) => (this.checklistNotifications = items),
+      });
+  }
+
+  notificationsCount(): number {
+    return this.invitations.length + this.checklistNotifications.length;
+  }
+
+  groupedChecklistNotifications(): { trip_id: number; trip_name: string; items: NotificationChecklistItem[] }[] {
+    const groups = new Map<number, { trip_id: number; trip_name: string; items: NotificationChecklistItem[] }>();
+    for (const item of this.checklistNotifications) {
+      if (!groups.has(item.trip_id)) {
+        groups.set(item.trip_id, { trip_id: item.trip_id, trip_name: item.trip_name, items: [] });
+      }
+      groups.get(item.trip_id)!.items.push(item);
+    }
+    return [...groups.values()];
+  }
+
+  isTriggered(item: NotificationChecklistItem): boolean {
+    return new Date(item.notify_dt + 'Z').getTime() <= Date.now();
   }
 
   gotoMap() {
@@ -121,25 +150,9 @@ export class TripsComponent implements OnInit {
     });
   }
 
-  toggleInvitations() {
-    if (!this.invitations.length)
-      this.apiService
-        .getTripsInvitations()
-        .pipe(take(1))
-        .subscribe({
-          next: (items) => {
-            this.invitations = [...items];
-          },
-        });
-    this.invitationsDialogVisible = true;
-  }
-
-  removeInvitationAndHide(trip_id: number) {
-    this.invitations = this.invitations.filter((inv) => inv.id != trip_id);
-    this.hasPendingInvitations = !!this.invitations.length;
-    if (this.invitations.length === 0) {
-      this.invitationsDialogVisible = false;
-    }
+  toggleNotifications() {
+    this.refreshNotifications();
+    this.notificationsDialogVisible = true;
   }
 
   acceptInvitation(trip_id: number) {
@@ -153,7 +166,7 @@ export class TripsComponent implements OnInit {
             this.trips = [...this.trips, this.invitations[index]];
             this.sortTrips();
           }
-          this.removeInvitationAndHide(trip_id);
+          this.invitations = this.invitations.filter((inv) => inv.id != trip_id);
         },
       });
   }
@@ -164,8 +177,20 @@ export class TripsComponent implements OnInit {
       .pipe(take(1))
       .subscribe({
         next: () => {
-          this.removeInvitationAndHide(trip_id);
+          this.invitations = this.invitations.filter((inv) => inv.id != trip_id);
         },
       });
+  }
+
+  completeChecklistNotification(item: NotificationChecklistItem) {
+    const update$ = item.list_id
+      ? this.apiService.putChecklistListItem(item.trip_id, item.list_id, item.id, { checked: true })
+      : this.apiService.putChecklistItem(item.trip_id, item.id, { checked: true });
+
+    update$.pipe(take(1)).subscribe({
+      next: () => {
+        this.checklistNotifications = this.checklistNotifications.filter((n) => n !== item);
+      },
+    });
   }
 }

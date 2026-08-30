@@ -1358,6 +1358,16 @@ class TripChecklistRead(TripChecklistBase):
         )
 
 
+class NotificationChecklistItemRead(BaseModel):
+    id: int
+    text: str
+    notify_dt: datetime
+    trip_id: int
+    trip_name: str
+    list_id: int | None = None
+    list_name: str | None = None
+
+
 class TripAttachmentBase(SQLModel):
     filename: str
     file_size: int

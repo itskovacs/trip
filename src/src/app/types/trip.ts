@@ -174,6 +174,16 @@ export interface ChecklistList {
   items: ChecklistItem[];
 }
 
+export interface NotificationChecklistItem {
+  id: number;
+  text: string;
+  notify_dt: string;
+  trip_id: number;
+  trip_name: string;
+  list_id?: number | null;
+  list_name?: string | null;
+}
+
 export interface PrintOptions {
   days: Set<number>;
   props: Set<string>;

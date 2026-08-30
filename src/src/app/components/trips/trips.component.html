@@ -16,13 +16,15 @@
 
       <div
         class="inline-flex items-center gap-2 p-1.5 bg-white/70 dark:bg-primary-900/70 rounded-lg shadow-lg shadow-black/5">
-        <div (click)="toggleInvitations()"
+        <div (click)="toggleNotifications()"
           class="relative cursor-pointer flex items-center justify-center gap-2 w-9 h-9 px-2.5 rounded-lg hover:bg-primary-100 dark:hover:bg-primary-800">
           <div class="w-7 h-7 flex items-center justify-center">
             <i class="pi pi-bell text-sm transition-transform duration-200 text-primary-700 dark:text-primary-300"></i>
           </div>
-          @if (hasPendingInvitations) {
-          <span class="absolute -right-1 top-0 inline-flex h-2.5 w-2.5 rounded-full bg-red-500"></span>
+          @if (notificationsCount() > 0) {
+          <span
+            class="absolute -right-1 -top-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-semibold leading-none text-white">{{
+            notificationsCount() }}</span>
           }
         </div>
 
@@ -116,15 +118,16 @@
     </div>
   </div>
 
-  <p-dialog [header]="t('trips.invitations.title')" [draggable]="false" [dismissableMask]="true" [modal]="true"
-    [(visible)]="invitationsDialogVisible" styleClass="w-[95vw] md:w-[32rem] lg:w-[34rem]">
+  <p-dialog [header]="t('trips.notifications.title')" [draggable]="false" [dismissableMask]="true" [modal]="true"
+    [(visible)]="notificationsDialogVisible" styleClass="w-[95vw] md:w-[32rem] lg:w-[34rem]">
     <section class="max-h-[70vh] overflow-y-auto px-1 pb-2 pt-1 md:max-h-[600px]">
+      @if (invitations.length) {
       <div class="divide-y divide-primary-100 dark:divide-primary-800">
         @for (inv of invitations; track inv.id) {
         <div class="flex items-center justify-between gap-x-4 py-4">
           <div class="flex min-w-0 items-center gap-x-3">
             <div class="relative h-18 w-18 shrink-0">
-              <img [src]="inv.image" class="h-full w-full rounded-lg object-cover" loading="lazy" />
+              <img [src]="inv.image || 'cover.webp'" class="h-full w-full rounded-lg object-cover" loading="lazy" />
             </div>
 
             <div class="flex min-w-0 flex-1 flex-col gap-1">
@@ -133,7 +136,7 @@
               </div>
 
               <div class="text-xs text-primary-500 dark:text-primary-400 md:text-sm">
-                {{ t('trips.invitations.on') }}
+                {{ t('trips.notifications.invitations.on') }}
                 <span class="font-medium text-primary-600 dark:text-primary-300">
                   {{ inv.invited_at | date: 'short' }}
                 </span>
@@ -141,7 +144,7 @@
                 <span class="font-medium text-primary-700 dark:text-primary-200">
                   {{ inv.invited_by }}
                 </span>
-                {{ t('trips.invitations.invited_you') }}
+                {{ t('trips.notifications.invitations.invited_you') }}
               </div>
 
               <div class="mt-2 flex justify-start gap-2 md:hidden">
@@ -158,11 +161,70 @@
             <p-button text (click)="declineInvitation(inv.id)" icon="pi pi-times" severity="danger"></p-button>
           </div>
         </div>
-        } @empty {
-        <div class="py-8 text-center text-sm text-primary-500 dark:text-primary-400">{{ t('trips.invitations.empty') }}
-        </div>
         }
       </div>
+      }
+
+      @if (checklistNotifications.length) {
+      <div class="pt-4 pb-1 border-primary-100 dark:border-primary-800" [class.mt-3]="invitations.length"
+        [class.border-t]="invitations.length">
+        <h4
+          class="mb-3 flex items-center gap-1.5 text-xs font-medium tracking-wide text-primary-400 dark:text-primary-500">
+          <i class="pi pi-list-check text-[11px]"></i>
+          {{ t('trips.notifications.checklist.title') }}
+        </h4>
+
+        <div class="space-y-2.5">
+          @for (group of groupedChecklistNotifications(); track group.trip_id) {
+          <div class="overflow-hidden rounded-lg bg-primary-100/50 dark:bg-primary-800/30">
+            <div (click)="viewTrip(group.trip_id)"
+              class="group/trip flex cursor-pointer items-center justify-between gap-2 px-3 py-2 transition-colors hover:bg-primary-100 dark:hover:bg-primary-800/60">
+              <span class="truncate text-sm font-semibold text-primary-800 dark:text-primary-100">{{
+                group.trip_name }}</span>
+              <i
+                class="pi pi-arrow-right shrink-0 -translate-x-1 text-xs text-primary-400 opacity-0 transition-all duration-200 group-hover/trip:translate-x-0 group-hover/trip:opacity-100 dark:text-primary-500"></i>
+            </div>
+
+            <div class="divide-y divide-primary-200/60 px-1 pb-1 dark:divide-primary-700/40">
+              @for (item of group.items; track item.id) {
+              <div
+                class="group/item flex items-center gap-2.5 rounded-md px-2 py-2 transition-colors hover:bg-white/80 dark:hover:bg-white/5">
+                <input type="checkbox" (change)="completeChecklistNotification(item)"
+                  class="h-4 w-4 shrink-0 cursor-pointer rounded border-primary-300 text-primary-600 focus:ring-primary-500 focus:ring-offset-0 dark:border-primary-600" />
+
+                <div class="flex min-w-0 flex-1 cursor-pointer items-center justify-between gap-2"
+                  (click)="viewTrip(item.trip_id)">
+                  <div class="min-w-0">
+                    <div class="flex items-center gap-1.5">
+                      <span class="truncate text-sm text-primary-800 dark:text-primary-100">{{ item.text }}</span>
+                      @if (isTriggered(item)) {
+                      <span
+                        class="shrink-0 rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium leading-none text-amber-700 dark:bg-amber-500/15 dark:text-amber-400">{{
+                        t('trips.notifications.checklist.triggered') }}</span>
+                      }
+                    </div>
+                    <div class="mt-0.5 truncate text-xs text-primary-400 dark:text-primary-500">
+                      {{ item.list_name ? item.list_name + ' · ' : '' }}{{ (item.notify_dt + 'Z') | date: 'short' }}
+                    </div>
+                  </div>
+
+                  <i
+                    class="pi pi-arrow-up-right shrink-0 text-xs text-primary-300 opacity-0 transition-opacity duration-150 group-hover/item:opacity-100 dark:text-primary-600"></i>
+                </div>
+              </div>
+              }
+            </div>
+          </div>
+          }
+        </div>
+      </div>
+      }
+
+      @if (!invitations.length && !checklistNotifications.length) {
+      <div class="py-8 text-center text-sm text-primary-500 dark:text-primary-400">
+        {{ t('trips.notifications.empty') }}
+      </div>
+      }
     </section>
   </p-dialog>
 </ng-container>

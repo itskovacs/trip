@@ -11,7 +11,8 @@ from sqlmodel import select
 
 from ..config import get_settings
 from ..deps import SessionDep, get_current_username
-from ..models.models import (Image, ItemImageInput, Place, Trip,
+from ..models.models import (Image, ItemImageInput,
+                             NotificationChecklistItemRead, Place, Trip,
                              TripAttachment, TripAttachmentRead,
                              TripBalanceEntry, TripBooking,
                              TripCalendarDetails, TripChecklist,
@@ -185,9 +186,70 @@ def has_pending_invitations(
     return bool(pending)
 
 
+@router.get("/notifications", response_model=list[NotificationChecklistItemRead])
+def read_checklist_notifications(
+    session: SessionDep,
+    current_user: Annotated[str, Depends(get_current_username)],
+) -> list[NotificationChecklistItemRead]:
+    accessible_trips = session.exec(
+        select(Trip.id, Trip.name)
+        .join(TripMember, isouter=True)
+        .where(
+            (Trip.user == current_user)
+            | ((TripMember.user == current_user) & (TripMember.joined_at.is_not(None))),
+            Trip.archived.is_not(True),
+        )
+        .distinct()
+    ).all()
+    trip_names = {trip_id: name for trip_id, name in accessible_trips}
+    if not trip_names:
+        return []
+
+    items = session.exec(
+        select(TripChecklistItem)
+        .where(TripChecklistItem.trip_id.in_(trip_names.keys()))
+        .where(TripChecklistItem.notify_dt.is_not(None))
+        .where(TripChecklistItem.checked.is_not(True))
+    ).all()
+
+    entries = session.exec(
+        select(TripChecklistEntry, TripChecklist)
+        .join(TripChecklist, TripChecklist.id == TripChecklistEntry.checklist_id)
+        .where(TripChecklist.trip_id.in_(trip_names.keys()))
+        .where(TripChecklistEntry.notify_dt.is_not(None))
+        .where(TripChecklistEntry.checked.is_not(True))
+    ).all()
+
+    notifications = [
+        NotificationChecklistItemRead(
+            id=item.id,
+            text=item.text,
+            notify_dt=item.notify_dt,
+            trip_id=item.trip_id,
+            trip_name=trip_names[item.trip_id],
+        )
+        for item in items
+    ] + [
+        NotificationChecklistItemRead(
+            id=entry.id,
+            text=entry.text,
+            notify_dt=entry.notify_dt,
+            trip_id=checklist.trip_id,
+            trip_name=trip_names[checklist.trip_id],
+            list_id=checklist.id,
+            list_name=checklist.name,
+        )
+        for entry, checklist in entries
+    ]
+
+    return sorted(notifications, key=lambda n: n.notify_dt)
+
+
 @router.get("/{trip_id}", response_model=TripRead)
 def read_trip(
-    session: SessionDep, trip_id: int, current_user: Annotated[str, Depends(get_current_username)]
+    session: SessionDep,
+    trip_id: int,
+    current_user: Annotated[str, Depends(get_current_username)],
 ) -> TripRead:
     db_trip = session.exec(
         select(Trip)

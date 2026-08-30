@@ -8,6 +8,7 @@ import { Backup, ImportResponse, Settings } from '../types/settings';
 import {
   ChecklistItem,
   ChecklistList,
+  NotificationChecklistItem,
   PackingItem,
   PackingList,
   SharedTripDetails,
@@ -374,12 +375,12 @@ export class ApiService {
     return this.httpClient.delete<null>(`${this.apiBaseUrl}/trips/${tripId}/checklists/${listId}/items/${itemId}`);
   }
 
-  getHasTripsInvitations(): Observable<boolean> {
-    return this.httpClient.get<boolean>(`${this.apiBaseUrl}/trips/invitations/pending`);
-  }
-
   getTripsInvitations(): Observable<TripInvitation[]> {
     return this.httpClient.get<TripInvitation[]>(`${this.apiBaseUrl}/trips/invitations`);
+  }
+
+  getNotificationChecklistItems(): Observable<NotificationChecklistItem[]> {
+    return this.httpClient.get<NotificationChecklistItem[]>(`${this.apiBaseUrl}/trips/notifications`);
   }
 
   getTripMembers(tripId: number): Observable<TripMember[]> {
