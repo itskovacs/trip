@@ -370,6 +370,23 @@ html {
   animation: fade-scale 0.15s ease-in both reverse;
 }
 
+.day-collapse {
+  display: grid;
+  transition: grid-template-rows 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.day-collapse-content {
+  overflow: hidden;
+  transition: opacity 0.2s ease-out;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .day-collapse,
+  .day-collapse-content {
+    transition-duration: 0.01ms;
+  }
+}
+
 // https://github.com/primefaces/primeng/issues/17089...
 .p-inputgroup .p-floatlabel p-inputmask input {
   width: 100%;

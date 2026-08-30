@@ -35,20 +35,10 @@ import {
   PrintOptions,
   SharedTripDetails,
   ViewTripItem,
-  DayViewModel,
   HighlightData,
 } from '../../types/trip';
 import { Category, Place } from '../../types/poi';
-import {
-  createMap,
-  placeToMarker,
-  createClusterGroup,
-  openNavigation,
-  tripDayMarker,
-  gpxToPolyline,
-  toDotMarker,
-  getGeolocationLatLng,
-} from '../../shared/map';
+import { openNavigation, tripDayMarker } from '../../shared/map';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DialogService, DynamicDialogRef } from 'primeng/dynamicdialog';
 import { TripPlaceSelectModalComponent } from '../../modals/trip-place-select-modal/trip-place-select-modal.component';
@@ -95,6 +85,7 @@ import { TripBulkEditModalComponent } from '../../modals/trip-bulk-edit-modal/tr
 import { TripBookingModalComponent } from '../../modals/trip-booking-modal/trip-booking-modal.component';
 import { PlaceListItemComponent } from '../../shared/place-list-item/place-list-item.component';
 import { RouteManagerService } from '../../services/route-manager.service';
+import { TripMapService } from '../../services/trip-map.service';
 import { TripPrettyPrintModalComponent } from '../../modals/trip-pretty-print-modal/trip-pretty-print-modal.component';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { LinkChipComponent } from '../../shared/link-chip/link-chip.component';
@@ -149,6 +140,7 @@ const HIGHLIGHT_COLORS = [
     TripSkeletonComponent,
   ],
   changeDetection: ChangeDetectionStrategy.OnPush,
+  providers: [TripMapService],
   templateUrl: './trip.component.html',
   styleUrls: ['./trip.component.scss'],
 })
@@ -174,6 +166,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   routeManager: RouteManagerService;
   changeDetectionRef: ChangeDetectorRef;
   translocoService: TranslocoService;
+  mapService: TripMapService;
 
   trip = signal<Trip | null>(null);
   tripMembers = signal<TripMember[]>([]);
@@ -357,6 +350,9 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       })
       .filter((vm) => vm !== null);
   });
+  anyDayCollapsed = computed(() =>
+    this.tripViewModel().some((group) => this.mapService.collapsedDayIds().has(group.day.id)),
+  );
   totalPrice = computed(() => {
     const trip = this.trip();
     if (!trip?.days) return 0;
@@ -483,16 +479,6 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   statuses: TripStatus[];
   availableItemProps = ['place', 'comment', 'latlng', 'price', 'status', 'distance'];
 
-  map?: L.Map;
-  mapReady = signal(false);
-  markerClusterGroup?: L.MarkerClusterGroup;
-  tripMapAntLayer?: L.FeatureGroup;
-  markers = new Map<number, L.Marker>();
-  selectedItemMarker?: L.Marker;
-  highlightedMarkerElement?: HTMLElement;
-  gpxLayerGroup?: L.LayerGroup;
-  displayedItemGpxId = signal<number | null>(null);
-
   constructor() {
     this.apiService = inject(ApiService);
     this.route = inject(ActivatedRoute);
@@ -503,6 +489,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     this.routeManager = inject(RouteManagerService);
     this.changeDetectionRef = inject(ChangeDetectorRef);
     this.translocoService = inject(TranslocoService);
+    this.mapService = inject(TripMapService);
 
     this.statuses = this.utilsService.statuses;
     this.username = this.utilsService.loggedUser;
@@ -542,74 +529,21 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     effect(() => {
       const vm = this.tripViewModel();
       untracked(() => {
-        if (this.map && this.trip()) this.updateMapVisualization(vm);
+        if (this.mapService.map && this.trip()) {
+          this.mapService.updateMapVisualization(
+            vm,
+            this.places(),
+            this.usedPlaceIds(),
+            (place, items) => this.onPlaceMarkerClick(place, items),
+            (place) => this.markerRightClickFn(place),
+          );
+        }
       });
     });
 
     effect(() => {
       const data = this.highlightLayerData();
-
-      untracked(() => {
-        const activePlaceIds = data?.activePlaceIds || new Set<number>();
-        this.markers.forEach((marker: any, placeId) => {
-          const isHighlighted = activePlaceIds.has(placeId);
-          marker.isHighlightedPlace = isHighlighted;
-          const el = marker.getElement();
-          if (!el) return;
-
-          if (isHighlighted) el.classList.add('active-trip-place');
-          else el.classList.remove('active-trip-place');
-        });
-
-        if (this.tripMapAntLayer) {
-          this.map?.removeLayer(this.tripMapAntLayer);
-          this.tripMapAntLayer = undefined;
-        }
-
-        const mapContainer = this.map?.getContainer();
-        if (!data || !this.map) {
-          if (mapContainer) mapContainer.classList.remove('leaflet-tripday-pane-highlighting');
-          return;
-        }
-
-        if (mapContainer) mapContainer.classList.add('leaflet-tripday-pane-highlighting');
-
-        const layerGroup = L.featureGroup();
-        data.paths.forEach((p) => {
-          const polyline = L.polyline(p.coords, {
-            color: p.options.color,
-            weight: p.options.weight,
-            className: 'animated-path',
-            smoothFactor: 1.5,
-          });
-          layerGroup.addLayer(polyline);
-        });
-        data.markers.forEach((item) => {
-          const marker = tripDayMarker(item);
-          marker.on('add', (e: any) => e.target.getElement()?.classList.add('active-trip-marker'));
-          marker.on('click', () => {
-            if (this.selectedItem()?.id === item.id) {
-              this.selectedItem.set(null);
-              this.selectedPlace.set(null);
-              this.selectedDay.set(null);
-              return;
-            }
-            this.selectedItem.set(this.normalizeItem(item));
-            this.selectedPlace.set(null);
-            this.selectedDay.set(null);
-          });
-          layerGroup.addLayer(marker);
-        });
-        data.gpxData.forEach((gpx) => layerGroup.addLayer(gpxToPolyline(gpx)));
-
-        this.tripMapAntLayer = layerGroup;
-        requestAnimationFrame(() => {
-          if (this.tripMapAntLayer && this.map) {
-            this.tripMapAntLayer.addTo(this.map);
-            this.map.fitBounds(data.bounds, { padding: [30, 30], maxZoom: 16 });
-          }
-        });
-      });
+      untracked(() => this.mapService.applyHighlight(data, (item) => this.onHighlightItemClick(item)));
     });
 
     effect(() => {
@@ -639,23 +573,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
         } else this.selectedPanelHeight.set(0);
       });
 
-      untracked(() => {
-        this.clearSelectedItemHighlight();
-        this.clearItemGPX();
-        if (!this.map) return;
-        if (place) {
-          const existingMarker = this.markers.get(place.id);
-          if (existingMarker) this.highlightExistingMarker(existingMarker);
-          return;
-        } else if (item) {
-          const lat = item.lat;
-          const lng = item.lng;
-          if (lat && lng) {
-            this.selectedItemMarker = tripDayMarker(item);
-            this.selectedItemMarker.addTo(this.map);
-          }
-        }
-      });
+      untracked(() => this.mapService.showSelection(place, item));
     });
 
     const viewPrefs = this.utilsService.getTripViewPrefs();
@@ -689,34 +607,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy() {
-    this.cleanupMap();
-  }
-
-  cleanupMap() {
-    if (this.tripMapAntLayer) {
-      this.map?.removeLayer(this.tripMapAntLayer);
-      this.tripMapAntLayer = undefined;
-    }
-
-    if (this.gpxLayerGroup) {
-      this.map?.removeLayer(this.gpxLayerGroup);
-      this.gpxLayerGroup = undefined;
-    }
-    this.displayedItemGpxId.set(null);
-
-    this.markers.forEach((marker) => marker.remove());
-    this.markers.clear();
-
-    if (this.markerClusterGroup) {
-      this.markerClusterGroup.clearLayers();
-      this.markerClusterGroup = undefined;
-    }
-
-    if (this.map) {
-      this.map.remove();
-      this.map = undefined;
-    }
-    this.mapReady.set(false);
+    this.mapService.cleanupMap();
   }
 
   getItemDayLabel(item: ViewTripItem): string {
@@ -737,7 +628,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
         next: ({ trip, settings, members }) => {
           this.trip.set(trip);
           this.tripMembers.set(members);
-          if (!this.map) this.initMap(settings);
+          if (!this.mapService.map) this.initMap(settings);
         },
         error: () => {
           this.utilsService.toast(
@@ -751,8 +642,6 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   }
 
   initMap(settings: Settings) {
-    this.cleanupMap();
-
     const contextMenuItems = [
       {
         text: this.translocoService.translate('entities.item.add_poi'),
@@ -769,88 +658,40 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       },
     ];
 
-    this.map = createMap(contextMenuItems, settings.tile_layer, () => this.mapReady.set(true));
-    this.markerClusterGroup = createClusterGroup().addTo(this.map);
-    this.map.setView([settings.map_lat, settings.map_lng]);
-    this.updateMapVisualization(this.tripViewModel());
-    this.resetMapBounds();
+    this.mapService.initMap({
+      contextMenuItems,
+      tileLayer: settings.tile_layer,
+      center: [settings.map_lat, settings.map_lng],
+      onCreated: () => {
+        this.mapService.updateMapVisualization(
+          this.tripViewModel(),
+          this.places(),
+          this.usedPlaceIds(),
+          (place, items) => this.onPlaceMarkerClick(place, items),
+          (place) => this.markerRightClickFn(place),
+        );
+        this.mapService.resetMapBounds(this.places(), this.tripViewModel());
+      },
+    });
   }
 
-  updateMapVisualization(viewModels: DayViewModel[]) {
-    if (!this.map || !this.markerClusterGroup) return;
-
-    this.markerClusterGroup.clearLayers();
-    this.markers.clear();
-
-    if (this.tripMapAntLayer) {
-      this.map.removeLayer(this.tripMapAntLayer);
-      this.tripMapAntLayer = undefined;
-    }
-
-    const usedIds = this.usedPlaceIds();
-    const allPlaces = this.places();
-    const markersToAdd: L.Marker[] = [];
-
-    const itemsByPlaceId = new Map<number, ViewTripItem[]>();
-    viewModels.forEach((vm) => {
-      vm.items.forEach((item) => {
-        if (item.place?.id) {
-          if (!itemsByPlaceId.has(item.place.id)) {
-            itemsByPlaceId.set(item.place.id, []);
-          }
-          itemsByPlaceId.get(item.place.id)!.push(item);
-        }
-      });
-    });
-
-    allPlaces.forEach((place) => {
-      const isUsed = usedIds.has(place.id);
-      const marker = placeToMarker(place, false, !isUsed, false, () => this.markerRightClickFn(place));
-      marker.on('add', (e: any) => {
-        const el = e.target.getElement();
-        if (el && e.target.isHighlightedPlace) el.classList.add('active-trip-place');
-      });
-
-      const itemsUsingPlace = itemsByPlaceId.get(place.id) || [];
-      marker.on('click', () => {
-        this.selectedPlace.set(place);
-        this.selectedItem.set(null);
-        this.selectedDay.set(null);
-        this.selectedPlaceActiveTabIndex.set(itemsUsingPlace.length > 0 ? itemsUsingPlace.length : 0);
-      });
-
-      this.markers.set(place.id, marker);
-      markersToAdd.push(marker);
-    });
-
-    if (markersToAdd.length) {
-      this.markerClusterGroup.addLayers(markersToAdd);
-    }
+  onPlaceMarkerClick(place: Place, itemsUsingPlace: ViewTripItem[]) {
+    this.selectedPlace.set(place);
+    this.selectedItem.set(null);
+    this.selectedDay.set(null);
+    this.selectedPlaceActiveTabIndex.set(itemsUsingPlace.length > 0 ? itemsUsingPlace.length : 0);
   }
 
-  resetMapBounds() {
-    const allPlaces = this.places();
-
-    if (!allPlaces.length) {
-      const trip = this.trip();
-      if (!trip?.days.length) return;
-
-      const itemsWithCoordinates = this.tripViewModel()
-        .flatMap((dayVM) => dayVM.items)
-        .filter((i) => i.lat != null && i.lng != null);
-
-      if (!itemsWithCoordinates.length) return;
-      this.map?.fitBounds(
-        itemsWithCoordinates.map((i) => [i.lat!, i.lng!]),
-        { padding: [15, 15] },
-      );
+  onHighlightItemClick(item: TripItem) {
+    if (this.selectedItem()?.id === item.id) {
+      this.selectedItem.set(null);
+      this.selectedPlace.set(null);
+      this.selectedDay.set(null);
       return;
     }
-
-    this.map?.fitBounds(
-      allPlaces.map((p) => [p.lat, p.lng]),
-      { padding: [15, 15] },
-    );
+    this.selectedItem.set(this.normalizeItem(item));
+    this.selectedPlace.set(null);
+    this.selectedDay.set(null);
   }
 
   normalizeItem(item: TripItem): ViewTripItem {
@@ -1247,6 +1088,10 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     });
   }
 
+  toggleAllDaysCollapse() {
+    this.mapService.toggleAllDaysCollapse(this.tripViewModel().map((group) => group.day.id));
+  }
+
   unlinkPlaceFromTrip(placeId: number) {
     if (this.usedPlaceIds().has(placeId)) {
       this.utilsService.toast(
@@ -1436,95 +1281,13 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   }
 
   onRowEnter(item: ViewTripItem) {
-    if (this.selectedPlace() || this.selectedItem()) return;
-    this.clearSelectedItemHighlight();
-
-    const placeId = item?.place?.id;
-    if (!placeId) return;
-
-    const marker = this.markers.get(placeId);
-    if (marker) this.highlightExistingMarker(marker);
+    if (this.hasSelection()) return;
+    this.mapService.onRowEnter(item);
   }
 
   onRowLeave() {
-    if (this.selectedPlace() || this.selectedItem()) return;
-    this.clearSelectedItemHighlight();
-  }
-
-  async centerOnMe() {
-    const position = await getGeolocationLatLng();
-    if (position.err) {
-      this.utilsService.toast('error', this.translocoService.translate('common.status.error'), position.err);
-      return;
-    }
-
-    const coords: any = [position.lat!, position.lng!];
-    this.map?.flyTo(coords);
-    const marker = toDotMarker(coords);
-    marker.addTo(this.map!);
-    setTimeout(() => {
-      marker.remove();
-    }, 4000);
-  }
-
-  highlightExistingMarker(marker: L.Marker) {
-    if (!this.markerClusterGroup) return;
-    const markerElement = marker.getElement() as HTMLElement;
-    if (markerElement) {
-      markerElement.classList.add('list-hover');
-      this.highlightedMarkerElement = markerElement;
-    } else {
-      const parentCluster = (this.markerClusterGroup as any).getVisibleParent(marker);
-      if (parentCluster) {
-        const clusterEl = parentCluster.getElement();
-        if (clusterEl) {
-          clusterEl.classList.add('list-hover');
-          this.highlightedMarkerElement = clusterEl;
-        }
-      }
-    }
-  }
-
-  clearSelectedItemHighlight() {
-    if (this.selectedItemMarker) {
-      this.map?.removeLayer(this.selectedItemMarker);
-      this.selectedItemMarker = undefined;
-    }
-
-    if (this.highlightedMarkerElement) {
-      this.highlightedMarkerElement.classList.remove('list-hover');
-      this.highlightedMarkerElement = undefined;
-    }
-  }
-
-  toggleItemGPX(item: ViewTripItem) {
-    if (!this.map || !item.gpx) return;
-
-    if (this.displayedItemGpxId() === item.id) {
-      this.clearItemGPX();
-      return;
-    }
-
-    if (!this.gpxLayerGroup) this.gpxLayerGroup = L.layerGroup().addTo(this.map);
-    this.gpxLayerGroup.clearLayers();
-
-    try {
-      const polyline = gpxToPolyline(item.gpx);
-      this.gpxLayerGroup.addLayer(polyline);
-      this.map.fitBounds(polyline.getBounds(), { padding: [20, 20] });
-      this.displayedItemGpxId.set(item.id);
-    } catch {
-      this.utilsService.toast(
-        'error',
-        this.translocoService.translate('common.status.error'),
-        this.translocoService.translate('messages.could_not_parse_gpx'),
-      );
-    }
-  }
-
-  clearItemGPX() {
-    this.gpxLayerGroup?.clearLayers();
-    this.displayedItemGpxId.set(null);
+    if (this.hasSelection()) return;
+    this.mapService.onRowLeave();
   }
 
   addItem(dayId?: number, placeId?: number) {
@@ -1701,7 +1464,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           );
           return { ...current, days };
         });
-        if (this.displayedItemGpxId() === item.id) this.clearItemGPX();
+        if (this.mapService.displayedItemGpxId() === item.id) this.mapService.clearItemGPX();
         if (this.selectedItem()?.id === item.id) this.selectedItem.set(null);
         if (this.selectedPlace()?.id === item.place?.id) {
           const remainingItems = this.selectedPlaceItems().filter((i) => i.id !== item.id);
@@ -2000,6 +1763,10 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   sortBookings(bookings: TripBooking[]): TripBooking[] {
     return sharedSortBookings(bookings);
+  }
+
+  bookingTitle(booking: TripBooking): string {
+    return [booking.label, booking.reference, booking.notes].filter(Boolean).join(' · ');
   }
 
   addPlace(e?: any) {
@@ -3447,10 +3214,10 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       layerGroup.addLayer(marker);
     });
 
-    this.tripMapAntLayer = layerGroup;
+    this.mapService.tripMapAntLayer = layerGroup;
     requestAnimationFrame(() => {
-      if (!this.tripMapAntLayer || !this.map) return;
-      this.tripMapAntLayer.addTo(this.map);
+      if (!this.mapService.tripMapAntLayer || !this.mapService.map) return;
+      this.mapService.tripMapAntLayer.addTo(this.mapService.map);
     });
 
     let completedRoutes = 0;
@@ -3484,7 +3251,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
               profile,
             });
 
-            const currentMap = this.map;
+            const currentMap = this.mapService.map;
             if (currentMap) layer.addTo(currentMap);
           },
           error: (err) => {
@@ -3503,11 +3270,11 @@ export class TripComponent implements AfterViewInit, OnDestroy {
 
   flyTo(latlng?: [number, number]) {
     const selected = this.selectedItem() || this.selectedPlace();
-    if (!this.map || (!latlng && (!selected || !selected.lat || !selected.lng))) return;
+    if (!this.mapService.map || (!latlng && (!selected || !selected.lat || !selected.lng))) return;
 
     const lat: number = latlng ? latlng[0] : selected!.lat!;
     const lng: number = latlng ? latlng[1] : selected!.lng!;
-    this.map.flyTo([lat, lng], this.map.getZoom() || 9, { duration: 2 });
+    this.mapService.map.flyTo([lat, lng], this.mapService.map.getZoom() || 9, { duration: 2 });
   }
 
   markerRightClickFn(to: Place) {
@@ -3539,7 +3306,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
             duration: resp.duration ?? 0,
             profile,
           });
-          const currentMap = this.map;
+          const currentMap = this.mapService.map;
           if (currentMap) layer.addTo(currentMap);
         },
         error: (err) => {

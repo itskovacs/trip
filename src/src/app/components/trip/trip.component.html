@@ -2,7 +2,7 @@
   <div class="relative h-screen w-screen overflow-hidden bg-primary-950" [class.prettyprint]="printOptions()">
     <div class="fixed inset-0 w-full h-full z-0">
       <div id="map" class="w-full h-full"></div>
-      @if (!mapReady()) {
+      @if (!mapService.mapReady()) {
       <div class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center bg-primary-950"
         animate.leave="a-fade-scale">
         <div class="relative flex h-16 w-16 items-center justify-center">
@@ -21,7 +21,7 @@
       <div class="pointer-events-auto">
         <div
           class="select-none flex items-center gap-2 p-1.5 bg-white/70 dark:bg-black/70 backdrop-blur-xl rounded-lg shadow-lg shadow-black/5">
-          <div (click)="centerOnMe()" [pTooltip]="t('view.center_location')"
+          <div (click)="mapService.centerOnMe()" [pTooltip]="t('view.center_location')"
             class="cursor-pointer flex items-center justify-center w-9 h-9 hover:bg-primary-100 dark:hover:bg-primary-800 rounded-lg transition-all">
             <i class="pi pi-bullseye text-primary-700 dark:text-primary-300 text-sm"></i>
           </div>
@@ -205,6 +205,9 @@
                     [pTooltip]="isMultiSelectMode() ? t('entities.plan.multiselect_exit') : t('entities.plan.multiselect')" />
                   <div class="w-px h-5 bg-primary-200 dark:bg-primary-800"></div>
                   }
+                  <p-button [icon]="anyDayCollapsed() ? 'pi pi-angle-double-down' : 'pi pi-angle-double-up'"
+                    (click)="toggleAllDaysCollapse()" text size="small"
+                    [pTooltip]="anyDayCollapsed() ? t('view.expand_all_days') : t('view.collapse_all_days')" />
                   <p-button icon="pi pi-wave-pulse" (click)="toggleTripDaysHighlight()" text size="small"
                     [pTooltip]="t('entities.trip.highlight')" />
                   <p-button icon="pi pi-filter" (click)="toggleFiltering()" text size="small"
@@ -316,6 +319,10 @@
                       group.stats.cost | number: '1.0-0' }} {{ trip()?.currency }}
                     </span>
                     }
+                    <p-button
+                      [icon]="mapService.collapsedDayIds().has(group.day.id) ? 'pi pi-chevron-down' : 'pi pi-chevron-up'"
+                      text size="small" (click)="mapService.toggleDayCollapse(group.day.id, $event)"
+                      [pTooltip]="mapService.collapsedDayIds().has(group.day.id) ? t('view.expand_day') : t('view.collapse_day')" />
                     <p-button icon="pi pi-plus" text size="small" [disabled]="trip()?.archived"
                       (click)="addItem(group.day.id); $event.stopPropagation()" />
                     <p-button icon="pi pi-ellipsis-h"
@@ -325,172 +332,186 @@
                 </div>
               </div>
 
-              @if (showBookings()) {
-              <div class="pl-4 md:pr-4 min-w-0 overflow-x-auto">
-                <div class="flex gap-1.5">
-                  @for (booking of sortBookings(group.day.bookings ?? []); track booking.id) {
-                  <span (click)="!trip()?.archived && openBookingModal(group.day, booking); $event.stopPropagation()"
-                    class="cursor-pointer flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md transition-colors"
-                    [class]="bookingTypeClass(booking.type)" [class.opacity-60]="trip()?.archived"
-                    [class.cursor-not-allowed]="trip()?.archived">
-                    {{ bookingTypeIcon(booking.type) }} {{ booking.label }}
-                    @if (booking.reference) {
-                    <span class="opacity-60">&middot; {{ booking.reference }}</span>
-                    }
-                  </span>
-                  }
-                  @if (!trip()?.archived) {
-                  <button (click)="openBookingModal(group.day); $event.stopPropagation()"
-                    class="flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-md border border-dashed border-primary-300 dark:border-primary-600 text-primary-500 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-800 transition-colors cursor-pointer">
-                    <i class="pi pi-plus" style="font-size: 10px"></i>
-                    {{ t('bookings.add_booking') }}
-                  </button>
-                  }
-                </div>
-              </div>
-              }
-
-              @if (showDayNotes() && group.day.notes) {
-              <div class="pl-4 md:pr-4">
-                <div
-                  class="rounded-lg bg-linear-to-br from-primary-50 to-primary-100/60 dark:from-primary-800/40 dark:to-primary-900/60 border border-primary-200/80 dark:border-primary-700/80 px-3.5 py-3 shadow-sm">
-                  <div class="flex items-center justify-between gap-1.5 mb-1.5">
-                    <div class="flex items-center gap-1.5">
-                      <i class="pi pi-align-left text-xs text-primary-500 dark:text-primary-400"></i>
-                      <span
-                        class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400">{{
-                        t('modals.day.day_notes') }}</span>
+              <div class="day-collapse"
+                [style.grid-template-rows]="mapService.collapsedDayIds().has(group.day.id) ? '0fr' : '1fr'"
+                [attr.inert]="mapService.collapsedDayIds().has(group.day.id) ? true : null">
+                <div class="day-collapse-content space-y-4"
+                  [class.opacity-0]="mapService.collapsedDayIds().has(group.day.id)">
+                  @if (showBookings()) {
+                  <div class="pl-4 md:pr-4 min-w-0">
+                    <div class="@container">
+                      <div class="flex flex-wrap items-center gap-1.5">
+                        @for (booking of sortBookings(group.day.bookings ?? []); track booking.id) {
+                        <span
+                          (click)="!trip()?.archived && openBookingModal(group.day, booking); $event.stopPropagation()"
+                          [title]="bookingTitle(booking)" [class]="bookingTypeClass(booking.type)"
+                          class="inline-flex items-center gap-1 shrink-0 max-w-[11rem] @sm:max-w-[16rem] px-2 py-1 text-xs font-medium rounded-md ring-1 ring-inset ring-black/5 dark:ring-white/10 transition-colors"
+                          [class.cursor-pointer]="!trip()?.archived" [class.hover:brightness-95]="!trip()?.archived"
+                          [class.opacity-60]="trip()?.archived" [class.cursor-not-allowed]="trip()?.archived">
+                          <span class="shrink-0 leading-none">{{ bookingTypeIcon(booking.type) }}</span>
+                          <span class="truncate min-w-0">
+                            {{ booking.label }}
+                            @if (booking.reference) {
+                            <span class="opacity-60">&middot; {{ booking.reference }}</span>
+                            }
+                          </span>
+                        </span>
+                        }
+                        @if (!trip()?.archived) {
+                        <button (click)="openBookingModal(group.day); $event.stopPropagation()"
+                          class="inline-flex items-center gap-1 shrink-0 px-2 py-1 text-xs font-medium rounded-md border border-dashed border-primary-300 dark:border-primary-600 text-primary-500 dark:text-primary-400 hover:bg-primary-50 dark:hover:bg-primary-800 hover:border-primary-400 dark:hover:border-primary-500 transition-colors cursor-pointer">
+                          <i class="pi pi-plus" style="font-size: 10px"></i>
+                          {{ t('bookings.add_booking') }}
+                        </button>
+                        }
+                      </div>
                     </div>
-                    <p-button icon="pi pi-pencil" text size="small" [disabled]="trip()?.archived"
-                      (click)="editDay(group.day); $event.stopPropagation()" />
                   </div>
-                  <div class="markdown-content text-sm text-primary-800 dark:text-primary-200 leading-relaxed"
-                    [innerHTML]="group.day.notes | markdown"></div>
-                </div>
-              </div>
-              }
+                  }
 
-              <div class="space-y-2 pl-4 md:pr-4">
-                @for (item of group.items; track item.id) {
-                <div
-                  class="group relative rounded-s-lg md:rounded-lg bg-white dark:bg-primary-900 border-s border-y md:border-x border-primary-200 dark:border-primary-700 hover:border-primary-300 dark:hover:border-primary-700 hover:shadow-sm transition-all cursor-pointer"
-                  [class.ring-2]="isMultiSelectMode() && selectedItemIds().has(item.id)"
-                  [class.ring-primary-500]="isMultiSelectMode() && selectedItemIds().has(item.id)"
-                  (click)="onRowClick(item)" (mouseenter)="onRowEnter(item)" (mouseleave)="onRowLeave()">
-                  <div class="flex items-center gap-3 p-3 min-w-0 border-primary-500 rounded-s" [class]="
+                  @if (showDayNotes() && group.day.notes) {
+                  <div class="pl-4 md:pr-4">
+                    <div
+                      class="rounded-lg bg-linear-to-br from-primary-50 to-primary-100/60 dark:from-primary-800/40 dark:to-primary-900/60 border border-primary-200/80 dark:border-primary-700/80 px-3.5 py-3 shadow-sm">
+                      <div class="flex items-center justify-between gap-1.5 mb-1.5">
+                        <div class="flex items-center gap-1.5">
+                          <i class="pi pi-align-left text-xs text-primary-500 dark:text-primary-400"></i>
+                          <span
+                            class="text-xs font-semibold uppercase tracking-wide text-primary-500 dark:text-primary-400">{{
+                            t('modals.day.day_notes') }}</span>
+                        </div>
+                        <p-button icon="pi pi-pencil" text size="small" [disabled]="trip()?.archived"
+                          (click)="editDay(group.day); $event.stopPropagation()" />
+                      </div>
+                      <div class="markdown-content text-sm text-primary-800 dark:text-primary-200 leading-relaxed"
+                        [innerHTML]="group.day.notes | markdown"></div>
+                    </div>
+                  </div>
+                  }
+
+                  <div class="space-y-2 pl-4 md:pr-4">
+                    @for (item of group.items; track item.id) {
+                    <div
+                      class="group relative rounded-s-lg md:rounded-lg bg-white dark:bg-primary-900 border-s border-y md:border-x border-primary-200 dark:border-primary-700 hover:border-primary-300 dark:hover:border-primary-700 hover:shadow-sm transition-all cursor-pointer"
+                      [class.ring-2]="isMultiSelectMode() && selectedItemIds().has(item.id)"
+                      [class.ring-primary-500]="isMultiSelectMode() && selectedItemIds().has(item.id)"
+                      (click)="onRowClick(item)" (mouseenter)="onRowEnter(item)" (mouseleave)="onRowLeave()">
+                      <div class="flex items-center gap-3 p-3 min-w-0 border-primary-500 rounded-s" [class]="
                         (selectedItem()?.id === item.id ||
                           selectedPlaceItems()[selectedPlaceActiveTabIndex()]?.id === item.id) &&
                         !isMultiSelectMode()
                           ? 'border-l-4'
                           : 'border-l-0'
                       ">
-                    <div class="relative shrink-0 flex items-center" [class.pl-4]="!item.time">
-                      @if (item.status) {
-                      <span class="absolute -top-1 -right-1 w-3 h-3 rounded-full"
-                        [style.background]="item.status.color"></span>
-                      }
-                      @if (item.time) {
-                      <span
-                        class="px-2.5 py-1 text-xs sm:text-sm font-mono font-medium bg-primary-100 dark:bg-primary-800 text-primary-700 dark:text-primary-300 rounded whitespace-nowrap">
-                        {{ item.time }}
-                      </span>
-                      }
-                    </div>
-
-                    <div class="flex-1 min-w-0">
-                      <div class="flex items-center gap-2 min-w-0">
-                        @if (item.place && visibleProps.has('place')) {
-                        @if (isTextAndPlaceToggled()) {
-                        <div class="flex flex-row items-center justify-between gap-2 min-w-0 w-full">
-                          @if (item.text !== item.place.name) {
-                          <span class="text-sm font-medium text-primary-900 dark:text-white truncate min-w-0">
-                            {{ item.text }}
+                        <div class="relative shrink-0 flex items-center" [class.pl-4]="!item.time">
+                          @if (item.status) {
+                          <span class="absolute -top-1 -right-1 w-3 h-3 rounded-full"
+                            [style.background]="item.status.color"></span>
+                          }
+                          @if (item.time) {
+                          <span
+                            class="px-2.5 py-1 text-xs sm:text-sm font-mono font-medium bg-primary-100 dark:bg-primary-800 text-primary-700 dark:text-primary-300 rounded whitespace-nowrap">
+                            {{ item.time }}
                           </span>
                           }
-                          <div class="flex color-bg-opacity items-center gap-2 px-2.5 py-1 min-w-0 rounded-lg"
-                            [style.--color-bg-opacity]="item.place.category.color">
-                            <img [src]="item.place.image || item.place.category.image"
-                              class="shrink-0 w-5 h-5 rounded-full object-cover" />
-                            <span class="text-sm font-medium truncate">
-                              {{ item.place.name }}
+                        </div>
+
+                        <div class="flex-1 min-w-0">
+                          <div class="flex items-center gap-2 min-w-0">
+                            @if (item.place && visibleProps.has('place')) {
+                            @if (isTextAndPlaceToggled()) {
+                            <div class="flex flex-row items-center justify-between gap-2 min-w-0 w-full">
+                              @if (item.text !== item.place.name) {
+                              <span class="text-sm font-medium text-primary-900 dark:text-white truncate min-w-0">
+                                {{ item.text }}
+                              </span>
+                              }
+                              <div class="flex color-bg-opacity items-center gap-2 px-2.5 py-1 min-w-0 rounded-lg"
+                                [style.--color-bg-opacity]="item.place.category.color">
+                                <img [src]="item.place.image || item.place.category.image"
+                                  class="shrink-0 w-5 h-5 rounded-full object-cover" />
+                                <span class="text-sm font-medium truncate">
+                                  {{ item.place.name }}
+                                </span>
+                              </div>
+                            </div>
+                            } @else {
+                            <div class="flex color-bg-opacity items-center gap-2 px-2.5 py-1 min-w-0 rounded-lg"
+                              [style.--color-bg-opacity]="item.place.category.color">
+                              <img [src]="item.place.image || item.place.category.image"
+                                class="shrink-0 w-5 h-5 rounded-full object-cover" />
+                              <span class="text-sm font-medium truncate">
+                                {{ item.place.name }}
+                              </span>
+                            </div>
+                            }
+                            } @else {
+                            <span class="text-sm font-medium text-primary-900 dark:text-white truncate">
+                              {{ item.text }}
                             </span>
+                            }
+
+                            @if (item.attachments?.length) {
+                            <i class="shrink-0 pi pi-paperclip text-xs text-primary-400"></i>
+                            }
                           </div>
+
+                          @if (item.comment && visibleProps.has('comment')) {
+                          <p class="mt-1 text-xs text-primary-500 dark:text-primary-400 line-clamp-1"
+                            [innerHTML]="item.comment | markdown:true"></p>
+                          }
                         </div>
-                        } @else {
-                        <div class="flex color-bg-opacity items-center gap-2 px-2.5 py-1 min-w-0 rounded-lg"
-                          [style.--color-bg-opacity]="item.place.category.color">
-                          <img [src]="item.place.image || item.place.category.image"
-                            class="shrink-0 w-5 h-5 rounded-full object-cover" />
-                          <span class="text-sm font-medium truncate">
-                            {{ item.place.name }}
+
+                        <div class="flex items-center gap-2 max-w-1/4 min-w-0">
+                          @if (item.lat && item.lng && visibleProps.has('latlng')) {
+                          @let coords = item.lat + ', ' + item.lng;
+                          <span
+                            class="text-center bg-primary-100 text-primary-800 text-xs px-2 py-1 rounded-md dark:text-primary-300 dark:bg-primary-800 truncate min-w-0"
+                            [title]="coords">{{ coords }}</span>
+                          }
+
+                          @if (item.price && visibleProps.has('price')) {
+                          @let width = panelWidth();
+                          <span
+                            class="flex items-center bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-1 text-xs font-medium rounded-md whitespace-nowrap">
+                            {{ item.price | number: '1.0-0' }} {{ trip()?.currency }}
+                            @if (width != null && +width > 550 && item.paid_by) {
+                            <span class="ml-px text-[10px] opacity-75">({{ item.paid_by }})</span>
+                            }
                           </span>
+                          }
+
+                          @if (item.distance && visibleProps.has('distance')) {
+                          <span
+                            class="flex items-center bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-1 text-xs font-medium rounded-md whitespace-nowrap">
+                            {{ item.distance }}km
+                          </span>
+                          }
+
+                          @if (item.status && visibleProps.has('status')) {
+                          <div
+                            class="color-bg-opacity flex items-center px-2 py-1 text-xs font-medium rounded-md max-w-20 min-w-0"
+                            [style.--color-bg-opacity]="item.status.color" [title]="item.status.label">
+                            <span class="truncate">{{ item.status.label }}</span>
+                          </div>
+                          }
                         </div>
-                        }
-                        } @else {
-                        <span class="text-sm font-medium text-primary-900 dark:text-white truncate">
-                          {{ item.text }}
-                        </span>
-                        }
 
-                        @if (item.attachments?.length) {
-                        <i class="shrink-0 pi pi-paperclip text-xs text-primary-400"></i>
-                        }
+                        <i
+                          class="pi pi-chevron-right absolute top-1/2 -translate-y-1/2 right-1 bg-primary-100 dark:bg-primary-800 p-1 rounded text-xs opacity-0 group-hover:opacity-100 group-hover:-translate-x-2 transition-all"></i>
                       </div>
-
-                      @if (item.comment && visibleProps.has('comment')) {
-                      <p class="mt-1 text-xs text-primary-500 dark:text-primary-400 line-clamp-1 whitespace-pre-wrap">{{
-                        item.comment }}
-                      </p>
-                      }
                     </div>
-
-                    <div class="flex items-center gap-2 max-w-1/4 min-w-0">
-                      @if (item.lat && item.lng && visibleProps.has('latlng')) {
-                      @let coords = item.lat + ', ' + item.lng;
-                      <span
-                        class="text-center bg-primary-100 text-primary-800 text-xs px-2 py-1 rounded-md dark:text-primary-300 dark:bg-primary-800 truncate min-w-0"
-                        [title]="coords">{{ coords }}</span>
-                      }
-
-                      @if (item.price && visibleProps.has('price')) {
-                      @let width = panelWidth();
-                      <span
-                        class="flex items-center bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-1 text-xs font-medium rounded-md whitespace-nowrap">
-                        {{ item.price | number: '1.0-0' }} {{ trip()?.currency }}
-                        @if (width != null && +width > 550 && item.paid_by) {
-                        <span class="ml-px text-[10px] opacity-75">({{ item.paid_by }})</span>
-                        }
-                      </span>
-                      }
-
-                      @if (item.distance && visibleProps.has('distance')) {
-                      <span
-                        class="flex items-center bg-primary-100 dark:bg-primary-800 text-primary-900 dark:text-white px-2 py-1 text-xs font-medium rounded-md whitespace-nowrap">
-                        {{ item.distance }}km
-                      </span>
-                      }
-
-                      @if (item.status && visibleProps.has('status')) {
-                      <div
-                        class="color-bg-opacity flex items-center px-2 py-1 text-xs font-medium rounded-md max-w-20 min-w-0"
-                        [style.--color-bg-opacity]="item.status.color" [title]="item.status.label">
-                        <span class="truncate">{{ item.status.label }}</span>
-                      </div>
-                      }
+                    } @empty {
+                    <div class="flex flex-col items-center justify-center py-4">
+                      <h3 class="text-lg font-semibold text-primary-900 dark:text-white mb-2">{{
+                        t('empty_states.no_plans')
+                        }}</h3>
+                      <p-button icon="pi pi-plus" text size="small" [label]="t('entities.plan.add')"
+                        [disabled]="trip()?.archived" (click)="addItem(group.day.id)" />
                     </div>
-
-                    <i
-                      class="pi pi-chevron-right absolute top-1/2 -translate-y-1/2 right-1 bg-primary-100 dark:bg-primary-800 p-1 rounded text-xs opacity-0 group-hover:opacity-100 group-hover:-translate-x-2 transition-all"></i>
+                    }
                   </div>
                 </div>
-                } @empty {
-                <div class="flex flex-col items-center justify-center py-4">
-                  <h3 class="text-lg font-semibold text-primary-900 dark:text-white mb-2">{{ t('empty_states.no_plans')
-                    }}</h3>
-                  <p-button icon="pi pi-plus" text size="small" [label]="t('entities.plan.add')"
-                    [disabled]="trip()?.archived" (click)="addItem(group.day.id)" />
-                </div>
-                }
               </div>
               }
             </div>
@@ -920,9 +941,9 @@
                     t('common.fields.gpx') }}
                   </span>
                   <div class="flex gap-2">
-                    <p-button (click)="toggleItemGPX(item)"
-                      [icon]="displayedItemGpxId() === item.id ? 'pi pi-eye-slash' : 'pi pi-compass'"
-                      [label]="displayedItemGpxId() === item.id ? t('common.actions.hide') : t('common.actions.display')"
+                    <p-button (click)="mapService.toggleItemGPX(item)"
+                      [icon]="mapService.displayedItemGpxId() === item.id ? 'pi pi-eye-slash' : 'pi pi-compass'"
+                      [label]="mapService.displayedItemGpxId() === item.id ? t('common.actions.hide') : t('common.actions.display')"
                       text />
                     <p-button (click)="downloadItemGPX()" icon="pi pi-download" [label]="t('common.actions.download')"
                       text />
@@ -1122,9 +1143,9 @@
               t('common.fields.gpx') }}
             </span>
             <div class="flex gap-2">
-              <p-button (click)="toggleItemGPX(item)"
-                [icon]="displayedItemGpxId() === item.id ? 'pi pi-eye-slash' : 'pi pi-compass'"
-                [label]="displayedItemGpxId() === item.id ? t('common.actions.hide') : t('common.actions.display')"
+              <p-button (click)="mapService.toggleItemGPX(item)"
+                [icon]="mapService.displayedItemGpxId() === item.id ? 'pi pi-eye-slash' : 'pi pi-compass'"
+                [label]="mapService.displayedItemGpxId() === item.id ? t('common.actions.hide') : t('common.actions.display')"
                 text />
               <p-button (click)="downloadItemGPX()" icon="pi pi-download" [label]="t('common.actions.download')" text />
             </div>

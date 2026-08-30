@@ -51,8 +51,8 @@ marked.use({
 
 @Pipe({ name: 'markdown', standalone: true })
 export class MarkdownPipe implements PipeTransform {
-  transform(text: string | null | undefined): string {
+  transform(text: string | null | undefined, inline = false): string {
     if (!text) return '';
-    return marked.parse(text, { async: false });
+    return inline ? marked.parseInline(text, { async: false }) : marked.parse(text, { async: false });
   }
 }
