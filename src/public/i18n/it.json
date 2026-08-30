@@ -603,6 +603,8 @@
     "documentation_desc": "Scopri come usare TRIP",
     "dog_tag": "Etichetta Adatto ai cani",
     "dog_tag_desc": "Mostra l'indicatore adatto ai cani sui luoghi e il chip di filtro",
+    "link_titles": "Titoli dei link",
+    "link_titles_desc": "Recupera e mostra il titolo della pagina di ogni link invece dell'URL grezzo",
     "duplicate_dist": "Soglia distanza duplicati",
     "duplicate_dist_desc": "Controlla il livello di somiglianza delle stringhe. Valori più alti accettano più differenze; 0 per disattivare",
     "encode_map_position": "Salva posizione mappa e luogo",

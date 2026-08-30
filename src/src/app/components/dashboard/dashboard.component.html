@@ -859,6 +859,21 @@
                         <p-toggleswitch [(ngModel)]="isDogTagMode" (onChange)="toggleDogTagMode()"
                           class="shrink-0 ml-4" />
                       </div>
+
+                      <div
+                        class="flex items-center justify-between py-3 px-4 rounded-lg bg-primary-50 dark:bg-black/50 border border-primary-100 dark:border-primary-700">
+                        <div class="flex items-center gap-3 min-w-0 flex-1">
+                          <i class="pi pi-link text-emerald-600 dark:text-emerald-400 shrink-0"></i>
+                          <div class="min-w-0">
+                            <span class="font-medium text-sm text-primary-900 dark:text-primary-100 block">{{
+                              t('settings.link_titles') }}</span>
+                            <p class="text-xs text-primary-500 dark:text-primary-400 hidden lg:block">{{
+                              t('settings.link_titles_desc') }}</p>
+                          </div>
+                        </div>
+                        <p-toggleswitch [(ngModel)]="isFetchLinkTitlesMode" (onChange)="toggleFetchLinkTitles()"
+                          class="shrink-0 ml-4" />
+                      </div>
                     </div>
                     }
                   </section>

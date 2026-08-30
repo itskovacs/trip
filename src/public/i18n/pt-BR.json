@@ -195,6 +195,8 @@
     "encode_map_position_desc": "Salvar a posição do mapa e o local selecionado na URL para restaurar a mesma visualização ao recarregar",
     "dog_tag": "Etiqueta Dog-friendly",
     "dog_tag_desc": "Mostrar o indicador dog-friendly nos locais e no filtro rápido",
+    "link_titles": "Títulos dos links",
+    "link_titles_desc": "Buscar e exibir o título da página de cada link em vez da URL bruta",
     "always_display_visited": "Mostrar locais visitados",
     "always_display_visited_desc": "Sempre exibir locais visitados como pequenos pontos",
     "currency_desc": "Atualizar a moeda padrão",

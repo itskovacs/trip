@@ -1,3 +1,15 @@
+import { LinkItem } from '../types/poi';
+
+export type PlaceLink = string | LinkItem;
+
+export function linkUrl(link: PlaceLink): string {
+  return typeof link === 'string' ? link : link.url;
+}
+
+export function linkTitle(link: PlaceLink): string | null {
+  return typeof link === 'string' ? null : (link.title ?? null);
+}
+
 export interface LinkDisplay {
   domain: string;
   segment: string | null;
@@ -49,20 +61,22 @@ function truncate(text: string): string {
 
 export interface LinkGroup {
   domain: string;
-  links: { url: string; display: LinkDisplay; index: number }[];
+  links: { url: string; title: string | null; display: LinkDisplay; index: number }[];
 }
 
-export function groupLinksByDomain(links: string[]): LinkGroup[] {
+export function groupLinksByDomain(links: PlaceLink[]): LinkGroup[] {
   const domainOrder: string[] = [];
-  const byDomain = new Map<string, { url: string; display: LinkDisplay; index: number }[]>();
+  const byDomain = new Map<string, { url: string; title: string | null; display: LinkDisplay; index: number }[]>();
 
-  links.forEach((url, index) => {
+  links.forEach((link, index) => {
+    const url = linkUrl(link);
+    const title = linkTitle(link);
     const display = parseLinkDisplay(url);
     if (!byDomain.has(display.domain)) {
       byDomain.set(display.domain, []);
       domainOrder.push(display.domain);
     }
-    byDomain.get(display.domain)!.push({ url, display, index });
+    byDomain.get(display.domain)!.push({ url, title, display, index });
   });
 
   return domainOrder.map((domain) => ({ domain, links: byDomain.get(domain)! }));

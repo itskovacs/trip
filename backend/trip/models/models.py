@@ -8,6 +8,7 @@ from pydantic import BaseModel, StringConstraints, field_validator
 from sqlalchemy import (JSON, Column, Index, MetaData, UniqueConstraint, event,
                         select)
 from sqlalchemy.orm import Session, object_session
+from sqlalchemy.types import TypeDecorator
 from sqlmodel import Field, Relationship, SQLModel
 
 from ..config import get_settings
@@ -318,6 +319,7 @@ class UserBase(SQLModel):
     mode_display_visited: bool | None = False
     mode_map_position: bool | None = False
     show_dog_tag: bool | None = True
+    fetch_link_titles: bool | None = False
     api_token: str | None = None
     duplicate_dist: int | None = None
     language: str | None = None
@@ -415,6 +417,7 @@ class UserRead(UserBase):
             mode_display_visited=obj.mode_display_visited,
             mode_map_position=obj.mode_map_position,
             show_dog_tag=obj.show_dog_tag,
+            fetch_link_titles=obj.fetch_link_titles,
             totp_enabled=obj.totp_enabled,
             google_apikey=True if obj.google_apikey else False,
             apprise_webhook_url=True if obj.apprise_webhook_url else False,
@@ -495,6 +498,21 @@ class TripPlaceLink(SQLModel, table=True):
     place_id: int = Field(foreign_key="place.id", primary_key=True, index=True, ondelete="CASCADE")
 
 
+class LinkItem(BaseModel):
+    url: str
+    title: str | None = None
+
+
+class LinksJSON(TypeDecorator):
+    impl = JSON
+    cache_ok = True
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return None
+        return [v.model_dump(exclude_none=True) if isinstance(v, BaseModel) else v for v in value]
+
+
 class PlaceBase(SQLModel):
     name: str
     lat: float
@@ -515,7 +533,7 @@ class Place(PlaceBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     cdate: date = Field(default_factory=lambda: datetime.now(UTC))
     user: str = Field(foreign_key="user.username", ondelete="CASCADE", index=True)
-    links: list[str] | None = Field(default=None, sa_column=Column(JSON))
+    links: list[str | LinkItem] | None = Field(default=None, sa_column=Column(LinksJSON))
 
     image_id: int | None = Field(default=None, foreign_key="image.id", ondelete="CASCADE")
     image: Image | None = Relationship(back_populates="places")
@@ -551,6 +569,7 @@ class PlaceRead(PlaceBase):
     image_id: int | None
     user: str
     trip_count: int = 0
+    links: list[str | LinkItem] | None = None
 
     @classmethod
     def serialize(cls, obj: Place, exclude_gpx=True) -> "PlaceRead":
@@ -844,7 +863,7 @@ class TripItemBase(SQLModel):
 
 class TripItem(TripItemBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    links: list[str] | None = Field(default=None, sa_column=Column(JSON))
+    links: list[str | LinkItem] | None = Field(default=None, sa_column=Column(LinksJSON))
 
     place_id: int | None = Field(default=None, foreign_key="place.id", ondelete="SET NULL")
     place: Place | None = Relationship(back_populates="trip_items")
@@ -900,6 +919,7 @@ class TripItemRead(TripItemBase):
     images: list[ImageRead]
     paid_by: str | None
     attachments: list["TripAttachmentRead"]
+    links: list[str | LinkItem] | None = None
 
     @classmethod
     def serialize(cls, obj: TripItem) -> "TripItemRead":
@@ -959,6 +979,7 @@ class TripShareItemRead(TripItemBase):
     image: str | None
     image_id: int | None
     paid_by: str | None
+    links: list[str | LinkItem] | None = None
 
     @classmethod
     def serialize(cls, obj: TripItem) -> "TripShareItemRead":

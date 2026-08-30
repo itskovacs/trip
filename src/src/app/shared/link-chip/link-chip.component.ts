@@ -4,7 +4,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { DialogService } from 'primeng/dynamicdialog';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { take } from 'rxjs';
-import { groupLinksByDomain, LinkGroup } from '../link-display';
+import { groupLinksByDomain, linkUrl, LinkGroup, PlaceLink } from '../link-display';
 import { LinkEditModalComponent, LinkEditModalResult } from '../../modals/link-edit-modal/link-edit-modal.component';
 
 @Component({
@@ -16,7 +16,7 @@ import { LinkEditModalComponent, LinkEditModalResult } from '../../modals/link-e
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LinkChipComponent {
-  @Input({ required: true }) links!: string[];
+  @Input({ required: true }) links!: PlaceLink[];
   @Input() editable = false;
   @Output() linksChange = new EventEmitter<string[]>();
 
@@ -39,15 +39,15 @@ export class LinkChipComponent {
       breakpoints: {
         '640px': '90vw',
       },
-      data: { url: this.links[index] },
+      data: { url: linkUrl(this.links[index]) },
     })!;
 
     modal.onClose.pipe(take(1)).subscribe((result: LinkEditModalResult | undefined) => {
       if (!result) return;
       if (result.deleted) {
-        this.linksChange.emit(this.links.filter((_, i) => i !== index));
+        this.linksChange.emit(this.links.filter((_, i) => i !== index).map(linkUrl));
       } else if (result.url) {
-        this.linksChange.emit(this.links.map((l, i) => (i === index ? result.url! : l)));
+        this.linksChange.emit(this.links.map((l, i) => (i === index ? result.url! : linkUrl(l))));
       }
     });
   }

@@ -603,6 +603,8 @@
     "documentation_desc": "Learn how to use TRIP",
     "dog_tag": "Dog-Friendly Tag",
     "dog_tag_desc": "Show the dog-friendly indicator on places and the filter chip",
+    "link_titles": "Link Titles",
+    "link_titles_desc": "Fetch and display each link's page title instead of its raw URL",
     "duplicate_dist": "Duplicate distance threshold",
     "duplicate_dist_desc": "Control how closely strings must match. Higher values accept more differences; 0 to disable",
     "encode_map_position": "Store Map Position and Place",

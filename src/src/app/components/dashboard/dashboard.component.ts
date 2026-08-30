@@ -178,6 +178,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
   isVisitedMode = signal(false);
   isMapPositionMode = signal(false);
   isDogTagMode = signal(true);
+  isFetchLinkTitlesMode = signal(false);
   filter_display_visited = signal(false);
   filter_display_favorite_only = signal(false);
   filter_display_restroom = signal(false);
@@ -479,6 +480,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           this.isVisitedMode.set(!!settings.mode_display_visited);
           this.isMapPositionMode.set(!!settings.mode_map_position);
           this.isDogTagMode.set(settings.show_dog_tag !== false);
+          this.isFetchLinkTitlesMode.set(!!settings.fetch_link_titles);
           this.utilsService.toggleDarkMode(!!settings.mode_dark);
 
           this.categories.set(this.sortCategoriesArray(categories));
@@ -1052,6 +1054,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
           this.isVisitedMode.set(!!resp.settings.mode_display_visited);
           this.isMapPositionMode.set(!!resp.settings.mode_map_position);
           this.isDogTagMode.set(resp.settings.show_dog_tag !== false);
+          this.isFetchLinkTitlesMode.set(!!resp.settings.fetch_link_titles);
           this.utilsService.toggleDarkMode(!!resp.settings.mode_dark);
           this.resetFilters();
 
@@ -1434,6 +1437,20 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     if (!this.isDogTagMode()) this.filter_dog_only.set(false);
     this.apiService
       .putSettings({ show_dog_tag: this.isDogTagMode() })
+      .pipe(take(1))
+      .subscribe({
+        next: () =>
+          this.utilsService.toast(
+            'success',
+            this.translocoService.translate('common.status.success'),
+            this.translocoService.translate('messages.preferences_saved'),
+          ),
+      });
+  }
+
+  toggleFetchLinkTitles() {
+    this.apiService
+      .putSettings({ fetch_link_titles: this.isFetchLinkTitlesMode() })
       .pipe(take(1))
       .subscribe({
         next: () =>

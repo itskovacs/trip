@@ -37,6 +37,7 @@ from ..models.models import (Image, ItemImageInput, Place, Trip,
                              TripShareRead, TripUpdate, User)
 from ..utils.date import dt_utc
 from ..utils.ical import build_trip_ics, ics_filename
+from ..utils.link_titles import resolve_links
 from ..utils.utils import (attachments_trip_folder_path, b64img_decode,
                            generate_urlsafe, remove_image, save_attachment,
                            save_image_to_file)
@@ -481,7 +482,7 @@ def _cover_image_id(images: list[Image], cover_index: int | None) -> int | None:
 
 
 @router.post("/{trip_id}/days/{day_id}/items", response_model=TripItemRead)
-def create_tripitem(
+async def create_tripitem(
     item: TripItemCreate,
     trip_id: int,
     day_id: int,
@@ -497,6 +498,9 @@ def create_tripitem(
     if not db_day or (db_day.trip_id != trip_id):
         raise HTTPException(status_code=400, detail="Bad request")
 
+    db_user = session.get(User, current_user)
+    links = await resolve_links(None, item.links, db_user.fetch_link_titles)
+
     new_item = TripItem(
         time=item.time,
         text=item.text,
@@ -506,8 +510,8 @@ def create_tripitem(
         day_id=day_id,
         price=item.price,
         status=item.status,
-        links=item.links,
         gpx=item.gpx,
+        links=links,
     )
 
     if item.place is not None:
@@ -556,7 +560,7 @@ def create_tripitem(
 
 
 @router.put("/{trip_id}/days/{day_id}/items/{item_id}", response_model=TripItemRead)
-def update_tripitem(
+async def update_tripitem(
     item: TripItemUpdate,
     trip_id: int,
     day_id: int,
@@ -580,6 +584,12 @@ def update_tripitem(
     item_data = item.model_dump(exclude_unset=True)
     if "text" in item_data and not item_data["text"]:
         raise HTTPException(status_code=400, detail="Bad request")
+
+    if "links" in item_data:
+        db_user = session.get(User, current_user)
+        item_data["links"] = await resolve_links(
+            db_item.links, item_data["links"], db_user.fetch_link_titles
+        )
 
     if "place" in item_data:
         place_id = item_data.pop("place")

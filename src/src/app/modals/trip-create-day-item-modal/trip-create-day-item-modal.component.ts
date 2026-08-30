@@ -11,8 +11,9 @@ import { TextareaModule } from 'primeng/textarea';
 import { InputMaskModule } from 'primeng/inputmask';
 import { UtilsService } from '../../services/utils.service';
 import { checkAndParseLatLng, formatLatLng } from '../../shared/latlng-parser';
+import { linkUrl } from '../../shared/link-display';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { InputNumberModule } from 'primeng/inputnumber';
+import { NumberInputDirective } from '../../shared/number-input.directive';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { InputGroupModule } from 'primeng/inputgroup';
 import { InputGroupAddonModule } from 'primeng/inputgroupaddon';
@@ -124,7 +125,7 @@ export class TripCreateDayItemModalComponent {
           ...data.item,
           place: data.item.place?.id ?? null,
           attachments: data.item.attachments.map((a: TripAttachment) => a.id),
-          links: data.item.links ?? [],
+          links: (data.item.links ?? []).map(linkUrl),
         });
 
         const existing: TripItemImage[] = data.item.images ?? [];

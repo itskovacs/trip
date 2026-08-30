@@ -1,4 +1,4 @@
-import { Place } from './poi';
+import { LinkItem, Place } from './poi';
 
 export interface TripBase {
   id: number;
@@ -81,7 +81,7 @@ export interface TripItem {
   gpx?: string;
   paid_by?: string;
   attachments?: TripAttachment[];
-  links?: string[];
+  links?: (string | LinkItem)[];
 }
 
 export interface TripItemImage {
@@ -115,7 +115,7 @@ export interface FlattenedTripItem {
   gpx?: string;
   paid_by?: string;
   attachments?: TripAttachment[];
-  links?: string[];
+  links?: (string | LinkItem)[];
 }
 
 export interface TripMember {

@@ -18,7 +18,7 @@
           <a [href]="link.url" target="_blank" rel="noopener noreferrer" [title]="link.url"
             class="flex items-center gap-2 px-2 py-1 flex-1 min-w-0">
             <span class="text-xs text-primary-700 dark:text-primary-200 truncate flex-1 min-w-0">{{
-              link.display.segment || link.display.domain }}</span>
+              link.title || link.display.segment || link.display.domain }}</span>
             <i
               class="pi pi-external-link text-[10px]! text-primary-400 dark:text-primary-500 shrink-0 opacity-0 group-hover/row:opacity-100"></i>
           </a>

@@ -603,6 +603,8 @@
     "documentation_desc": "Apprenez à utiliser TRIP",
     "dog_tag": "Tag chien admis",
     "dog_tag_desc": "Afficher l'indicateur chien admis sur les places et le filtre rapide",
+    "link_titles": "Titres des liens",
+    "link_titles_desc": "Récupérer et afficher le titre de la page de chaque lien plutôt que son URL brute",
     "duplicate_dist": "Seuil de distance des doublons",
     "duplicate_dist_desc": "Contrôle à quel point les chaînes doivent correspondre. Des valeurs plus élevées acceptent plus de différences ; 0 pour désactiver",
     "encode_map_position": "Mémoriser position et place",

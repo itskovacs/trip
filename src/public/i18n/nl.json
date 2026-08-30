@@ -195,6 +195,8 @@
     "encode_map_position_desc": "Codeer kaartpositie en geselecteerde locatie in de URL om dezelfde weergave te herstellen na vernieuwen",
     "dog_tag": "Hondvriendelijk-label",
     "dog_tag_desc": "Toon de hondvriendelijke indicator op locaties en de filterchip",
+    "link_titles": "Linktitels",
+    "link_titles_desc": "Haal de paginatitel van elke link op en toon deze in plaats van de ruwe URL",
     "always_display_visited": "Bezochte locaties tonen",
     "always_display_visited_desc": "Toon bezochte locaties altijd als kleine puntjes",
     "currency_desc": "Werk de standaardvaluta bij",

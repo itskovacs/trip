@@ -16,6 +16,7 @@ export interface Settings {
   mode_display_visited?: boolean;
   mode_map_position?: boolean;
   show_dog_tag?: boolean;
+  fetch_link_titles?: boolean;
   api_token?: boolean;
   map_provider?: string;
   duplicate_dist?: number;
