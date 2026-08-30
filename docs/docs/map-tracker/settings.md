@@ -42,6 +42,23 @@ The **Account** section handles two topics: **Security** and **Integrations**.
 
 In **Preferences**, you can set your default map parameters, such as the initial latitude and longitude, and choose your preferred tile layer provider. You can also update the currency setting to suit your regional or personal preferences.
 
+:::important
+Before version `1.49.0`, TRIP used the CARTO provider. They recently discontinued free-tier support and now require a [free API key](https://carto.com/basemaps/apikey/). This is why OpenStreetMap (the best ❤️) is now the default tile provider.
+
+When I contacted CARTO, they responded:
+
+> I appreciate your predicament, truly, however we are a profit organization and had a spike in basemap usage due to AI applications that is costing us directly. We can't provide a free key for your open-source project.
+
+Several other providers offer free API keys online. The advantage is that you can customize the maps (label language, topography, etc.), but the drawback is that registration is required.
+
+- Stadia Maps (URL format: `https://tiles.stadiamaps.com/tiles/alidade_smooth/{z}/{x}/{y}{r}.png`)
+- Geoapify (URL format: `https://maps.geoapify.com/v1/tile/positron/{z}/{x}/{y}.png?apiKey={apiKey}`)
+- CARTO (URL format: `https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key={apiKey}`)
+
+Sorry for the inconvenience, I'm affected by this too, and it's out of TRIP scope.
+
+:::
+
 <img src="/trip/img/settings_preferences.png" alt="Preferences tab" style={{ width: '400px', float: 'right', marginLeft: '1rem' }} />
 
 - **Low Network Mode**:
