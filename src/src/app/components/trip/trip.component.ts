@@ -747,6 +747,12 @@ export class TripComponent implements AfterViewInit, OnDestroy {
             command: () => this.editItem(item),
           },
           {
+            label: this.translocoService.translate('common.actions.duplicate'),
+            icon: 'pi pi-copy',
+            disabled: this.trip()!.archived,
+            command: () => this.duplicateItem(item),
+          },
+          {
             label: this.translocoService.translate('common.actions.delete'),
             icon: 'pi pi-trash',
             disabled: this.trip()!.archived,
@@ -1471,6 +1477,30 @@ export class TripComponent implements AfterViewInit, OnDestroy {
           if (remainingItems.length === 0) this.selectedPlaceActiveTabIndex.set(0);
         }
       });
+    });
+  }
+
+  duplicateItem(item: TripItem) {
+    const data: any = {
+      ...item,
+      status: item.status ? (item.status as TripStatus).label : null,
+      attachments: item.attachments ? item.attachments.map((a) => a.id) : [],
+      place: item.place ? item.place.id : null,
+      images: [],
+    };
+
+    this.apiService.postTripDayItem(data, this.trip()!.id, item.day_id).subscribe((newItem) => {
+      this.trip.update((current) => {
+        if (!current) return null;
+        const days = current.days.map((d) =>
+          d.id === newItem.day_id ? { ...d, items: [...d.items, newItem] } : d,
+        );
+        return { ...current, days };
+      });
+
+      this.selectedItem.set(this.normalizeItem(newItem));
+      this.selectedPlace.set(null);
+      this.selectedDay.set(null);
     });
   }
 

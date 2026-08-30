@@ -501,6 +501,7 @@
       "add": "Plan toevoegen",
       "create_using_place": "Plan aanmaken met deze locatie",
       "delete": "Plan verwijderen",
+      "duplicate": "Plan dupliceren",
       "edit": "Plan bewerken",
       "multiselect": "Meervoudige selectie",
       "multiselect_exit": "Meervoudige selectie afsluiten",

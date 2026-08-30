@@ -501,6 +501,7 @@
       "add": "Adicionar plano",
       "create_using_place": "Criar plano usando este local",
       "delete": "Excluir plano",
+      "duplicate": "Duplicar plano",
       "edit": "Editar plano",
       "multiselect": "Selecionar múltiplos planos",
       "multiselect_exit": "Sair da seleção múltipla",

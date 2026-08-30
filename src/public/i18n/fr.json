@@ -268,6 +268,7 @@
       "add": "Ajouter un Plan",
       "create_using_place": "Créer un Plan utilisant cette Place",
       "delete": "Supprimer le Plan",
+      "duplicate": "Dupliquer le Plan",
       "edit": "Modifier le Plan",
       "multiselect": "Sélection multiple de plans",
       "multiselect_exit": "Quitter la sélection multiple",

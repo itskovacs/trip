@@ -777,6 +777,8 @@
               }
               <p-button icon="pi pi-pencil" text [disabled]="trip()?.archived" [pTooltip]="t('entities.plan.edit')"
                 (click)="editItem(item)" />
+              <p-button icon="pi pi-copy" text [disabled]="trip()?.archived" [pTooltip]="t('entities.plan.duplicate')"
+                (click)="duplicateItem(item)" />
               <p-button icon="pi pi-trash" text severity="danger" [disabled]="trip()?.archived"
                 [pTooltip]="t('entities.plan.delete')" (click)="deleteItem(item)" />
               <p-button (click)="selectedPlace.set(null); selectedPlaceActiveTabIndex.set(0)" text icon="pi pi-times" />
@@ -1007,6 +1009,8 @@
               }
               <p-button icon="pi pi-pencil" text [disabled]="trip()?.archived" [pTooltip]="t('common.actions.edit')"
                 (click)="editItem(item)" />
+              <p-button icon="pi pi-copy" text [disabled]="trip()?.archived" [pTooltip]="t('common.actions.duplicate')"
+                (click)="duplicateItem(item)" />
               <p-button icon="pi pi-trash" text severity="danger" [disabled]="trip()?.archived"
                 [pTooltip]="t('common.actions.delete')" (click)="deleteItem(item)" />
               <p-button (click)="selectedItem.set(null)" text icon="pi pi-times" />

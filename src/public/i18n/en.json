@@ -268,6 +268,7 @@
       "add": "Add Plan",
       "create_using_place": "Create Plan using this Place",
       "delete": "Delete Plan",
+      "duplicate": "Duplicate Plan",
       "edit": "Edit Plan",
       "multiselect": "Multi-Select plans",
       "multiselect_exit": "Exit Multi-Select",
