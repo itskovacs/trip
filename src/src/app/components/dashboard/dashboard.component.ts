@@ -822,7 +822,7 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     if (!selected) return;
 
     const previousLinks = selected.links;
-    const newLinks = links.length ? links : undefined;
+    const newLinks = links.length ? links : null;
     this.apiService
       .putPlace(selected.id, { links: newLinks })
       .pipe(take(1))

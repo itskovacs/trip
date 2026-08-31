@@ -1413,7 +1413,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   }
 
   onItemLinksChange(item: TripItem, links: string[]) {
-    const newLinks = links.length ? links : undefined;
+    const newLinks = links.length ? links : null;
     this.apiService
       .putTripDayItem({ links: newLinks }, this.trip()!.id, item.day_id, item.id)
       .subscribe((newItem) => this.applyUpdatedItem(item, newItem));
@@ -1871,7 +1871,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   }
 
   onSelectedPlaceLinksUpdated(place: Place, links: string[]) {
-    const newLinks = links.length ? links : undefined;
+    const newLinks = links.length ? links : null;
     this.apiService
       .putPlace(place.id, { links: newLinks })
       .pipe(take(1))

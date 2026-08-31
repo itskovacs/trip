@@ -81,7 +81,7 @@ export interface TripItem {
   gpx?: string;
   paid_by?: string;
   attachments?: TripAttachment[];
-  links?: (string | LinkItem)[];
+  links?: (string | LinkItem)[] | null;
 }
 
 export interface TripItemImage {
@@ -115,7 +115,7 @@ export interface FlattenedTripItem {
   gpx?: string;
   paid_by?: string;
   attachments?: TripAttachment[];
-  links?: (string | LinkItem)[];
+  links?: (string | LinkItem)[] | null;
 }
 
 export interface TripMember {

@@ -31,7 +31,7 @@ export interface Place {
   visited?: boolean;
   favorite?: boolean;
   restroom?: boolean;
-  links?: (string | LinkItem)[];
+  links?: (string | LinkItem)[] | null;
   trip_count?: number;
 }
 
