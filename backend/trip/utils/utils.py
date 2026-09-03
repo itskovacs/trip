@@ -8,7 +8,7 @@ from uuid import uuid4
 
 import httpx
 from fastapi import HTTPException, UploadFile
-from PIL import Image
+from PIL import Image, ImageOps
 
 from .. import __version__
 from ..config import get_settings
@@ -150,7 +150,10 @@ async def check_update():
 def patch_image(fp: str, size: int = 400) -> bool:
     try:
         with Image.open(fp) as im:
-            if im.mode not in ("RGB", "RGBA"):
+            im = ImageOps.exif_transpose(im)
+            if im.mode == "P":
+                im = im.convert("RGBA" if "transparency" in im.info else "RGB")
+            elif im.mode not in ("RGB", "RGBA"):
                 im = im.convert("RGB")
 
             # Resize and crop to square of size x size
@@ -185,7 +188,10 @@ def save_image_to_file(content: bytes, size: int = 600) -> tuple[str, int]:
     filepath = None
     try:
         with Image.open(BytesIO(content)) as im:
-            if im.mode not in ("RGB", "RGBA"):
+            im = ImageOps.exif_transpose(im)
+            if im.mode == "P":
+                im = im.convert("RGBA" if "transparency" in im.info else "RGB")
+            elif im.mode not in ("RGB", "RGBA"):
                 im = im.convert("RGB")
 
             if size > 0:  # Crop as square of (size * size)
