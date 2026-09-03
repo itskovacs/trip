@@ -22,7 +22,8 @@
     @if (bookingForm.value.notes) {
     <div>
       <span class="text-xs uppercase tracking-wide text-primary-400">{{ t('notes') }}</span>
-      <p class="text-sm whitespace-pre-wrap text-primary-800 dark:text-primary-200">{{ bookingForm.value.notes }}</p>
+      <div class="text-sm markdown-content leading-relaxed text-primary-800 dark:text-primary-200"
+        [innerHTML]="bookingForm.value.notes | markdown"></div>
     </div>
     }
 
@@ -80,10 +81,13 @@
       <label for="booking-reference">{{ t('reference') }}</label>
     </p-floatlabel>
 
-    <p-floatlabel variant="on">
-      <textarea pTextarea id="booking-notes" formControlName="notes" rows="3" class="w-full resize-none"></textarea>
-      <label for="booking-notes">{{ t('notes') }}</label>
-    </p-floatlabel>
+    <div>
+      <p-floatlabel variant="on">
+        <textarea pTextarea id="booking-notes" formControlName="notes" rows="3" class="w-full resize-none"></textarea>
+        <label for="booking-notes">{{ t('notes') }}</label>
+      </p-floatlabel>
+      <span class="mt-1 block text-xs text-primary-500 dark:text-primary-400">{{ t('markdown_hint') }}</span>
+    </div>
 
     <p-floatlabel variant="on">
       <p-multiselect inputId="booking-attachments" [options]="trip?.attachments ?? []" optionValue="id"

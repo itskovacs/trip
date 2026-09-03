@@ -301,6 +301,7 @@
     "upload_new": "Nieuwe uploaden",
     "type": "Type",
     "label": "Label",
+    "markdown_hint": "Markdown ondersteund",
     "reference": "Referentie",
     "notes": "Notities",
     "save": "Opslaan",

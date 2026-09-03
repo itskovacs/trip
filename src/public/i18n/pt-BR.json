@@ -301,6 +301,7 @@
     "upload_new": "Enviar novo",
     "type": "Tipo",
     "label": "Etiqueta",
+    "markdown_hint": "Markdown suportado",
     "reference": "Referência",
     "notes": "Notas",
     "save": "Salvar",

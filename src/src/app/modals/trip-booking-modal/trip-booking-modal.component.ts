@@ -11,6 +11,7 @@ import { TextareaModule } from 'primeng/textarea';
 import { TranslocoDirective, TranslocoService } from '@jsverse/transloco';
 import { ApiService } from '../../services/api.service';
 import { FileSizePipe } from '../../shared/pipes/filesize.pipe';
+import { MarkdownPipe } from '../../shared/pipes/markdown.pipe';
 import { bookingTypeClass, bookingTypeIcon, saveBlobAs } from '../../shared/utils';
 import { BookingType, Trip, TripAttachment, TripBooking, TripDay } from '../../types/trip';
 
@@ -21,6 +22,7 @@ import { BookingType, Trip, TripAttachment, TripBooking, TripDay } from '../../t
     FileSizePipe,
     FloatLabelModule,
     InputTextModule,
+    MarkdownPipe,
     MultiSelectModule,
     SelectModule,
     ReactiveFormsModule,

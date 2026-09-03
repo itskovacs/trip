@@ -26,6 +26,7 @@
     "delete": "Supprimer",
     "edit": "Modifier",
     "label": "Libellé",
+    "markdown_hint": "Markdown pris en charge",
     "new_booking": "Nouvelle réservation",
     "notes": "Notes",
     "reference": "Référence",

@@ -1921,7 +1921,7 @@
               <span class="opacity-60 shrink-0">&middot; {{ booking.reference }}</span>
               }
               @if (booking.notes) {
-              <span class="ml-2 text-primary-400 italic truncate min-w-0">{{ booking.notes }}</span>
+              <span class="ml-2 text-primary-400 italic truncate min-w-0" [innerHTML]="booking.notes | markdown"></span>
               }
             </span>
             }
