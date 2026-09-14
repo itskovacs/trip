@@ -122,4 +122,8 @@ export class TripCreateDayModalComponent {
 
     this.ref.close(ret);
   }
+
+  deleteDay() {
+    this.ref.close({ delete: true });
+  }
 }

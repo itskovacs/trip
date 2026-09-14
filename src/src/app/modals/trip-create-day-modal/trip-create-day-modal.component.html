@@ -69,7 +69,9 @@
           }}</span>
       </div>
     </div>
-    <div class="mt-4 text-right"> <p-button (click)="closeDialog()" [label]="t('common.actions.update')"
+    <div class="mt-4 flex justify-between items-center"> <p-button (click)="deleteDay()"
+        [label]="t('common.actions.delete')" icon="pi pi-trash" text severity="danger" /> <p-button
+        (click)="closeDialog()" [label]="t('common.actions.update')"
         [disabled]="!dayForm.dirty || !dayForm.valid" /> </div> }
   </section>
 </ng-container>

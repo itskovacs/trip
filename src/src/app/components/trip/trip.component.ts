@@ -1492,9 +1492,7 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     this.apiService.postTripDayItem(data, this.trip()!.id, item.day_id).subscribe((newItem) => {
       this.trip.update((current) => {
         if (!current) return null;
-        const days = current.days.map((d) =>
-          d.id === newItem.day_id ? { ...d, items: [...d.items, newItem] } : d,
-        );
+        const days = current.days.map((d) => (d.id === newItem.day_id ? { ...d, items: [...d.items, newItem] } : d));
         return { ...current, days };
       });
 
@@ -1603,9 +1601,14 @@ export class TripComponent implements AfterViewInit, OnDestroy {
       },
     })!;
 
-    modal.onClose.pipe(take(1)).subscribe((newDay: TripDay | null) => {
-      if (!newDay) return;
-      this.apiService.putTripDay(newDay, this.trip()!.id).subscribe((updated) => {
+    modal.onClose.pipe(take(1)).subscribe((data: TripDay | { delete: true } | null) => {
+      if (!data) return;
+      if ('delete' in data) {
+        this.deleteDay(day);
+        return;
+      }
+
+      this.apiService.putTripDay(data, this.trip()!.id).subscribe((updated) => {
         this.trip.update((t) => {
           if (!t) return null;
           const days = t.days
