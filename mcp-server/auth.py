@@ -3,7 +3,7 @@
 import os
 import time
 
-import httpx
+import httpx2 as httpx
 import jwt
 
 _token = None
