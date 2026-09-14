@@ -6,7 +6,7 @@ from pathlib import Path
 from secrets import token_urlsafe
 from uuid import uuid4
 
-import httpx
+import httpx2 as httpx
 from fastapi import HTTPException, UploadFile
 from PIL import Image, ImageOps
 

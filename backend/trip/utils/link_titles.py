@@ -6,7 +6,7 @@ import re
 import socket
 from urllib.parse import urlparse
 
-import httpx
+import httpx2 as httpx
 
 logger = logging.getLogger(__name__)
 

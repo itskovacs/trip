@@ -153,8 +153,8 @@ One way to check if you're concerned by this is simply doing the following and c
 ```dockerfile
 $ docker run --rm -it ghcr.io/itskovacs/trip:1 /bin/bash
 $ python3
->>> import httpx
->>> httpx.get("https://sso.yourdomain.lan/")
+>>> import httpx2
+>>> httpx2.get("https://sso.yourdomain.lan/")
 ```
 
 In case you're facing this issue, it's likely due to the fact that the container does not trust your custom certificate.

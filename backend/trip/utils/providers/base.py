@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import Any
 
-import httpx
+import httpx2 as httpx
 from fastapi import HTTPException
 
 from ...models.models import ProviderPlaceResult, RoutingQuery, RoutingResponse
