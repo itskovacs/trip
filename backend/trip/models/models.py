@@ -44,6 +44,8 @@ def cleanup_after_commit(session):
 
 
 def _prefix_assets_url(filename: str) -> str:
+    if filename.startswith("http://") or filename.startswith("https://"):
+        return filename
     base = get_settings().ASSETS_URL
     if not base.endswith("/"):
         base += "/"
@@ -251,6 +253,8 @@ class ImageRead(BaseModel):
 def mark_image_for_deletion(mapper, connection, target: Image):
     session = object_session(target)
     if not session:
+        return
+    if target.filename and (target.filename.startswith("http://") or target.filename.startswith("https://")):
         return
     if not hasattr(session, "_images_to_delete"):
         session._images_to_delete = []

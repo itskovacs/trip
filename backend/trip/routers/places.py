@@ -56,14 +56,10 @@ async def create_place(
     filename = None
     if place.image:
         if place.image[:4] == "http":
-            fp, file_size = await download_file(place.image)
-            if fp:
-                filename = fp.split("/")[-1]
-                await run_in_threadpool(patch_image, fp)
-                image = Image(filename=filename, file_size=file_size, user=current_user)
-                session.add(image)
-                session.flush()
-                new_place.image_id = image.id
+            image = Image(filename=place.image, file_size=0, user=current_user)
+            session.add(image)
+            session.flush()
+            new_place.image_id = image.id
         else:
             image_bytes = b64img_decode(place.image)
             filename, file_size = await run_in_threadpool(
@@ -110,14 +106,11 @@ async def update_place(
     if image:
         image_updated = False
         if image[:4] == "http":
-            fp, file_size = await download_file(place.image)
-            if fp:
-                filename = fp.split("/")[-1]
-                await run_in_threadpool(patch_image, fp)
-                image = Image(filename=filename, file_size=file_size, user=current_user)
-                session.add(image)
-                session.flush()
-                image_updated = True
+            image_obj = Image(filename=image, file_size=0, user=current_user)
+            session.add(image_obj)
+            session.flush()
+            image = image_obj
+            image_updated = True
         else:
             image_bytes = b64img_decode(place.image)
             filename, file_size = await run_in_threadpool(
