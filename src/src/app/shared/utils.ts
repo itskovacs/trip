@@ -1,4 +1,4 @@
-import { TripBooking, TripDay } from '../types/trip';
+import { ChecklistItem, TripBooking, TripDay } from '../types/trip';
 
 export function computeDistLatLng(lat1: number, lon1: number, lat2: number, lon2: number) {
   // returns d in km
@@ -50,6 +50,67 @@ export function sortBookings<T extends Pick<TripBooking, 'type'>>(bookings: T[])
     const bIndex = BOOKING_TYPE_ORDER.indexOf(b.type);
     return (aIndex === -1 ? BOOKING_TYPE_ORDER.length : aIndex) - (bIndex === -1 ? BOOKING_TYPE_ORDER.length : bIndex);
   });
+}
+
+export type ChecklistGroupKey = 'week' | 'month' | 'year' | 'undated';
+
+export interface ChecklistGroup {
+  key: ChecklistGroupKey;
+  labelKey: string;
+  items: ChecklistItem[];
+}
+
+const CHECKLIST_GROUP_KEYS: ChecklistGroupKey[] = ['week', 'month', 'year', 'undated'];
+
+function checklistReminderTime(item: ChecklistItem): number | null {
+  return item.notify_dt ? new Date(item.notify_dt + 'Z').getTime() : null;
+}
+
+export function sortChecklistItems(items: ChecklistItem[]): ChecklistItem[] {
+  return [...items].sort((a, b) => {
+    if (a.checked !== b.checked) return a.checked ? 1 : -1;
+    const at = checklistReminderTime(a);
+    const bt = checklistReminderTime(b);
+    if (at === bt) return b.id - a.id;
+    if (at === null) return 1;
+    if (bt === null) return -1;
+    return at - bt;
+  });
+}
+
+export function groupChecklistItems(items: ChecklistItem[]): ChecklistGroup[] {
+  const now = new Date();
+  const endOfWeek = new Date(now);
+  endOfWeek.setDate(now.getDate() + ((7 - now.getDay()) % 7));
+  endOfWeek.setHours(23, 59, 59, 999);
+  const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+  // 'week' also holds overdue reminders, 'year' everything past this month (incl. later years)
+  const bucketOf = (item: ChecklistItem): ChecklistGroupKey => {
+    const t = checklistReminderTime(item);
+    if (t === null) return 'undated';
+    if (t <= endOfWeek.getTime()) return 'week';
+    if (t <= endOfMonth.getTime()) return 'month';
+    return 'year';
+  };
+
+  const sorted = sortChecklistItems(items);
+  return CHECKLIST_GROUP_KEYS.map((key) => ({
+    key,
+    labelKey: `entities.checklist.groups.${key}`,
+    items: sorted.filter((item) => bucketOf(item) === key),
+  })).filter((group) => group.items.length > 0);
+}
+
+export function checklistProgress(items: ChecklistItem[]): { done: number; total: number; pct: number } {
+  const total = items.length;
+  const done = items.filter((i) => i.checked).length;
+  return { done, total, pct: total === 0 ? 0 : Math.round((done / total) * 100) };
+}
+
+export function isOverdueReminder(item: ChecklistItem): boolean {
+  const t = checklistReminderTime(item);
+  return !item.checked && t !== null && t <= Date.now();
 }
 
 export function saveBlobAs(data: Blob, filename: string): void {

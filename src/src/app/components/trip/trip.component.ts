@@ -73,8 +73,12 @@ import { FileSizePipe } from '../../shared/pipes/filesize.pipe';
 import {
   bookingTypeClass as sharedBookingTypeClass,
   bookingTypeIcon as sharedBookingTypeIcon,
+  ChecklistGroup,
+  checklistProgress as sharedChecklistProgress,
   computeDistLatLng,
   daterangeToTripDays,
+  groupChecklistItems,
+  isOverdueReminder as sharedIsOverdueReminder,
   saveBlobAs,
   sortBookings as sharedSortBookings,
   tripFilename,
@@ -374,7 +378,6 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     return allPlaces.filter((place) => !usedIds.has(place.id));
   });
   dispPackingList = computed(() => this.sortPackingItems(this.packingList()));
-  dispChecklist = computed(() => this.dispChecklistFor(this.checklistItems()));
   watchlistItems = computed(() => {
     return this.tripViewModel()
       .flatMap((day) => day.items)
@@ -2345,14 +2348,16 @@ export class TripComponent implements AfterViewInit, OnDestroy {
     );
   }
 
-  dispChecklistFor(items: ChecklistItem[]): ChecklistItem[] {
-    return [...items].sort((a, b) => (a.checked !== b.checked ? (a.checked ? 1 : -1) : b.id - a.id));
+  groupedChecklist(items: ChecklistItem[]): ChecklistGroup[] {
+    return groupChecklistItems(items);
   }
 
   checklistProgress(items: ChecklistItem[]): { done: number; total: number; pct: number } {
-    const total = items.length;
-    const done = items.filter((i) => i.checked).length;
-    return { done, total, pct: total === 0 ? 0 : Math.round((done / total) * 100) };
+    return sharedChecklistProgress(items);
+  }
+
+  isOverdueReminder(item: ChecklistItem): boolean {
+    return sharedIsOverdueReminder(item);
   }
 
   addChecklist() {

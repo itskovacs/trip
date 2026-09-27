@@ -454,7 +454,13 @@
     "checklist": {
       "add": "Nieuwe Checklist",
       "delete": "Checklist verwijderen",
-      "rename": "Checklist hernoemen"
+      "rename": "Checklist hernoemen",
+      "groups": {
+        "week": "Tot einde van deze week",
+        "month": "Deze maand",
+        "year": "Dit jaar en later",
+        "undated": "Geen datum"
+      }
     },
     "day": {
       "add": "Dag(en) toevoegen",

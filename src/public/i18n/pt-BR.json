@@ -454,7 +454,13 @@
     "checklist": {
       "add": "Nova Checklist",
       "delete": "Excluir Checklist",
-      "rename": "Renomear Checklist"
+      "rename": "Renomear Checklist",
+      "groups": {
+        "week": "Até o fim desta semana",
+        "month": "Este mês",
+        "year": "Este ano e depois",
+        "undated": "Sem data"
+      }
     },
     "day": {
       "add": "Adicionar dia(s)",

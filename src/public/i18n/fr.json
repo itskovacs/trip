@@ -221,7 +221,13 @@
     "checklist": {
       "add": "Nouvelle Checklist",
       "delete": "Supprimer la Checklist",
-      "rename": "Renommer la Checklist"
+      "rename": "Renommer la Checklist",
+      "groups": {
+        "week": "D'ici la fin de la semaine",
+        "month": "Ce mois-ci",
+        "year": "Cette année et au-delà",
+        "undated": "Sans date"
+      }
     },
     "day": {
       "add": "Ajouter un(des) Jour(s)",

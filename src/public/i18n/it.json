@@ -221,7 +221,13 @@
     "checklist": {
       "add": "Nuova lista di controllo",
       "delete": "Elimina lista di controllo",
-      "rename": "Rinomina lista di controllo"
+      "rename": "Rinomina lista di controllo",
+      "groups": {
+        "week": "Entro fine settimana",
+        "month": "Questo mese",
+        "year": "Quest'anno e oltre",
+        "undated": "Senza data"
+      }
     },
     "day": {
       "add": "Aggiungi giorno/i",

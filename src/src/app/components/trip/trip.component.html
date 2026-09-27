@@ -1308,7 +1308,7 @@
 
   <p-dialog [header]="t('common.fields.checklist')" [draggable]="false" [dismissableMask]="true" [modal]="true"
     [(visible)]="isChecklistDialogVisible" styleClass="w-[95%] md:w-[80%] max-w-5xl">
-    <section class="p-4 max-w-full max-h-[80%] md:max-h-[600px]">
+    <section class="max-w-full max-h-[80%] md:max-h-[900px]">
       <p-tabs [(value)]="activeChecklistTab" scrollable>
         <p-tablist>
           <p-tab value="default">
@@ -1338,7 +1338,7 @@
 
         <p-tabpanels>
           <p-tabpanel value="default">
-            @let progress = checklistProgress(dispChecklist());
+            @let progress = checklistProgress(checklistItems());
             <div class="flex flex-wrap items-center justify-between gap-3 mt-4 mb-4">
               <p-button (click)="addChecklistItem()" [disabled]="trip()?.archived" icon="pi pi-plus"
                 [label]="t('entities.item.add')" size="small" />
@@ -1354,7 +1354,7 @@
             </div>
 
             <ng-container
-              *ngTemplateOutlet="checklistRows; context: $any({ $implicit: dispChecklist(), listId: null })" />
+              *ngTemplateOutlet="checklistRows; context: $any({ $implicit: groupedChecklist(checklistItems()), listId: null })" />
 
             <div class="mt-6 pt-4 border-t border-primary-100 dark:border-primary-900">
               <div class="mb-2 flex flex-wrap items-center justify-between gap-2">
@@ -1399,7 +1399,7 @@
 
           @for (list of checklists(); track list.id) {
           <p-tabpanel [value]="list.id">
-            @let listProgress = checklistProgress(dispChecklistFor(list.items));
+            @let listProgress = checklistProgress(list.items);
             <div class="flex flex-wrap items-center justify-between gap-3 mt-4 mb-4">
               <p-button (click)="addChecklistItem(list.id)" [disabled]="trip()?.archived" icon="pi pi-plus"
                 [label]="t('entities.item.add')" size="small" />
@@ -1423,7 +1423,7 @@
             </div>
 
             <ng-container
-              *ngTemplateOutlet="checklistRows; context: $any({ $implicit: dispChecklistFor(list.items), listId: list.id })" />
+              *ngTemplateOutlet="checklistRows; context: $any({ $implicit: groupedChecklist(list.items), listId: list.id })" />
           </p-tabpanel>
           }
         </p-tabpanels>
@@ -1431,35 +1431,71 @@
     </section>
   </p-dialog>
 
-  <ng-template #checklistRows let-items let-listId="listId">
-    <div class="grid md:grid-cols-2 xl:grid-cols-3 gap-2 mt-2 pb-4">
-      @for (item of items; track item.id) {
-      <div
-        class="group relative flex items-center gap-3 rounded-lg p-2 min-w-0 border border-transparent transition-colors hover:bg-primary-50 hover:border-primary-100 dark:hover:bg-white/5 dark:hover:border-primary-800">
-        <label [for]="'chk-' + ($any(listId) ?? 'd') + '-' + item.id" [pTooltip]="item.text"
-          class="flex items-center gap-3 w-full cursor-pointer min-w-0 pr-16 md:pr-0">
-          <p-checkbox (onChange)="onCheckChecklistItem($event, item.id, $any(listId))" [binary]="true"
-            [disabled]="!!this.trip()?.archived" [inputId]="'chk-' + ($any(listId) ?? 'd') + '-' + item.id"
-            [(ngModel)]="item.checked" />
-          <div class="truncate select-none flex items-center gap-1 min-w-0" [class.line-through]="item.checked"
-            [class.text-primary-400]="item.checked">
-            @if (item.notify_dt) {
-            <i class="pi pi-bell text-xs text-amber-500 shrink-0"
-              [pTooltip]="((item.notify_dt + 'Z') | date: 'medium') ?? undefined"></i>
-            }
-            <span class="truncate">{{ item.text }}</span>
+  <ng-template #checklistRows let-groups let-listId="listId">
+    <div class="pb-4">
+      @for (group of groups; track group.key) {
+      <div class="mt-5 first:mt-1">
+        <div class="flex items-center gap-2 px-1 pb-1.5">
+          <span [class]="'h-1.5 w-1.5 shrink-0 rounded-full ' +
+              (group.key === 'week' ? 'bg-amber-400' : 'bg-primary-300 dark:bg-primary-600')"></span>
+          <h5
+            [class]="'text-[11px] font-semibold uppercase tracking-wider ' +
+              (group.key === 'week' ? 'text-amber-600 dark:text-amber-400' : 'text-primary-400 dark:text-primary-500')">
+            {{ t(group.labelKey) }}
+          </h5>
+          <span class="text-[11px] font-medium tabular-nums text-primary-300 dark:text-primary-600">{{
+            group.items.length }}</span>
+          <div class="h-px flex-1 bg-primary-100 dark:bg-primary-800"></div>
+        </div>
+
+        <div class="flex flex-col divide-y divide-primary-100 dark:divide-primary-800">
+          @for (item of group.items; track item.id) {
+          <div [class]="'group relative flex md:items-center gap-2.5 rounded-lg py-2 px-1.5 min-w-0 transition-colors hover:bg-primary-50 dark:hover:bg-white/5 ' +
+              (item.notify_dt ? 'items-start' : 'items-center')">
+            <p-checkbox (onChange)="onCheckChecklistItem($event, item.id, $any(listId))" [binary]="true"
+              [disabled]="!!this.trip()?.archived" [inputId]="'chk-' + ($any(listId) ?? 'd') + '-' + item.id"
+              [(ngModel)]="item.checked" class="shrink-0" />
+            <label [for]="'chk-' + ($any(listId) ?? 'd') + '-' + item.id"
+              class="flex flex-col md:flex-row md:items-center gap-1 md:gap-2 min-w-0 flex-1 cursor-pointer md:pr-20">
+              @if (item.notify_dt) {
+              <span class="min-w-0 w-full md:flex-1 truncate text-sm select-none" [class.line-through]="item.checked"
+                [class.text-primary-400]="item.checked">{{ item.text }}</span>
+              <div class="flex items-center justify-between gap-2 w-full md:contents">
+                <span [class]="'shrink-0 inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-xs font-medium leading-none ' +
+                    (isOverdueReminder(item)
+                      ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-400'
+                      : 'bg-primary-100 text-primary-500 dark:bg-primary-800/60 dark:text-primary-400')">
+                  <i class="pi pi-bell text-xs!"></i>
+                  {{ (item.notify_dt + 'Z') | date: 'd MMM y, HH:mm' }}
+                </span>
+                <div
+                  class="flex items-center gap-0.5 md:absolute md:right-1 md:top-1/2 md:-translate-y-1/2 md:opacity-0 md:group-hover:opacity-100 rounded-md transition-opacity">
+                  <p-button size="small" text icon="pi pi-pencil" [disabled]="trip()?.archived"
+                    (click)="editChecklistItem(item, $any(listId))" severity="secondary" />
+                  <p-button size="small" text icon="pi pi-trash" [disabled]="trip()?.archived"
+                    (click)="deleteChecklistItem(item, $any(listId))" severity="danger" />
+                </div>
+              </div>
+              } @else {
+              <div class="flex items-center gap-0 w-full md:contents">
+                <span class="min-w-0 flex-1 truncate text-sm select-none" [class.line-through]="item.checked"
+                  [class.text-primary-400]="item.checked">{{ item.text }}</span>
+                <div
+                  class="flex items-center gap-0.5 md:absolute md:right-1 md:top-1/2 md:-translate-y-1/2 md:opacity-0 md:group-hover:opacity-100 rounded-md transition-opacity">
+                  <p-button size="small" text icon="pi pi-pencil" [disabled]="trip()?.archived"
+                    (click)="editChecklistItem(item, $any(listId))" severity="secondary" />
+                  <p-button size="small" text icon="pi pi-trash" [disabled]="trip()?.archived"
+                    (click)="deleteChecklistItem(item, $any(listId))" severity="danger" />
+                </div>
+              </div>
+              }
+            </label>
           </div>
-        </label>
-        <div
-          class="md:opacity-0 absolute right-1 top-1/2 -translate-y-1/2 md:group-hover:opacity-100 bg-white dark:bg-primary-900 md:bg-transparent md:dark:bg-transparent rounded-md transition-opacity">
-          <p-button size="small" text icon="pi pi-pencil" [disabled]="trip()?.archived"
-            (click)="editChecklistItem(item, $any(listId))" severity="secondary" />
-          <p-button size="small" text icon="pi pi-trash" [disabled]="trip()?.archived"
-            (click)="deleteChecklistItem(item, $any(listId))" severity="danger" />
+          }
         </div>
       </div>
       } @empty {
-      <div class="col-span-full flex flex-col items-center justify-center py-10 text-center select-none">
+      <div class="flex flex-col items-center justify-center py-10 text-center select-none">
         <i style="font-size: 3rem" class="pi pi-list-check mb-2 text-primary-300 dark:text-primary-700"></i>
         <p class="text-sm text-primary-500 dark:text-primary-400">{{ t('empty_states.checklist_empty') }}</p>
       </div>
