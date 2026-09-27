@@ -212,20 +212,34 @@ export function getGeolocationLatLng(): Promise<{ lat?: number; lng?: number; er
       return;
     }
 
+    const onSuccess = (position: GeolocationPosition) => {
+      resolve({
+        lat: position.coords.latitude,
+        lng: position.coords.longitude,
+      });
+    };
+    const onError = (error: GeolocationPositionError) => {
+      console.error(error);
+      resolve({
+        err: `Error resolving your geolocation: ${error.message || 'check console for details'}`,
+      });
+    };
+
     navigator.geolocation.getCurrentPosition(
-      (position: GeolocationPosition) => {
-        resolve({
-          lat: position.coords.latitude,
-          lng: position.coords.longitude,
-        });
-      },
+      onSuccess,
       (error) => {
-        console.error(error);
-        resolve({
-          err: `Error resolving your geolocation: ${error.message || 'check console for details'}`,
-        });
+        // GPS fix too slow (cold start, indoors): fall back to network-based location
+        if (error.code === error.TIMEOUT) {
+          navigator.geolocation.getCurrentPosition(onSuccess, onError, {
+            enableHighAccuracy: false,
+            timeout: 10000,
+            maximumAge: 60000,
+          });
+          return;
+        }
+        onError(error);
       },
-      { enableHighAccuracy: true, timeout: 5000 },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 30000 },
     );
   });
 }
