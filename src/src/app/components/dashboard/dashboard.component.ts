@@ -2006,15 +2006,6 @@ export class DashboardComponent implements OnInit, AfterViewInit {
     const value = this.geocodeFilterInput.value;
     if (!value) return;
 
-    if (!this.settings()?.google_apikey) {
-      this.utilsService.toast(
-        'error',
-        this.translocoService.translate('messages.missing_key'),
-        this.translocoService.translate('messages.gapi_not_configured'),
-      );
-      return;
-    }
-
     this.apiService
       .completionGeocodeBoundaries(value)
       .pipe(take(1))
