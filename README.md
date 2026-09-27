@@ -66,6 +66,12 @@ Refer to the [configuration documentation](https://itskovacs.github.io/trip/docs
 
 <br>
 
+## ☁️ One-Click Deploy
+
+[![Deploy on RepoCloud](https://d16t0pc4846x52.cloudfront.net/deploylobe.svg)](https://repocloud.io/details/TRIP/)
+
+<br>
+
 ## 📸 Demo <a name = "demo"></a>
 
 A demo is available at [itskovacs-trip.netlify.app](https://itskovacs-trip.netlify.app/).
