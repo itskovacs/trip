@@ -138,7 +138,7 @@
               <div class="text-xs text-primary-500 dark:text-primary-400 md:text-sm">
                 {{ t('trips.notifications.invitations.on') }}
                 <span class="font-medium text-primary-600 dark:text-primary-300">
-                  {{ inv.invited_at | date: 'short' }}
+                  {{ inv.invited_at | date: 'd MMM y, HH:mm' }}
                 </span>
                 ,
                 <span class="font-medium text-primary-700 dark:text-primary-200">
@@ -203,8 +203,8 @@
                         t('trips.notifications.checklist.triggered') }}</span>
                       }
                     </div>
-                    <div class="mt-0.5 truncate text-xs text-primary-400 dark:text-primary-500">
-                      {{ item.list_name ? item.list_name + ' · ' : '' }}{{ (item.notify_dt + 'Z') | date: 'short' }}
+                    <div class="mt-0.5 truncate text-xs text-primary-400 dark:text-primary-500">{{ item.list_name ?
+                      item.list_name + ' · ' : '' }}{{ (item.notify_dt + 'Z') | date: 'd MMM y, HH:mm' }}
                     </div>
                   </div>
 

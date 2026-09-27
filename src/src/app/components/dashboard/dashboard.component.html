@@ -499,7 +499,13 @@
                 </div>
 
                 <div
-                  class="mt-6 flex gap-2 justify-center items-center text-sm font-medium text-primary-500 dark:text-primary-400">
+                  class="mt-6 flex gap-1.5 justify-center items-center text-sm font-medium text-primary-500 dark:text-primary-400">
+                  <i class="pi pi-user text-sm!"></i>
+                  <span>{{ settings()?.username }}</span>
+                </div>
+
+                <div
+                  class="mt-2 flex gap-2 justify-center items-center text-sm font-medium text-primary-500 dark:text-primary-400">
                   <span>{{ t('settings.made_with') }}</span>
                   &middot;
                   <span class="cursor-pointer" (click)="toGithub()"><i class="pi pi-github text-sm!"></i> TRIP</span>
