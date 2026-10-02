@@ -3316,13 +3316,17 @@ export class TripComponent implements AfterViewInit, OnDestroy {
   }
 
   markerRightClickFn(to: Place) {
-    if (this.selectedItem() || this.selectedPlace()) return this.markerToMarkerRouting(to);
+    const item = this.selectedItem();
+    const from = (item?.lat ? item : item?.place) ?? this.selectedPlace();
+    const fromPlaceId = item ? item.place?.id : from?.id;
+    const hasCoords = !!from?.lat && !!from?.lng;
+    const sameSpot = fromPlaceId === to.id || (from?.lat === to.lat && from?.lng === to.lng);
+    if (from && hasCoords && !sameSpot) return this.markerToMarkerRouting(from, to);
     return this.addItem(undefined, to.id);
   }
 
-  markerToMarkerRouting(to: Place) {
-    const from = this.selectedItem() || this.selectedPlace();
-    if (!from || !from.lat || !from.lng) return;
+  markerToMarkerRouting(from: ViewTripItem | Place, to: Place) {
+    if (!from.lat || !from.lng) return;
 
     const profile = this.routeManager.getProfile([from.lat, from.lng], [to.lat, to.lng]);
     this.utilsService.setLoading(this.translocoService.translate('routing.calculating'));
