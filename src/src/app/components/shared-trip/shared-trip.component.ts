@@ -52,6 +52,7 @@ import { TooltipModule } from 'primeng/tooltip';
 import { MultiSelectModule } from 'primeng/multiselect';
 import { CheckboxModule } from 'primeng/checkbox';
 import { generateTripCSVFile } from '../../shared/trip-base/csv';
+import { generateTripGPXFile } from '../../shared/trip-base/gpx';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FileSizePipe } from '../../shared/pipes/filesize.pipe';
 import {
@@ -451,6 +452,11 @@ export class SharedTripComponent implements AfterViewInit, OnDestroy {
             label: this.translocoService.translate('common.fields.csv'),
             icon: 'pi pi-file',
             command: () => generateTripCSVFile(this.trip()!),
+          },
+          {
+            label: this.translocoService.translate('common.fields.gpx'),
+            icon: 'pi pi-map-marker',
+            command: () => generateTripGPXFile(this.trip()!),
           },
           {
             label: this.translocoService.translate('common.fields.pdf'),

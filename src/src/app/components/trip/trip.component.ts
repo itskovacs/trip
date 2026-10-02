@@ -68,6 +68,7 @@ import { TripInviteMemberModalComponent } from '../../modals/trip-invite-member-
 import { TripNotesModalComponent } from '../../modals/trip-notes-modal/trip-notes-modal.component';
 import { TripArchiveModalComponent } from '../../modals/trip-archive-modal/trip-archive-modal.component';
 import { generateTripCSVFile } from '../../shared/trip-base/csv';
+import { generateTripGPXFile } from '../../shared/trip-base/gpx';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FileSizePipe } from '../../shared/pipes/filesize.pipe';
 import {
@@ -515,6 +516,11 @@ export class TripComponent implements AfterViewInit, OnDestroy {
             label: this.translocoService.translate('common.fields.csv'),
             icon: 'pi pi-file',
             command: () => generateTripCSVFile(this.trip()!),
+          },
+          {
+            label: this.translocoService.translate('common.fields.gpx'),
+            icon: 'pi pi-map-marker',
+            command: () => generateTripGPXFile(this.trip()!),
           },
           {
             label: this.translocoService.translate('common.fields.pdf'),
