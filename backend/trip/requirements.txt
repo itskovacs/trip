@@ -1,5 +1,5 @@
 fastapi[standard]~=0.141
-sqlmodel~=0.0
+sqlmodel~=0.0.47
 pydantic~=2.11
 PyJWT~=2.14
 argon2-cffi~=25.1

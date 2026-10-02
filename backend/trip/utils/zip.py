@@ -641,7 +641,7 @@ def process_backup_import(
                         key: item[key] for key in item.keys() if key not in {"id", "trip_id", "trip"}
                     }
                     new_checklist["trip_id"] = new_trip.id
-                    checklist_to_add.append(TripChecklistItem(**new_checklist))
+                    checklist_to_add.append(TripChecklistItem.model_validate(new_checklist))
 
                 for packing_list in trip.get("packing_lists", []):
                     new_list = TripPackingList(name=packing_list["name"], trip_id=new_trip.id)
@@ -663,7 +663,7 @@ def process_backup_import(
                             key: item[key] for key in item.keys() if key not in {"id", "checklist_id"}
                         }
                         new_item["checklist_id"] = new_checklist_list.id
-                        checklists_to_add.append(TripChecklistEntry(**new_item))
+                        checklists_to_add.append(TripChecklistEntry.model_validate(new_item))
 
             if attachment_links_to_add:
                 session.add_all(attachment_links_to_add)

@@ -4,14 +4,15 @@ from enum import Enum
 from types import SimpleNamespace
 from typing import Annotated
 
-from pydantic import BaseModel, StringConstraints, field_validator
+from pydantic import AfterValidator, BaseModel, StringConstraints, field_validator
 from sqlalchemy import (JSON, Column, Index, MetaData, UniqueConstraint, event,
                         select)
 from sqlalchemy.orm import Session, object_session
 from sqlalchemy.types import TypeDecorator
-from sqlmodel import Field, Relationship, SQLModel
+from sqlmodel import DateTime, Field, Relationship, SQLModel
 
 from ..config import get_settings
+from ..utils.date import dt_utc
 from ..utils.utils import remove_attachment, remove_backup, remove_image
 
 convention = {
@@ -23,6 +24,14 @@ convention = {
 }
 
 SQLModel.metadata = MetaData(naming_convention=convention)
+
+
+def _naive_utc(value: datetime | None) -> datetime | None:
+    return value.astimezone(UTC).replace(tzinfo=None) if value is not None and value.tzinfo else value
+
+
+# SQLModel >=0.0.45 fix - Datetimes stored as naive UTC: sa_type=DateTime (override SQLModel UTCDateTime)
+UTCNaive = Annotated[datetime, AfterValidator(_naive_utc)]
 
 
 @event.listens_for(Session, "after_commit")
@@ -209,7 +218,7 @@ class TempPasswordRead(BaseModel):
 
 class MagicLinkBase(SQLModel):
     token: str = Field(index=True, unique=True)
-    expires: datetime
+    expires: datetime = Field(sa_type=DateTime)
 
 
 class MagicLink(MagicLinkBase, table=True):
@@ -258,7 +267,7 @@ def mark_image_for_deletion(mapper, connection, target: Image):
 
 
 class BackupBase(SQLModel):
-    completed_at: datetime | None = None
+    completed_at: datetime | None = Field(default=None, sa_type=DateTime)
     filename: str | None = None
     error_message: str | None = None
     file_size: int | None = None
@@ -269,7 +278,7 @@ class Backup(BackupBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
     user: str = Field(foreign_key="user.username", ondelete="CASCADE")
     status: BackupStatus = Field(default=BackupStatus.PENDING)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    created_at: datetime = Field(default_factory=dt_utc, sa_type=DateTime)
 
 
 @event.listens_for(Backup, "after_delete")
@@ -304,7 +313,7 @@ class BackupRead(BackupBase):
 
 class DataMigration(SQLModel, table=True):
     name: str = Field(primary_key=True)
-    applied_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    applied_at: datetime = Field(default_factory=dt_utc, sa_type=DateTime)
 
 
 class UserBase(SQLModel):
@@ -697,8 +706,8 @@ class TripMember(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     user: str = Field(foreign_key="user.username", ondelete="CASCADE")
     invited_by: str | None = Field(default=None, foreign_key="user.username", ondelete="SET NULL")
-    invited_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
-    joined_at: datetime | None = None
+    invited_at: datetime = Field(default_factory=dt_utc, sa_type=DateTime)
+    joined_at: datetime | None = Field(default=None, sa_type=DateTime)
 
     trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE", index=True)
     trip: Trip | None = Relationship(back_populates="memberships")
@@ -1100,7 +1109,7 @@ class TripPackingListItemRead(TripPackingListItemBase):
 class TripChecklistItemBase(SQLModel):
     text: str | None = None
     checked: bool | None = None
-    notify_dt: datetime | None = None
+    notify_dt: UTCNaive | None = Field(default=None, sa_type=DateTime)
 
 
 class TripChecklistItem(TripChecklistItemBase, table=True):
@@ -1259,7 +1268,7 @@ class TripPackingListRead(TripPackingListBase):
 class TripChecklistEntryBase(SQLModel):
     text: str | None = None
     checked: bool | None = None
-    notify_dt: datetime | None = None
+    notify_dt: UTCNaive | None = Field(default=None, sa_type=DateTime)
 
 
 class TripChecklistEntry(TripChecklistEntryBase, table=True):
@@ -1376,7 +1385,7 @@ class TripAttachmentBase(SQLModel):
 
 class TripAttachment(TripAttachmentBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    uploaded_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    uploaded_at: datetime = Field(default_factory=dt_utc, sa_type=DateTime)
     uploaded_by: str = Field(foreign_key="user.username", ondelete="CASCADE")
 
     trip_id: int = Field(foreign_key="trip.id", ondelete="CASCADE", index=True)
