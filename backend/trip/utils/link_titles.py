@@ -8,6 +8,8 @@ from urllib.parse import urlparse
 
 import httpx2 as httpx
 
+from ..models.models import LinkItem
+
 logger = logging.getLogger(__name__)
 
 _TITLE_RE = re.compile(r"<title[^>]*>(.*?)</title>", re.IGNORECASE | re.DOTALL)
@@ -88,24 +90,31 @@ async def fetch_link_title(url: str) -> str | None:
 
 
 async def resolve_links(
-    old_links: list | None, new_links: list[str] | None, fetch: bool
+    old_links: list | None, new_links: list[str | LinkItem] | None, fetch: bool
 ) -> list[str | dict] | None:
     if not new_links:
         return new_links
+
+    entries: list[tuple[str, str | None]] = [
+        (link, None) if isinstance(link, str) else (link.url, link.title) for link in new_links
+    ]
 
     cached_titles: dict[str, str] = {}
     for entry in old_links or []:
         if isinstance(entry, dict) and entry.get("url") and entry.get("title"):
             cached_titles[entry["url"]] = entry["title"]
+    for url, title in entries:
+        if title:
+            cached_titles[url] = title
 
-    to_fetch = list(dict.fromkeys(url for url in new_links if url not in cached_titles)) if fetch else []
+    to_fetch = list(dict.fromkeys(url for url, _ in entries if url not in cached_titles)) if fetch else []
     fetched: dict[str, str | None] = {}
     if to_fetch:
         results = await asyncio.gather(*(fetch_link_title(url) for url in to_fetch))
         fetched = dict(zip(to_fetch, results))
 
     resolved: list[str | dict] = []
-    for url in new_links:
+    for url, _ in entries:
         title = cached_titles.get(url) or fetched.get(url)
         resolved.append({"url": url, "title": title} if title else url)
     return resolved
