@@ -535,7 +535,7 @@ class PlaceBase(SQLModel):
     visited: bool | None = None
     gpx: str | None = None
     restroom: bool | None = None
-    links: list[str] | None = None
+    links: list[str | LinkItem] | None = None
 
 
 class Place(PlaceBase, table=True):
@@ -859,7 +859,7 @@ class TripItemBase(SQLModel):
     lng: float | None = None
     status: TripItemStatusEnum | None = None
     gpx: str | None = None
-    links: list[str] | None = None
+    links: list[str | LinkItem] | None = None
 
     @field_validator("time", mode="before")
     def pad_mm_if_needed(cls, value: str | None) -> str | None:
